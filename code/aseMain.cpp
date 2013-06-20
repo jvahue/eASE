@@ -63,7 +63,7 @@ int main(void)
   UNSIGNED32 *systemTickPtr;
 
   // Print the title message.
-  debug_str(AseMain, 0, 0, "ASE ... System Tick Rate (Hz) = %d", systemTickTimeInHz);
+  debug_str(AseMain, 0, 0, "ASE ...System Tick Rate (Hz) = %d", systemTickTimeInHz);
 
   //videoOutTitle << "ASE ... System Tick Rate (Hz) = " << dec << systemTickTimeInHz << endl;
 
