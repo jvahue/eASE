@@ -1,0 +1,15 @@
+#
+# This is OpenArbor's configuration file for this project.
+# For an explanation of the syntax and semantics, visit one of these:
+#     Help | DDC-I GCC Documents   | Guides | PDF Documents | OpenArbor User's Guide for GCC   | Options File
+#     Help | DDC-I SCORE Documents | Guides | PDF Documents | OpenArbor User's Guide for SCORE | Options File
+# Changes to this file will take effect immediately when the file is saved.
+#
+
+VERSION = 11
+LANGUAGE = CPP
+TOOLSET = gcc
+TARGET = 80x86
+BUILD_CONFIGS += diagnostic
+GCC_CPP_COMPILE_DIRECTORIES += $(ABS_PROJECT_PATH.adrf)/code
+GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l ansi -l video

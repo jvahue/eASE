@@ -1,0 +1,79 @@
+<?xml version = "1.0" encoding="ISO-8859-1"?>
+<processTemplate
+     name = "ase-process-template"
+     mailboxQuota = "0"
+     systemMemoryObjectQuota = "0"
+     validityKey = "-1554857877"
+     breakAtStartup = "no"
+     mutexQuota = "0"
+     semaphoreQuota = "0"
+     envelopeQuota = "0"
+     memoryObjectQuota = "5"
+     crcAtProcessCreation = "no"
+     largestAMOSizeInPages = "1"
+     nameQuota = "50"
+     toolVersion = "2.8.3"
+     inDebugSet = "no"
+     attachedMemoryObjectQuota = "50"
+     eventQuota = "0"
+     executeFromRAM = "no"
+     threadQuota = "5"
+     comment = "This comment block is the one place in the file that users can add comments to the file."
+     addlRamPagesForExecuteOutOfRam = "0"
+     executableName = "ase.exe"
+     attachedResourceQuota = "0"
+     threadStackVASGap = "yes"
+     tlsSpaceInBytes = "0"
+     addTLSToStack = "no"
+     argumentQuota = "0"
+     pipc_consumeHandlePrefix = "deprecated"
+     pipc_produceHandlePrefix = "deprecated"
+     pipc_declareConsumeFail = "deprecated"
+     pipc_declareProduceFail = "deprecated"
+     pipc_includeFileFail = "deprecated"
+     pipc_initializeConsumeHandles = "no"
+     pipc_codeStyle = "C"
+     xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation = "pd.xsd"
+   >
+   <memoryPools>
+      <memoryPool
+           platformPoolID = "0"
+           sizeInPages = "60"
+           defaultPool = "yes"
+      ></memoryPool>
+   </memoryPools>
+   <processInstances>
+      <processInstance
+           name = "ase-process"
+           filesystemAccess = "no"
+           kernelAttributeAccess = "no"
+           dataParameter = "0"
+           autoCreated = "yes"
+           reservedProcessNames = ""
+           reservedMemoryObjectNames = ""
+           argvCommandLineParameters = ""
+           envpCommandLineParameters = ""
+         >
+      </processInstance>
+   </processInstances>
+   <threadTemplates>
+      <threadTemplate
+           name = "mainThreadTemplate"
+           budget = "370"
+           instanceCount = "1"
+           slackEnabled = "no"
+           stackSizeInPages = "1"
+           period = "fastest"
+           namesOfMutexesLocked = ""
+           usedToCreateISRThread = "no"
+      ></threadTemplate>
+   </threadTemplates>
+   <threadNames>
+      <threadName
+           name = "PrimaryThread"
+           primaryThread = "yes"
+           period = "fastest"
+      ></threadName>
+   </threadNames>
+</processTemplate>

@@ -1,0 +1,141 @@
+/******************************************************************************
+              Copyright (C) 2012-2013 Pratt & Whitney Engine Services, Inc.
+                 All Rights Reserved. Proprietary and Confidential.
+
+    File:        ParamSrcHMU.c
+
+    Description: Read and decode parameters from the 664 bus through DEoS IoI
+
+    VERSION
+      $Revision: 3 $  $Date: 6/19/13 11:56a $
+
+******************************************************************************/
+
+/*****************************************************************************/
+/* Compiler Specific Includes                                                */
+/*****************************************************************************/
+#include <deos.h>
+#include <videobuf.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+/*****************************************************************************/
+/* Software Specific Includes                                                */
+/*****************************************************************************/
+extern "C" {
+#include "alt_basic.h"
+#include "alt_stdtypes.h"
+#include "alt_Time.h"
+}
+#include "video.h"
+
+/*****************************************************************************/
+/* Local Defines                                                             */
+/*****************************************************************************/
+/*****************************************************************************/
+/* Local Typedefs                                                            */
+/*****************************************************************************/
+typedef struct
+{
+	CHAR smo_name[32];
+	void* smo;
+	ipcMemoryObjectHandle mo;
+	ipcAttachedMemoryObjectHandle amo;
+	VideoStream vid_stream;
+	BOOLEAN scroll;
+}DEBUG_SCREEN_DATA;
+
+/*****************************************************************************/
+/* Local Variables                                                           */
+/*****************************************************************************/
+#undef VID_DEF
+#define VID_DEF(Id,Name,Scroll) {Name,0,0,0,VideoStream(),Scroll}
+DEBUG_SCREEN_DATA m_screens[] = {VID_DEF_LIST};
+
+/*****************************************************************************/
+/* Local Function Prototypes                                                 */
+/*****************************************************************************/
+/*****************************************************************************/
+/* Constant Data                                                             */
+/*****************************************************************************/
+/*****************************************************************************/
+/* Public Functions                                                          */
+/*****************************************************************************/
+
+/******************************************************************************
+ * Function:    debug_str_init
+ *
+ * Description: Setup a new debug screen. Create a new globally accessable
+ *              shared memory object and initialize it as video memory.
+ *
+ * Parameters:  none
+ *
+ * Returns:     none
+ *
+ * Notes:
+ *
+ *****************************************************************************/
+void debug_str_init(void)
+{
+    ipcStatus is;
+    INT32 i;
+
+    for(i = 0; i < VID_MAX; i++)
+    {
+      if((is= createMemoryObject(m_screens[i].smo_name,4096,FALSE,
+                               &m_screens[i].mo))!=ipcValid){}
+
+      else if((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(), TRUE,
+                                           readWriteDeleteAccess)) !=ipcValid){}
+
+      else if((is = attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo, readWriteAccess,
+                                           &m_screens[i].smo, 0x1000, 0,
+                                           &m_screens[i].amo)) !=ipcValid){}
+
+      initializeVideoMemory(m_screens[i].smo);
+      m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
+      m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
+      m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+    }
+}
+
+
+
+/******************************************************************************
+ * Function:    debug_str
+ *
+ * Description:
+ *
+ * Parameters:  [in] screen: Screen enum
+ *              [in] row,col: Initial cursor position, only for screens with no
+ *                            scroll option set.
+ *              [in] str:    Formatted string to write
+ *              [in] ...:    varargs to use with formatted string.
+ *
+ * Returns:     none
+ *
+ * Notes:
+ *
+ *****************************************************************************/
+void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
+{
+  CHAR buf[80];
+
+	va_list args;
+
+	va_start(args,str);
+
+	vsprintf( buf, str, args);
+
+	va_end(args);
+
+	if(!m_screens[screen].scroll)
+	{
+		m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
+    }
+
+	m_screens[screen].vid_stream << buf;
+
+}
+
