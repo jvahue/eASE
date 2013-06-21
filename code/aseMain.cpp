@@ -21,6 +21,7 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "video.h"
+#include "AseThread.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -49,7 +50,7 @@ int main(void)
 { // The function main() implements this process' main thread (sometimes referred to as its
   // primary thread).  That is, when Deos automatically creates the main thread, main() will
   // execute.
-
+    FxProc t1;
   // Declare some VideoStream objects that will allow this thread to output text to the target's
   // video memory (essentially, a printf-style debugging aid).  For each VideoStream object,
   // we specify four parameters (y, x, numY, numX), where:
@@ -70,11 +71,15 @@ int main(void)
   // Grab the system tick pointer
   systemTickPtr = systemTickPointer();
 
+  t1.Create();
+
+
   // The main thread goes into an infinite loop.
   while (1)
   {
     // Write the system tick value to video memory.
       debug_str(AseMain, 0, 40, "System Tick = %d", *systemTickPtr);
+      debug_str(AseMain, 1, 40, "T1 Ticks = %d", t1.m_ticks);
       //videoOut1 << "System Tick = " << dec << *systemTickPtr << endl;
 
     // Yield the CPU and wait until the next period to run again.

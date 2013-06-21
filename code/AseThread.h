@@ -26,8 +26,8 @@ class AseThread
 {
   public:
 	enum AseThreadState	{ eNotCreated, eStop, eRun, eSusp};
-	AseThread(int* pCmd);
-	~AseThread();
+	AseThread();
+	//virtual ~AseThread();
 
 	// Thread control
 	void Run();
@@ -36,6 +36,7 @@ class AseThread
 
 	// Accessors
 	AseThreadState GetRunState();
+	virtual void Create () {};
 
   protected:
     // Obj refs
@@ -46,8 +47,7 @@ class AseThread
 	AseThreadState  m_state;
 
 	// Methods
-	virtual void Create () = 0;
-	virtual void Process() = 0;
+	virtual void Process() {};
 
 	static void ThreadFunc( DWORD obj)
     {
@@ -62,6 +62,9 @@ class FxProc : public AseThread
 {
 	protected:
 	  // Methods
-	  virtual void Create();  // override the AseThread::Create
 	  virtual void Process(); // override the AseThread::Process
+
+public:
+	  virtual void Create();  // override the AseThread::Create
+	  UNSIGNED32 m_ticks;
 };

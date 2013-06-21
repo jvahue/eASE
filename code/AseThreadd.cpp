@@ -1,16 +1,16 @@
 #include "AseThread.h"
 #include <deos.h>
 
+#include "video.h"
+
 /****************************************************************************
  public methods
  ****************************************************************************/
-AseThread::AseThread(int* pCmd)
+AseThread::AseThread()
 {
-  m_pCmd = pCmd;
+  //m_pCmd = pCmd;
 }
 
-AseThread::~AseThread()
-{}
 
 void AseThread::Run()
 {
@@ -49,5 +49,9 @@ void FxProc::Create()
 
 void FxProc::Process()
 {
- // Faux-Proc unique processing.
+    while (1)
+    {
+        m_ticks += 1;
+        waitUntilNextPeriod();
+    }
 }

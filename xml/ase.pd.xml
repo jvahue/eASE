@@ -3,8 +3,8 @@
      name = "ase-process-template"
      mailboxQuota = "0"
      systemMemoryObjectQuota = "0"
-     validityKey = "-1948959911"
-     breakAtStartup = "no"
+     validityKey = "837439689"
+     breakAtStartup = "yes"
      mutexQuota = "0"
      semaphoreQuota = "0"
      envelopeQuota = "0"
@@ -58,6 +58,16 @@
       </processInstance>
    </processInstances>
    <threadTemplates>
+      <threadTemplate
+           name = "FxProcThreadTemplate"
+           budget = "370"
+           instanceCount = "1"
+           slackEnabled = "no"
+           stackSizeInPages = "1"
+           period = "fastest"
+           namesOfMutexesLocked = ""
+           usedToCreateISRThread = "no"
+      ></threadTemplate>
       <threadTemplate
            name = "mainThreadTemplate"
            budget = "370"
