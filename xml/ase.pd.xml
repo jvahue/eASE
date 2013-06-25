@@ -1,17 +1,17 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <processTemplate
      name = "ase-process-template"
-     mailboxQuota = "0"
+     mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "837439689"
-     breakAtStartup = "yes"
+     validityKey = "-2044333198"
+     breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "0"
-     envelopeQuota = "0"
+     envelopeQuota = "30"
      memoryObjectQuota = "5"
      crcAtProcessCreation = "no"
      largestAMOSizeInPages = "1"
-     nameQuota = "50"
+     nameQuota = "75"
      toolVersion = "2.8.3"
      inDebugSet = "no"
      attachedMemoryObjectQuota = "50"
@@ -45,7 +45,7 @@
    </memoryPools>
    <processInstances>
       <processInstance
-           name = "ase-process"
+           name = "ASE"
            filesystemAccess = "no"
            kernelAttributeAccess = "no"
            dataParameter = "0"
@@ -61,7 +61,7 @@
       <threadTemplate
            name = "FxProcThreadTemplate"
            budget = "370"
-           instanceCount = "1"
+           instanceCount = "8"
            slackEnabled = "no"
            stackSizeInPages = "1"
            period = "fastest"

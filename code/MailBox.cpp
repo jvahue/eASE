@@ -22,6 +22,7 @@
 /*****************************************************************************/
 #include <videobuf.h>
 #include <string.h>
+#include "video.h"
 
 #include "Mailbox.h"
 
@@ -58,7 +59,121 @@ CHAR* is_to_str(ipcStatus is);
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
-
+/*****************************************************************************
+ * Function:    is_to_str
+ *
+ * Description: Convert a ipcStatus return value to a descriptive string
+ *
+ * Parameters:  [in] is: ipcStatus return value
+ *
+ * Returns:     CHAR* null terminated string describing is
+ *
+ * Notes:
+ *
+ ****************************************************************************/
+const char* is_to_str(ipcStatus is)
+{
+    const char* is_strs[] = {
+    "ipcValid",
+    "ipcInvalidThread",
+    "ipcInvalid",
+    "ipcNoSuchProduceItem",
+    "ipcInvalidSize",
+    "ipcNoPreviousProducerToCopy",
+    "ipcNoSuchConsumeItem",
+    "ipcCouldNotAttachToProducer",
+    "ipcQuotaExceeded",
+    "ipcNoSuchMemoryObject",
+    "ipcInsufficientVirtualAddressSpace",
+    "ipcNoDataFromProducer",
+    "ipcInvalidMessage",
+    "ipcInvalidMessageLength",
+    "ipcStaleMessage",
+    "ipcOutOfMemory",
+    "ipcInsufficientPrivilege",
+    "ipcInvalidHandle",
+    "ipcInvalidAccessType",
+    "ipcInvalidProcessHandle",
+    "ipcInvalidMemoryObjectHandle",
+    "ipcInvalidMailboxHandle",
+    "ipcInvalidEnvelopeHandle",
+    "ipcEnvelopeInMailbox",
+    "ipcQueueFull",
+    "ipcNoMessage",
+    "ipcEnvelopeQuotaExceeded",
+    "ipcHandleMismatch",
+    "ipcInsufficientEnvelopePrivilege",
+    "ipcAddressNotPageAligned",
+    "ipcOffsetNotPageAligned",
+    "ipcDuplicateAlias",
+    "ipcAnonymousProcessCantCreateMemoryObject",
+    "ipcAbortedByException",
+    "ipcMailboxDeleted",
+    "ipcInsufficientRAM",
+    "ipcAddressWrapAround",
+    "ipcInvalidExtParSize",
+    "ipcInvalidTimeoutSpecifier",
+    "ipcInsufficientTime"
+    };
+    return is <= processInsufficientMainBudget ? is_strs[is] : "WTF?";
+}
+/*****************************************************************************
+ * Function:    ps_to_str
+ *
+ * Description: Convert a processStatus return value to a descriptive string
+ *
+ * Parameters:  [in] ps: processStatus return value
+ *
+ * Returns:     CHAR* null terminated string describing ps
+ *
+ * Notes:
+ *
+ ****************************************************************************/
+const char* ps_to_str(processStatus ps)
+{
+	const char* ps_strs[] = {   "processSuccess",
+    "processInvalidHandle",
+    "processInsufficientPrivilege",
+    "processInvalidTemplate",
+    "processInsufficientResourcesObsolete",
+    "processNotActive",
+    "processInvalidName",
+    "processInsufficientSystemQuota",
+    "processSourceAddressWrapAround",
+    "processDestinationAddressWrapAround",
+    "processSourcePageNotPresent",
+    "processDestinationPageNotPresent",
+    "processInsufficientProcessQuota",
+    "processInsufficientBudget",
+    "processInsufficientRAM",
+    "processInsufficientThreadQuota",
+    "processInsufficientMutexQuota",
+    "processInsufficientEventQuota",
+    "processInsufficientSemaphoreQuota",
+    "processInsufficientMOQuota",
+    "processInsufficientAMOQuota",
+    "processInsufficientEnvelopeQuota",
+    "processInsufficientMailboxQuota",
+    "processInsufficientNameQuota",
+    "processInsufficientPlatformResourceQuota",
+    "processAMOSizeLargerThanParent",
+    "processThreadStackLargerThanParent",
+    "processScheduleBeforePeriodMismatch",
+    "processDestinationPageDeleted",
+    "processInsufficientRetainedBudget",
+    "processNotMemoryAddress",
+    "processArgumentNotOnStack",
+    "processInsufficientArgumentQuota",
+    "processArgumentVectorAllocationError",
+    "processArgumentStringAllocationError",
+    "processArgumentVectorCopyError",
+    "processArgumentStringCopyError",
+    "processWindowActivatedThreadMainPeriodMismatch", /* Reserved for WAT */
+    "processNotZeroMainBudget",                       /* Reserved for WAT */
+    "processInsufficientMainBudget"                   /* Reserved for WAT */
+   };
+   return ps <= processInsufficientMainBudget ? ps_strs[ps] : "WTF?";
+}
 /*****************************************************************************
  * Function:    Mailbox
  *
@@ -72,23 +187,23 @@ CHAR* is_to_str(ipcStatus is);
  *
  ****************************************************************************/
 MailBox::MailBox(void)
-  :m_hProcess(NULL)
-  ,m_procStatus(processInvalidHandle)
-  ,m_hMailBox(NULL)
-  ,m_ipcStatus(ipcNoSuchProduceItem)
-  ,m_type(eUndefined)
-  ,m_grantListSize(0)
-  ,m_successfulGrantCnt(0)
-{
-  // Init the access grant status list.
-  // this is only used by creators(owners)
-  // to manage grants to processes which will write to my mailbox.
-  for (int i = 0; i < eMaxGrantsAllowed; ++i)
-  {
-    m_grantList[i].ProcName[0] = '\0';
-    m_grantList[i].bConnected  = FALSE;
-  }
-}
+    :m_hProcess(NULL)
+    ,m_procStatus(processInvalidHandle)
+    ,m_hMailBox(NULL)
+    ,m_ipcStatus(ipcNoSuchProduceItem)
+    ,m_type(eUndefined)
+    ,m_grantListSize(0)
+    ,m_successfulGrantCnt(0)
+    {
+        // Init the access grant status list.
+        // this is only used by creators(owners)
+        // to manage grants to processes which will write to my mailbox.
+        for (int i = 0; i < eMaxGrantsAllowed; ++i)
+        {
+            m_grantList[i].ProcName[0] = '\0';
+            m_grantList[i].bConnected  = FALSE;
+        }
+    }
 
 /******************************************************************************************
  *  Public methods
@@ -109,23 +224,50 @@ MailBox::MailBox(void)
  * Notes:
  *
  ****************************************************************************/
-BOOLEAN MailBox::Create(const char* procName, UINT32 maxMsgSize,UINT32 maxQueDepth)
+BOOLEAN MailBox::Create(const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth)
 {
-  BOOLEAN result = FALSE;
+    BOOLEAN result = FALSE;
 
-  strncpy(m_procName, procName,  sizeof(eMaxProcNameLen));
+    strncpy(m_mailBoxName, mbName,  eMaxMailboxNameLen);
 
-  m_ipcStatus = createMailbox(m_procName, maxMsgSize, maxQueDepth, &m_hMailBox);
+    m_ipcStatus = createMailbox(m_mailBoxName, maxMsgSize, maxQueDepth, &m_hMailBox);
 
-  DEBUG_STR0("Call to createMailbox %s returned %s\n", m_mailBoxName, is_to_str(m_ipcStatus));
+    if(m_ipcStatus == ipcValid)
+    {
+        result = TRUE;
+        m_type = eRecv;
+    }
+        return result;
+    }
 
-  if(m_ipcStatus == ipcValid)
-  {
-    result = TRUE;
-    m_type = eRecv;
-  }
-  return result;
+
+/*****************************************************************************
+ * Function:    GrantProcess
+ *
+ * Description:  Connect to a Mailbox for sending, OR...
+ *               grants access to a process to sending msgs to mailbox
+ *               created by this process via a preceding 'create' call.
+ *
+ * Parameters:   procName - string containing the name of the process which owns
+ *                          the mailbox.
+ *               mbName   - string containing the name of the mailbox.
+ *
+ * Returns:      True if success, otherwise false
+ *
+ * Notes:
+ *
+ ****************************************************************************/
+BOOLEAN MailBox::GrantProcess(const char* procName)
+{
+    BOOLEAN result = TRUE;
+
+    if (m_type == eRecv)
+    {
+        AddSender(procName);
+    }// switch on mailbox type
+    return result;
 }
+
 
 /*****************************************************************************
  * Function:    Connect
@@ -147,52 +289,34 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 {
   BOOLEAN result = TRUE;
 
-  // If this mailbox is being created by the owner, then grant write/send access to the
-  //  specified process.
-
-  if(0 != strlen(procName))
-  {
-    result = FALSE;
-  }
-
   switch (m_type)
   {
-    // If mailbox handle is set and 'this' is a mailbox owner(eRecv),
-    // grant access for the specified sender process.
-    case eRecv:
-      if (m_hMailBox != NULL)
-      {
-        AllowSender(procName);
-      }
-      break;
-
     case eUndefined:
-      // We are setting up a sender mailbox obj...
-      strncpy(m_procName,    procName, sizeof(m_procName));
-      strncpy(m_mailBoxName, mbName,   sizeof(m_mailBoxName));
-      m_type = eSend;
-      //Deliberate fallthrough...
-
+        // First time attempting to set up a sender mailbox obj...
+        strncpy(m_procName,    procName, eMaxProcNameLen);
+        strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
+        m_type = eSend;
+        //Deliberate fallthrough...
     case eSend:
-      // Get Process handle for the mailbox owner
-      m_procStatus = getProcessHandle(m_procName, &m_hProcess);
-      if( m_procStatus == processSuccess)
-      {
+        // Get Process handle for the mailbox owner
+   m_procStatus = getProcessHandle(m_procName, &m_hProcess);
+       if( m_procStatus == processSuccess)
+       {
         //Get mailbox handle/attach as sender.
         m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
         if(m_ipcStatus != ipcValid)
         {
           m_hMailBox = NULL;
-          DEBUG_STR0("Call to getMailboxHandle %s returned %s\n",
-                                 m_mailBoxName, is_to_str(m_ipcStatus));
+        }
+        else
+        {
+          INT32 x = 5;
         }
       }
       else
       {
         // getProcessHandle failed, report.
         m_hProcess = NULL;
-        DEBUG_STR0("Call to getProcessHandle %s returned %s\n", m_procName,
-                         ps_to_str(m_procStatus));
       }
 
       if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
@@ -229,7 +353,7 @@ INT32 MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
     // try to connect them each time we do a read.
     if (m_successfulGrantCnt < m_grantListSize )
     {
-      ConnectSenders();
+        OpenSenders();
     }
 
     // Read the mailbox
@@ -272,7 +396,10 @@ INT32 MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 
   if (IsConnected())
   {
-    m_ipcStatus = sendMessage(m_hMailBox, buff, BYTES_TO_DWORDS(sizeBytes), bBlockOnQueueFull);
+    m_ipcStatus = sendMessage(m_hMailBox,
+                              buff,
+                              BYTES_TO_DWORDS(sizeBytes),
+                              bBlockOnQueueFull);
   }
 
   return (INT32)m_ipcStatus;
@@ -284,7 +411,7 @@ INT32 MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 
 
 /*****************************************************************************
- * Function:    AllowSender
+ * Function:    AddSender
  *
  * Description:  Connect/grant send-access to the process 'procName'
  *
@@ -295,23 +422,23 @@ INT32 MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
  * Notes:
  *
  ****************************************************************************/
-void MailBox::AllowSender(const char* procName)
+void MailBox::AddSender(const char* procName)
 {
   // Add the allowed-sender to the process list.
   // NOTE: NOT CHECKING FOR DUPLICATE ATTEMPTS!!
-  strncpy(m_grantList[m_grantListSize].ProcName, procName, eMaxProcNameLen);
+  strncpy(&m_grantList[m_grantListSize].ProcName[0], procName, eMaxProcNameLen);
   m_grantListSize++;
 
-  // Try to grant/connect this and any un-connected senders.
-  ConnectSenders();
+  // Attempt to grant this and any other unsuccessful sender processes.
+  OpenSenders();
 
   return;
 }
 
 /*****************************************************************************
- * Function:    ConnectSenders
+ * Function:    OpenSenders
  *
- * Description:  Connect/grant other processes access to my mailbox.
+ * Description:  Open/grant other processes access to my mailbox.
  *               This method is called by the MB owner to check the grant list
  *               for processes which have not been connected and attempts
  *               to get handle and grant auth.
@@ -324,7 +451,7 @@ void MailBox::AllowSender(const char* procName)
  * Notes:
  *
  ****************************************************************************/
-void MailBox::ConnectSenders(void)
+void MailBox::OpenSenders(void)
 {
   process_handle_t procHandle;
   processStatus    procStatus;
@@ -332,31 +459,26 @@ void MailBox::ConnectSenders(void)
   ipcStatus        ipcStat;
   INT32 i;
 
-  for (i = 0; (i < m_grantListSize) &&
-              (m_successfulGrantCnt < m_grantListSize );
-              ++i)
-  {
-    // For each allowed process not yet connected, find the process and grant
-    // access to my mailbox
-    if ( !m_grantList[i].bConnected )
+    for (i = 0; (i < m_grantListSize) &&
+                (m_successfulGrantCnt < m_grantListSize );
+                ++i)
     {
-      // Get a handle to the sender process
-      procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
-
-      if(procStatus == processSuccess)
-      {
-        ipcStat = grantMailboxAccess(m_hMailBox, procHandle, FALSE);
-        if (ipcStat == ipcValid)
+        // For each allowed process not yet connected, find the process and grant
+        // access to my mailbox
+        if ( !m_grantList[i].bConnected )
         {
-          m_grantList[i].bConnected = TRUE;
-          m_successfulGrantCnt++;
-        }
-        DEBUG_STR0("grantMailboxAccess to %s:  %s\n", procName, is_to_str(ipcStatus));
-      }
-      else
-      {
-        DEBUG_STR0("getProcessHandle %s is %s\n", procName, ps_to_str(ps));
-      }
-    }// Process not connected
-  }// for grant list table.
+            // Get a handle to the sender process
+            procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
+           
+            if(procStatus == processSuccess)
+            {
+                ipcStat = grantMailboxAccess(m_hMailBox, procHandle, FALSE);
+                if (ipcStat == ipcValid)
+                {
+                  m_grantList[i].bConnected = TRUE;
+                  m_successfulGrantCnt++;
+                }
+            }
+        }// Process not connected
+    }// for grant list table.
 }
