@@ -26,7 +26,13 @@ class CmdObj;
 class AseThread
 {
 public:
-    enum AseThreadState { eNotCreated, eStop, eRun, eSusp, eError};
+    enum AseThreadState {
+        eNotCreated,
+        eStop,
+        eRun,
+        eSusp,
+        eComplete,
+        eError};
     
     AseThread();
 
@@ -43,7 +49,7 @@ protected:
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     
-    virtual void Create(CHAR* name, CHAR* tName, void* data);
+    virtual void Create(CHAR* name, CHAR* tName);
 
     // Methods
     virtual void Process() {};

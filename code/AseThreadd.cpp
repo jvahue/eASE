@@ -28,11 +28,11 @@ void AseThread::Run()
 // tName (i): the template name
 // data (i): pointer to data to pass to the thread
 //
-AseThread::Create(const CHAR* name, const CHAR* tName, void* data)
+AseThread::Create(const CHAR* name, const CHAR* tName)
 {
     threadStatus ts;
 
-    ts = createThread(name, tName, ThreadFunc, (DWORD)data, &m_hThread);
+    ts = createThread(name, tName, ThreadFunc, (DWORD)this, &m_hThread);
     if (ts != threadSuccess)
     {
         m_state = eError;
@@ -54,9 +54,7 @@ AseThread::AseThreadState AseThread::GetRunState()
 
 void FxProc::Create()
 {
-    threadStatus ts;
-    ts = createThread("FxProc", "FxProcThreadTemplate", ThreadFunc,
-                                       (DWORD)this, &m_hThread);
+    AseThread::Create("FxProc", "FxProcThreadTemplate");
 }
 
 
@@ -77,7 +75,6 @@ void SendProc::Create()
 {
     threadStatus ts;
 
-
     // Create my recv mailbox, grant any ASE thread to send.
     m_recvBox.Create("SendProcMB", sizeof(m_recvBuf),2);
     m_recvBox.GrantProcess("ASE");
@@ -85,8 +82,7 @@ void SendProc::Create()
     // Connect send box for sending to the EchoProc mailbox
     m_sendBox.Connect("ASE","EchoProcMB");
 
-    ts = createThread("SendProc", "FxProcThreadTemplate", ThreadFunc,
-                                       (DWORD)this, &m_hThread);
+    AseThread::Create("SendProc", "FxProcThreadTemplate");
 }
 
 
@@ -146,8 +142,7 @@ void EchoProc::Create()
     // Connect to the SendProc mailbox
     m_sendBox.Connect("ASE","SendProcMB");
 
-    ts = createThread("EchoProc", "FxProcThreadTemplate", ThreadFunc,
-                                            (DWORD)this, &m_hThread);
+    AseThread::Create("EchoProc", "FxProcThreadTemplate");
 }
 
 void EchoProc::Process()
