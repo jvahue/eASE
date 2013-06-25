@@ -8,6 +8,8 @@
  public methods
  ****************************************************************************/
 AseThread::AseThread()
+    : m_hThread(0)
+    , m_state(eNotCreated)
 {
 }
 
@@ -16,7 +18,7 @@ void AseThread::Run()
 {
     if (m_state == eNotCreated)
     {
-      Create();
+        Create();
     }
 }
 

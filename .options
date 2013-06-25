@@ -12,4 +12,5 @@ TOOLSET = gcc
 TARGET = 80x86
 BUILD_CONFIGS += diagnostic
 GCC_CPP_COMPILE_DIRECTORIES += $(ABS_PROJECT_PATH.adrf)/code
-GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l ansi -l video
+GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l ansi -l video -l sal -l mtl
+GCC_C_COMPILE_ADDITIONAL_OPTIONS = -l video -l sal -l mtl -l ansi

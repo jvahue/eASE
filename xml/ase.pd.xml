@@ -3,10 +3,10 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "876046775"
-     breakAtStartup = "no"
+     validityKey = "645968820"
+     breakAtStartup = "yes"
      mutexQuota = "0"
-     semaphoreQuota = "0"
+     semaphoreQuota = "5"
      envelopeQuota = "30"
      memoryObjectQuota = "5"
      crcAtProcessCreation = "no"
@@ -17,7 +17,7 @@
      attachedMemoryObjectQuota = "50"
      eventQuota = "0"
      executeFromRAM = "no"
-     threadQuota = "5"
+     threadQuota = "10"
      comment = "This comment block is the one place in the file that users can add comments to the file."
      addlRamPagesForExecuteOutOfRam = "0"
      executableName = "ase.exe"
@@ -59,11 +59,11 @@
    </processInstances>
    <threadTemplates>
       <threadTemplate
-           name = "FxProcThreadTemplate"
-           budget = "370"
-           instanceCount = "8"
+           name = "StdThreadTemplate"
+           budget = "500"
+           instanceCount = "1"
            slackEnabled = "no"
-           stackSizeInPages = "1"
+           stackSizeInPages = "5"
            period = "fastest"
            namesOfMutexesLocked = ""
            usedToCreateISRThread = "no"
@@ -73,7 +73,7 @@
            budget = "370"
            instanceCount = "1"
            slackEnabled = "no"
-           stackSizeInPages = "2"
+           stackSizeInPages = "5"
            period = "fastest"
            namesOfMutexesLocked = ""
            usedToCreateISRThread = "no"
@@ -81,17 +81,12 @@
    </threadTemplates>
    <threadNames>
       <threadName
-           name = "EchoProc"
-           primaryThread = "no"
-           period = "fastest"
-      ></threadName>
-      <threadName
            name = "PrimaryThread"
            primaryThread = "yes"
            period = "fastest"
       ></threadName>
       <threadName
-           name = "SendProc"
+           name = "SecCommRx"
            primaryThread = "no"
            period = "fastest"
       ></threadName>
