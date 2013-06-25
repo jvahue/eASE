@@ -9,7 +9,6 @@
  ****************************************************************************/
 AseThread::AseThread()
 {
-    //m_pCmd = pCmd;
 }
 
 
@@ -20,15 +19,29 @@ void AseThread::Run()
       Create();
     }
 }
-void AseThread::Suspend()
+
+//-------------------------------------------------------------------------------------------------
+// Function: Create
+// Description: Spawn the thread and check for creation
+// Parameters:
+// name (i): the name of the thread
+// tName (i): the template name
+// data (i): pointer to data to pass to the thread
+//
+AseThread::Create(const CHAR* name, const CHAR* tName, void* data)
 {
+    threadStatus ts;
 
+    ts = createThread(name, tName, ThreadFunc, (DWORD)data, &m_hThread);
+    if (ts != threadSuccess)
+    {
+        m_state = eError;
+    }
+    else
+    {
+        m_state = eRun;
+    }
 }
-void AseThread::Stop()
-{
-
-}
-
 
 AseThread::AseThreadState AseThread::GetRunState()
 {

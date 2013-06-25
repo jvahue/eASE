@@ -25,28 +25,26 @@ class CmdObj;
 
 class AseThread
 {
-    public:
-    enum AseThreadState { eNotCreated, eStop, eRun, eSusp};
-    AseThread();
-    //virtual ~AseThread();
+public:
+    enum AseThreadState { eNotCreated, eStop, eRun, eSusp, eError};
     
+    AseThread();
+
     // Thread control
-    void Run();
-    void Suspend();
-    void Stop();
+    virtual void Run();
+
     
     // Accessors
     AseThreadState GetRunState();
-    virtual void Create () {};
     
-    protected:
+protected:
     // Obj refs
-    int* m_pCmd;  // make this a ptr to CmdObj
-    
     // Thread Attribs.
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     
+    virtual void Create(CHAR* name, CHAR* tName, void* data);
+
     // Methods
     virtual void Process() {};
     
@@ -55,7 +53,7 @@ class AseThread
       ((AseThread*)obj)->Process();
     }
     
-    private:
+
 };
 
 /**********************************************************************/
