@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "-2044333198"
+     validityKey = "876046775"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "0"
@@ -73,7 +73,7 @@
            budget = "370"
            instanceCount = "1"
            slackEnabled = "no"
-           stackSizeInPages = "1"
+           stackSizeInPages = "2"
            period = "fastest"
            namesOfMutexesLocked = ""
            usedToCreateISRThread = "no"
@@ -81,8 +81,18 @@
    </threadTemplates>
    <threadNames>
       <threadName
+           name = "EchoProc"
+           primaryThread = "no"
+           period = "fastest"
+      ></threadName>
+      <threadName
            name = "PrimaryThread"
            primaryThread = "yes"
+           period = "fastest"
+      ></threadName>
+      <threadName
+           name = "SendProc"
+           primaryThread = "no"
            period = "fastest"
       ></threadName>
    </threadNames>

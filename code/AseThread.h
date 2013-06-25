@@ -49,7 +49,8 @@ protected:
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     
-    virtual void Create(CHAR* name, CHAR* tName);
+    virtual void Create(const CHAR* name, const CHAR* tName);
+    virtual void Create() {};
 
     // Methods
     virtual void Process() {};

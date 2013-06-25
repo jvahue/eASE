@@ -34,8 +34,7 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-SendProc t1;
-EchoProc t2;
+
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
@@ -48,7 +47,8 @@ EchoProc t2;
 /* Public Functions                                                          */
 /*****************************************************************************/
 int main(void)
-{ // The function main() implements this process' main thread (sometimes referred to as its
+{
+  // The function main() implements this process' main thread (sometimes referred to as its
   // primary thread).  That is, when Deos automatically creates the main thread, main() will
   // execute.
 
@@ -59,6 +59,7 @@ int main(void)
   // y=starting row, x=starting column, numY=number of rows, and numX=number of columns
   //VideoStream videoOutTitle(14, 0, 1, 50);   // here is where we'll output the title string
   //VideoStream videoOut1(20, 40, 1, 40);     // here is where we'll output the system tick value
+
   debug_str_init();
 
   // These variables are used to hold values we want to output to video memory.
@@ -67,7 +68,8 @@ int main(void)
 
   // Print the title message.
   debug_str(AseMain, 0, 0, "ASE ...System Tick Rate (Hz) = %d", systemTickTimeInHz);
-
+  SendProc t1;
+  EchoProc t2;
 
   // Grab the system tick pointer
   systemTickPtr = systemTickPointer();

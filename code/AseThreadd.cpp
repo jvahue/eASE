@@ -28,7 +28,7 @@ void AseThread::Run()
 // tName (i): the template name
 // data (i): pointer to data to pass to the thread
 //
-AseThread::Create(const CHAR* name, const CHAR* tName)
+void AseThread::Create(const CHAR* name, const CHAR* tName)
 {
     threadStatus ts;
 
