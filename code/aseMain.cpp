@@ -42,6 +42,7 @@
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
+static BOOLEAN CheckCmds(SecComm& secComm);
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -60,40 +61,83 @@ int main(void)
 {
     // These variables are used to hold values we want to output to video memory.
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
+    const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
 
     UNSIGNED32 *systemTickPtr;
-    CmProcess cmProc;
-
-    debug_str_init();
-
-
-    // Print the title message.
-    debug_str(AseMain, 0, 0, "ASE ... System Tick Rate (Hz) = %d", systemTickTimeInHz);
-
-
-    // Print the title message.
-    debug_str(AseMain, 0, 0, "ASE ...System Tick Rate (Hz) = %d", systemTickTimeInHz);
-
-
+    SecComm secComm;
+    UINT32 frames = 0;
+    UINT32 lastCmdAt = 0;
     // Grab the system tick pointer
     systemTickPtr = systemTickPointer();
 
-    cmProc.Run();
+    debug_str_init();
 
-
-    // Write the system tick value to video memory.
-    debug_str(AseMain, 0, 20, "System Tick = %d", *systemTickPtr);
+    secComm.Run();
 
     // The main thread goes into an infinite loop.
     while (1)
     {
         // Write the system tick value to video memory.
-        debug_str(AseMain, 0, 40, "System Tick = %d", *systemTickPtr);
-        debug_str(CmProc,  1, 20, "CmProc: Box PwrOn secs = %s", &cmProc.m_boxOnTime[0]);
-        //videoOut1 << "System Tick = " << dec << *systemTickPtr << endl;
+        debug_str(AseMain, 0, 0, "SecComm(%s) %d",
+                  secComm.GetSocketInfo(),
+                  frames);
+
+        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) %s",
+                  secComm.GetRxCount(),
+                  secComm.GetTxCount(),
+                  secComm.GetErrorMsg());
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
+        frames += 1;
+
+        // Any new cmds seen
+        if (CheckCmds( secComm))
+        {
+            lastCmdAt = frames;
+        }
+        else if ((frames - lastCmdAt) > MAX_IDLE_FRAMES)
+        {
+            secComm.forceConnectionClosed = TRUE;
+            lastCmdAt = frames;
+        }
     }
 }
 
+//-------------------------------------------------------------------------------------------------
+static BOOLEAN CheckCmds(SecComm& secComm)
+{
+    BOOLEAN cmdSeen = FALSE;
+    BOOLEAN serviced = FALSE;
+    ResponseType rType = eRspNormal;
+
+    if (secComm.IsCmdAvailable())
+    {
+        cmdSeen = TRUE;
+        SecRequest request = secComm.m_request;
+        switch (request.cmdId)
+        {
+        case ePing:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
+        case eGetSensorNames:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            rType = eRspSensors;
+            break;
+
+        default:
+            break;
+        }
+
+        if (serviced)
+        {
+            secComm.SetHandler("AseMain");
+            secComm.IncCmdServiced(rType);
+        }
+    }
+
+    return cmdSeen;
+}
