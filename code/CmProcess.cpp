@@ -1,8 +1,9 @@
-#include "CmProcess.h"
 #include <deos.h>
 #include <mem.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "CmProcess.h"
 #include "video.h"
 
 static const CHAR adrfProcessName[] = "adrf";
@@ -37,7 +38,7 @@ void CmProcess::Create()
 }
 
 
-void CmProcess::Process()
+void CmProcess::RunSimulation()
 {
 	UNSIGNED32* pSystemTickTime;
 	UNSIGNED32  nextRequestTime;
@@ -47,38 +48,94 @@ void CmProcess::Process()
 	// Grab the system tick pointer
 	pSystemTickTime = systemTickPointer();
 
-	nextRequestTime = *pSystemTickTime + interval;
-
 	m_gseCmd.gseSrc = GSE_SOURCE_CM;
-	m_gseCmd.gseVer = 42;
-	memset(m_gseRsp.rspMsg,0x20, sizeof(m_gseRsp.rspMsg) );
-	strncpy(m_gseCmd.commandLine, "EFAST.STATUS.STATS.POWERONTIME", sizeof(m_gseCmd.commandLine));
+	m_gseCmd.gseVer = 1;
+	memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
 
     while (1)
     {
     	nowTime = *pSystemTickTime;
     	// If not expecting a resp msg and time has elapsed to request the
-    	// power-on count... do it.
-    	if (!m_bRspPending && nextRequestTime < nowTime)
-    	{
-    		// send a box  pwer on time request
-    		if ( m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd)))
-    		{
-    			m_bRspPending = TRUE;
-    		}
-    	}
 
-		if (m_bRspPending == TRUE)
-    	{
-    		// Expecting cmd response... check inbox.
-    		if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
-    		{
-    			m_bRspPending = FALSE;
-    			strncpy(m_boxOnTime, m_gseRsp.rspMsg, strlen(m_gseRsp.rspMsg));
-    			nextRequestTime = nowTime + interval;
-    		}
-    	}
+        // Expecting cmd response... check inbox.
+        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+        {
+            int size = strlen(m_gseRsp.rspMsg);
+            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+        }
+
+        debug_str(AseMain, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
 
     	waitUntilNextPeriod();
     }
 }
+
+BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
+{
+    BOOLEAN serviced = FALSE;
+    ResponseType rType = eRspNormal;
+    int port;  // 0 = gse, 1 = ms
+
+    SecRequest request = secComm.m_request;
+    switch (request.cmdId)
+    {
+    case eWriteStream:
+        if ( request.charDataSize < GSE_MAX_LINE_SIZE)
+        {
+            GSE_COMMAND* mb;
+            port = request.variableId;  // 0 = gse, 1 = ms
+
+            memcpy((void*)m_gseCmd.commandLine, (void*)request.charData, request.charDataSize);
+            m_gseCmd.commandLine[request.charDataSize] = '\0';
+
+            if ( m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd)))
+            {
+                secComm.m_response.successful = TRUE;
+            }
+            else
+            {
+                sprintf(secComm.m_response.errorMsg, "Unable to send command");
+                secComm.m_response.successful = FALSE;
+            }
+            debug_str(AseMain, 10, 0, "GseCmd: %s - %s", m_gseCmd.commandLine, secComm.m_response.successful ? "Sent" : "Err");
+        }
+        else
+        {
+            sprintf(secComm.m_response.errorMsg, "Command Length (%d) exceeds (%d)",
+                    request.charDataSize, GSE_MAX_LINE_SIZE);
+            secComm.m_response.successful = FALSE;
+        }
+        serviced = TRUE;
+        break;
+
+    case eReadStream:
+        port = request.variableId;  // 0 = gse, 1 = ms
+
+        secComm.m_response.streamSize = m_gseRxFifo.Pop(secComm.m_response.streamData,
+                                                      eAseStreamSize);
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eClearStream:
+        port = request.variableId;  // 0 = gse, 1 = ms
+
+        m_gseRxFifo.Reset();
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    default:
+        break;
+    }
+
+    if (serviced)
+    {
+        secComm.SetHandler("CmProc");
+        secComm.IncCmdServiced(rType);
+    }
+
+    return serviced;
+
+}
+

@@ -1,9 +1,11 @@
 #ifndef CMPROCESS_H
 #define CMPROCESS_H
 
-#include "AseThread.h"
+#include "CmdRspThread.h"
+#include "Fifo.h"
 #include "MailBox.h"
 #include "Gse_Interface.h"
+#include "SecComm.h"
 
 // File: CmProcess.h
 
@@ -14,15 +16,17 @@
 *
 */
 
-class CmProcess : public AseThread
+class CmProcess : public CmdRspThread
 {
     public:
-	    CmProcess();
-        virtual void Create();  // override the AseThread::Create
-        enum
+        enum CmProcConstants
         {
         	eMaxQueueDepth = 10
         };
+
+	    CmProcess();
+        virtual void Create();  // override the AseThread::Create
+        virtual BOOLEAN CheckCmd( SecComm& secComm);
 
         CHAR m_boxOnTime[32];
 
@@ -38,6 +42,8 @@ class CmProcess : public AseThread
         MailBox m_gseInBox;  // GSE -> CMProcess message
         MailBox m_gseOutBox; // CMProcess -> GSE messages
 
+        FIFO m_gseRxFifo;  // holds any data received from the GSE MB
+
         /* To be activated
         MailBox m_gseMfdInBox;
         MailBox m_gseMfdOutBox;
@@ -52,7 +58,7 @@ class CmProcess : public AseThread
 
 
         // Methods
-        virtual void Process(); // override the AseThread::Process
+        virtual void RunSimulation(); // override the CmdRspThread::Simulation
 };
 
 

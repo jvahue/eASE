@@ -321,7 +321,7 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 			}
 			break;
 
-			default:
+		default:
 			break;
 	}// switch on mailbox type
  	return result;

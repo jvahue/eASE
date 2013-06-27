@@ -21,6 +21,7 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "video.h"
+#include "SecComm.h"
 #include "CmProcess.h"
 
 /*****************************************************************************/
@@ -34,6 +35,7 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
+CmProcess cmProc;
 
 /*****************************************************************************/
 /* Constant Data                                                             */
@@ -73,6 +75,9 @@ int main(void)
     debug_str_init();
 
     secComm.Run();
+    cmProc.Run();
+
+    debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
 
     // The main thread goes into an infinite loop.
     while (1)
@@ -115,6 +120,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     {
         cmdSeen = TRUE;
         SecRequest request = secComm.m_request;
+
+        debug_str(AseMain, 2, 0, "Last Cmd Id: %d", request.cmdId);
+
         switch (request.cmdId)
         {
         case ePing:
@@ -136,6 +144,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         {
             secComm.SetHandler("AseMain");
             secComm.IncCmdServiced(rType);
+        }
+        else
+        {
+            cmProc.CheckCmd(secComm);
         }
     }
 

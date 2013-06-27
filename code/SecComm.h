@@ -1,3 +1,5 @@
+#ifndef SecComm_h
+#define SecComm_h
 /******************************************************************************
 Copyright (C) 2013 Pratt & Whitney Engine Services, Inc.
 All Rights Reserved. Proprietary and Confidential.
@@ -68,6 +70,7 @@ enum SecCmds {
 
     eGetSensorValue = 100,
     eReadStream     = 500,
+    eClearStream    = 550,
     eWriteStream    = 600,
     eSetFileStream  = 650,
     eSetBaudRate    = 660,
@@ -133,7 +136,7 @@ struct SecRequest
 
     // ------------- Start Payload --------------
     UINT32  cmdId;           // the cmd identifier
-    INT32   variableID;      // general purpose data item see command for specifics
+    INT32   variableId;      // general purpose data item see command for specifics
     UINT32  sigGenId;
     UINT32  resetRequest;
     UINT32  clearCfgRequest;
@@ -318,3 +321,4 @@ private:
 
 };
 
+#endif
