@@ -21,7 +21,7 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "video.h"
-#include "SecComm.h"
+#include "CmProcess.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -62,31 +62,34 @@ int main(void)
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
 
     UNSIGNED32 *systemTickPtr;
-    SecComm secComm;
+    CmProcess cmProc;
 
     debug_str_init();
 
 
     // Print the title message.
     debug_str(AseMain, 0, 0, "ASE ... System Tick Rate (Hz) = %d", systemTickTimeInHz);
-    if (!secComm.IsValid())
-    {
-        debug_str(AseMain, 1, 0, "%s", secComm.GetErrorMsg());
-    }
 
-    secComm.Run();
+
+    // Print the title message.
+    debug_str(AseMain, 0, 0, "ASE ...System Tick Rate (Hz) = %d", systemTickTimeInHz);
+
 
     // Grab the system tick pointer
     systemTickPtr = systemTickPointer();
 
+    cmProc.Run();
 
+
+    // Write the system tick value to video memory.
+    debug_str(AseMain, 0, 20, "System Tick = %d", *systemTickPtr);
 
     // The main thread goes into an infinite loop.
     while (1)
     {
         // Write the system tick value to video memory.
         debug_str(AseMain, 0, 40, "System Tick = %d", *systemTickPtr);
-        debug_str(AseMain, 1, 40, "Bytes Rx = %d", secComm.GetRxCount());
+        debug_str(CmProc,  1, 20, "CmProc: Box PwrOn secs = %s", &cmProc.m_boxOnTime[0]);
         //videoOut1 << "System Tick = " << dec << *systemTickPtr << endl;
 
         // Yield the CPU and wait until the next period to run again.

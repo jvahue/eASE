@@ -3,8 +3,8 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "645968820"
-     breakAtStartup = "yes"
+     validityKey = "158745954"
+     breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
@@ -80,6 +80,11 @@
       ></threadTemplate>
    </threadTemplates>
    <threadNames>
+      <threadName
+           name = "CmProcess"
+           primaryThread = "no"
+           period = "fastest"
+      ></threadName>
       <threadName
            name = "PrimaryThread"
            primaryThread = "yes"

@@ -1,4 +1,3 @@
-#define CMAILBOX
 /******************************************************************************
               Copyright (C) 2013 Pratt & Whitney Engine Services, Inc.
                  All Rights Reserved. Proprietary and Confidential.
@@ -289,46 +288,43 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 {
   BOOLEAN result = TRUE;
 
-  switch (m_type)
-  {
-    case eUndefined:
-        // First time attempting to set up a sender mailbox obj...
-        strncpy(m_procName,    procName, eMaxProcNameLen);
-        strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
-        m_type = eSend;
-        //Deliberate fallthrough...
-    case eSend:
-        // Get Process handle for the mailbox owner
-   m_procStatus = getProcessHandle(m_procName, &m_hProcess);
-       if( m_procStatus == processSuccess)
-       {
-        //Get mailbox handle/attach as sender.
-        m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
-        if(m_ipcStatus != ipcValid)
-        {
-          m_hMailBox = NULL;
-        }
-        else
-        {
-          INT32 x = 5;
-        }
-      }
-      else
-      {
-        // getProcessHandle failed, report.
-        m_hProcess = NULL;
-      }
+    switch (m_type)
+    {
+        case eUndefined:
+            // First time attempting to set up a sender mailbox obj...
+            strncpy(m_procName,    procName, eMaxProcNameLen);
+            strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
+            m_type = eSend;
+            //Deliberate fallthrough...
 
-      if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
-      {
-        result = FALSE;
-      }
-      break;
+        case eSend:
+            // Get Process handle for the mailbox owner
+            m_procStatus = getProcessHandle(m_procName, &m_hProcess);
+            if( m_procStatus == processSuccess)
+            {
+                //Get mailbox handle/attach as sender.
+                m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
+                if(m_ipcStatus != ipcValid)
+                {
+                    m_hMailBox = NULL;
+                }
+            }
+		    else
+		    {
+                // getProcessHandle failed, report.
+			    m_hProcess = NULL;
+		    }
 
-  default:
-    break;
-  }// switch on mailbox type
-  return result;
+			if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
+			{
+			   result = FALSE;
+			}
+			break;
+
+			default:
+			break;
+	}// switch on mailbox type
+ 	return result;
 }
 
 /*****************************************************************************
@@ -345,7 +341,7 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
  * Notes:
  *
  ****************************************************************************/
-INT32 MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
+BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 {
   if (m_type == eRecv)
   {
@@ -368,7 +364,7 @@ INT32 MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
     m_ipcStatus = ipcInvalid;
   }
 
-  return (INT32)m_ipcStatus;
+  return (m_ipcStatus == ipcValid);
 }
 
 /*****************************************************************************
@@ -382,12 +378,12 @@ INT32 MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  *                               out-queue has space available to send msg.
  *                                Default is FALSE(i.e. return immediately
  *                                with 'ipcQueueFull'
- * Returns:    ipcStatus of the call
+ * Returns:    TRUE if ipcStatus is ipcValid, otherwise FALSE
  *
  * Notes:
  *
  ****************************************************************************/
-INT32 MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
+BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 {
   if ( !IsConnected() )
   {
@@ -402,8 +398,21 @@ INT32 MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
                               bBlockOnQueueFull);
   }
 
-  return (INT32)m_ipcStatus;
+  return (m_ipcStatus == ipcValid);
 }
+
+
+const char* MailBox::GetProcessStatusString()
+{
+	return (const char*)ps_to_str(GetProcessStatus() );
+}
+
+const char* MailBox::GetIpcStatusString()
+{
+	return is_to_str(GetIpcStatus());
+}
+
+
 
 /***********************************************************************************
  *  Protected methods
@@ -469,7 +478,7 @@ void MailBox::OpenSenders(void)
         {
             // Get a handle to the sender process
             procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
-           
+
             if(procStatus == processSuccess)
             {
                 ipcStat = grantMailboxAccess(m_hMailBox, procHandle, FALSE);

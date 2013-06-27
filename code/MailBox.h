@@ -25,36 +25,38 @@ class MailBox
         eRecv,      // Mailbox obj created by owner for reading.
         eSend       // Mailbox obj connected by an allowed process for sending
       };
-  
-  
+
+
       // Constructor.
       MailBox(void);
-  
-      // Receiver methods
-      BOOLEAN Create (const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth);// Called by MB owner to create and grant access to senders
+
+      // Receiver methods, called by MB owner to create and grant access to senders
+      BOOLEAN Create (const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth);
       BOOLEAN GrantProcess(const char* procName);
-      INT32   Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage = FALSE);
+      BOOLEAN Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage = FALSE);
       BOOLEAN IsCreated()
       {
         return (m_type == eRecv &&                        // mailbox initialized for receive
                 m_hMailBox != NULL &&                     // valid handle obtained
                 m_successfulGrantCnt == m_grantListSize); // all granted processes connected
       }
-  
+
       // Sender methods
       BOOLEAN Connect(const char* procName, const char* mbName);
-      INT32   Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = FALSE);
+      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = FALSE);
       BOOLEAN IsConnected()
       {
         // Mailbox init as sender and valid handle obtained
         return (m_type == eSend && m_hMailBox != NULL );
       }
-  
-  
+
       // Accessor methods
-      INT32   GetProcessStatus(){return (int)m_procStatus;}
-      INT32   GetIpcStatus()    {return (int)m_ipcStatus;}
-  
+      processStatus  GetProcessStatus(){return m_procStatus;}
+      const char*    GetProcessStatusString();
+
+      ipcStatus    GetIpcStatus(){return m_ipcStatus;}
+      const char*  GetIpcStatusString();
+
     protected:
       enum
       {
@@ -62,31 +64,31 @@ class MailBox
         eMaxProcNameLen    = 32,  // Max string len of Process name
         eMaxMailboxNameLen = 32
       };
-  
+
       // Properties
       char  m_procName[eMaxProcNameLen];
       char  m_mailBoxName[eMaxMailboxNameLen];
-  
+
       struct AccessGrantList
       {
         char ProcName[eMaxProcNameLen];
         BOOLEAN bConnected;
       };
-  
+
       AccessGrantList m_grantList[eMaxGrantsAllowed];
       INT32           m_grantListSize;
       INT32           m_successfulGrantCnt;
-  
+
       MailBoxType      m_type;
-  
+
       process_handle_t m_hProcess;
       processStatus    m_procStatus;
       ipcMailboxHandle m_hMailBox;
       ipcStatus        m_ipcStatus;
-  
+
       void AddSender(const char* procName);
       void OpenSenders(void);
-  
+
     private:
 
 };

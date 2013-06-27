@@ -1,17 +1,15 @@
 //
-// File: AseThread.h
+// File: SendEcho.h
+/*
+* Description: Implements a Send/Echo Thread pair for testing mailbox IPC
+* The SendProc thread creates a send and listen mailbox and send an incrementing
+* token to the EchoProc thread when it determines that the previous  token has
+*  been successfully returned.
+*  The EchoProc reads for a token from the SendProc and verifies it
+*  contains the previous token value + 1. If so it echos the value back to
+*  SendProc and stores it for comparison against the next value.
+*/
 
-// Description: Implements the socket connection for the low level driver code
-// This is the client side of the socket
-//
-// The AseSocket creates two threads that receive and transmit data.  These threads
-// fill in data within this object.  The main functions are:
-// Create - Spawn threads
-// Connect - attempt to get a connection
-// Read - read data from the thread - standard command msgs from the PySTE are supported
-// Send - send data
-// Close - close the connection
-//
 // Includes OS
 //
 
