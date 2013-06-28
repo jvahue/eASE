@@ -159,9 +159,6 @@ void SecComm::Process()
         int cbBytesRet = 0;
         int size = sizeof(SecRequest);
         int socketAddrLen = sizeof(sockaddr_in);
-        INT32  mSocket =  m_socket;
-        INT32  cSocket;
-        sockaddr_in mSocketAddr = m_socketAddr;
 
         // open the socket connection
         OpenConnection();
@@ -171,13 +168,7 @@ void SecComm::Process()
         {
             if (forceConnectionClosed)
             {
-                // TBD this needs to be a function - ResetConnections
-                m_connState = eConnNotConnected;
-                closesocket(m_clientSocket);
-
-                m_clientSocket = -1;
-                m_rxCount = 0;
-                m_txCount = 0;
+                ResetConn();
                 forceConnectionClosed = FALSE;
             }
 
@@ -186,7 +177,7 @@ void SecComm::Process()
             {
                 m_connState = eConnWait;
                 m_acceptCount += 1;
-                cSocket = m_clientSocket = accept(m_socket, (sockaddr*)&m_socketAddr, &socketAddrLen);
+                m_clientSocket = accept(m_socket, (sockaddr*)&m_socketAddr, &socketAddrLen);
 
                 if (m_clientSocket != SOCKET_ERROR)
                 {
@@ -214,35 +205,15 @@ void SecComm::Process()
                     rxed += cbBytesRet;
                     m_rxCount += cbBytesRet;
                 }
+                else if (cbBytesRet == 0)
+                {
+                    m_connState = eConnNotConnected;
+                }
             }
 
-            if (cbBytesRet != SOCKET_ERROR)
+            if (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR)
             {
-                memcpy( &m_bufRqst, buffer, size);
-
-                // got some data, verify the contents
-                if ( m_bufRqst.header1 == eSecAseH1 && m_bufRqst.header2 == eSecAseH2 && m_bufRqst.size == size)
-                {
-                    UINT32 checksum = Checksum(&m_bufRqst, size);
-
-                    if ( checksum == m_bufRqst.checksum)
-                    {
-                        // copy the temp buffer into the request buffer
-                        m_request = m_bufRqst;
-                        IncCmdRequest();
-
-                        // wait for the command to be serviced - main will handles unknowns
-                        while (IsCmdAvailable())
-                        {
-                            waitUntilNextPeriod();
-                            // check for Tx ready
-                            SendResponse();
-                        }
-
-                        // check for tx ready
-                        SendResponse();
-                    }
-                }
+                CheckCmd( buffer, size);
             }
             else
             {
@@ -251,19 +222,54 @@ void SecComm::Process()
                 sprintf(m_errMsg, "Error recv - Rtn: %d, Err: %d",
                         lastErr->recv.returnValue, lastErr->recv.errorValue);
 
-                m_connState = eConnNotConnected;
-                closesocket(m_clientSocket);
-
-                m_clientSocket = -1;
-                m_rxCount = 0;
-                m_txCount = 0;
-
+                ResetConn();
                 waitUntilNextPeriod();
             }
         }
     }
 
     m_state = eComplete;
+}
+
+//-------------------------------------------------------------------------------------------------
+void SecComm::CheckCmd(const char* buffer, const int size)
+{
+    memcpy( &m_bufRqst, buffer, size);
+
+    // got some data, verify the contents
+    if ( m_bufRqst.header1 == eSecAseH1 && m_bufRqst.header2 == eSecAseH2 && m_bufRqst.size == size)
+    {
+        UINT32 checksum = Checksum(&m_bufRqst, size);
+
+        if ( checksum == m_bufRqst.checksum)
+        {
+            // copy the temp buffer into the request buffer
+            m_request = m_bufRqst;
+            IncCmdRequest();
+
+            // wait for the command to be serviced - main will handles unknowns
+            while (IsCmdAvailable())
+            {
+                waitUntilNextPeriod();
+                // check for Tx ready
+                SendResponse();
+            }
+
+            // check for tx ready
+            SendResponse();
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+void SecComm::ResetConn()
+{
+    m_connState = eConnNotConnected;
+    closesocket(m_clientSocket);
+
+    m_clientSocket = -1;
+    m_rxCount = 0;
+    m_txCount = 0;
 }
 
 //-------------------------------------------------------------------------------------------------

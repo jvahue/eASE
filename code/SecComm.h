@@ -296,6 +296,8 @@ protected:
 private:
     void OpenConnection();
     INT32  SetupTransport(clientConnectionHandleType &connectionHandle, CHAR* connectionId);
+    void CheckCmd(const char* buffer, const int size);
+    void ResetConn();
     UINT32 Checksum( void* ptr, int size);
     void SendResponse();
     void SendAny(const char* data, UINT32 size);
