@@ -17,7 +17,7 @@ CmProcess::CmProcess()
  protected methods for FxProc
  ****************************************************************************/
 
-void CmProcess::Create()
+void CmProcess::Run()
 {
 	// create alias for this process because adrf will be granting write access
 	// to CMProcess, not ASE
@@ -33,7 +33,7 @@ void CmProcess::Create()
 
 	// Create the thread thru the base class method.
 	// Use the default Ase template
-	AseThread::Create("CmProcess", "StdThreadTemplate");
+	Launch("CmProcess", "StdThreadTemplate");
 
 }
 
@@ -94,10 +94,14 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             }
             else
             {
-                sprintf(secComm.m_response.errorMsg, "Unable to send command");
+                sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
+                        m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
+                        m_gseOutBox.GetIpcStatusString(),
+                        m_gseOutBox.GetProcessStatusString());
                 secComm.m_response.successful = FALSE;
             }
-            debug_str(AseMain, 10, 0, "GseCmd: %s - %s", m_gseCmd.commandLine, secComm.m_response.successful ? "Sent" : "Err");
+            debug_str(AseMain, 10, 0, "GseCmd: %s - %s", m_gseCmd.commandLine,
+                      secComm.m_response.successful ? "Sent" : "Err");
         }
         else
         {
@@ -118,6 +122,8 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eClearStream:
+        // TODO: maybe - this should set a flag to the main thread,
+        //       read stream above would need to monitor the flag then
         port = request.variableId;  // 0 = gse, 1 = ms
 
         m_gseRxFifo.Reset();

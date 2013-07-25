@@ -7,12 +7,11 @@
 // This is the client side of the socket
 //
 // The AseSocket creates two threads that receive and transmit data.  These threads
-// fill in data within this object.  The main functions are:
-// Create - Spawn threads
-// Connect - attempt to get a connection
-// Read - read data from the thread - standard command msgs from the PySTE are supported
-// Send - send data
-// Close - close the connection
+// fill in data within this object.
+//
+// The virtual functions are:
+// Run - Prepare the thread object for execution, init data, etc, calls Launch to start the thread running
+// Process - Performs the specific processing needs of the thread.
 //
 // Includes OS
 //
@@ -38,8 +37,7 @@ public:
     AseThread();
 
     // Thread control
-    virtual void Run();
-
+    virtual void Run() {};
 
     // Accessors
     AseThreadState GetRunState();
@@ -50,8 +48,7 @@ protected:
     thread_handle_t m_hThread;
     AseThreadState  m_state;
 
-    virtual void Create(const CHAR* name, const CHAR* tName);
-    virtual void Create() {};
+    void Launch(const CHAR* name, const CHAR* tName);
 
     // Methods
     virtual void Process() {};

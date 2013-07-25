@@ -14,23 +14,14 @@ AseThread::AseThread()
 }
 
 
-void AseThread::Run()
-{
-    if (m_state == eNotCreated)
-    {
-        Create();
-    }
-}
-
 //-------------------------------------------------------------------------------------------------
-// Function: Create
+// Function: Launch
 // Description: Spawn the thread and check for creation
 // Parameters:
 // name (i): the name of the thread
 // tName (i): the template name
-// data (i): pointer to data to pass to the thread
 //
-void AseThread::Create(const CHAR* name, const CHAR* tName)
+void AseThread::Launch(const CHAR* name, const CHAR* tName)
 {
     threadStatus ts;
 

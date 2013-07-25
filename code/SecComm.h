@@ -274,6 +274,8 @@ public:
 
     const CHAR* GetSocketInfo();
 
+    virtual void Run();      // spawn a receiver thread for the commands
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // PUBLIC DATA
     BOOLEAN m_isValid;      // was all of the socket/thread creation ok
@@ -290,7 +292,6 @@ public:
     SensorNames m_snsNames; // structure to return the sensor names to PySTE
 
 protected:
-    virtual void Create();   // spawn a reciever thread for the commands
     virtual void Process();  // The receiver thread processing
 
 private:

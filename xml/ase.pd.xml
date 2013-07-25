@@ -3,8 +3,8 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "-775557059"
-     breakAtStartup = "yes"
+     validityKey = "1803825217"
+     breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
@@ -109,7 +109,7 @@
       <threadTemplate
            name = "StdThreadTemplate"
            budget = "500"
-           instanceCount = "5"
+           instanceCount = "7"
            slackEnabled = "no"
            stackSizeInPages = "5"
            period = "fastest"
@@ -130,6 +130,11 @@
    <threadNames>
       <threadName
            name = "CmProcess"
+           primaryThread = "no"
+           period = "fastest"
+      ></threadName>
+      <threadName
+           name = "IoiProcess"
            primaryThread = "no"
            period = "fastest"
       ></threadName>

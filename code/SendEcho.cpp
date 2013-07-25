@@ -10,7 +10,7 @@
 
 void FxProc::Create()
 {
-    AseThread::Create("FxProc", "FxProcThreadTemplate");
+    AseThread::Launch("FxProc", "FxProcThreadTemplate");
 }
 
 
@@ -37,7 +37,7 @@ void SendProc::Create()
     m_sendBox.Connect("ASE","EchoProcMB");
 
     // Create the thread for this object
-    AseThread::Create("SendProc", "FxProcThreadTemplate");
+    AseThread::Launch("SendProc", "FxProcThreadTemplate");
 }
 
 
@@ -97,7 +97,7 @@ void EchoProc::Create()
 
     // Create the thread for this object
 
-    AseThread::Create("EchoProc", "FxProcThreadTemplate");
+    AseThread::Launch("EchoProc", "FxProcThreadTemplate");
 }
 
 void EchoProc::Process()

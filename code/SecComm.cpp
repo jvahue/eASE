@@ -94,10 +94,10 @@ SecComm::SecComm()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function: Create
 // Description: Create a Socket Rx thread to recieve the cmds from PySte
-void SecComm::Create()
+void SecComm::Run()
 {
     // spawn the thread
-    AseThread::Create("SecCommRx", "StdThreadTemplate");
+    AseThread::Launch("SecCommRx", "StdThreadTemplate");
 
     if (m_state == eError)
     {
@@ -286,7 +286,7 @@ void SecComm::SendResponse()
             m_response.sequence = m_request.sequence;
             m_response.checksum = Checksum( &m_response, sizeof( m_response));
             SendAny( (char*)&m_response, sizeof( m_response));
-
+            memset((void*)&m_response, 0, sizeof(m_response));
         }
         else if (m_rspType == eRspSensors)
         {
@@ -297,7 +297,8 @@ void SecComm::SendResponse()
             m_snsNames.sequence = m_request.sequence;
             m_snsNames.checksum = Checksum( &m_snsNames, sizeof( m_snsNames));
             SendAny( (char*)&m_snsNames, sizeof( m_snsNames));
-        }
+            memset((void*)&m_snsNames, 0, sizeof(m_snsNames));
+       }
 
         m_rspType = eRspWait;
     }
