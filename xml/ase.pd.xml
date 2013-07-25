@@ -3,8 +3,8 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "952940530"
-     breakAtStartup = "no"
+     validityKey = "-775557059"
+     breakAtStartup = "yes"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
@@ -12,7 +12,7 @@
      crcAtProcessCreation = "no"
      largestAMOSizeInPages = "1"
      nameQuota = "75"
-     toolVersion = "2.8.3"
+     toolVersion = "2.8.5"
      inDebugSet = "no"
      attachedMemoryObjectQuota = "50"
      eventQuota = "0"
@@ -39,10 +39,58 @@
    <memoryPools>
       <memoryPool
            platformPoolID = "0"
-           sizeInPages = "60"
+           sizeInPages = "260"
            defaultPool = "yes"
       ></memoryPool>
    </memoryPools>
+   <usedFeatureSets>
+      <usedFeatureSet
+           name = "CFFS-API-Quotas"
+           versionRequirement = "none"
+           versionNumber = "none"
+         >
+         <usedFeature
+              name = "CFFS-API-Diagnostic-MO"
+            >
+            <usedFeatureParameter
+                 name = "ProcessInstanceName"
+                 value = "ASE"
+            ></usedFeatureParameter>
+            <usedFeatureParameter
+                 name = "ProcessTemplateName"
+                 value = "ase-process-template"
+            ></usedFeatureParameter>
+            <usedFeatureParameter
+                 name = "autoCreatedMemoryObjectName"
+                 value = "cffsapi-ase.exe"
+            ></usedFeatureParameter>
+         </usedFeature>
+         <usedFeature
+              name = "CFFS-API-Diagnostic-Quotas"
+            >
+            <usedFeatureParameter
+                 name = "ProcessInstanceName"
+                 value = "ASE"
+            ></usedFeatureParameter>
+            <usedFeatureParameter
+                 name = "ProcessTemplateName"
+                 value = "ase-process-template"
+            ></usedFeatureParameter>
+         </usedFeature>
+         <usedFeature
+              name = "CFFS_RAM_RO"
+            >
+            <usedFeatureParameter
+                 name = "ProcessInstanceName"
+                 value = "ASE"
+            ></usedFeatureParameter>
+            <usedFeatureParameter
+                 name = "ProcessTemplateName"
+                 value = "ase-process-template"
+            ></usedFeatureParameter>
+         </usedFeature>
+      </usedFeatureSet>
+   </usedFeatureSets>
    <processInstances>
       <processInstance
            name = "ASE"

@@ -34,28 +34,28 @@ public:
         eSusp,
         eComplete,
         eError};
-    
+
     AseThread();
 
     // Thread control
     virtual void Run();
 
-    
+
     // Accessors
     AseThreadState GetRunState();
-    
+
 protected:
     // Obj refs
     // Thread Attribs.
     thread_handle_t m_hThread;
     AseThreadState  m_state;
-    
+
     virtual void Create(const CHAR* name, const CHAR* tName);
     virtual void Create() {};
 
     // Methods
     virtual void Process() {};
-    
+
     static void ThreadFunc( DWORD obj)
     {
       ((AseThread*)obj)->Process();
