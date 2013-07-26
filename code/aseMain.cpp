@@ -37,6 +37,10 @@
 /*****************************************************************************/
 CmProcess cmProc;
 
+// adrf.exe process control vars
+processStatus    adrfProcStatus = processNotActive;
+process_handle_t adrfProcHndl;
+
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
@@ -45,7 +49,7 @@ CmProcess cmProc;
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
-
+static void    HandlePowerChange(SecCmds cmd);
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
@@ -135,6 +139,24 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             rType = eRspSensors;
             break;
+
+        case ePowerOn:
+            // Create the ADRF process to simulate behavior during power on
+            //if (NULL == adrfProcHndl)
+            //{
+            //    adrfProcStatus  = createProcess( "adrf",
+            //                                     "adrf-template",
+            //                                     0,
+            //                                     FALSE,
+           //                                      &adrfProcHndl);
+           // }
+            break;
+
+        case ePowerOff:
+            // Kill the ADRF process to simulate behavior during power off
+            //adrfProcStatus =  deleteProcess( adrfProcHndl);
+            break;
+
 
         default:
             break;
