@@ -25,7 +25,7 @@ class CmProcess : public CmdRspThread
         };
 
 	    CmProcess();
-        virtual void Create();  // override the AseThread::Create
+        virtual void Run();  // override the AseThread::Create
         virtual BOOLEAN CheckCmd( SecComm& secComm);
 
         CHAR m_boxOnTime[32];

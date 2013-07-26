@@ -23,10 +23,12 @@
 #include "video.h"
 #include "SecComm.h"
 #include "CmProcess.h"
+#include "ioiProcess.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define MAX_CMD_RSP 2
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -36,6 +38,7 @@
 /* Local Variables                                                           */
 /*****************************************************************************/
 CmProcess cmProc;
+IoiProcess ioiProc;
 
 // adrf.exe process control vars
 processStatus    adrfProcStatus = processNotActive;
@@ -44,12 +47,16 @@ process_handle_t adrfProcHndl;
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+CmdRspThread* cmdRspThreads[MAX_CMD_RSP] = {
+  &cmProc,
+  &ioiProc
+};
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
-static void    HandlePowerChange(SecCmds cmd);
+
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
@@ -69,6 +76,7 @@ int main(void)
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
     const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
 
+    UINT32 i;
     UNSIGNED32 *systemTickPtr;
     SecComm secComm;
     UINT32 frames = 0;
@@ -79,7 +87,12 @@ int main(void)
     debug_str_init();
 
     secComm.Run();
-    cmProc.Run();
+
+    // Run all of the cmd response threads
+    for (i=0; i < MAX_CMD_RSP; ++i)
+    {
+        cmdRspThreads[i]->Run();
+    }
 
     debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
 
@@ -116,6 +129,7 @@ int main(void)
 //-------------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
+    UINT32 i;
     BOOLEAN cmdSeen = FALSE;
     BOOLEAN serviced = FALSE;
     ResponseType rType = eRspNormal;
@@ -169,7 +183,14 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         }
         else
         {
-            cmProc.CheckCmd(secComm);
+            // Run all of the cmd response threads
+            for (i=0; i < MAX_CMD_RSP; ++i)
+            {
+                if (cmdRspThreads[i]->CheckCmd(secComm))
+                {
+                    break;
+                }
+            }
         }
     }
 
