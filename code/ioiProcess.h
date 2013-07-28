@@ -3,6 +3,7 @@
 
 #include "CmdRspThread.h"
 #include "SecComm.h"
+#include "Parameter.h"
 
 // File: ioiProcess.h
 
@@ -15,16 +16,25 @@
 
 class IoiProcess : public CmdRspThread
 {
-    public:
-        IoiProcess();
-        virtual void Run();
-        virtual BOOLEAN CheckCmd( SecComm& secComm);
+public:
+    enum IoiConstants {
+        eIoiMaxParams = 3000,
+    };
+    
+    IoiProcess();
+    virtual void Run();
+    virtual BOOLEAN CheckCmd( SecComm& secComm);
 
-    protected:
+protected:
 
-         // Methods
-        virtual void RunSimulation(); // override the CmdRspThread::Simulation
+     // Methods
+    virtual void RunSimulation(); // override the CmdRspThread::RunSimulation
+    
+    void InitIoi();
+    void UpdateIoi();
+    
+    UINT32 m_paramCount;
+    Parameter m_parameters[eIoiMaxParams];
 };
-
 
 #endif

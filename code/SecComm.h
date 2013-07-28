@@ -24,6 +24,7 @@ $Revision: $  $Date: $
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "alt_stdtypes.h"
+#include "AseCommon.h"
 #include "AseThread.h"
 
 /*****************************************************************************/
@@ -39,22 +40,24 @@ enum SecCmds {
     eScriptDone     = 2,
     eShutdown       = 3,
     ePing           = 4,
+    
+    ePowerOn        = 110,
+    ePowerOff       = 120,
+    ePowerToggle    = 125,
 
 // CMProcess 200 - 300
 
 // IOI 400 - 500
-    eSetSensorValue = 10,
+    eSetSensorValue = 10,   // TBD: this should be deleted as only eSetSensorSG is used
     eSetSensorSG    = 20,
     eResetSG        = 30,
     eRunSG          = 40,
     eHoldSG         = 50,
+    
     eStartLogging   = 60,
     eStopLogging    = 70,
     eLoadCfg        = 80,
     eClearCfg       = 90,
-    ePowerOn        = 110,
-    ePowerOff       = 120,
-    ePowerToggle    = 125,
     eChannelPause   = 130,
     eChannelResume  = 140,
     eSetPfen        = 150,
@@ -89,31 +92,15 @@ enum SecCmds {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
-    eAseSensorNameSize  = 32,         // SEC/IOC size of a sensor name (UUT uses 32)
-    eAseNumberOfSensors = 125,        // SEC/IOC number of sensors
-    eAseErrorMsgSize    = 128,        // SEC/IOC max error Message
-    eAseStreamSize      = 3500,       // the size of input stream data
-    eAseCharDataSize    = 2048,       // SEC/IOC max filename size
-    eAsePortNumber      = 51423,      // socket port connection on local host
+    eSecNumberOfSensors = 125,        // SEC/IOC number of sensors
+    eSecErrorMsgSize    = 128,        // SEC/IOC max error Message
+    eSecStreamSize      = 3500,       // the size of input stream data
+    eSecCharDataSize    = 2048,       // SEC/IOC max filename size
+    eSecPortNumber      = 51423,      // socket port connection on local host
     eSecAseH1           = 0x05EC2A5E, // Header marker1 Sec->Ase
     eSecAseH2           = 0xABCD1234, // Header marker2 Sec->Ase
     eAseSecH1           = 0x0A5E25EC, // Header marker1 Ase->Sec
     eAseSecH2           = 0x1234ABCD, // Header marker2 Ase->Sec
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Signal Generator Types
-enum SigGenEnum {
-    eSGmanual,     // no signal generator
-    eSGramp,       // ramp from low to high, then back to low and repeat (min, max, time(s))
-    eSGrampHold,   // ramp to a value and hold at max
-    eSGtriangle,   // ramp up/down (min, max, time(s))
-    eSGsine,       // sine wave starting at 0 deg, (freq(Hz), amplitude)
-    eSG1Shot,      // one shot a signal (start, oneShotValue, frameIndex)
-    eSGnShot,      // n-shot (baseline, nValue, frameIndex, nFrames)
-    eSGpwm,        // PWM between two values (value1, value2) varying duty cycle
-    eSGrandom,     // random values uniform dist (min, max)
-    eMaxSensorMode
 };
 
 enum ResponseType {
@@ -122,7 +109,6 @@ enum ResponseType {
     eRspSensors,
 };
 
-typedef char SENSORNAME[eAseSensorNameSize];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // These three must match up with the structure defined in Python see SecIocPayloads.py to  
@@ -149,7 +135,7 @@ struct SecRequest
 
     UINT32  resetAll;
     UINT32  charDataSize;
-    CHAR    charData[eAseCharDataSize];
+    CHAR    charData[eSecCharDataSize];
     // -------------- End Payload ---------------
 
     UINT32  checksum;
@@ -170,8 +156,8 @@ struct IocResponse
     FLOAT32 value;
 
     UINT32  streamSize;
-    CHAR    streamData[eAseStreamSize];
-    CHAR    errorMsg[eAseErrorMsgSize];
+    CHAR    streamData[eSecStreamSize];
+    CHAR    errorMsg[eSecErrorMsgSize];
     // -------------- End Payload ---------------
 
     UINT32  checksum;
@@ -186,7 +172,7 @@ struct SensorNames
     UINT32  sequence;
 
     // ------------- Start Payload --------------
-    SENSORNAME names[eAseNumberOfSensors];
+    ParameterName names[eSecNumberOfSensors];
     // -------------- End Payload ---------------
 
     UINT32  checksum;
