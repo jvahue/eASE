@@ -1,10 +1,24 @@
 // SigGen.cpp : implementation file
 //
+/*****************************************************************************/
+/* Compiler Specific Includes                                                */
+/*****************************************************************************/
+#include <deos.h>
+#include <math.h>
+#include <stdlib.h>
 
-#include "math.h"
-
+/*****************************************************************************/
+/* Software Specific Includes                                                */
+/*****************************************************************************/
 #include "SigGen.h"
 
+/*****************************************************************************/
+/* Local Defines                                                             */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Public Functions                                                          */
+/*****************************************************************************/
 //--------------------------------------------------------------------------------------------------
 SignalGenerator::SignalGenerator()
   : m_type( eSGmanual)
@@ -16,7 +30,7 @@ SignalGenerator::SignalGenerator()
   , m_degrees(0.0f)
 {
     // for deterministic results start with the same seed
-    srand(0);
+    //srand(0);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -53,7 +67,7 @@ float SignalGenerator::Reset( float lastValue)
         break;
     case eSGrandom:
         // for deterministic results start with the same seed on each reset
-        srand(0);
+        //srand(0);
         newValue = m_param1;  // set to the low value
         break;
     }
@@ -166,7 +180,7 @@ void SignalGenerator::GetParams( int updateMs,
     case eSGtriangle:
         // stepSize = ((max-min)/(seconds))/(1000/updateRate) ... solve for seconds
         //param3 = fabs((float(updateMs)/(m_param3*1000.0f))*(m_param2 - m_param1));
-        param3 = fabs(1.0f/(m_param3*1000.0f)*(m_param2 - m_param1));
+        param3 = fabs(1.0f / (m_param3 * 1000.0f) * (m_param2 - m_param1));
         break;
     case eSGsine:
         // Freq gets turned into m_angleDegrees
@@ -198,11 +212,11 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
 
     float newValue = oldValue;
 
-    clock_t now = clock();
+    UINT32 now = (UINT32)systemTickPointer();
 
     if ( sgRun && !m_firstRun)
     {
-        clock_t delta = now - m_last;
+        UINT32 delta = now - m_last;
 
         switch (m_type) 
         {
@@ -294,7 +308,8 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
         case eSGrandom:
             lowest = m_param1;
             range  = m_param2 - lowest;
-            newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
+            //newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
+            newValue += 0.5f;
             break;
         };
     }

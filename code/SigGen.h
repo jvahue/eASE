@@ -2,6 +2,7 @@
 #define SigGen_h
 
 // File: SigGen.h
+#include "alt_stdtypes.h"
 #include "AseCommon.h"
 
 // This is not very object oriented (ok not at all) but it makes life simple right now
@@ -35,5 +36,7 @@ public:
     float m_step0;
 
     bool  m_firstRun;
-    clock_t m_last;
-};#endif
+    UINT32 m_last;
+};
+
+#endif

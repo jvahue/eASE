@@ -116,7 +116,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         port = request.variableId;  // 0 = gse, 1 = ms
 
         secComm.m_response.streamSize = m_gseRxFifo.Pop(secComm.m_response.streamData,
-                                                      eAseStreamSize);
+                                                        eSecStreamSize);
         secComm.m_response.successful = TRUE;
         serviced = TRUE;
         break;

@@ -16,7 +16,7 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "Parameter.h"
+#include "ParamConverters.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -46,7 +46,6 @@
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
-UINT32 A429Converter();
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -55,20 +54,14 @@ UINT32 A429Converter();
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
-Parameter::Parameter()
+ParamConverter::ParamConverter()
     : m_gpa(0)
     , m_gpb(0)
     , m_gpc(0)
     , m_fmt(PARAM_FMT_NONE)
-    , m_value(0.0f)     // the current value for the parameter
-    , m_scale(0)        // the current value for the parameter
-    , m_scaleLsb(0.0f)
-    , m_rateHz(0)       // ADRF update rate for the parameter in Hz
-    , m_updateHz(0)     // ASE update rate for the parameter in Hz = 2x m_rateHz
-    , m_offset(0)       // frame offset 0-90 step 10
-    , m_converter(NULL)
+    , m_scale(0.0f)       // the current value for the parameter
+    , m_scaleLsb(0.0f)    // the current value for the parameter
 {
-    m_name[0] = '\0';
 }
 
 
@@ -98,60 +91,72 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
     }
 }    
 
+UINT32 ParamConverter::Convert(FLOAT32 value)
+{
+    // based on the format, call a converter
+    return 0;
+}
+
+
 //-------------------------------------------------------------------------------------------------
 // Function: A429ParseGps
 // Description: Parse the GPA data
 //
-ParamConverter::A429ParseGps()
+void ParamConverter::A429ParseGps()
 {
     // Parse General Purpose A parameter
-   m_rxChan  = (UINT8)GPA_RX_CHAN(m_gpa);
-   m_format  = (ARINC_FORM) GPA_WORD_FORMAT(m_gpa);
-   m_wordSize   = GPA_WORD_SIZE(m_gpa);
-   m_SDBits     = GPA_SDI_DEFINITION(m_gpa);
-   m_ignoreSDI  = (GPA_IGNORE_SDI(m_gpa) == TRUE) ? TRUE : FALSE;
-   m_wordPos    = GPA_WORD_POSITION(m_gpa);
-   m_discType   = (DISC_TYPE)GPA_PACKED_DISCRETE(m_gpa);
-   m_validSSM   = GPA_SSM_FILTER(m_gpa);
-   m_SDIAllCall = (GPA_ALL_CALL(m_gpa) == TRUE) ? TRUE : FALSE;
+   m_a429.rxChan  = (UINT8)GPA_RX_CHAN(m_gpa);
+   m_a429.format  = (ARINC_FORM) GPA_WORD_FORMAT(m_gpa);
+   m_a429.wordSize   = GPA_WORD_SIZE(m_gpa);
+   m_a429.sdBits     = GPA_SDI_DEFINITION(m_gpa);
+   m_a429.ignoreSDI  = (GPA_IGNORE_SDI(m_gpa) == TRUE) ? TRUE : FALSE;
+   m_a429.wordPos    = GPA_WORD_POSITION(m_gpa);
+   m_a429.discType   = (DISC_TYPE)GPA_PACKED_DISCRETE(m_gpa);
+   m_a429.validSSM   = GPA_SSM_FILTER(m_gpa);
+   m_a429.sdiAllCall = (GPA_ALL_CALL(m_gpa) == TRUE) ? TRUE : FALSE;
    
    // Parse General Purpose B parameter from 1 to 2^32 where lsb = 1 sec
-   m_dataLossTime = m_gpb;
+   m_a429.dataLossTime = m_gpb;
    
    // Parse General Purpose C parameter for label
-   m_label = m_gpc;
+   m_a429.label = m_gpc;
 
    // Calculate the convert lsb used to create ENG value
-   m_scaleLsb = (DISCRETE == m_format) ? 1.0f :
-             ((FLOAT32)((FLOAT32) m_scale / (FLOAT32) (1 << m_wordSize)));
+   m_scaleLsb = (DISCRETE == m_a429.format) ? 1.0f :
+                ((FLOAT32)((FLOAT32) m_scale / (FLOAT32) (1 << m_a429.wordSize)));
 
-   if (m_validSSM == 0)
+   if (m_a429.validSSM == 0)
    {
       // Store the Default Valid SSM
-      switch (m_format)
+      switch (m_a429.format)
       {
          default:
          case BNR:
-            m_validSSM = BNR_VALID_SSM;
+            m_a429.validSSM = BNR_VALID_SSM;
             break;
          case DISCRETE:
-            switch (m_discType)
+            switch (m_a429.discType)
             {
                case DISC_BNR:
-                  m_validSSM = BNR_VALID_SSM;
+                  m_a429.validSSM = BNR_VALID_SSM;
                   break;
                case DISC_BCD:
-                  m_validSSM = BCD_VALID_SSM;
+                  m_a429.validSSM = BCD_VALID_SSM;
                   break;
               case DISC_STANDARD:
               default:
-                 m_validSSM = DISC_VALID_SSM;
+                 m_a429.validSSM = DISC_VALID_SSM;
                  break;
             }
             break;
          case BCD:
-            m_validSSM = BCD_VALID_SSM;
+            m_a429.validSSM = BCD_VALID_SSM;
             break;
       }
    }
+}
+
+UINT32 ParamConverter::A429Converter()
+{
+    return 0;
 }

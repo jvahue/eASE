@@ -91,7 +91,7 @@ enum SecCmds {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-enum AseSystemConstants {
+enum SecSystemConstants {
     eSecNumberOfSensors = 125,        // SEC/IOC number of sensors
     eSecErrorMsgSize    = 128,        // SEC/IOC max error Message
     eSecStreamSize      = 3500,       // the size of input stream data

@@ -28,6 +28,16 @@ enum SigGenEnum {
     eMaxSensorMode
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// FROM ADRF
+enum PARAM_FMT_ENUM {
+  PARAM_FMT_NONE=0,  // FMT not specified
+  PARAM_FMT_BIN_A664,// FMT is IDL binary
+  PARAM_FMT_FLT_A664,// FMT is IDL floating-point
+  PARAM_FMT_A429,    // FMT is A429 standard data
+//  PARAM_FMT_HS_ELECT,// FMT is HS Electric System data (not needed, use BIN_664)
+  PARAM_FMT_MAX
+};
 
 
 typedef char ParameterName[eAseSensorNameSize];

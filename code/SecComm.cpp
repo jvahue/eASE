@@ -65,7 +65,7 @@ static const CHAR* conSts[] = {
 SecComm::SecComm()
     : m_isValid(FALSE)
     , m_connected(FALSE)
-    , m_port(eAsePortNumber)
+    , m_port(eSecPortNumber)
     , m_lastSequence(0)
     , forceConnectionClosed(FALSE)
     , m_rspType(eRspWait)
@@ -419,7 +419,7 @@ const CHAR* SecComm::GetSocketInfo()
     sprintf(m_ipPort, "%s %d/%d(%d) %d.%d.%d.%d:%d Cmd: %d/%d",
             conSts[m_connState],
             m_socket, m_clientSocket, m_acceptCount,
-            p1, p2, p3, p4, eAsePortNumber,
+            p1, p2, p3, p4, eSecPortNumber,
             m_cmdRequest, m_cmdServiced);
     return m_ipPort;
 }
