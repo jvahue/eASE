@@ -295,8 +295,9 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
             strncpy(m_procName,    procName, eMaxProcNameLen);
             strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
             m_type = eSend;
+            //
             //Deliberate fallthrough...
-
+            //
         case eSend:
             // Get Process handle for the mailbox owner
             m_procStatus = getProcessHandle(m_procName, &m_hProcess);
@@ -385,19 +386,28 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  ****************************************************************************/
 BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 {
-  if ( !IsConnected() )
-  {
-    Connect(m_procName, m_mailBoxName);
-  }
+    BOOLEAN result = TRUE;
+    if ( !IsConnected() )
+    {
+        Connect(m_procName, m_mailBoxName);
+    }
 
-  if (IsConnected())
-  {
-    m_ipcStatus = sendMessage(m_hMailBox,
-                              buff,
-                              BYTES_TO_DWORDS(sizeBytes),
-                              bBlockOnQueueFull);
-  }
+    if (IsConnected())
+    {
+        m_ipcStatus = sendMessage(m_hMailBox,
+                                  buff,
+                                  BYTES_TO_DWORDS(sizeBytes),
+                                  bBlockOnQueueFull);
 
+        // If a previously connected mail box has gone invalid
+        // (e.g. process deleted).
+        // Fail the connection flags so a reconnect will be performed.
+        if(ipcInvalidMailboxHandle == m_ipcStatus)
+        {
+            deleteMailbox(m_hMailBox);
+            m_hMailBox = NULL;
+        }
+  }
   return (m_ipcStatus == ipcValid);
 }
 

@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "1803825217"
+     validityKey = "2108766252"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -91,6 +91,18 @@
          </usedFeature>
       </usedFeatureSet>
    </usedFeatureSets>
+   <childProcesses>
+      <childProcessGroup
+           name = "systemQuotaSource"
+           quotaSource = "system"
+           simultaneousCreations = "1"
+         >
+         <childProcess
+              processTemplateToCreateWith = "adrf-template"
+              maximumInstances = "1"
+         ></childProcess>
+      </childProcessGroup>
+   </childProcesses>
    <processInstances>
       <processInstance
            name = "ASE"

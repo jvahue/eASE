@@ -6,10 +6,11 @@
 #include "CmProcess.h"
 #include "video.h"
 
+static CHAR blankLine[80];
 static const CHAR adrfProcessName[] = "adrf";
 
 CmProcess::CmProcess()
-	:m_bRspPending(FALSE)
+    :m_bRspPending(FALSE)
 {
 }
 
@@ -19,43 +20,43 @@ CmProcess::CmProcess()
 
 void CmProcess::Run()
 {
-	// create alias for this process because adrf will be granting write access
-	// to CMProcess, not ASE
+    // create alias for this process because adrf will be granting write access
+    // to CMProcess, not ASE
+    memset(blankLine, 0x20, sizeof(blankLine));
+    processStatus ps = createProcessAlias( "CMProcess");
 
-	processStatus ps = createProcessAlias( "CMProcess");
-
-	// Set up mailboxes for processing reconfig msg from ADRF
-	m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
-	m_gseInBox.GrantProcess(adrfProcessName);
+    // Set up mailboxes for processing reconfig msg from ADRF
+    m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
+    m_gseInBox.GrantProcess(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
-	m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
+    m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
 
-	// Create the thread thru the base class method.
-	// Use the default Ase template
-	Launch("CmProcess", "StdThreadTemplate");
+    // Create the thread thru the base class method.
+    // Use the default Ase template
+    Launch("CmProcess", "StdThreadTemplate");
 
 }
 
 
 void CmProcess::RunSimulation()
 {
-	UNSIGNED32* pSystemTickTime;
-	UNSIGNED32  nextRequestTime;
-	UNSIGNED32  nowTime;
-	UNSIGNED32  interval = 100;  // 100 X 10 millisecs/tick = 1 sec interval
+    UNSIGNED32* pSystemTickTime;
+    UNSIGNED32  nextRequestTime;
+    UNSIGNED32  nowTime;
+    UNSIGNED32  interval = 100;  // 100 X 10 millisecs/tick = 1 sec interval
 
-	// Grab the system tick pointer
-	pSystemTickTime = systemTickPointer();
+    // Grab the system tick pointer
+    pSystemTickTime = systemTickPointer();
 
-	m_gseCmd.gseSrc = GSE_SOURCE_CM;
-	m_gseCmd.gseVer = 1;
-	memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+    m_gseCmd.gseSrc = GSE_SOURCE_CM;
+    m_gseCmd.gseVer = 1;
+    memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
 
     while (1)
     {
-    	nowTime = *pSystemTickTime;
-    	// If not expecting a resp msg and time has elapsed to request the
+        nowTime = *pSystemTickTime;
+        // If not expecting a resp msg and time has elapsed to request the
 
         // Expecting cmd response... check inbox.
         if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
@@ -64,9 +65,12 @@ void CmProcess::RunSimulation()
             m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
         }
 
-        debug_str(AseMain, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
+        debug_str(CmProc, 8, 0,"%s", blankLine);
+        debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
 
-    	waitUntilNextPeriod();
+        debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
+
+        waitUntilNextPeriod();
     }
 }
 
@@ -88,20 +92,30 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             memcpy((void*)m_gseCmd.commandLine, (void*)request.charData, request.charDataSize);
             m_gseCmd.commandLine[request.charDataSize] = '\0';
 
-            if ( m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd)))
+            m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd));
+            secComm.m_response.successful = TRUE;
+
+            //sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
+            //            m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
+            //            m_gseOutBox.GetIpcStatusString(),
+            //            m_gseOutBox.GetProcessStatusString());
+
+            debug_str(CmProc, 10, 0,"%s", blankLine);
+            debug_str(CmProc, 10, 0, "GseCmd: %s", m_gseCmd.commandLine);
+
+            if (m_gseOutBox.GetIpcStatus()     != ipcValid ||
+                m_gseOutBox.GetProcessStatus() != processSuccess)
             {
-                secComm.m_response.successful = TRUE;
+                debug_str(CmProc, 12, 0,"%s",blankLine);
+                debug_str(CmProc, 12, 0, "Mailbox send error Ipc: %s, Proc: %s",
+                            m_gseOutBox.GetIpcStatusString(),
+                            m_gseOutBox.GetProcessStatusString());
             }
             else
             {
-                sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
-                        m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
-                        m_gseOutBox.GetIpcStatusString(),
-                        m_gseOutBox.GetProcessStatusString());
-                secComm.m_response.successful = FALSE;
+                debug_str(CmProc, 12, 0,"%s",blankLine);
+                debug_str(CmProc, 12, 0, "Mailbox CmProc -> Adrf OK");
             }
-            debug_str(AseMain, 10, 0, "GseCmd: %s - %s", m_gseCmd.commandLine,
-                      secComm.m_response.successful ? "Sent" : "Err");
         }
         else
         {
