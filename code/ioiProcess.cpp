@@ -54,6 +54,7 @@ IoiProcess::IoiProcess()
     , m_frames(0)
     , m_scheduled(0)
     , m_updated(0)
+    , m_sgRun(false)
 {
     // clear out our display index
     memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
@@ -88,7 +89,7 @@ void IoiProcess::Run()
 //
 BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 {
-    BOOLEAN serviced = FALSE;
+    BOOLEAN serviced = TRUE;
     ResponseType rType = eRspNormal;
     int port;  // 0 = gse, 1 = ms
     int itemId;
@@ -111,7 +112,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eSetSensorSG:
-        if ( ARRAY( itemId, m_maxParamIndex) && m_parameters[itemId].m_isValid)
+        if ( ARRAY( itemId, m_maxParamIndex+1) && m_parameters[itemId].m_isValid)
         {
             UINT32 sgType = request.sigGenId;
             if ( ARRAY( sgType, eMaxSensorMode))
@@ -128,7 +129,6 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
                 // Init the value
                 theParam.m_value =  theParam.m_sigGen.Reset(theParam.m_value);
-
                 secComm.m_response.successful = TRUE;
             }
             else
@@ -142,19 +142,66 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%d>", itemId);
             secComm.m_response.successful = FALSE;
         }
-        serviced = TRUE;
         break;
 
     case eResetSG:
+        if ( request.resetAll)
+        {
+            for (UINT32 i = 0; i < eIoiMaxParams; ++i)
+            {
+                if (m_parameters[i].m_isValid)
+                {
+                    m_parameters[i].m_sigGen.Reset(m_parameters[i].m_value);
+                }
+            }
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            // if the parameter index is valid reset it
+            if ( ARRAY( itemId, m_maxParamIndex) && m_parameters[itemId].m_isValid)
+            {
+                m_parameters[itemId].m_sigGen.Reset(m_parameters[itemId].m_value);
+                secComm.m_response.successful = TRUE;
+            }
+            else
+            {
+                sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%d>", itemId);
+                secComm.m_response.successful = FALSE;
+            }
+        }
+
         break;
 
     case eRunSG:
+        if (!m_sgRun)
+        {
+            m_sgRun = true;
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            sprintf( secComm.m_response.errorMsg, "Run SG Error: SGs are Running");
+            secComm.m_response.successful = FALSE;
+        }
         break;
 
     case eHoldSG:
+        if (m_sgRun)
+        {
+            m_sgRun = false;
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            sprintf( secComm.m_response.errorMsg, "Hold SG Error: SGs are Holding");
+            secComm.m_response.successful = FALSE;
+        }
         break;
 
     default:
+        // we did not service this command
+        serviced = FALSE;
         break;
     }
 
@@ -240,10 +287,10 @@ void IoiProcess::InitIoi()
     m_paramCount = 5;
     m_maxParamIndex = 2999;
     m_parameters[   0].Reset("P0",    20, PARAM_FMT_A429, 0x36240, 10000, 161, 90);
-    m_parameters[  10].Reset("P10",   20, PARAM_FMT_A429, 0x36640, 10000, 161, 90);
+    m_parameters[  10].Reset("P10",   10, PARAM_FMT_A429, 0x36640, 10000, 161, 90);
     m_parameters[ 256].Reset("P256",  20, PARAM_FMT_A429, 0x36a40, 10000, 161, 90);
-    m_parameters[ 311].Reset("P311",  20, PARAM_FMT_A429, 0x36e40, 10000, 161, 90);
-    m_parameters[2999].Reset("P2999", 20, PARAM_FMT_A429, 0x38268, 10000, 150, 90);
+    m_parameters[ 311].Reset("P311",  10, PARAM_FMT_A429, 0x36e40, 10000, 161, 90);
+    m_parameters[2999].Reset("P2999", 50, PARAM_FMT_A429, 0x38268, 10000, 150, 90);
 
     // TODO - default to displaying the first 20 parameters (or max param count)
     m_displayIndex[0] = 0;
@@ -264,27 +311,37 @@ void IoiProcess::UpdateIoi()
 {
     UINT32 i;
     char outputLine[80];
+    char sgType[80];
     UINT32 atLine = 2;
 
     m_frames += 1;
     m_scheduled = m_paramCount; // need to see how many are really scheduled
     m_updated ^= 1;             // toggle the lsb
 
-    debug_str(Ioi, 1, 0, "Frame: %6d Scheduled: %4d Updated: %4d           ",
-              m_frames, m_scheduled, m_updated);
+    debug_str(Ioi, 1, 0, "Frame: %6d Scheduled: %4d Updated: %4d SigGen: %s         ",
+              m_frames, m_scheduled, m_updated,
+              m_sgRun ? "Run" : "Hold");
 
-    for (i=0; i < m_maxParamIndex; ++i)
+    UNSIGNED32 *systemTickPtr = systemTickPointer();
+    for (i=0; i < (m_maxParamIndex+1); ++i)
     {
-        m_parameters[i].Update();
+        m_parameters[i].Update( *systemTickPtr, m_sgRun);
     }
 
     // display parameter data
     for (i=0; i < m_displayCount; ++i)
     {
         UINT32 x = m_displayIndex[i];
-        debug_str(Ioi, atLine, 0, "%32s: %10.4f - 0x%08x - %d                     ",
-                  m_parameters[x].m_name, m_parameters[x].m_value,
-                  m_parameters[x].m_rawValue, m_parameters[x].m_rawValue);
+        m_parameters[x].m_sigGen.GetRepresentation(sgType);
+
+        debug_str(Ioi, atLine, 0, "%32s(%6d): %10.4f - 0x%08x - %d      ",
+                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
+                  m_parameters[x].m_value,
+                  m_parameters[x].m_rawValue, m_parameters[x].m_rawValue, sgType);
+        atLine += 1;
+
+        debug_str(Ioi, atLine, 0, "%39s: %s        ",
+                  "", sgType);
         atLine += 1;
     }
 }

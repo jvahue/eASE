@@ -5,7 +5,9 @@
 /*****************************************************************************/
 #include <deos.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */
@@ -15,6 +17,24 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define TimeBase 100.0f  // one hundred frames in a sec
+#define EqFp(x,y) (fabs(x-y) < 0.00001)
+
+/*****************************************************************************/
+/* Local Data                                                                */
+/*****************************************************************************/
+// Signal Generator Options - make them the same lenght so the display is nice
+static char* modeNames[eMaxSensorMode] = {
+    "Manual  ",
+    "Ramp    ",
+    "RampHold",
+    "Triangle",
+    "Sine    ",
+    "1-Shot  ",
+    "N-Shot  ",
+    "PWM     ",
+    "Random  "
+};
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -80,8 +100,6 @@ float SignalGenerator::Reset( float lastValue)
 bool SignalGenerator::SetParams( int type, int updateMs,
                                  float param1, float param2, float param3, float param4)
 {
-#define EqFp(x,y) (fabs(x-y) < 0.00001)
-
     bool status = true;
     m_type = static_cast<SigGenEnum>(type);
 
@@ -114,7 +132,7 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     case eSGtriangle:
         // stepSize = ((max-min)/(seconds))/(1000/updateMs)
         //m_param3 = ((m_param2 - m_param1)/param3)/(1000.0f/float(updateMs));
-        m_param3 = ((m_param2 - m_param1)/param3)/1000.0f;
+        m_param3 = ((m_param2 - m_param1)/param3)/TimeBase;
 
         if (m_type == eSGtriangle)
         {
@@ -127,7 +145,7 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     case eSGsine:
         // Freq gets turned into m_angleDegrees/sample
         //m_param1 = (param1 * 360.0f)/(1000/updateMs);
-        m_param1 = (param1 * 360.0f)/(1000.0f);
+        m_param1 = (param1 * 360.0f)/TimeBase;
         m_orgParam4 = 0.0;
         m_param4 = 0.0;
         if ( m_param1 >= 360.0f)
@@ -142,7 +160,7 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     case eSGnShot:
         break;
     case eSGpwm:
-        m_param3 = param3 * (1000.0f/float(updateMs)); // total frames
+        m_param3 = param3 * (TimeBase/float(updateMs)); // total frames
         m_param4 = m_param3 * param4/100.0f;           // frames high
         if ( m_param3 < 1.0f || m_param4 < 1.0f)
         {
@@ -195,18 +213,18 @@ void SignalGenerator::GetParams( int updateMs,
     case eSGtriangle:
         // stepSize = ((max-min)/(seconds))/(1000/updateRate) ... solve for seconds
         //param3 = fabs((float(updateMs)/(m_param3*1000.0f))*(m_param2 - m_param1));
-        param3 = fabs(1.0f / (m_param3 * 1000.0f) * (m_param2 - m_param1));
+        param3 = fabs(1.0f / (m_param3 * TimeBase) * (m_param2 - m_param1));
         break;
     case eSGsine:
         // Freq gets turned into m_angleDegrees
         //param1 = ((m_param1 * 1000.0f)/float(updateMs))/360.0f;
-        param1 = ((m_param1 * 1000.0f))/360.0f;
+        param1 = ((m_param1 * TimeBase))/360.0f;
         break;
     case eSG1Shot:
     case eSGnShot:
         break;
     case eSGpwm:
-        param3 = (m_param3)/(1000.0f/float(updateMs));
+        param3 = (m_param3)/(TimeBase/float(updateMs));
         param4 = 100.0f * (m_param4/m_param3);
         break;
     case eSGrandom:
@@ -227,7 +245,8 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
 
     float newValue = oldValue;
 
-    UINT32 now = (UINT32)systemTickPointer();
+    UNSIGNED32 *systemTickPtr = systemTickPointer();
+    UINT32 now = *systemTickPtr;
 
     if ( sgRun && !m_firstRun)
     {
@@ -238,6 +257,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
         case eSGmanual:
             newValue = oldValue;
             break;
+
         case eSGramp:
             //newValue = oldValue + m_param3;
             newValue = oldValue + (m_param3 * delta);
@@ -250,6 +270,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
                 newValue = m_param1;
             }
             break;
+
         case eSGrampHold:
             //newValue = oldValue + m_param3;
             newValue = oldValue + (m_param3 * delta);
@@ -262,6 +283,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
                 newValue = m_param2;
             }
             break;
+
         case eSGtriangle:
             //newValue = oldValue + m_param3;
             newValue = oldValue + (m_param3 * delta);
@@ -276,6 +298,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
                 m_param3 *= -1.0f;
             }
             break;
+
         case eSGsine:
             radians = m_degrees * (3.1415926535897932384626433832795f / 180.0f);
             sineValue = sin( radians);
@@ -283,6 +306,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             //m_degrees += m_param1;
             m_degrees += m_param1 * delta;
             break;
+
         case eSG1Shot:
             startAt = int(m_param3);
             if ( m_counter == int(m_param3))
@@ -295,6 +319,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             }
             ++m_counter;
             break;
+
         case eSGnShot:
             startAt = int(m_param3);
             frames  = int(m_param4);
@@ -308,6 +333,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             }
             ++m_counter;
             break;
+
         case eSGpwm:
             ++m_counter;
             if ( m_counter >= int(m_param4) && m_counter < int(m_param3))
@@ -320,11 +346,23 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
                 m_counter = 0;
             }
             break;
+
         case eSGrandom:
             lowest = m_param1;
             range  = m_param2 - lowest;
-            newValue += 0.5f;
+            if (oldValue > m_param2)
+            {
+                newValue -= 0.5;
+            }
+            else
+            {
+                newValue += 0.5f;
+            }
             //newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
+            break;
+
+        default:
+            newValue = oldValue;
             break;
         };
     }
@@ -337,5 +375,50 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
     m_last = now;
 
     return newValue;
+}
+
+void SignalGenerator::GetRepresentation(char* buffer) const
+{
+    switch (m_type)
+    {
+        case eSGmanual:
+            sprintf(buffer, "manual(%.3f)", m_orgParam1);
+            break;
+        case eSGramp:
+            sprintf(buffer, "ramp(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+          break;
+        case eSGrampHold:
+            sprintf(buffer, "rampHold(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            break;
+        case eSGtriangle:
+            sprintf(buffer, "triangle(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            break;
+        case eSGsine:
+            sprintf(buffer, "sine(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            break;
+        case eSG1Shot:
+            sprintf(buffer, "oneshot(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            break;
+        case eSGnShot:
+            sprintf(buffer, "nshot(%.3f, %.3f, %.3f, %.3f)",
+                             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
+            break;
+        case eSGpwm:
+            sprintf(buffer, "pwm(%.3f, %.3f, %.3f, %.3f)",
+                             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
+            break;
+        case eSGrandom:
+            sprintf(buffer, "random(%.3f, %.3f)", m_orgParam1, m_orgParam2);
+            break;
+        default:
+            sprintf(buffer, "Unknown(%d)", m_type);
+            break;
+
+    }
+}
+
+void SignalGenerator::GetSgName(char* buffer) const
+{
+    strcpy( buffer, modeNames[m_type]);
 }
 

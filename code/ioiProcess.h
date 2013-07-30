@@ -19,7 +19,7 @@ class IoiProcess : public CmdRspThread
 public:
     enum IoiConstants {
         eIoiMaxParams = 3000,
-        eIoiMaxDisplay = 20,
+        eIoiMaxDisplay = 10,
     };
     
     IoiProcess();
@@ -45,6 +45,8 @@ protected:
     UINT32 m_frames;
     UINT32 m_scheduled;
     UINT32 m_updated;
+
+    bool m_sgRun;
 };
 
 #endif

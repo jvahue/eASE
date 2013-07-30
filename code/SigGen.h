@@ -9,6 +9,7 @@
 class SignalGenerator
 {
 public:
+
     SignalGenerator();
 
     float Reset( float lastValue);
@@ -19,6 +20,9 @@ public:
     
     void GetParams( int updateMs, 
                     float& p1, float& p2, float& p3, float& p4) const;
+
+    void GetRepresentation(char* buffer) const;
+    void GetSgName(char* buffer) const;
 
     SigGenEnum m_type;
     float m_param1;
