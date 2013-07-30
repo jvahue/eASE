@@ -41,6 +41,8 @@ CmProcess cmProc;
 IoiProcess ioiProc;
 
 // adrf.exe process control vars
+const char adrfName[] = "adrf";
+const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl;
 
@@ -56,6 +58,7 @@ CmdRspThread* cmdRspThreads[MAX_CMD_RSP] = {
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
+processStatus CreateAdrfProcess();
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -85,6 +88,10 @@ int main(void)
     systemTickPtr = systemTickPointer();
 
     debug_str_init();
+
+    // Initially create the adrf to start it running.
+    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
+    debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
     secComm.Run();
 
@@ -148,6 +155,21 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
+        case eRunScript:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
+        case eScriptDone:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
+        case eShutdown:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
         case eGetSensorNames:
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -156,21 +178,30 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOn:
             // Create the ADRF process to simulate behavior during power on
-            //if (NULL == adrfProcHndl)
-            //{
-            //    adrfProcStatus  = createProcess( "adrf",
-            //                                     "adrf-template",
-            //                                     0,
-            //                                     FALSE,
-           //                                      &adrfProcHndl);
-           // }
+            if ( processSuccess != adrfProcStatus)
+            {
+                createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+                debug_str(AseMain, 5, 0, "PowerOn: Create process %s returned: %d",
+                                                                 adrfName,
+                                                                 adrfProcStatus);
+            }
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
             break;
 
         case ePowerOff:
             // Kill the ADRF process to simulate behavior during power off
-            //adrfProcStatus =  deleteProcess( adrfProcHndl);
+            if (processSuccess == adrfProcStatus)
+             {
+                 adrfProcStatus =  deleteProcess( adrfProcHndl);
+                 debug_str(AseMain, 5, 0, "PowerOff: Delete process %s returned: %d",
+                                                               adrfName,
+                                                               adrfProcStatus);
+                 adrfProcStatus =  processNotActive;
+             }
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
             break;
-
 
         default:
             break;
@@ -195,4 +226,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     }
 
     return cmdSeen;
+}
+
+processStatus CreateAdrfProcess()
+{
+    return createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
 }
