@@ -77,7 +77,7 @@ float SignalGenerator::Reset( float lastValue)
 
 //--------------------------------------------------------------------------------------------------
 // The user just hit set so initialize or update the SG params
-bool SignalGenerator::SetParams( int type, int updateMs, 
+bool SignalGenerator::SetParams( int type, int updateMs,
                                  float param1, float param2, float param3, float param4)
 {
 #define EqFp(x,y) (fabs(x-y) < 0.00001)
@@ -85,47 +85,59 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     bool status = true;
     m_type = static_cast<SigGenEnum>(type);
 
-    m_orgParam1 = m_param1 = param1;
-    m_orgParam2 = m_param2 = param2;
-    m_orgParam3 = m_param3 = param3;
-    m_orgParam4 = m_param4 = param4;
-    
-    // BUG: Validate the parameters i.e., max > min, hi > low etc. 
+    m_orgParam1 = param1;
+    m_orgParam2 = param2;
+    m_orgParam3 = param3;
+    m_orgParam4 = param4;
+
+    m_param1 = param1;
+    m_param2 = param2;
+    m_param3 = param3;
+    m_param4 = param4;
+
+    // BUG: Validate the parameters i.e., max > min, hi > low etc.
     //      what about frequencies too high, PWM too small, etc.
     switch ( m_type)
     {
     case eSGmanual:
         //m_orgParam1 = m_param1 = 0.0f;
-        m_orgParam2 = m_param2 = 0.0f;
-        m_orgParam3 = m_param3 = 0.0f;
-        m_orgParam4 = m_param4 = 0.0f;
+        m_orgParam2 = 0.0f;
+        m_orgParam3 = 0.0f;
+        m_orgParam4 = 0.0f;
+
+        m_param2 = 0.0f;
+        m_param3 = 0.0f;
+        m_param4 = 0.0f;
         break;
     case eSGramp:
     case eSGrampHold:
     case eSGtriangle:
         // stepSize = ((max-min)/(seconds))/(1000/updateMs)
-        //m_param3 = ((m_param2 - m_param1)/param3)/(1000.0f/float(updateMs)); 
-        m_param3 = ((m_param2 - m_param1)/param3)/1000.0f; 
+        //m_param3 = ((m_param2 - m_param1)/param3)/(1000.0f/float(updateMs));
+        m_param3 = ((m_param2 - m_param1)/param3)/1000.0f;
 
         if (m_type == eSGtriangle)
         {
-            m_step0 = m_param3; 
+            m_step0 = m_param3;
         }
 
-        m_orgParam4 = m_param4 = 0.0;  // Unused
+        m_orgParam4 = 0.0;  // Unused
+        m_param4 = 0.0;
         break;
     case eSGsine:
         // Freq gets turned into m_angleDegrees/sample
         //m_param1 = (param1 * 360.0f)/(1000/updateMs);
         m_param1 = (param1 * 360.0f)/(1000.0f);
-        m_orgParam4 = m_param4 = 0.0;
+        m_orgParam4 = 0.0;
+        m_param4 = 0.0;
         if ( m_param1 >= 360.0f)
         {
             status = false;
         }
         break;
     case eSG1Shot:
-        m_orgParam4 = m_param4 = 0.0;
+        m_orgParam4 = 0.0;
+        m_param4 = 0.0;
         break;
     case eSGnShot:
         break;
@@ -138,8 +150,11 @@ bool SignalGenerator::SetParams( int type, int updateMs,
         }
         break;
     case eSGrandom:
-        m_orgParam3 = m_param3 = 0.0;
-        m_orgParam4 = m_param4 = 0.0;
+        m_orgParam3 = 0.0;
+        m_orgParam4 = 0.0;
+
+        m_param3 = 0.0;
+        m_param4 = 0.0;
         break;
     }
 
@@ -159,9 +174,9 @@ bool SignalGenerator::SetParams( int type, int updateMs,
 }
 
 //--------------------------------------------------------------------------------------------------
-// When the user selects a currently configured SG this function returns the parameters to the 
+// When the user selects a currently configured SG this function returns the parameters to the
 // display
-void SignalGenerator::GetParams( int updateMs, 
+void SignalGenerator::GetParams( int updateMs,
                                  float& param1, float& param2, float& param3, float& param4) const
 {
     // BUG: the could be set to m_orgParamX but we reverse compute these until we get the error
@@ -218,7 +233,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
     {
         UINT32 delta = now - m_last;
 
-        switch (m_type) 
+        switch (m_type)
         {
         case eSGmanual:
             newValue = oldValue;
@@ -251,12 +266,12 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             //newValue = oldValue + m_param3;
             newValue = oldValue + (m_param3 * delta);
             if (newValue > max( m_param1, m_param2))
-            {  
+            {
                 newValue = max( m_param1, m_param2);
                 m_param3 *= -1.0f;
             }
             else if (newValue < min( m_param1, m_param2))
-            {  
+            {
                 newValue = min( m_param1, m_param2);
                 m_param3 *= -1.0f;
             }

@@ -146,7 +146,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         cmdSeen = TRUE;
         SecRequest request = secComm.m_request;
 
-        debug_str(AseMain, 2, 0, "Last Cmd Id: %d", request.cmdId);
+        debug_str(AseMain, 2, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {

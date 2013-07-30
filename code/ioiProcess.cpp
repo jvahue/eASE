@@ -69,11 +69,11 @@ IoiProcess::IoiProcess()
 //
 void IoiProcess::Run()
 {
-    // create alias for this process because some process needs to source the 
+    // create alias for this process because some process needs to source the
     // ioi data
     processStatus ps = createProcessAlias( "ioi");
     // TBD: may want this to act as io cross-channel also
-    
+
     // create all of the IOI items
     InitIoi();
 
@@ -106,7 +106,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eSetSensorValue:
-        // TBD: This option should be removed as ePySte will convert a call to SetSensor('x', 33.3) 
+        // TBD: This option should be removed as ePySte will convert a call to SetSensor('x', 33.3)
         //      into eSetSensorSG with the type set to manual
         break;
 
@@ -128,18 +128,21 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
                 // Init the value
                 theParam.m_value =  theParam.m_sigGen.Reset(theParam.m_value);
+
+                secComm.m_response.successful = TRUE;
             }
             else
             {
-                sprintf(secComm.m_response.errorMsg, "Ioi: Invalid SG Type <%s>", sgType);
+                sprintf(secComm.m_response.errorMsg, "Ioi: Invalid SG Type <%d>", sgType);
                 secComm.m_response.successful = FALSE;
             }
         }
         else
         {
-            sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%s>", itemId);
+            sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%d>", itemId);
             secComm.m_response.successful = FALSE;
         }
+        serviced = TRUE;
         break;
 
     case eResetSG:
@@ -218,7 +221,7 @@ void IoiProcess::RunSimulation()
     while (1)
     {
         UpdateIoi();
-        
+
         // TODO: at 50 Hz pack the CCDL message and send it out
 
         waitUntilNextPeriod();
