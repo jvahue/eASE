@@ -172,6 +172,8 @@ struct SensorNames
     UINT32  sequence;
 
     // ------------- Start Payload --------------
+    UINT32 pBaseIndex;
+    UINT32 maxIndex;
     ParameterName names[eSecNumberOfSensors];
     // -------------- End Payload ---------------
 

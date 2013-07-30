@@ -19,6 +19,7 @@ class IoiProcess : public CmdRspThread
 public:
     enum IoiConstants {
         eIoiMaxParams = 3000,
+        eIoiMaxDisplay = 20,
     };
     
     IoiProcess();
@@ -29,12 +30,21 @@ protected:
 
      // Methods
     virtual void RunSimulation(); // override the CmdRspThread::RunSimulation
+    void FillSensorNames(INT32 start, SensorNames& m_snsNames);       // Send the sensor names to ePySte
     
     void InitIoi();
     void UpdateIoi();
     
     UINT32 m_paramCount;
+    UINT32 m_maxParamIndex;
     Parameter m_parameters[eIoiMaxParams];
+
+    UINT32 m_displayCount;
+    UINT32 m_displayIndex[eIoiMaxDisplay];
+
+    UINT32 m_frames;
+    UINT32 m_scheduled;
+    UINT32 m_updated;
 };
 
 #endif

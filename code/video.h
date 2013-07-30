@@ -34,8 +34,9 @@ extern "C" {
 //                      Text      Scroll
 //     Id               Name      Mode
 #define VID_DEF_LIST \
-VID_DEF(AseMain, "AseMain", FALSE),\
-VID_DEF(CmProc,  "CmProc",  FALSE),\
+VID_DEF(AseMain,       "AseMain", FALSE),\
+VID_DEF(CmProc,        "CmProc",  FALSE),\
+VID_DEF(Ioi,           "Ioi",     FALSE),\
 
 
 #undef  VID_DEF

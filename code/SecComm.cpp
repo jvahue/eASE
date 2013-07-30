@@ -293,7 +293,7 @@ void SecComm::SendResponse()
             // send sensor payload
             m_snsNames.header1 = eAseSecH1;
             m_snsNames.header2 = eAseSecH2;
-            m_snsNames.size = sizeof(m_response);
+            m_snsNames.size = sizeof(m_snsNames);
             m_snsNames.sequence = m_request.sequence;
             m_snsNames.checksum = Checksum( &m_snsNames, sizeof( m_snsNames));
             SendAny( (char*)&m_snsNames, sizeof( m_snsNames));

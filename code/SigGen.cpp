@@ -308,8 +308,8 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
         case eSGrandom:
             lowest = m_param1;
             range  = m_param2 - lowest;
-            //newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
             newValue += 0.5f;
+            //newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
             break;
         };
     }

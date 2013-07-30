@@ -139,15 +139,24 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         switch (request.cmdId)
         {
-        case ePing:
+        case eRunScript:
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
-        case eGetSensorNames:
+        case eScriptDone:
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
-            rType = eRspSensors;
+            break;
+
+        case eShutdown:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
+        case ePing:
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
             break;
 
         default:

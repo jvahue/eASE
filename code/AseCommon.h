@@ -8,6 +8,9 @@
 *
 *
 */
+#define ARRAY(i, max) (((i) >=0 && (i) < (max)))
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseSensorNameSize  = 32,         // SEC/IOC size of a sensor name (UUT uses 32)
