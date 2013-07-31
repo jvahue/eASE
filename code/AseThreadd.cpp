@@ -9,6 +9,7 @@
  ****************************************************************************/
 AseThread::AseThread()
     : m_hThread(0)
+    , m_pCommon(NULL)
     , m_state(eNotCreated)
 {
 }

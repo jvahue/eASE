@@ -24,6 +24,7 @@
 #include "video.h"
 
 #include "Mailbox.h"
+#include "AseCommon.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -53,7 +54,6 @@ CHAR* is_to_str(ipcStatus is);
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -241,10 +241,9 @@ BOOLEAN MailBox::Create(const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth
 
 
 /*****************************************************************************
- * Function:    GrantProcess
+ * Function:    IssueGrant
  *
- * Description:  Connect to a Mailbox for sending, OR...
- *               grants access to a process to sending msgs to mailbox
+ * Description:  Grants access to a process to sending msgs to mailbox
  *               created by this process via a preceding 'create' call.
  *
  * Parameters:   procName - string containing the name of the process which owns
@@ -256,7 +255,7 @@ BOOLEAN MailBox::Create(const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth
  * Notes:
  *
  ****************************************************************************/
-BOOLEAN MailBox::GrantProcess(const char* procName)
+BOOLEAN MailBox::IssueGrant(const char* procName)
 {
     BOOLEAN result = TRUE;
 
@@ -266,7 +265,6 @@ BOOLEAN MailBox::GrantProcess(const char* procName)
     }// switch on mailbox type
     return result;
 }
-
 
 /*****************************************************************************
  * Function:    Connect
@@ -344,8 +342,7 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
  ****************************************************************************/
 BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 {
-  if (m_type == eRecv)
-  {
+
     // If there were any sender processes which could not be granted access,
     // try to connect them each time we do a read.
     if (m_successfulGrantCnt < m_grantListSize )
@@ -358,14 +355,7 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
                                  buff,
                                  BYTES_TO_DWORDS(sizeBytes),
                                  bWaitForMessage);
-  }
-  else
-  {
-    // Only the creator/owner should be doing reads!
-    m_ipcStatus = ipcInvalid;
-  }
-
-  return (m_ipcStatus == ipcValid);
+    return (m_ipcStatus == ipcValid);
 }
 
 /*****************************************************************************
@@ -387,6 +377,8 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 {
     BOOLEAN result = TRUE;
+
+    // try to (re-)connect as necessary
     if ( !IsConnected() )
     {
         Connect(m_procName, m_mailBoxName);
@@ -395,20 +387,11 @@ BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
     if (IsConnected())
     {
         m_ipcStatus = sendMessage(m_hMailBox,
-                                  buff,
-                                  BYTES_TO_DWORDS(sizeBytes),
-                                  bBlockOnQueueFull);
-
-        // If a previously connected mail box has gone invalid
-        // (e.g. process deleted).
-        // Fail the connection flags so a reconnect will be performed.
-        if(ipcInvalidMailboxHandle == m_ipcStatus)
-        {
-            deleteMailbox(m_hMailBox);
-            m_hMailBox = NULL;
-        }
-  }
-  return (m_ipcStatus == ipcValid);
+                                         buff,
+                                         BYTES_TO_DWORDS(sizeBytes),
+                                         bBlockOnQueueFull);
+    }
+    return (m_ipcStatus == ipcValid);
 }
 
 
@@ -420,6 +403,39 @@ const char* MailBox::GetProcessStatusString()
 const char* MailBox::GetIpcStatusString()
 {
 	return is_to_str(GetIpcStatus());
+}
+
+void MailBox::Reset()
+{
+    SIGNED32  i;
+    // Reset my connections based on my config ( sender/receiver)
+
+    switch(m_type)
+    {
+    case eRecv:
+        if (m_successfulGrantCnt != 0)
+        {
+            // Reset the flag. This will force the receive method
+            // to reconnect before reading from src-proc
+            for (i = 0; i < eMaxGrantsAllowed; ++i)
+            {
+                m_grantList[i].bConnected = FALSE;
+            }
+            m_successfulGrantCnt = 0;
+        }
+        break;
+
+    case eUndefined:
+    case eSend:
+        if (m_hMailBox != NULL)
+        {
+            m_ipcStatus = ipcInvalid;
+            m_hMailBox = NULL;
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 

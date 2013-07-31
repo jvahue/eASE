@@ -20,6 +20,7 @@ CmProcess::CmProcess()
 
 void CmProcess::Run()
 {
+
     // create alias for this process because adrf will be granting write access
     // to CMProcess, not ASE
     memset(blankLine, 0x20, sizeof(blankLine));
@@ -27,7 +28,7 @@ void CmProcess::Run()
 
     // Set up mailboxes for processing reconfig msg from ADRF
     m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
-    m_gseInBox.GrantProcess(adrfProcessName);
+    m_gseInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
     m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
@@ -41,13 +42,9 @@ void CmProcess::Run()
 
 void CmProcess::RunSimulation()
 {
-    UNSIGNED32* pSystemTickTime;
     UNSIGNED32  nextRequestTime;
     UNSIGNED32  nowTime;
     UNSIGNED32  interval = 100;  // 100 X 10 millisecs/tick = 1 sec interval
-
-    // Grab the system tick pointer
-    pSystemTickTime = systemTickPointer();
 
     m_gseCmd.gseSrc = GSE_SOURCE_CM;
     m_gseCmd.gseVer = 1;
@@ -55,15 +52,22 @@ void CmProcess::RunSimulation()
 
     while (1)
     {
-        nowTime = *pSystemTickTime;
-        // If not expecting a resp msg and time has elapsed to request the
-
-        // Expecting cmd response... check inbox.
-        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+        nowTime = GET_SYSTEM_TICK;
+        if(IS_POWER_ON)
         {
-            int size = strlen(m_gseRsp.rspMsg);
-            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+            // If not expecting a resp msg and time has elapsed to request the
+            // Expecting cmd response... check inbox.
+            if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+            {
+                int size = strlen(m_gseRsp.rspMsg);
+                m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+            }
         }
+        else
+        {
+            HandlePowerOff();
+        }
+
 
         debug_str(CmProc, 8, 0,"%s", blankLine);
         debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
@@ -73,6 +77,7 @@ void CmProcess::RunSimulation()
         waitUntilNextPeriod();
     }
 }
+
 
 BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 {
@@ -156,6 +161,15 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     }
 
     return serviced;
+
+}
+
+void CmProcess::HandlePowerOff()
+{
+    // reset mailboxes due to power off ( adrf process gone)
+
+    m_gseInBox.Reset();
+    m_gseOutBox.Reset();
 
 }
 

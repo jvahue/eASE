@@ -19,6 +19,13 @@
 // Includes PWC
 #include "alt_stdtypes.h"
 #include "procapi.h"
+#include "AseCommon.h"
+
+// Handy #defs for accessing fields in AseCommon
+#define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
+#define IS_POWER_ON       (m_pCommon->bPowerOnState)
+#define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
+
 
 // Fwd decls
 class CmdObj;
@@ -37,7 +44,12 @@ public:
     AseThread();
 
     // Thread control
-    virtual void Run() {};
+    virtual void Run(){}
+    virtual void Run(AseCommon* pCommon)
+    {
+        m_pCommon = pCommon;
+        Run();
+    };
 
     // Accessors
     AseThreadState GetRunState();
@@ -47,6 +59,7 @@ protected:
     // Thread Attribs.
     thread_handle_t m_hThread;
     AseThreadState  m_state;
+    AseCommon*      m_pCommon;
 
     void Launch(const CHAR* name, const CHAR* tName);
 

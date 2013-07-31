@@ -3,13 +3,13 @@
 
 // File: AseCommon.h
 
+#include <deos.h>
 /**********************************************************************************************
 * Description: Common/Standard definitons for the ASE modules.
 *
 *
 */
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
@@ -44,5 +44,13 @@ enum PARAM_FMT_ENUM {
 
 
 typedef char ParameterName[eAseSensorNameSize];
+
+// Structure of control attribs for managing the UUT
+typedef struct
+{
+    UNSIGNED32 *systemTickPtr; // Pointer to the system tick value.
+    BOOLEAN    bScriptRunning; // Is a script actively running
+    BOOLEAN    bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
+}AseCommon;
 
 #endif

@@ -24,11 +24,18 @@
 #include "SecComm.h"
 #include "CmProcess.h"
 #include "ioiProcess.h"
+#include "AseCommon.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
 #define MAX_CMD_RSP 2
+
+/*****************************************************************************/
+/* Global Variables                                                               */
+/*****************************************************************************/
+AseCommon aseCommon;
+
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -40,11 +47,13 @@
 CmProcess cmProc;
 IoiProcess ioiProc;
 
+
+
 // adrf.exe process control vars
 const char adrfName[] = "adrf";
 const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
-process_handle_t adrfProcHndl;
+process_handle_t adrfProcHndl = NULL;
 
 /*****************************************************************************/
 /* Constant Data                                                             */
@@ -80,12 +89,13 @@ int main(void)
     const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
 
     UINT32 i;
-    UNSIGNED32 *systemTickPtr;
+
     SecComm secComm;
     UINT32 frames = 0;
     UINT32 lastCmdAt = 0;
-    // Grab the system tick pointer
-    systemTickPtr = systemTickPointer();
+
+    // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
+    aseCommon.systemTickPtr = systemTickPointer();
 
     debug_str_init();
 
@@ -93,12 +103,14 @@ int main(void)
     adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
     debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
+    aseCommon.bPowerOnState = (processSuccess == adrfProcStatus) ? TRUE : FALSE;
+
     secComm.Run();
 
     // Run all of the cmd response threads
     for (i=0; i < MAX_CMD_RSP; ++i)
     {
-        cmdRspThreads[i]->Run();
+        cmdRspThreads[i]->Run(&aseCommon);
     }
 
     debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
@@ -172,12 +184,14 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOn:
             // Create the ADRF process to simulate behavior during power on
-            if ( processSuccess != adrfProcStatus)
+            if ( adrfProcHndl == NULL)
             {
                 createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
                 debug_str(AseMain, 5, 0, "PowerOn: Create process %s returned: %d",
                                                                  adrfName,
                                                                  adrfProcStatus);
+                // Update the global-shared data block
+                aseCommon.bPowerOnState = TRUE;
             }
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -185,14 +199,18 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOff:
             // Kill the ADRF process to simulate behavior during power off
-            if (processSuccess == adrfProcStatus)
-             {
-                 adrfProcStatus =  deleteProcess( adrfProcHndl);
-                 debug_str(AseMain, 5, 0, "PowerOff: Delete process %s returned: %d",
-                                                               adrfName,
-                                                               adrfProcStatus);
-                 adrfProcStatus =  processNotActive;
-             }
+            if (adrfProcHndl != NULL)
+            {
+                adrfProcStatus = deleteProcess( adrfProcHndl);
+                debug_str(AseMain, 5, 0, "PowerOff: Delete process %s returned: %d",
+                                                   adrfName,
+                                                   adrfProcStatus);
+                adrfProcStatus =  processNotActive;
+                adrfProcHndl   = NULL;
+            }
+            // Update the global-shared data block
+            aseCommon.bPowerOnState = FALSE;
+
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;

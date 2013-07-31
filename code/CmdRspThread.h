@@ -68,6 +68,7 @@ protected:
     // Normally does not need to be overridden
     virtual void RunSimulation();
     // This is the real work horse
+    virtual void HandlePowerOff() {}
 
 };
 

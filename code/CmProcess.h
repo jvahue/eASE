@@ -59,6 +59,7 @@ class CmProcess : public CmdRspThread
 
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
+        virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
 };
 
 
