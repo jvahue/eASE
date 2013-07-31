@@ -39,46 +39,37 @@ void CmProcess::Run()
 
 }
 
-
+//-------------------------------------------------------------------------------------------------
+// Function: RunSimulation
+// Description:
+//
 void CmProcess::RunSimulation()
 {
-    UNSIGNED32  nextRequestTime;
-    UNSIGNED32  nowTime;
-    UNSIGNED32  interval = 100;  // 100 X 10 millisecs/tick = 1 sec interval
-
     m_gseCmd.gseSrc = GSE_SOURCE_CM;
     m_gseCmd.gseVer = 1;
     memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
 
-    while (1)
+
+    // If not expecting a resp msg and time has elapsed to request the
+    // Expecting cmd response... check inbox.
+    if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
     {
-        nowTime = GET_SYSTEM_TICK;
-        if(IS_POWER_ON)
-        {
-            // If not expecting a resp msg and time has elapsed to request the
-            // Expecting cmd response... check inbox.
-            if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
-            {
-                int size = strlen(m_gseRsp.rspMsg);
-                m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
-            }
-        }
-        else
-        {
-            HandlePowerOff();
-        }
-
-
-        debug_str(CmProc, 8, 0,"%s", blankLine);
-        debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
-
-        debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
-
-        waitUntilNextPeriod();
+        int size = strlen(m_gseRsp.rspMsg);
+        m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
     }
+
+
+    debug_str(CmProc, 8, 0,"%s", blankLine);
+    debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
+
+    debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
 }
 
 
+//-------------------------------------------------------------------------------------------------
+// Function: CheckCmd
+// Description:
+//
 BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 {
     BOOLEAN serviced = FALSE;
@@ -164,6 +155,10 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
 }
 
+//-------------------------------------------------------------------------------------------------
+// Function: HandlePowerOff
+// Description:
+//
 void CmProcess::HandlePowerOff()
 {
     // reset mailboxes due to power off ( adrf process gone)

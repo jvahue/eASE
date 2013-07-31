@@ -23,7 +23,10 @@ public:
     };
     
     IoiProcess();
+
+    // specialization of CmdRspThread
     virtual void Run();
+    virtual void HandlePowerOff();
     virtual BOOLEAN CheckCmd( SecComm& secComm);
 
 protected:

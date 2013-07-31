@@ -69,7 +69,6 @@ protected:
     virtual void RunSimulation();
     // This is the real work horse
     virtual void HandlePowerOff() {}
-
 };
 
 #endif

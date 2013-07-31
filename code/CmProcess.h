@@ -3,8 +3,8 @@
 
 #include "CmdRspThread.h"
 #include "Fifo.h"
-#include "MailBox.h"
 #include "Gse_Interface.h"
+#include "MailBox.h"
 #include "SecComm.h"
 
 // File: CmProcess.h

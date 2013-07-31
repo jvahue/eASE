@@ -11,6 +11,8 @@ AseThread::AseThread()
     : m_hThread(0)
     , m_pCommon(NULL)
     , m_state(eNotCreated)
+    , m_overrunCount(0)
+    , m_systemTick(0)
 {
 }
 

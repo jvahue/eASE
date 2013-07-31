@@ -256,23 +256,25 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Se
 //
 void IoiProcess::RunSimulation()
 {
-    UNSIGNED32* pSystemTickTime;
-    UNSIGNED32  nextRequestTime;
-    UNSIGNED32  nowTime;
-    UNSIGNED32  interval = 100;  // 100 X 10 millisecs/tick = 1 sec interval
-
-    // Grab the system tick pointer
-    pSystemTickTime = systemTickPointer();
-
-
-    while (1)
+    if (!m_pCommon->bScriptRunning)
     {
-        UpdateIoi();
-
-        // TODO: at 50 Hz pack the CCDL message and send it out
-
-        waitUntilNextPeriod();
+        m_sgRun = false;
     }
+
+    UpdateIoi();
+
+    // TODO: at 50 Hz pack the CCDL message and send it out
+
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: HandlePowerOff
+// Description: Processing done to simulate the ioi process
+//
+void IoiProcess::HandlePowerOff()
+{
+    // TODO: reset mailboxes and IOI
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -322,10 +324,9 @@ void IoiProcess::UpdateIoi()
               m_frames, m_scheduled, m_updated,
               m_sgRun ? "Run" : "Hold");
 
-    UNSIGNED32 *systemTickPtr = systemTickPointer();
     for (i=0; i < (m_maxParamIndex+1); ++i)
     {
-        m_parameters[i].Update( *systemTickPtr, m_sgRun);
+        m_parameters[i].Update( GET_SYSTEM_TICK, m_sgRun);
     }
 
     // display parameter data
@@ -340,7 +341,7 @@ void IoiProcess::UpdateIoi()
                   m_parameters[x].m_rawValue, m_parameters[x].m_rawValue, sgType);
         atLine += 1;
 
-        debug_str(Ioi, atLine, 0, "%39s: %s        ",
+        debug_str(Ioi, atLine, 0, "%40s: %s        ",
                   "", sgType);
         atLine += 1;
     }

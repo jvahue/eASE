@@ -163,16 +163,19 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         switch (request.cmdId)
         {
         case eRunScript:
+            aseCommon.bScriptRunning = TRUE;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eScriptDone:
+            aseCommon.bScriptRunning = FALSE;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eShutdown:
+            aseCommon.bScriptRunning = FALSE;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;

@@ -54,7 +54,26 @@ CmdRspThread::CmdRspThread()
 
 void CmdRspThread::Process()
 {
-    RunSimulation();
+    while (1)
+    {
+        m_systemTick = GET_SYSTEM_TICK;
+        if (IS_POWER_ON)
+        {
+            RunSimulation();
+        }
+        else
+        {
+            HandlePowerOff();
+        }
+
+        // check if we overran
+        if (m_systemTick < GET_SYSTEM_TICK)
+        {
+            m_overrunCount += 1;
+        }
+
+        waitUntilNextPeriod();
+    }
 }
 
 void CmdRspThread::RunSimulation()
