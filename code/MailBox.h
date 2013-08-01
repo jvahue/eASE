@@ -31,7 +31,8 @@ class MailBox
       MailBox(void);
       void Reset(void);
 
-      // Receiver methods, called by MB owner to create and grant access to senders
+      // Receiver methods
+      // called by MB owner to create and grant access to senders
       BOOLEAN Create (const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth);
       BOOLEAN IssueGrant(const char* procName);
       BOOLEAN Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage = FALSE);

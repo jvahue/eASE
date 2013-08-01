@@ -45,24 +45,8 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
-    m_gseCmd.gseSrc = GSE_SOURCE_CM;
-    m_gseCmd.gseVer = 1;
-    memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+    ProcessGseMessages();
 
-
-    // If not expecting a resp msg and time has elapsed to request the
-    // Expecting cmd response... check inbox.
-    if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
-    {
-        int size = strlen(m_gseRsp.rspMsg);
-        m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
-    }
-
-
-    debug_str(CmProc, 8, 0,"%s", blankLine);
-    debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
-
-    debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
 }
 
 
@@ -165,6 +149,27 @@ void CmProcess::HandlePowerOff()
 
     m_gseInBox.Reset();
     m_gseOutBox.Reset();
+
+}
+
+void CmProcess::ProcessGseMessages()
+{
+    m_gseCmd.gseSrc = GSE_SOURCE_CM;
+        m_gseCmd.gseVer = 1;
+        memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+
+        // If not expecting a resp msg and time has elapsed to request the
+        // Expecting cmd response... check inbox.
+        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+        {
+            int size = strlen(m_gseRsp.rspMsg);
+            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+        }
+
+        debug_str(CmProc, 8, 0,"%s", blankLine);
+        debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
+
+        debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
 
 }
 

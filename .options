@@ -13,5 +13,6 @@ TARGET = 80x86
 BUILD_CONFIGS += diagnostic
 GCC_CPP_COMPILE_DIRECTORIES += $(ABS_PROJECT_PATH.ase)/code
 80x86.*.GCC_CPP_COMPILE_DIRECTORIES += $(ABS_PROJECT_PATH.adrf)/code
-GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l video -l sal -l mtl -l ansi -l m -l ioiapi
+GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l video -l sal -l mtl -l ansi -l m
+80x86.*.GCC_CPP_LINK_ADDITIONAL_OPTIONS = -l video -l sal -l mtl -l ansi -l m -l cffsapi -l ioiapi
 GCC_C_COMPILE_ADDITIONAL_OPTIONS = 

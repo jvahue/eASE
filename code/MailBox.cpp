@@ -404,7 +404,22 @@ const char* MailBox::GetIpcStatusString()
 {
 	return is_to_str(GetIpcStatus());
 }
-
+/*****************************************************************************
+ * Function:     Reset
+ *
+ * Description:  Reset this mailbox to unconnected state
+ *               based on type (send/recv)
+ *
+ * Parameters:   None
+ *
+ * Returns:      None
+ *
+ * Notes:        This method should be called when the owner detects a
+ *               Power off condition, so the send/receive methods will
+ *               go thru the the normal mailbox connection processing upon
+ *               power restore.
+ *
+ ****************************************************************************/
 void MailBox::Reset()
 {
     SIGNED32  i;
@@ -426,6 +441,7 @@ void MailBox::Reset()
         break;
 
     case eUndefined:
+        // Deliberate fallthrough
     case eSend:
         if (m_hMailBox != NULL)
         {
@@ -461,8 +477,7 @@ void MailBox::AddSender(const char* procName)
 {
   // Add the allowed-sender to the process list.
   // NOTE: NOT CHECKING FOR DUPLICATE ATTEMPTS!!
-  strncpy(&m_grantList[m_grantListSize].ProcName[0], procName, eMaxProcNameLen);
-  m_grantListSize++;
+  strncpy(&m_grantList[m_grantListSize++].ProcName[0], procName, eMaxProcNameLen);
 
   // Attempt to grant this and any other unsuccessful sender processes.
   OpenSenders();
