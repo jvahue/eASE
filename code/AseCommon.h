@@ -11,6 +11,13 @@
 */
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 
+// Handy #defs for accessing fields in AseCommon
+#define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
+#define IS_CONNECTED      (m_pCommon->bConnected)
+#define IS_POWER_ON       (m_pCommon->bPowerOnState)
+#define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
@@ -50,8 +57,9 @@ typedef char ParameterName[eAseParamNameSize];
 typedef struct
 {
     UNSIGNED32 *systemTickPtr; // Pointer to the system tick value.
-    BOOLEAN    bScriptRunning; // Is a script actively running
-    BOOLEAN    bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
+    bool       bConnected;     // ePySte Connection
+    bool       bScriptRunning; // Is a script actively running
+    bool       bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
 } AseCommon;
 
 #endif

@@ -12,6 +12,7 @@
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
+#include <stdio.h>
 #include <string.h>
 
 /*****************************************************************************/
@@ -34,6 +35,19 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+const char* paramType[] = {
+    "None ",
+    "A664B",
+    "A664F",
+    " A429"
+};
+
+const char* a429Fmt[] = {
+    "BNR  ",
+    "BCD  ",
+    "Disc ",
+    "Other"
+};
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -47,7 +61,8 @@
 /* Class Definitions                                                         */
 /*****************************************************************************/
 Parameter::Parameter()
-    : m_isValid(FALSE)
+    : m_isValid(false)
+    , m_ioiValid(false)
     , m_value(0.0f)     // the current value for the parameter
     , m_rawValue(0)
     , m_ioiValue(0)    // current ioi value after Update
@@ -83,7 +98,7 @@ void Parameter::Reset( char* name, UINT32 rate, PARAM_FMT_ENUM fmt,
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
     ParamConverter::Reset(fmt, gpa, gpb, gpc, scale);
-    m_isValid = TRUE;
+    m_isValid = true;
 }    
 
 //-------------------------------------------------------------------------------------------------
@@ -152,3 +167,34 @@ void Parameter::Update(UINT32 sysTick, bool sgRun)
         }
     }
 }
+
+
+//-------------------------------------------------------------------------------------------------
+// Function: Display
+// Description: Display some info about the param
+//
+char* Parameter::Display(char* buffer)
+{
+    char sgRep[80];
+    m_sigGen.GetRepresentation(sgRep);
+
+    if (m_fmt == PARAM_FMT_A429)
+    {
+        //              Type(Fmt) Rate Child SigGen
+        sprintf(buffer, "%s(%s) %dHz %s %s",
+            paramType[m_fmt],
+            a429Fmt[m_a429.format],
+            m_rateHz,
+            m_isChild ? "Child" : "",
+            sgRep
+        );
+    }
+    else
+    {
+        sprintf(buffer, "%s - oops not supported yet", paramType[m_fmt]);
+    }
+
+    return buffer;
+}
+
+

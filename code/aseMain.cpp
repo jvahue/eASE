@@ -15,6 +15,7 @@
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
 #include <deos.h>
+#include <string.h>
 #include <videobuf.h>
 
 /*****************************************************************************/
@@ -91,6 +92,8 @@ int main(void)
     UINT32 frames = 0;
     UINT32 lastCmdAt = 0;
 
+    memset( &aseCommon, 0, sizeof(aseCommon));
+
     // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
     aseCommon.systemTickPtr = systemTickPointer();
 
@@ -139,6 +142,8 @@ int main(void)
             secComm.forceConnectionClosed = TRUE;
             lastCmdAt = frames;
         }
+
+        aseCommon.bConnected = secComm.IsConnected();
     }
 }
 

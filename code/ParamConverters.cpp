@@ -23,15 +23,6 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define GPA_RX_CHAN(gpa)          ((gpa >>  0) & 0x03)
-#define GPA_WORD_FORMAT(gpa)      ((gpa >>  2) & 0x03)
-#define GPA_WORD_SIZE(gpa)        ((gpa >>  5) & 0x1F)
-#define GPA_SDI_DEFINITION(gpa)   ((gpa >> 10) & 0x03)
-#define GPA_IGNORE_SDI(gpa)       ((gpa >> 12) & 0x01)
-#define GPA_WORD_POSITION(gpa)    ((gpa >> 13) & 0x1F)
-#define GPA_PACKED_DISCRETE(gpa)  ((gpa >> 18) & 0x03)
-#define GPA_SSM_FILTER(gpa)       ((gpa >> 20) & 0x0F)
-#define GPA_ALL_CALL(gpa)         ((gpa >> 24) & 0x01)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -61,12 +52,12 @@ ParamConverter::ParamConverter()
     , m_gpb(0)
     , m_gpc(0)
     , m_fmt(PARAM_FMT_NONE)
-    , m_scale(0.0f)       // the current value for the parameter
+    , m_scale(0)          // the current value for the parameter
+    , m_maxValue(0.0f)
     , m_scaleLsb(0.0f)    // the current value for the parameter
     , m_data(0)
 {
 }
-
 
 //-------------------------------------------------------------------------------------------------
 // Function: Convert
@@ -96,13 +87,28 @@ UINT32 ParamConverter::A429Converter(float value)
     {
         if (m_scaleLsb > 0)  // based on 429 format
         {
+            if ( value >= m_maxValue)
+            {
+                value = m_maxValue - m_scaleLsb;
+            }
+            else if (value < -m_maxValue)
+            {
+                value = -m_maxValue;
+            }
+
             m_data = UINT32(value / m_scaleLsb);
+
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
             if (value < 0.0f)
             {
                 rawValue = A429_BNRPutSign(rawValue, 1);
             }
         }
+    }
+    else if (m_a429.format == eDisc)
+    {
+        m_data = UINT32(value);
+        rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
     }
     // TODO: other formats
 
@@ -124,6 +130,7 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
     m_gpc = gpc;
     m_fmt = fmt;
     m_scale = scale;
+    m_maxValue = FLOAT32(scale);
     
     if (m_fmt == PARAM_FMT_A429)
     {
@@ -217,7 +224,6 @@ void ParamConverter::A429ParseGps()
     }
     else if ( m_a429.format == eDisc)
     {
-        --m_a429.msb;
         m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
     }
     else // eBNR
@@ -232,9 +238,6 @@ void ParamConverter::A429ParseGps()
 //--------------------------------------------------------------------------------------------------
 UINT32 ParamConverter::ExpectedSSM()
 {
-#define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
-#define BCD_VALID_SSM   0x03 //
-#define DISC_VALID_SSM  0x00 //
     unsigned int expected = BNR_VALID_SSM;
 
     // Store the Default Valid SSM

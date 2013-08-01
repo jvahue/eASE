@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "2108766252"
+     validityKey = "935481603"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -88,6 +88,16 @@
                  name = "ProcessTemplateName"
                  value = "ase-process-template"
             ></usedFeatureParameter>
+         </usedFeature>
+      </usedFeatureSet>
+      <usedFeatureSet
+           name = "ioi-feature-set"
+           versionRequirement = "none"
+           versionNumber = "none"
+         >
+         <usedFeature
+              name = "ioi-for-ASE"
+            >
          </usedFeature>
       </usedFeatureSet>
    </usedFeatureSets>

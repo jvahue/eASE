@@ -1,6 +1,8 @@
 #ifndef IOIPROCESS_H
 #define IOIPROCESS_H
 
+#include <ioiapi.h>
+
 #include "CmdRspThread.h"
 #include "SecComm.h"
 #include "Parameter.h"
@@ -21,6 +23,12 @@ public:
         eIoiMaxDisplay = 10,
     };
     
+    enum IoiState {
+        eIoiStateInit,
+        eIoiStateInitFail,
+        eIoiState
+    };
+
     IoiProcess();
 
     // specialization of CmdRspThread
@@ -51,7 +59,14 @@ protected:
     UINT32 m_scheduled;
     UINT32 m_updated;
 
+    ioiStatus m_initStatus;
+
+    UINT32 m_ioiOpenFailCount;
+    UINT32 m_ioiWriteFailCount;
+
     bool m_sgRun;
+
+
 };
 
 #endif

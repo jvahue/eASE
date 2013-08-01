@@ -235,6 +235,11 @@ public:
         return m_isValid;
     }
 
+    // this is true when a new request comes in and while it is being serviced
+    BOOLEAN IsConnected() const {
+        return m_connState == eConnConnected;
+    }
+
     // a thread handling the command set this for error reporting
     void SetHandler(CHAR* const handlerName) {
         m_cmdHandlerName = handlerName;

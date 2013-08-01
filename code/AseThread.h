@@ -21,12 +21,6 @@
 #include "procapi.h"
 #include "AseCommon.h"
 
-// Handy #defs for accessing fields in AseCommon
-#define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
-#define IS_POWER_ON       (m_pCommon->bPowerOnState)
-#define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
-
-
 // Fwd decls
 class CmdObj;
 

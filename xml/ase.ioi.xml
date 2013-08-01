@@ -1,0 +1,823 @@
+<?xml version = "1.0" encoding="ISO-8859-1"?>
+<ioiConfig
+     name = "ASE"
+     validityKey = "1189045576"
+     fileDate = "Thu Aug 01 13:36:05 2013"
+     toolVersion = "3.3.1"
+     comment = "This is the place users can add their own comments about the contents of this file"
+     fileDescriptorQuota = "0"
+     mapConfigurationFileTo = "flash"
+     xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation = "ioiConfig.xsd"
+   >
+   <producedItems>
+      <producedItem
+           name = "ac_aoa1_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "1: ac_aoa1_raw. values:(0*20)+(0..19)"
+      ></producedItem>
+      <producedItem
+           name = "ac_aoa2_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "2: ac_aoa2_raw. values:(1*20)+(0..19)"
+      ></producedItem>
+      <producedItem
+           name = "ac_aoa3_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "3: ac_aoa3_raw. values:(2*20)+(0..19)"
+      ></producedItem>
+      <producedItem
+           name = "ac_aoa4_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "4: ac_aoa4_raw. values:(3*20)+(0..19)"
+      ></producedItem>
+      <producedItem
+           name = "ac_ser_num_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "5: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_type_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "6: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_weight1_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "7: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_weight2_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "8: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd1_1_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "9: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd1_2_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "10: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd1_3_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "11: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd1_4_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "12: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd2_1_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "13: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd2_2_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "14: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd2_3_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "15: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd2_4_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "16: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd3_1_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "17: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd3_2_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "18: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd3_3_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "19: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "adsp_statwd3_4_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "20: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "airspeed1_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "21: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "airspeed2_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "22: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "airspeed3_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "23: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "airspeed4_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "24: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "flap_pos1_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "25: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "flap_pos2_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "26: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "lat_accel1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "27: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "lat_accel2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "28: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "lat_accel3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "29: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "latpos_coarse_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "30: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "latpos_fine_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "31: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "left_inbd_wspd1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "32: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "left_inbd_wspd2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "33: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "left_outbd_wspd1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "34: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "left_outbd_wspd2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "35: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "left_radalt_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "36: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "long_accel1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "37: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "long_accel2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "38: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "long_accel3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "39: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "longpos_coarse_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "40: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "longpos_fine_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "41: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "mach1_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "42: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "mach2_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "43: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "mach3_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "44: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "mach4_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "45: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "norm_accel1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "46: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "norm_accel2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "47: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "norm_accel3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "48: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_angle1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "49: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_angle2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "50: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_angle3_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "51: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_rate1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "52: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_rate2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "53: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pitch_rate3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "54: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pos_status1_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "55: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "pos_status2_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "56: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "press_alt1_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "57: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "press_alt2_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "58: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "press_alt3_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "59: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "press_alt4_raw"
+           productionRate = "250000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "60: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "right_inbd_wspd1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "61: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "right_inbd_wspd2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "62: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "right_outbd_wspd1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "63: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "right_outbd_wspd2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "64: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "right_radalt_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "65: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_angle1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "66: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_angle2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "67: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_angle3_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "68: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_rate1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "69: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_rate2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "70: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "roll_rate3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "71: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ships_date_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "72,73: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ships_time_raw"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "74,75: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "slat_pos1_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "76: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "slat_pos2_raw"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "77: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "sldslp_angle1_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "78: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "sldslp_angle2_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "79: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "sldslp_angle3_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "80: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "sldslp_angle4_raw"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "81: 20 Hz"
+      ></producedItem>
+      <producedItem
+           name = "woffw_pos1_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "82: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "woffw_pos2_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "83: 10 Hz"
+      ></producedItem>
+      <producedItem
+           name = "yaw_rate1_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "84: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "yaw_rate2_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "85: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "yaw_rate3_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "86: 100 Hz"
+      ></producedItem>
+   </producedItems>
+   <consumedItems>
+      <consumedItem
+           name = "adrf_health_ind"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "1 Hz Produced"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_rtc_time"
+           consumptionRate = "10000"
+           minimumDataRate = "10000"
+           messageForm = "IH"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "1 Hz Produced"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_ships_time"
+           consumptionRate = "10000"
+           minimumDataRate = "10000"
+           messageForm = "IH"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "1 Hz Produced"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_status_word1"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "1 Hz Produced"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_status_word2"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "1 Hz Produced"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+   </consumedItems>
+</ioiConfig>

@@ -88,7 +88,6 @@ SecComm::SecComm()
     memset((void*)m_errMsg, 0, sizeof(m_errMsg));
     memset((void*)m_ipPort, 0, sizeof(m_ipPort));
 
-    m_isValid = TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +102,10 @@ void SecComm::Run()
     {
         m_isValid = FALSE;
     }
+    else
+    {
+        m_isValid = TRUE;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,12 +113,7 @@ void SecComm::Run()
 // Description: Create a Socket connection
 void SecComm::OpenConnection()
 {
-    if (SetupTransport( m_pysteHandle, (CHAR*)"pySteConnection") != transportSuccess)
-    {
-       // Error Message was set in SetupTransport
-       m_isValid = FALSE;
-    }
-    else
+    if (SetupTransport( m_pysteHandle, (CHAR*)"pySteConnection") == transportSuccess)
     {
         // Create a TCP socket (SOCK_STREAM); default set up is "blocking"
         m_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -143,7 +141,12 @@ void SecComm::OpenConnection()
             m_isValid = FALSE;
         }
     }
-}
+    else
+    {
+       // Error Message was set in SetupTransport
+       m_isValid = FALSE;
+    }
+ }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function: Process

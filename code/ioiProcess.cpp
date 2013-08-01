@@ -54,6 +54,18 @@ struct ParamCfg {
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+const char* ioiInitStatus[] = {
+//   !  max length    !
+    "Success          ",
+    "CfgFileNotFound  ",
+    "CfgFileFailure   ",
+    "NoCfgInfoForProc ",
+    "InsufficientRAM  ",
+    "FmttLibLoadFailed",
+    "BffrLibLoadFailed",
+    "SMONotCreated    ",
+    "CannotAttachToSMO"
+};
 
 /*****************************************************************************/
 /* Class Definitions                                                         */
@@ -64,6 +76,8 @@ IoiProcess::IoiProcess()
     , m_frames(0)
     , m_scheduled(0)
     , m_updated(0)
+    , m_ioiOpenFailCount(0)
+    , m_ioiWriteFailCount(0)
     , m_sgRun(false)
 {
     // clear out our display index
@@ -82,7 +96,7 @@ void IoiProcess::Run()
 {
     // create alias for this process because some process needs to source the
     // ioi data
-    processStatus ps = createProcessAlias( "ioi");
+    processStatus ps = createProcessAlias( "IO");
     // TBD: may want this to act as io cross-channel also
 
     // create all of the IOI items
@@ -120,45 +134,59 @@ void IoiProcess::RunSimulation()
 //
 void IoiProcess::UpdateIoi()
 {
-    UINT32 i;
+    char rep[80];
     char outputLine[80];
-    char sgRep[80];
+    UINT32 i;
     Parameter* param;
+    ioiStatus writeStatus;
+
     UINT32 atLine = 2;
 
     m_frames += 1;
     m_scheduled = m_paramCount; // need to see how many are really scheduled
     m_updated ^= 1;             // toggle the lsb
 
-    debug_str(Ioi, 1, 0, "Frame: %6d Scheduled: %4d Updated: %4d SigGen: %s         ",
-              m_frames, m_scheduled, m_updated,
-              m_sgRun ? "Run" : "Hold");
+    debug_str(Ioi, 1, 0, "ePySte: %s IOI: %s SigGen: %s Frame: %d",
+              IS_CONNECTED ? "Conn  " : "NoConn",
+              ioiInitStatus[m_initStatus],
+              m_sgRun ? "Run" : "Hold",
+              m_frames);
 
-    param = &m_parameters[0];
-    for (i=0; i < (m_maxParamIndex+1); ++i)
+    if ( m_initStatus == ioiSuccess)
     {
-        if (param->m_isValid && !param->m_isChild)
+        param = &m_parameters[0];
+        for (i=0; i < (m_maxParamIndex+1); ++i)
         {
-            param->Update( GET_SYSTEM_TICK, m_sgRun);
+            if (param->m_isValid && !param->m_isChild && param->m_ioiValid)
+            {
+                param->Update( GET_SYSTEM_TICK, m_sgRun);
+                writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+                if (writeStatus != ioiSuccess)
+                {
+                    // TODO : what else?
+                    m_ioiWriteFailCount += 1;
+                }
+            }
+            ++param;
         }
-        ++param;
+
+        // display parameter data
+        for (i=0; i < m_displayCount; ++i)
+        {
+            UINT32 x = m_displayIndex[i];
+
+            debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
+                      m_parameters[x].m_name, m_parameters[x].m_updateCount,
+                      m_parameters[x].m_value,
+                      m_parameters[x].m_rawValue, m_parameters[x].m_data);
+            atLine += 1;
+
+            debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
+            atLine += 1;
+        }
     }
 
-    // display parameter data
-    for (i=0; i < m_displayCount; ++i)
-    {
-        UINT32 x = m_displayIndex[i];
-
-        debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
-                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
-                  m_parameters[x].m_value,
-                  m_parameters[x].m_rawValue, m_parameters[x].m_data);
-        atLine += 1;
-
-        m_parameters[x].m_sigGen.GetRepresentation(sgRep);
-        debug_str(Ioi, atLine, 0, "%40s: %s        ", "", sgRep);
-        atLine += 1;
-    }
+    debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -358,56 +386,78 @@ void IoiProcess::InitIoi()
 #define pCnt 5
     UINT32 i;
     UINT32 i1;
+    ioiStatus m_initStatus;
+    ioiStatus openStatus;
 
     // TODO remove and fetch from Cfg file for the real system
     ParamCfg pCfg[pCnt] = {
-        {0,    "P0",    20, PARAM_FMT_A429, 0x36240, 10000, 161, 90},
-        {10,   "P10",   10, PARAM_FMT_A429, 0x36640, 10000, 161, 90},
-        {256,  "P256",  20, PARAM_FMT_A429, 0x36a40, 10000, 161, 90},
-        {311,  "P311",  10, PARAM_FMT_A429, 0x36e40, 10000, 161, 90},
-        {2999, "P2999", 50, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
+        {0,    "ac_aoa1_raw",   20, PARAM_FMT_A429, 0x36240, 10000, 161, 90},
+        {1,    "ac_aoa2_raw",   20, PARAM_FMT_A429, 0x36640, 10000, 161, 90},
+        {22,   "airspeed1_raw",  4, PARAM_FMT_A429, 0x36220, 10000, 134, 512},
+        {23,   "airspeed2_raw",  4, PARAM_FMT_A429, 0x36620, 10000, 134, 512},
+        {2999, "ac_type_raw",    1, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
     };
 
-    m_paramCount = 0;
-    m_maxParamIndex = 0;
-    for (i=0; i < pCnt; ++i)
+    // Initialize IOI Before use
+    m_initStatus = ioi_init("");
+    if (m_initStatus == ioiSuccess)
     {
-        UINT32 index = pCfg[i].index;
-
-        m_paramCount += 1;
-        if (index > m_maxParamIndex)
+        m_paramCount = 0;
+        m_maxParamIndex = 0;
+        for (i=0; i < pCnt; ++i)
         {
-            m_maxParamIndex = index;
-        }
+            UINT32 index = pCfg[i].index;
 
-        m_parameters[index].Reset(pCfg[i].name, pCfg[i].rateHz, pCfg[i].fmt,
-                                  pCfg[i].gpa, pCfg[i].gpb, pCfg[i].gpc,
-                                  pCfg[i].scale);
-
-        // check to see if this parameter is a child of any existing parameters
-        for (i1=0; i1 < m_maxParamIndex+1; ++i1)
-        {
-            // if the param is valid and its not me
-            if (m_parameters[i1].m_isValid && i1 != index)
+            m_paramCount += 1;
+            if (index > m_maxParamIndex)
             {
-                if (m_parameters[index].IsChild(m_parameters[i1]))
+                m_maxParamIndex = index;
+            }
+
+            m_parameters[index].Reset(pCfg[i].name, pCfg[i].rateHz, pCfg[i].fmt,
+                                      pCfg[i].gpa, pCfg[i].gpb, pCfg[i].gpc,
+                                      pCfg[i].scale);
+
+            // check to see if this parameter is a child of any existing parameters
+            for (i1=0; i1 < m_maxParamIndex+1; ++i1)
+            {
+                // if the param is valid and its not me
+                if (m_parameters[i1].m_isValid && i1 != index)
                 {
-                    break;
+                    if (m_parameters[index].IsChild(m_parameters[i1]))
+                    {
+                        break;
+                    }
                 }
+            }
+
+            // if not a child open the IOI channel
+            if (!m_parameters[index].m_isChild)
+            {
+                openStatus = ioi_open(m_parameters[index].m_name, ioiWritePermission, (int*)&m_parameters[index].m_ioiChan);
+                if (openStatus == ioiSuccess)
+                {
+                    m_parameters[index].m_ioiValid = true;
+                }
+                else
+                {
+                    m_ioiOpenFailCount += 1;
+                }
+            }
+
+            // default the display to the first eIoiMaxDisplay parameters created
+            if (m_displayCount < eIoiMaxDisplay)
+            {
+                m_displayIndex[m_displayCount] = index;
+                m_displayCount += 1;
             }
         }
 
-        // default the display to the first eIoiMaxDisplay parameters created
-        if (m_displayCount < eIoiMaxDisplay)
-        {
-            m_displayIndex[m_displayCount] = index;
-            m_displayCount += 1;
-        }
+        ScheduleParameters();
+
+        m_updated = 3; // TODO: delete this line
     }
 
-    ScheduleParameters();
-
-    m_updated = 3; // TODO: delete this line
 }
 
 //-------------------------------------------------------------------------------------------------

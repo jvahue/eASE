@@ -21,13 +21,17 @@ public:
     void Reset( char* name, UINT32 rate, PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
     virtual void Update(UINT32 sysTick, bool sgRun);
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'chilc' match for the other parameter
-    
-    BOOLEAN m_isValid;     // ADRF update rate for the parameter in Hz
+    char* Display(char* buffer);
+
+    bool m_isValid;     // ADRF update rate for the parameter in Hz
+    bool m_ioiValid;    // ADRF update rate for the parameter in Hz
     ParameterName m_name;  // the parameter name
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
-    UINT32  m_ioiValue;    // current ioi value after Update
-    UINT32  m_ioiValueZ1;  // the last IOI value
+
+    INT32    m_ioiChan;
+    UINT32   m_ioiValue;    // current ioi value after Update
+    UINT32   m_ioiValueZ1;  // the last IOI value
 
     UINT32  m_rateHz;        // ADRF update rate for the parameter in Hz
     UINT32  m_updateMs;      // ASE update rate for the parameter in Hz = 2x m_rateHz
