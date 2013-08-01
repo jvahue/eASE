@@ -55,11 +55,14 @@ class CmProcess : public CmdRspThread
         MailBox m_fileXferOutBox;
         */
 
-
-
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
+
+    private:
+        void ProcessGseMessages();
+
+
 };
 
 
