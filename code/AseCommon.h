@@ -13,7 +13,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
-    eAseSensorNameSize  = 32,         // SEC/IOC size of a sensor name (UUT uses 32)
+    eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
+    eAseMaxParams = 3000,      // a maximum of 3000 parameters in the system
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ enum PARAM_FMT_ENUM {
 };
 
 
-typedef char ParameterName[eAseSensorNameSize];
+typedef char ParameterName[eAseParamNameSize];
 
 // Structure of control attribs for managing the UUT
 typedef struct
@@ -51,6 +52,6 @@ typedef struct
     UNSIGNED32 *systemTickPtr; // Pointer to the system tick value.
     BOOLEAN    bScriptRunning; // Is a script actively running
     BOOLEAN    bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
-}AseCommon;
+} AseCommon;
 
 #endif

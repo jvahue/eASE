@@ -49,6 +49,8 @@
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmdRspThread::CmdRspThread()
+    : m_systemTick(0)
+
 {
 }
 

@@ -69,6 +69,9 @@ protected:
     virtual void RunSimulation();
     // This is the real work horse
     virtual void HandlePowerOff() {}
+
+    UINT32          m_systemTick;
+
 };
 
 #endif

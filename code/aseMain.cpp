@@ -32,12 +32,6 @@
 #define MAX_CMD_RSP 2
 
 /*****************************************************************************/
-/* Global Variables                                                               */
-/*****************************************************************************/
-AseCommon aseCommon;
-
-
-/*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
 
@@ -47,13 +41,16 @@ AseCommon aseCommon;
 CmProcess cmProc;
 IoiProcess ioiProc;
 
-
-
 // adrf.exe process control vars
 const char adrfName[] = "adrf";
 const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl = NULL;
+
+/*****************************************************************************/
+/* Global Variables                                                          */
+/*****************************************************************************/
+AseCommon aseCommon;
 
 /*****************************************************************************/
 /* Constant Data                                                             */

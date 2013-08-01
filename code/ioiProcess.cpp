@@ -36,6 +36,16 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
+struct ParamCfg {
+    UINT32 index;
+    ParameterName name;
+    UINT32 rateHz;
+    PARAM_FMT_ENUM fmt;
+    UINT32 gpa;
+    UINT32 gpb;
+    UINT32 gpc;
+    UINT32 scale;
+};
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -81,6 +91,93 @@ void IoiProcess::Run()
     // Create the thread thru the base class method.
     // Use the default Ase template
     Launch("IoiProcess", "StdThreadTemplate");
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: RunSimulation
+// Description: Processing done to simulate the ioi process
+//
+void IoiProcess::RunSimulation()
+{
+    if (!m_pCommon->bScriptRunning)
+    {
+        m_sgRun = false;
+    }
+
+    UpdateIoi();
+
+    // at 50 Hz pack the CCDL message and send it out
+    if (m_systemTick & 1 == 1)
+    {
+        UpdateCCDL();
+    }
+
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: UpdateIoi
+// Description: Update all of the "output" parameters from the ioi process
+//
+void IoiProcess::UpdateIoi()
+{
+    UINT32 i;
+    char outputLine[80];
+    char sgRep[80];
+    Parameter* param;
+    UINT32 atLine = 2;
+
+    m_frames += 1;
+    m_scheduled = m_paramCount; // need to see how many are really scheduled
+    m_updated ^= 1;             // toggle the lsb
+
+    debug_str(Ioi, 1, 0, "Frame: %6d Scheduled: %4d Updated: %4d SigGen: %s         ",
+              m_frames, m_scheduled, m_updated,
+              m_sgRun ? "Run" : "Hold");
+
+    param = &m_parameters[0];
+    for (i=0; i < (m_maxParamIndex+1); ++i)
+    {
+        if (param->m_isValid && !param->m_isChild)
+        {
+            param->Update( GET_SYSTEM_TICK, m_sgRun);
+        }
+        ++param;
+    }
+
+    // display parameter data
+    for (i=0; i < m_displayCount; ++i)
+    {
+        UINT32 x = m_displayIndex[i];
+
+        debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
+                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
+                  m_parameters[x].m_value,
+                  m_parameters[x].m_rawValue, m_parameters[x].m_data);
+        atLine += 1;
+
+        m_parameters[x].m_sigGen.GetRepresentation(sgRep);
+        debug_str(Ioi, atLine, 0, "%40s: %s        ", "", sgRep);
+        atLine += 1;
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: UpdateCCDL
+// Description: Update the CCDL and send
+//
+void IoiProcess::UpdateCCDL()
+{
+
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: HandlePowerOff
+// Description: Processing done to simulate the ioi process
+//
+void IoiProcess::HandlePowerOff()
+{
+    // TODO: reset mailboxes and IOI
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -147,7 +244,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     case eResetSG:
         if ( request.resetAll)
         {
-            for (UINT32 i = 0; i < eIoiMaxParams; ++i)
+            for (UINT32 i = 0; i < eAseMaxParams; ++i)
             {
                 if (m_parameters[i].m_isValid)
                 {
@@ -231,16 +328,16 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Se
         snsNames.names[i][0] = '\0';
     }
 
-    snsNames.pBaseIndex = eIoiMaxParams;
-    for (i = start; (filledIn < eSecNumberOfSensors && i < eIoiMaxParams); ++i)
+    snsNames.pBaseIndex = eAseMaxParams;
+    for (i = start; (filledIn < eSecNumberOfSensors && i < eAseMaxParams); ++i)
     {
-        if (snsNames.pBaseIndex != eIoiMaxParams || m_parameters[i].m_isValid)
+        if (snsNames.pBaseIndex != eAseMaxParams || m_parameters[i].m_isValid)
         {
-            if (snsNames.pBaseIndex == eIoiMaxParams)
+            if (snsNames.pBaseIndex == eAseMaxParams)
             {
                 snsNames.pBaseIndex = i;
             }
-            strncpy(snsNames.names[filledIn], m_parameters[i].m_name, eAseSensorNameSize);
+            strncpy(snsNames.names[filledIn], m_parameters[i].m_name, eAseParamNameSize);
             filledIn += 1;
         }
     }
@@ -251,100 +348,76 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Se
 ****************************************************************************/
 
 //-------------------------------------------------------------------------------------------------
-// Function: RunSimulation
-// Description: Processing done to simulate the ioi process
-//
-void IoiProcess::RunSimulation()
-{
-    if (!m_pCommon->bScriptRunning)
-    {
-        m_sgRun = false;
-    }
-
-    UpdateIoi();
-
-    // TODO: at 50 Hz pack the CCDL message and send it out
-
-}
-
-//-------------------------------------------------------------------------------------------------
-// Function: HandlePowerOff
-// Description: Processing done to simulate the ioi process
-//
-void IoiProcess::HandlePowerOff()
-{
-    // TODO: reset mailboxes and IOI
-
-}
-
-//-------------------------------------------------------------------------------------------------
 // Function: InitIoi
 // Description: Processing done to simulate the ioi process
 //
+// Note: this function checks for child relationships between parameters.  Each parameter has a
+// child link, that can be followed from the first (parent) param.
 void IoiProcess::InitIoi()
 {
+#define pCnt 5
     UINT32 i;
+    UINT32 i1;
 
-    // TODO - set these up for real form the cfg file
-    m_paramCount = 5;
-    m_maxParamIndex = 2999;
-    m_parameters[   0].Reset("P0",    20, PARAM_FMT_A429, 0x36240, 10000, 161, 90);
-    m_parameters[  10].Reset("P10",   10, PARAM_FMT_A429, 0x36640, 10000, 161, 90);
-    m_parameters[ 256].Reset("P256",  20, PARAM_FMT_A429, 0x36a40, 10000, 161, 90);
-    m_parameters[ 311].Reset("P311",  10, PARAM_FMT_A429, 0x36e40, 10000, 161, 90);
-    m_parameters[2999].Reset("P2999", 50, PARAM_FMT_A429, 0x38268, 10000, 150, 90);
+    // TODO remove and fetch from Cfg file for the real system
+    ParamCfg pCfg[pCnt] = {
+        {0,    "P0",    20, PARAM_FMT_A429, 0x36240, 10000, 161, 90},
+        {10,   "P10",   10, PARAM_FMT_A429, 0x36640, 10000, 161, 90},
+        {256,  "P256",  20, PARAM_FMT_A429, 0x36a40, 10000, 161, 90},
+        {311,  "P311",  10, PARAM_FMT_A429, 0x36e40, 10000, 161, 90},
+        {2999, "P2999", 50, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
+    };
 
-    // TODO - default to displaying the first 20 parameters (or max param count)
-    m_displayIndex[0] = 0;
-    m_displayIndex[1] = 10;
-    m_displayIndex[2] = 256;
-    m_displayIndex[3] = 311;
-    m_displayIndex[4] = 2999;
-    m_displayCount = 5;
+    m_paramCount = 0;
+    m_maxParamIndex = 0;
+    for (i=0; i < pCnt; ++i)
+    {
+        UINT32 index = pCfg[i].index;
 
-    m_updated = 3;
+        m_paramCount += 1;
+        if (index > m_maxParamIndex)
+        {
+            m_maxParamIndex = index;
+        }
+
+        m_parameters[index].Reset(pCfg[i].name, pCfg[i].rateHz, pCfg[i].fmt,
+                                  pCfg[i].gpa, pCfg[i].gpb, pCfg[i].gpc,
+                                  pCfg[i].scale);
+
+        // check to see if this parameter is a child of any existing parameters
+        for (i1=0; i1 < m_maxParamIndex+1; ++i1)
+        {
+            // if the param is valid and its not me
+            if (m_parameters[i1].m_isValid && i1 != index)
+            {
+                if (m_parameters[index].IsChild(m_parameters[i1]))
+                {
+                    break;
+                }
+            }
+        }
+
+        // default the display to the first eIoiMaxDisplay parameters created
+        if (m_displayCount < eIoiMaxDisplay)
+        {
+            m_displayIndex[m_displayCount] = index;
+            m_displayCount += 1;
+        }
+    }
+
+    ScheduleParameters();
+
+    m_updated = 3; // TODO: delete this line
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: UpdateIoi
-// Description: Update all of the "output" parameters from the ioi process
+// Function: ScheduleParameters
+// Description: Compute the offsets for the parameters to balance the frame load
 //
-void IoiProcess::UpdateIoi()
+void IoiProcess::ScheduleParameters()
 {
-    UINT32 i;
-    char outputLine[80];
-    char sgType[80];
-    UINT32 atLine = 2;
+    // TODO: set the parameter offsets
 
-    m_frames += 1;
-    m_scheduled = m_paramCount; // need to see how many are really scheduled
-    m_updated ^= 1;             // toggle the lsb
-
-    debug_str(Ioi, 1, 0, "Frame: %6d Scheduled: %4d Updated: %4d SigGen: %s         ",
-              m_frames, m_scheduled, m_updated,
-              m_sgRun ? "Run" : "Hold");
-
-    for (i=0; i < (m_maxParamIndex+1); ++i)
-    {
-        m_parameters[i].Update( GET_SYSTEM_TICK, m_sgRun);
-    }
-
-    // display parameter data
-    for (i=0; i < m_displayCount; ++i)
-    {
-        UINT32 x = m_displayIndex[i];
-        m_parameters[x].m_sigGen.GetRepresentation(sgType);
-
-        debug_str(Ioi, atLine, 0, "%32s(%6d): %10.4f - 0x%08x - %d      ",
-                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
-                  m_parameters[x].m_value,
-                  m_parameters[x].m_rawValue, m_parameters[x].m_rawValue, sgType);
-        atLine += 1;
-
-        debug_str(Ioi, atLine, 0, "%40s: %s        ",
-                  "", sgType);
-        atLine += 1;
-    }
 }
 
 

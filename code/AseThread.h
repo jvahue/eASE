@@ -44,7 +44,7 @@ public:
     AseThread();
 
     // Thread control
-    virtual void Run(){}
+    virtual void Run() {}
     virtual void Run(AseCommon* pCommon)
     {
         m_pCommon = pCommon;
@@ -61,7 +61,6 @@ protected:
     AseThreadState  m_state;
     AseCommon*      m_pCommon;
     UINT32          m_overrunCount;
-    UINT32          m_systemTick;
 
     void Launch(const CHAR* name, const CHAR* tName);
 

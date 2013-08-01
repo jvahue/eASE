@@ -16,6 +16,7 @@
 // Software Specific Includes                                                -/
 //----------------------------------------------------------------------------/
 #include "alt_stdtypes.h"
+
 #include "AseCommon.h"
 
 //----------------------------------------------------------------------------/
@@ -36,37 +37,51 @@
 #define ARINC_MSG_SIGN_DATA_BITS    (ARINC_MSG_SIGN_BIT | ARINC_MSG_DATA_BITS)
 #define ARINC_MSG_VALID_BIT         ARINC_MSG_PARITY_BIT
 
+#define MASK1(s) ((1 << (s)) - 1)
+#define FIELD(m,l) (MASK1((m+1)-l) << l)
+
+#define A429_FldPutLabel(d,l) ((d & 0xFFFFFF00) | (l & 0xFF))
+#define A429_BNRPutSign(d,s)  ((d & 0x6FFFFFFF) | ((s & 1) << 28))
+#define A429_BCDPutSign(d,s)  ((d & 0x1FFFFFFF) | ((s & 3) << 29))
+#define A429_FldPutData(d,v)  (d | (v << 10))
+
+#define A429_BNRPutData(d,v,m,l) ((d & ~FIELD((m),(l))) | ((v & FIELD((m)-(l),0)) << (l)))
+
+#define A429_BNRGetData(d,m,l) ((d >> l) & FIELD( m,l))
+
+#define A429_BCDPutSSM(d,s) ((d & 0x1fffffff) | ((s & 3) << 29))
+#define A429_FldPutSDI(d,s) ((d & ~0x300) | ((s & 3) << 8))
+
 //----------------------------------------------------------------------------/
 // Local Typedefs                                                            -/
 //----------------------------------------------------------------------------/
-enum ARINC_FORM
-{
-  BNR,
-  BCD,
-  DISCRETE,
-  OTHER,
-  END_OF_ARINC_FORMATS
-} ;
+enum A429WordFormat {
+    eBNR   = 0,
+    eBCD   = 1,
+    eDisc  = 2,
+    eOther = 3
+};
 
-enum DISC_TYPE
-{
-  DISC_STANDARD,
-  DISC_BNR,
-  DISC_BCD,
-  END_OF_DISC_TYPES
-} ;
+enum A429DiscretTypes {
+    eDiscStandard,
+    eDiscBNR,
+    eDiscBCD
+};
 
 struct ARINC429_WORD_INFO
 {
+   // GPC Data
    UINT8               label;
+
    // GPA Data
-   UINT8               rxChan;       // Rx Chan 0,1,2 or 3 from FPGA
-   ARINC_FORM          format;       // Format (BNR, BCD, Discrete)
+   UINT8               channel;      // Rx Chan 0,1,2 or 3 from FPGA
+   A429WordFormat      format;       // Format (BNR, BCD, Discrete)
+   A429DiscretTypes    discType;     // Discrete Type (Standard, BNR, BCD)
    UINT8               wordSize;     // Arinc Word Size 1 - 32 bits
-   UINT8               sdBits;       // SDBit definition
-   BOOLEAN             ignoreSDI;    // Ignore SDI bits
    UINT8               wordPos;      // Arinc Word Start Pos within 32 bit word (Start 0)
-   DISC_TYPE           discType;     // Discrete Type (Standard, BNR, BCD)
+   UINT8               lsb;
+   UINT8               msb;
+
    UINT8               validSSM;     // Valid SSM for Word
                                      //   NOTE: Valid SSM is directly related to the
                                      //         FailureCondition[] array index.
@@ -75,22 +90,16 @@ struct ARINC429_WORD_INFO
                                      //   bit 1 = SSM '01'
                                      //   bit 2 = SSM '10'
                                      //   bit 3 = SSM '11'
+   UINT8               SSM;
+
    BOOLEAN             sdiAllCall;   // SDI All Call Mode
-   FLOAT32             convert_lsb;  //   cfg.scale / sizeofWord to get scaling
+   BOOLEAN             ignoreSDI;    // Ignore SDI bits
+   UINT8               sdBits;       // SDBit definition
+
+   UINT32              a429Template; // ssm, sdi, label only
+
    // GPB Data
    UINT32              dataLossTime; // Data Loss Timeout in milliseconds
-
-   // Index into A429_SRC_DATA
-   UINT16              index;
-
-   UINT32              rxTime;  // Rx Time indicate new update from ParamSrcA429.  Note
-                                //   this val is used differently then the
-                                //   PARAM_DATA.rxTime, to support SSM Filter processing.
-                                //   When new update is Rx from ParamSrcA429, this rxTime
-                                //   is updated and is use as flag wether to call ioi_read()
-                                //   The Param could still be invalid due to not passing
-                                //   SSM filtering, thus PARAM_DATA.rxTime is updated to
-                                //   identify validity of Param.
 
 };
 
@@ -98,23 +107,28 @@ struct ARINC429_WORD_INFO
 class ParamConverter
 {
 public:
+
     ParamConverter();
     void Reset(PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
     virtual UINT32 Convert(FLOAT32 value);
     
-protected:
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
     PARAM_FMT_ENUM m_fmt; 
     UINT32  m_scale;       // the current value for the parameter
     FLOAT32 m_scaleLsb;    // the current value for the parameter
-    
+    UINT32  m_data;        // the current value for the parameter
+
     // A429 Parameter Attributes
     ARINC429_WORD_INFO m_a429;
 
     void A429ParseGps();
-    UINT32 A429Converter();
+    UINT32 ExpectedSSM();
+    UINT32 A429Converter(float value);
+    void SetSdi( INT32 value);
+    void SetSsm( INT32 value);
+    void SetLabel( INT32 value);
 
     //UINT32 A664Converter();
 
