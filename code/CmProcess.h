@@ -3,6 +3,7 @@
 
 #include "CmdRspThread.h"
 #include "Fifo.h"
+#include "File.h"
 #include "Gse_Interface.h"
 #include "MailBox.h"
 #include "SecComm.h"
@@ -60,8 +61,12 @@ class CmProcess : public CmdRspThread
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
 
     private:
+        File m_putFile;
+        File m_getFile;
+        char m_readyFile[256];  // TODO: remove after debugging
         void ProcessGseMessages();
-
+        bool PutFile(SecComm& secComm);
+        bool GetFile(SecComm& secComm);
 
 };
 

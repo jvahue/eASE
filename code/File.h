@@ -10,18 +10,19 @@ class File
     public:
     // Constructor
         File();
-        File(const char* fileName, const char* srvRes,
-                   const char* clientRes, UNSIGNED32 portSize);
 
     // Object management methods
-        BOOLEAN Init(const char* fileName,  const char* srvRes,
-                     const char* clientRes, UNSIGNED32 portSize);
+        BOOLEAN Open(const char* fileName,  UINT32 partitionId, const char mode);
         void Reset();
 
     // Interface methods
         BOOLEAN Read (void *pBuff, UNSIGNED32 size);
         BOOLEAN Write(void *pBuff, UNSIGNED32 size);
         BOOLEAN Delete(void);
+
+        void Close();
+        BOOLEAN IsOpen();
+        const char* GetFileName() const {return m_fileName;}
 
     protected:
         enum FileConstants
@@ -52,7 +53,7 @@ class File
         void*      m_portAddr [eNumPorts];
 
         char m_clientAccessRes[eMaxResName]; // Client Access name (CAR)
-        char m_partitionName[eMaxResName]; // name of the XXXX-partition where this file resides.
+        char m_partitionName[eMaxResName];   // name of the XXXX-partition where this file resides.
         char m_fileName[eMaxFileName];       // name of the file to be used.
 
     private:

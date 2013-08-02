@@ -78,20 +78,6 @@ File::File()
 
 
 //------------------------------------------------------------------------------
-// Function: Init
-// Description:
-
-File::File(const char* fileName,
-           const char* filePartitionName,
-           const char* clientRes,
-           UNSIGNED32 portSize)
-{
-    Reset();
-    Init(fileName, filePartitionName, clientRes, portSize);
-}
-
-
-//------------------------------------------------------------------------------
 // Function: Reset
 // Description:
 
@@ -109,10 +95,9 @@ void File::Reset()
 // Function: Init
 // Description:
 
-BOOLEAN File::Init(const char* fileName,
-                   const char* filePartitionName,
-                   const char* clientRes,
-                   UNSIGNED32 portSize)
+BOOLEAN File::Open(const char* fileName,
+                   UINT32 filePartitionName,
+                   const char mode)
 {
     UNSIGNED32  i;
     UNSIGNED32  initVal;

@@ -35,59 +35,68 @@ $Revision: $  $Date: $
 /* Local Typedefs                                                            */
 /*****************************************************************************/
 enum SecCmds {
-// AseMain Serviced 1 - 100
+//--------------------------- AseMain Serviced 1 - 199 -----------------------
     eRunScript      = 1,
     eScriptDone     = 2,
     eShutdown       = 3,
     ePing           = 4,
+    ePowerOn        = 5,
+    ePowerOff       = 6,
+
+// Ase Enums 101-199
+
+//---------------------------- CMProcess 200 - 399 ----------------------------
+    eReadStream     = 200,
+    eClearStream    = 201,
+    eWriteStream    = 202,
+    ePutFile        = 203,  // put a file onto the UUT in a partition
+    eGetFile        = 204,  // get a file from the UUT in a partition
+
+// CmProc Enums 301-399
+    eCmPartCfg      = 301,  // the Cfg file partion Id
+    eCmPartLog      = 302,  // the Log file partition Id
+
+//-------------------------------- IOI 400 - 599 ------------------------------
+    eGetSensorNames = 400,
+    eGetSensorValue = 401,
+    eSetSensorValue = 402,   // TBD: this should be deleted as only eSetSensorSG is used
+    eSetSensorSG    = 403,
+    eResetSG        = 404,
+    eRunSG          = 405,
+    eHoldSG         = 406,
+    eSetSdi         = 407,
+    eSetSsm         = 408,
+    eSetLabel       = 409,
+
     
-    ePowerOn        = 110,
-    ePowerOff       = 120,
-    ePowerToggle    = 125,
+//-------------------------------- unallocated --------------------------------
+    eStartLogging   = 55560,
+    eStopLogging    = 55570,
+    eLoadCfg        = 55580,
+    eClearCfg       = 55590,
+    ePowerToggle    = 55125,
+    eChannelPause   = 55130,
+    eChannelResume  = 55140,
+    eSetPfen        = 55150,
+    ePowerInt       = 55160,
+    eSetBarker      = 55170,
+    eSet429BitRate  = 55180,
+    eSet429Amp      = 55190,
+    eSetQarPause    = 55230,
+    eSetQarData     = 55240,
 
-// CMProcess 200 - 300
+    eSetFileStream  = 55650,
+    eSetBaudRate    = 55660,
+    eSetFfd         = 55670,
 
-// IOI 400 - 500
-    eSetSensorValue = 10,   // TBD: this should be deleted as only eSetSensorSG is used
-    eSetSensorSG    = 20,
-    eResetSG        = 30,
-    eRunSG          = 40,
-    eHoldSG         = 50,
-    
-    eStartLogging   = 60,
-    eStopLogging    = 70,
-    eLoadCfg        = 80,
-    eClearCfg       = 90,
-    eChannelPause   = 130,
-    eChannelResume  = 140,
-    eSetPfen        = 150,
-    ePowerInt       = 160,
-    eSetBarker      = 170,
-    eSet429BitRate  = 180,
-    eSet429Amp      = 190,
-    eSetSdi         = 200,
-    eSetSsm         = 210,
-    eSetLabel       = 220,
-    eSetQarPause    = 230,
-    eSetQarData     = 240,
+    eSampleAin      = 51000,
+    eReadAvgAin     = 51010,
+    eReadPeakAin    = 51020,
+    eReadDin        = 51030,
+    eReadDinOr      = 51040,
+    eClearDinOr     = 51050,
+    eSelectAntenna  = 51060,
 
-    eGetSensorValue = 100,
-    eReadStream     = 500,
-    eClearStream    = 550,
-    eWriteStream    = 600,
-    eSetFileStream  = 650,
-    eSetBaudRate    = 660,
-    eSetFfd         = 670,
-
-    eSampleAin      = 1000,
-    eReadAvgAin     = 1010,
-    eReadPeakAin    = 1020,
-    eReadDin        = 1030,
-    eReadDinOr      = 1040,
-    eClearDinOr     = 1050,
-    eSelectAntenna  = 1060,
-
-    eGetSensorNames = 10000,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,6 +278,8 @@ public:
 
     virtual void Run();      // spawn a receiver thread for the commands
 
+    void ErrorMsg( char* format, ...);
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // PUBLIC DATA
     BOOLEAN m_isValid;      // was all of the socket/thread creation ok
@@ -301,7 +312,7 @@ private:
     UINT32 m_cmdRequest;     // how many requests have come in
     UINT32 m_cmdServiced;    // how many cmds have been completely serviced
     CHAR* m_cmdHandlerName;  // Handler gives a pointer to their name
-    CHAR  m_errMsg[128];     // holds any error message when the SecComm object is invalid
+    CHAR  m_errMsg[eSecErrorMsgSize]; // holds any error message when the SecComm object is invalid
     UINT32 m_rxCount;        // how many bytes have come in
     UINT32 m_txCount;        // how many bytes have gone out
     ConnState m_connState;   // connection state
