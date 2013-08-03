@@ -72,6 +72,8 @@ const char* ioiInitStatus[] = {
 /*****************************************************************************/
 IoiProcess::IoiProcess()
     : m_paramCount(0)
+    , m_maxParamIndex(0)
+    , m_paramLoopEnd(0)
     , m_displayCount(0)
     , m_frames(0)
     , m_scheduled(0)
@@ -155,7 +157,7 @@ void IoiProcess::UpdateIoi()
     if ( m_initStatus == ioiSuccess)
     {
         param = &m_parameters[0];
-        for (i=0; i < (m_maxParamIndex+1); ++i)
+        for (i=0; i < m_paramLoopEnd; ++i)
         {
             if (param->m_isValid && !param->m_isChild && param->m_ioiValid)
             {
@@ -231,13 +233,28 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         rType = eRspSensors;
         break;
 
+    case eGetSensorValue:
+        if (ARRAY( itemId, m_paramLoopEnd) && m_parameters[itemId].m_isValid)
+        {
+            secComm.m_response.value = m_parameters[itemId].m_value;
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("Ioi: Invalid Param Index <%d>", itemId);
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+        }
+        break;
+
     case eSetSensorValue:
         // TBD: This option should be removed as ePySte will convert a call to SetSensor('x', 33.3)
         //      into eSetSensorSG with the type set to manual
         break;
 
     case eSetSensorSG:
-        if ( ARRAY( itemId, m_maxParamIndex+1) && m_parameters[itemId].m_isValid)
+        if ( ARRAY( itemId, m_paramLoopEnd) && m_parameters[itemId].m_isValid)
         {
             UINT32 sgType = request.sigGenId;
             if ( ARRAY( sgType, eMaxSensorMode))
@@ -258,13 +275,13 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             }
             else
             {
-                sprintf(secComm.m_response.errorMsg, "Ioi: Invalid SG Type <%d>", sgType);
+                secComm.ErrorMsg("Ioi: Invalid SG Type <%d>", sgType);
                 secComm.m_response.successful = FALSE;
             }
         }
         else
         {
-            sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%d>", itemId);
+            secComm.ErrorMsg("Ioi: Invalid Param Index <%d>", itemId);
             secComm.m_response.successful = FALSE;
         }
         break;
@@ -291,7 +308,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             }
             else
             {
-                sprintf(secComm.m_response.errorMsg, "Ioi: Invalid Param Index <%d>", itemId);
+                secComm.ErrorMsg("Ioi: Invalid Param Index <%d>", itemId);
                 secComm.m_response.successful = FALSE;
             }
         }
@@ -306,7 +323,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            sprintf( secComm.m_response.errorMsg, "Run SG Error: SGs are Running");
+            secComm.ErrorMsg( "Run SG Error: SGs are Running");
             secComm.m_response.successful = FALSE;
         }
         break;
@@ -319,10 +336,116 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            sprintf( secComm.m_response.errorMsg, "Hold SG Error: SGs are Holding");
+            secComm.ErrorMsg("Hold SG Error: SGs are Holding");
             secComm.m_response.successful = FALSE;
         }
         break;
+
+    //----------------------------------------------------------------------------------------------
+    case eSetSdi:
+        {
+            // [msb                 lsb]
+            // [Spare | Bus | Lbl | Vlu] <= bytes in itemId
+            int bus = (itemId >> 16) & 0xff;
+            int lbl = (itemId >> 8 ) & 0xff;
+            int vlu = (itemId >> 0 ) & 0xff;
+            bool found = false;
+            Parameter* param = &m_parameters[0];
+
+            // scan sensors and see if we can find the signal and any children
+            for ( int i = 0; i < m_paramLoopEnd; ++i)
+            {
+                if (param->m_isValid && param->m_type == PARAM_FMT_A429)
+                {
+                    if (param->m_a429.channel == bus && param->m_a429.label == lbl)
+                    {
+                        param->SetSdi( vlu);
+                        // don't break here in case there are children that need to be set
+                        found = true;
+                    }
+                }
+                ++param;
+            }
+
+            if (!found)
+            {
+                secComm.m_response.successful = false;
+                secComm.ErrorMsg( "SetSdi: Invalid Signal Bus(%d), Label(%d)", bus, lbl);
+            }
+
+        }
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eSetSsm:
+        {
+            // [msb                 lsb]
+            // [Spare | Bus | Lbl | Vlu] <= bytes in itemId
+            int bus = (itemId >> 16) & 0xff;
+            int lbl = (itemId >> 8 ) & 0xff;
+            int vlu = (itemId >> 0 ) & 0xff;
+            bool found = false;
+            Parameter* param = &m_parameters[0];
+
+            // scan sensors and see if we can find the signal and any children
+            for ( int i = 0; i < m_paramLoopEnd; ++i)
+            {
+                if (param->m_isValid && param->m_type == PARAM_FMT_A429)
+                {
+                    if (param->m_a429.channel == bus && param->m_a429.label == lbl)
+                    {
+                        param->SetSsm( vlu);
+                        // don't break here in case there are children that need to be set
+                        found = true;
+                    }
+                }
+                ++param;
+            }
+
+            if (!found)
+            {
+                secComm.m_response.successful = false;
+                secComm.ErrorMsg("SetSsm: Invalid Signal Bus(%d), Label(%d)", bus, lbl);
+            }
+
+        }
+        break;
+
+        //----------------------------------------------------------------------------------------------
+        case eSetLabel:
+        {
+            // [msb                 lsb]
+            // [Spare | Bus | Lb0 | lb1] <= bytes in itemId
+            int bus = (itemId >> 16) & 0xff;
+            int lb0 = (itemId >> 8 ) & 0xff;
+            int lb1 = (itemId >> 0 ) & 0xff;
+            bool found = false;
+            Parameter* param = &m_parameters[0];
+
+            // scan sensors and see if we can find the signal and any children
+            for ( int i = 0; i < m_paramLoopEnd; ++i)
+            {
+                if (param->m_isValid && param->m_type == PARAM_FMT_A429)
+                {
+                    if (param->m_a429.channel == bus && param->m_a429.label == lb0)
+                    {
+                        param->SetLabel( lb1);
+                        // don't break here in case there are children that need to be set
+                        found = true;
+                    }
+                }
+                ++param;
+            }
+
+            if (!found)
+            {
+                secComm.m_response.successful = false;
+                secComm.ErrorMsg("Invalid Signal Bus(%d), Label(%d)", bus, lb0);
+            }
+
+        }
+        break;
+
 
     default:
         // we did not service this command
@@ -412,6 +535,7 @@ void IoiProcess::InitIoi()
             if (index > m_maxParamIndex)
             {
                 m_maxParamIndex = index;
+                m_paramLoopEnd = m_maxParamIndex + 1;
             }
 
             m_parameters[index].Reset(pCfg[i].name, pCfg[i].rateHz, pCfg[i].fmt,
@@ -419,7 +543,7 @@ void IoiProcess::InitIoi()
                                       pCfg[i].scale);
 
             // check to see if this parameter is a child of any existing parameters
-            for (i1=0; i1 < m_maxParamIndex+1; ++i1)
+            for (i1=0; i1 < m_paramLoopEnd; ++i1)
             {
                 // if the param is valid and its not me
                 if (m_parameters[i1].m_isValid && i1 != index)

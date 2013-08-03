@@ -71,7 +71,8 @@ enum A429DiscretTypes {
 struct ARINC429_WORD_INFO
 {
    // GPC Data
-   UINT8               label;
+    UINT8               label;
+    UINT8               label0;      // the label the parameter was initialized with
 
    // GPA Data
    UINT8               channel;      // Rx Chan 0,1,2 or 3 from FPGA
@@ -112,10 +113,11 @@ public:
     void Reset(PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
     virtual UINT32 Convert(FLOAT32 value);
     
+    bool m_isValid;     // ADRF update rate for the parameter in Hz
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
-    PARAM_FMT_ENUM m_fmt; 
+    PARAM_FMT_ENUM m_type;
     UINT32  m_scale;       // the current value for the parameter
     FLOAT32 m_maxValue;
     FLOAT32 m_scaleLsb;    // the current value for the parameter

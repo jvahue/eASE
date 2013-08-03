@@ -10,8 +10,10 @@ static CHAR blankLine[80];
 static const CHAR adrfProcessName[] = "adrf";
 
 CmProcess::CmProcess()
-    :m_bRspPending(FALSE)
+    : m_bRspPending(FALSE)
 {
+    // TODO: remove after debugging
+    memset( m_readyFile, 0, sizeof(m_readyFile));
 }
 
 /****************************************************************************
@@ -49,6 +51,42 @@ void CmProcess::RunSimulation()
 
 }
 
+
+//-------------------------------------------------------------------------------------------------
+// Function: ProcessGseMessages
+// Description:
+//
+void CmProcess::ProcessGseMessages()
+{
+    m_gseCmd.gseSrc = GSE_SOURCE_CM;
+    m_gseCmd.gseVer = 1;
+    memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+
+    // If not expecting a resp msg and time has elapsed to request the
+    // Expecting cmd response... check inbox.
+    if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+    {
+        int size = strlen(m_gseRsp.rspMsg);
+        m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+    }
+
+    debug_str(CmProc, 8, 0,"%s", blankLine);
+    debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
+
+    debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: HandlePowerOff
+// Description:
+//
+void CmProcess::HandlePowerOff()
+{
+    // reset mailboxes due to power off ( adrf process gone)
+
+    m_gseInBox.Reset();
+    m_gseOutBox.Reset();
+}
 
 //-------------------------------------------------------------------------------------------------
 // Function: CheckCmd
@@ -99,8 +137,8 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            sprintf(secComm.m_response.errorMsg, "Command Length (%d) exceeds (%d)",
-                    request.charDataSize, GSE_MAX_LINE_SIZE);
+            secComm.ErrorMsg("Command Length (%d) exceeds (%d)",
+                             request.charDataSize, GSE_MAX_LINE_SIZE);
             secComm.m_response.successful = FALSE;
         }
         serviced = TRUE;
@@ -125,6 +163,24 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    case ePutFile:
+        if (PutFile(secComm))
+        {
+            secComm.m_response.successful = TRUE;
+        }
+        serviced = TRUE;
+
+        break;
+
+    case eGetFile:
+        if (GetFile(secComm))
+        {
+            secComm.m_response.successful = TRUE;
+        }
+        serviced = TRUE;
+
+        break;
+
     default:
         break;
     }
@@ -136,40 +192,126 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     }
 
     return serviced;
-
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: HandlePowerOff
-// Description:
+// Function: PutFile
+// Description: Handles putting a file on to the target system into the partition specified
 //
-void CmProcess::HandlePowerOff()
+// Notes:
+// variableId: 0 = File name in m_request.charData
+//             1 = File data in m_request.charData
+// sigGenId: holds the partition Id
+//
+// When putting a file:
+//    (1) The put file must not be open already when we start (i.e., m_request.variabielId = 0)
+//    (2) The put file must open when writing data (i.e., m_request.variabielId = 1)
+//    (3) When data is recieved with size 0 the file is closed
+//
+bool CmProcess::PutFile( SecComm& secComm)
 {
-    // reset mailboxes due to power off ( adrf process gone)
+    bool status = false;
 
-    m_gseInBox.Reset();
-    m_gseOutBox.Reset();
+    // are we opening a file?
+    if (secComm.m_request.variableId == 0)
+    {
+        if (!m_putFile.IsOpen())
+        {
+            m_putFile.Open( secComm.m_request.charData, secComm.m_request.sigGenId, 'w');
+            status = true;
 
+            // TODO: remove after debugging is complete
+            strcpy(m_readyFile, secComm.m_request.charData);
+        }
+        else
+        {
+            secComm.ErrorMsg("PutFile: Filename <%s> already open", m_putFile.GetFileName());
+        }
+    }
+    else if (m_putFile.IsOpen())
+    {
+        if (secComm.m_request.charDataSize > 0)
+        {
+            if (m_putFile.Write(secComm.m_request.charData, secComm.m_request.charDataSize))
+            {
+                status = true;
+            }
+        }
+        else
+        {
+            m_putFile.Close();
+            status = true;
+        }
+    }
+    else
+    {
+        secComm.ErrorMsg("PutFile: No file open for write");
+    }
+
+    return status;
 }
 
-void CmProcess::ProcessGseMessages()
-{
-    m_gseCmd.gseSrc = GSE_SOURCE_CM;
-        m_gseCmd.gseVer = 1;
-        memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+//-------------------------------------------------------------------------------------------------
+// Function: GetFile
+// Description: Handles getting a file from the target system from the partition specified
+//
+// Notes:
+// variableId: 0 = Send file name in m_response.streamData
+//             1 = send file data in m_response.streamData
+// sigGenId: holds the partition Id
+//
+// When getting a file:
+//    (1) if a file is ready to Tx the name will be put in m_response.streamData
+//        otherwise m_response.streamData will be empty
+//    (2) File data will be in m_response.streamData
+//        when m_response.streamData is not max size or 0 the get file will close
 
-        // If not expecting a resp msg and time has elapsed to request the
-        // Expecting cmd response... check inbox.
-        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+//
+bool CmProcess::GetFile( SecComm& secComm)
+{
+    INT32 bytesRead;
+    UINT32 nameLength;
+    bool status = false;
+
+    // ePySte asking if a file is available
+    if (secComm.m_request.variableId == 0)
+    {
+        // TODO: how do we determine is a file available?
+        if (m_readyFile[0] != '\0')
         {
-            int size = strlen(m_gseRsp.rspMsg);
-            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+            m_getFile.Open( m_readyFile, secComm.m_request.sigGenId, 'r');
+
+            nameLength = strlen(m_getFile.GetFileName());
+            strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
+            secComm.m_response.streamSize = nameLength;
+            status = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("GetFile: No Log File available");
+        }
+    }
+    else if (m_getFile.IsOpen())
+    {
+        bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
+        if (bytesRead < eSecStreamSize)
+        {
+            m_getFile.Close();
+
+            // TODO: remove after debugging is complete
+            memset(m_readyFile, 0, sizeof(m_readyFile));
         }
 
-        debug_str(CmProc, 8, 0,"%s", blankLine);
-        debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
+        if (bytesRead >= 0)
+        {
+            status = true;
+        }
+    }
+    else
+    {
+        secComm.ErrorMsg("GetFile: No file open for read");
+    }
 
-        debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
-
+    return status;
 }
 

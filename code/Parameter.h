@@ -23,7 +23,6 @@ public:
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'chilc' match for the other parameter
     char* Display(char* buffer);
 
-    bool m_isValid;     // ADRF update rate for the parameter in Hz
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
     ParameterName m_name;  // the parameter name
     FLOAT32 m_value;       // the current value for the parameter

@@ -18,6 +18,7 @@ $Revision: $  $Date: $
 #include <deos.h>
 #include <socketapi.h>
 #include <lwip-socket.h>
+#include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -426,3 +427,31 @@ const CHAR* SecComm::GetSocketInfo()
             m_cmdRequest, m_cmdServiced);
     return m_ipPort;
 }
+
+//--------------------------------------------------------------------------------------------------
+void SecComm::ErrorMsg( char* format, ...)
+{
+    char buffer[1024];
+
+    va_list args;
+    va_start( args, format);
+    vsprintf( buffer, format, args );
+    va_end(args);
+
+    int len = (int)strlen( buffer);
+    for ( int i=0; i < len; ++i)
+    {
+        if ( buffer[i] == '\t' || buffer[i] == '\n')
+        {
+            buffer[i] = ' ';
+        }
+    }
+
+    if ( buffer[len-1] == ' ')
+    {
+        buffer[len-1] = '\0';
+    }
+
+    strncpy( m_response.errorMsg, buffer, eSecErrorMsgSize);
+}
+

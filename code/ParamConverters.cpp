@@ -48,10 +48,11 @@
 /* Class Definitions                                                         */
 /*****************************************************************************/
 ParamConverter::ParamConverter()
-    : m_gpa(0)
+    : m_isValid(false)
+    , m_gpa(0)
     , m_gpb(0)
     , m_gpc(0)
-    , m_fmt(PARAM_FMT_NONE)
+    , m_type(PARAM_FMT_NONE)
     , m_scale(0)          // the current value for the parameter
     , m_maxValue(0.0f)
     , m_scaleLsb(0.0f)    // the current value for the parameter
@@ -67,7 +68,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
 {
     UINT32 rawValue;
 
-    if (m_fmt == PARAM_FMT_A429)
+    if (m_type == PARAM_FMT_A429)
     {
         rawValue = A429Converter(value);
     }
@@ -128,11 +129,11 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
     m_gpa = gpa;
     m_gpb = gpb;
     m_gpc = gpc;
-    m_fmt = fmt;
+    m_type = fmt;
     m_scale = scale;
     m_maxValue = FLOAT32(scale);
     
-    if (m_fmt == PARAM_FMT_A429)
+    if (m_type == PARAM_FMT_A429)
     {
         A429ParseGps();
 
@@ -190,11 +191,11 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
         SetSsm( m_a429.SSM);
 
     }
-    else if (m_fmt == PARAM_FMT_BIN_A664)
+    else if (m_type == PARAM_FMT_BIN_A664)
     {
         
     }
-    else if (m_fmt == PARAM_FMT_FLT_A664)
+    else if (m_type == PARAM_FMT_FLT_A664)
     {
         
     }
@@ -284,10 +285,27 @@ void ParamConverter::SetSsm( INT32 value)
     m_a429.a429Template = A429_BCDPutSSM( m_a429.a429Template, m_a429.SSM);
 }
 
-//--------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+// Function: SetLabel
+// Description: Set the label for a A429 parameter
+//
+// Note: this function sets validity to allow the script to control sending the parameter to the
+// ADRF.  If the label is changed from the value the parameter was initialized with the parameter
+// is set to invlaid so no updates occur via IOI.  When the label is restored to its original
+// value validity is restored.
+//
 void ParamConverter::SetLabel( INT32 value)
 {
     m_a429.label = value;
     // we use BCD here as it only packs the SSM bits not the sign bit in BNR words
     m_a429.a429Template = A429_FldPutLabel( m_a429.a429Template, value);
+
+    if (value == m_a429.label0)
+    {
+        m_isValid = true;
+    }
+    else
+    {
+        m_isValid = false;
+    }
 }

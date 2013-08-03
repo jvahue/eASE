@@ -50,6 +50,7 @@ protected:
 
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
+    UINT32 m_paramLoopEnd;
     Parameter m_parameters[eAseMaxParams];
 
     UINT32 m_displayCount;
