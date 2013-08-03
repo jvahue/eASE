@@ -3,8 +3,8 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "935481603"
-     breakAtStartup = "no"
+     validityKey = "-1077924627"
+     breakAtStartup = "yes"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
@@ -21,7 +21,7 @@
      comment = "This comment block is the one place in the file that users can add comments to the file."
      addlRamPagesForExecuteOutOfRam = "0"
      executableName = "ase.exe"
-     attachedResourceQuota = "0"
+     attachedResourceQuota = "2"
      threadStackVASGap = "yes"
      tlsSpaceInBytes = "0"
      addTLSToStack = "no"
@@ -125,6 +125,15 @@
            argvCommandLineParameters = ""
            envpCommandLineParameters = ""
          >
+         <ownedMemoryMappedResources>
+            <ownedMemoryMappedResource
+                 name = "CM-CAR"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+         </ownedMemoryMappedResources>
       </processInstance>
    </processInstances>
    <threadTemplates>

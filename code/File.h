@@ -4,35 +4,59 @@
 #include <stdlib.h>
 #include <cffsapi.h>
 #include "alt_stdtypes.h"
+#include "SecComm.h"      // for stream size matching.
+
+#define MAX_WRITE_SIZE eSecCharDataSize  // max size of PySte command
+#define MAX_READ_SIZE  eSecStreamSize    // max size of
+
+
 
 class File
 {
     public:
+        enum PartitionType
+        {
+            ePartCmProc = 301,
+            eBasePart   = ePartCmProc,
+            ePartAdrf   = 302
+        };
     // Constructor
         File();
-        File(const char* fileName, const char* srvRes,
-                   const char* clientRes, UNSIGNED32 portSize);
 
     // Object management methods
-        BOOLEAN Init(const char* fileName,  const char* srvRes,
-                     const char* clientRes, UNSIGNED32 portSize);
+        BOOLEAN Open(const char* fileName, PartitionType partType, char mode);
         void Reset();
 
     // Interface methods
-        BOOLEAN Read (void *pBuff, UNSIGNED32 size);
+        SIGNED32 Read (void *pBuff, UNSIGNED32 size);
         BOOLEAN Write(void *pBuff, UNSIGNED32 size);
+        BOOLEAN Flush(void);
         BOOLEAN Delete(void);
+        BOOLEAN Close(void);
+
+    // Accessors
+        const char* GetFileName() {return m_fileName;}
+        BOOLEAN     IsOpen()
+        {
+            return (m_cffsStatus == cffsSuccess) && (m_resStatus == resValid);
+        }
 
     protected:
         enum FileConstants
         {
-            eNumPorts = 1,
-            eMaxResName = 32,
+            eNumPorts    = 1,
+            eMaxResName  = 32,
             eMaxFileName = 128,
-            ePortIndex   = 1
+            ePortIndex   = 0
         };
-        BOOLEAN bFirstReadCall;
 
+        // Object mgmt attributes
+        BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
+        UNSIGNED32 m_bytesInPort;    // # bytes currently buffered in port, awaiting write/read
+        UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
+        UNSIGNED32 m_nextRead;       // Pointer into port to fetch next 'n' bytes
+        UNSIGNED32 m_fileSize;       // size of file being read(bytes).
+        BOOLEAN    m_bEOF;
         // cffs control structures
         cffsInfoRequest m_infoReq;
         cffsDataRequest m_dataReq;
@@ -42,6 +66,7 @@ class File
         void       *m_sAdr;       // Ptr to server metadata res
         void       *m_cAdr;       // Ptr to client Access res
         UNSIGNED32 m_resSize;
+        char       m_mode;
 
         resourceStatus  m_resStatus;
         cffsStatus      m_cffsStatus;
