@@ -1,14 +1,52 @@
+//-----------------------------------------------------------------------------
+//            Copyright (C) 2013 Knowlogic Software Corp.
+//         All Rights Reserved. Proprietary and Confidential.
+//
+//    File: CmProcess.cpp
+//
+//    Description:
+//
+// Video Display Layout
+//
+//-----------------------------------------------------------------------------
+/*****************************************************************************/
+/* Compiler Specific Includes                                                */
+/*****************************************************************************/
 #include <deos.h>
 #include <mem.h>
 #include <string.h>
 #include <stdio.h>
 
+/*****************************************************************************/
+/* Software Specific Includes                                                */
+/*****************************************************************************/
 #include "CmProcess.h"
 #include "video.h"
 
+/*****************************************************************************/
+/* Local Defines                                                             */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Local Typedefs                                                            */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Local Variables                                                           */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Constant Data                                                             */
+/*****************************************************************************/
 static CHAR blankLine[80];
 static const CHAR adrfProcessName[] = "adrf";
 
+static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
+static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
+
+/*****************************************************************************/
+/* Class Definitions                                                         */
+/*****************************************************************************/
 CmProcess::CmProcess()
     : m_bRspPending(FALSE)
 {
@@ -28,17 +66,33 @@ void CmProcess::Run()
     memset(blankLine, 0x20, sizeof(blankLine));
     processStatus ps = createProcessAlias( "CMProcess");
 
-    // Set up mailboxes for processing reconfig msg from ADRF
+    //--------------------------------------------------------------------------
+    // Set up mailboxes for GSE commands with ADRF
     m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
     m_gseInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
     m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
 
+    //--------------------------------------------------------------------------
+    // Set up mailboxes for processing reconfig msg from ADRF
+    m_reConfigInBox.Create(cmReCfgMailboxName, 512, 2);
+    m_reConfigInBox.IssueGrant(adrfProcessName);
+
+    // Connect to the the Reconfig.
+    m_reConfigOutBox.Connect(adrfProcessName, adrfReCfgMailboxName);
+
+    //--------------------------------------------------------------------------
+    // Set up mailboxes for processing log file msg from ADRF
+    //m_fileXferInBox.Create(cmReCfgMailboxName, 512, 2);
+    //m_fileXferInBox.IssueGrant(adrfProcessName);
+
+    // Connect to the the GSE recv box in the ADRF.
+    //m_reConfigOutBox.Connect(adrfProcessName, adrfReCfgMailboxName);
+
     // Create the thread thru the base class method.
     // Use the default Ase template
     Launch("CmProcess", "StdThreadTemplate");
-
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -47,10 +101,12 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
+    m_reconfig.ProcessCfgMailboxes(m_reConfigInBox, m_reConfigOutBox);
+
     ProcessGseMessages();
 
+    ProcessLogMessages();
 }
-
 
 //-------------------------------------------------------------------------------------------------
 // Function: ProcessGseMessages
@@ -77,15 +133,28 @@ void CmProcess::ProcessGseMessages()
 }
 
 //-------------------------------------------------------------------------------------------------
+// Function: ProcessLogMessages
+// Description:
+//
+void CmProcess::ProcessLogMessages()
+{
+}
+
+//-------------------------------------------------------------------------------------------------
 // Function: HandlePowerOff
 // Description:
 //
 void CmProcess::HandlePowerOff()
 {
     // reset mailboxes due to power off ( adrf process gone)
-
     m_gseInBox.Reset();
     m_gseOutBox.Reset();
+
+    m_reConfigInBox.Reset();
+    m_reConfigOutBox.Reset();
+
+    //m_fileXferInBox.Reset();
+    //m_fileXferOutBox.Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -179,6 +248,16 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
         serviced = TRUE;
 
+        break;
+
+    case eSetCfgFileName:
+
+        m_reconfig.SetCfgFileName(request.charData, request.charDataSize);
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eStartReconfig:
         break;
 
     default:

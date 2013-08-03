@@ -1,8 +1,8 @@
 #ifndef SecComm_h
 #define SecComm_h
 /******************************************************************************
-Copyright (C) 2013 Pratt & Whitney Engine Services, Inc.
-All Rights Reserved. Proprietary and Confidential.
+            Copyright (C) 2013 Knowlogic Software Corp.
+         All Rights Reserved. Proprietary and Confidential.
 
 File:        SecComm.h
 
@@ -51,6 +51,8 @@ enum SecCmds {
     eWriteStream    = 202,
     ePutFile        = 203,  // put a file onto the UUT in a partition
     eGetFile        = 204,  // get a file from the UUT in a partition
+    eSetCfgFileName = 205,
+    eStartReconfig  = 206,
 
 // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partion Id

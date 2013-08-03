@@ -1,8 +1,8 @@
 #ifndef CmdRspThread_h
 #define CmdRspThread_h
 /******************************************************************************
-            Copyright (C) 2013 Pratt & Whitney Engine Services, Inc.
-               All Rights Reserved. Proprietary and Confidential.
+            Copyright (C) 2013 Knowlogic Software Corp.
+         All Rights Reserved. Proprietary and Confidential.
 
     File:        CmdRspThread.h
 

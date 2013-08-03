@@ -2,6 +2,7 @@
 #define CMPROCESS_H
 
 #include "CmdRspThread.h"
+#include "CmReconfig.h"
 #include "Fifo.h"
 #include "File.h"
 #include "Gse_Interface.h"
@@ -48,26 +49,30 @@ class CmProcess : public CmdRspThread
         /* To be activated
         MailBox m_gseMfdInBox;
         MailBox m_gseMfdOutBox;
+        */
 
         MailBox m_reConfigInBox;
         MailBox m_reConfigOutBox;
 
         MailBox m_fileXferInBox;
         MailBox m_fileXferOutBox;
-        */
 
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
 
     private:
+        CmReconfig m_reconfig;
+
         File m_putFile;
         File m_getFile;
         char m_readyFile[256];  // TODO: remove after debugging
-        void ProcessGseMessages();
+
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);
 
+        void ProcessGseMessages();
+        void ProcessLogMessages();
 };
 
 

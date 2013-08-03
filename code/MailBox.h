@@ -1,8 +1,8 @@
 #ifndef CMAILBOX_H
 #define CMAILBOX_H
 /******************************************************************************
-              Copyright (C) 2012-2013 Pratt & Whitney Engine Services, Inc.
-                 All Rights Reserved. Proprietary and Confidential.
+            Copyright (C) 2013 Knowlogic Software Corp.
+         All Rights Reserved. Proprietary and Confidential.
 
     File:        MailBox.h
 
