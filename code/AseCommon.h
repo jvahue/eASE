@@ -4,6 +4,7 @@
 // File: AseCommon.h
 
 #include <deos.h>
+
 /**********************************************************************************************
 * Description: Common/Standard definitons for the ASE modules.
 *

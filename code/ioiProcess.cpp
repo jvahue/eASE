@@ -2,7 +2,7 @@
 //            Copyright (C) 2013 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
-//    File: Parameter.cpp
+//    File: ioiProcess.cpp
 //
 //    Description: The file implements the Parameter object processing
 //

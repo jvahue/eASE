@@ -20,8 +20,8 @@ class File
         BOOLEAN Write(void *pBuff, UNSIGNED32 size);
         BOOLEAN Delete(void);
 
-        void Close();
-        BOOLEAN IsOpen();
+        void Close() {}
+        BOOLEAN IsOpen() {return FALSE;}
         const char* GetFileName() const {return m_fileName;}
 
     protected:

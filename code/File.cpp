@@ -103,9 +103,9 @@ BOOLEAN File::Open(const char* fileName,
     UNSIGNED32  initVal;
     UNSIGNED32* aliveCnt;
 
-    strncpy(m_partitionName, filePartitionName, eMaxResName );
+    //strncpy(m_partitionName, filePartitionName, eMaxResName );
 
-    strncpy(m_clientAccessRes, clientRes, eMaxResName);
+    //strncpy(m_clientAccessRes, clientRes, eMaxResName);
     //strncpy(m_clientAccessRes, "CM-CAR", eMaxResName);
 
     strncpy(m_fileName, fileName, eMaxFileName);
@@ -115,7 +115,7 @@ BOOLEAN File::Open(const char* fileName,
     for (i = 0; i < eNumPorts; i++)
     {
         m_portAddr[i] = 0;
-        m_portSize[i] = portSize;
+        //m_portSize[i] = portSize;
     }
 
     // Attach to the server's metadata resource
