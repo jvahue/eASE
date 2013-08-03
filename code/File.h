@@ -24,8 +24,7 @@ class File
         File();
 
     // Object management methods
-        BOOLEAN Init(const char* fileName,  const char* srvRes,
-                     const char* clientRes, UNSIGNED32 portSize);
+        BOOLEAN Open(const char* fileName, PartitionType partType, char mode);
         void Reset();
 
     // Interface methods
