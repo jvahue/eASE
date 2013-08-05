@@ -15,8 +15,9 @@
 // Handy #defs for accessing fields in AseCommon
 #define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
 #define IS_CONNECTED      (m_pCommon->bConnected)
-#define IS_POWER_ON       (m_pCommon->bPowerOnState)
 #define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
+#define IS_POWER_ON       (m_pCommon->bPowerOnState)
+#define IS_MS_ONLINE      (m_pCommon->bMsOnline)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +62,7 @@ typedef struct
     bool       bConnected;     // ePySte Connection
     bool       bScriptRunning; // Is a script actively running
     bool       bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
+    bool       bMsOnline;      // is the MS online
 } AseCommon;
 
 #endif

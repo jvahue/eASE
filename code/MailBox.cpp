@@ -131,45 +131,45 @@ const char* is_to_str(ipcStatus is)
 const char* ps_to_str(processStatus ps)
 {
 	const char* ps_strs[] = {   "processSuccess",
-    "processInvalidHandle",
-    "processInsufficientPrivilege",
-    "processInvalidTemplate",
-    "processInsufficientResourcesObsolete",
-    "processNotActive",
-    "processInvalidName",
-    "processInsufficientSystemQuota",
-    "processSourceAddressWrapAround",
-    "processDestinationAddressWrapAround",
-    "processSourcePageNotPresent",
-    "processDestinationPageNotPresent",
-    "processInsufficientProcessQuota",
-    "processInsufficientBudget",
-    "processInsufficientRAM",
-    "processInsufficientThreadQuota",
-    "processInsufficientMutexQuota",
-    "processInsufficientEventQuota",
-    "processInsufficientSemaphoreQuota",
-    "processInsufficientMOQuota",
-    "processInsufficientAMOQuota",
-    "processInsufficientEnvelopeQuota",
-    "processInsufficientMailboxQuota",
-    "processInsufficientNameQuota",
-    "processInsufficientPlatformResourceQuota",
-    "processAMOSizeLargerThanParent",
-    "processThreadStackLargerThanParent",
-    "processScheduleBeforePeriodMismatch",
-    "processDestinationPageDeleted",
-    "processInsufficientRetainedBudget",
-    "processNotMemoryAddress",
-    "processArgumentNotOnStack",
-    "processInsufficientArgumentQuota",
-    "processArgumentVectorAllocationError",
-    "processArgumentStringAllocationError",
-    "processArgumentVectorCopyError",
-    "processArgumentStringCopyError",
-    "processWindowActivatedThreadMainPeriodMismatch", /* Reserved for WAT */
-    "processNotZeroMainBudget",                       /* Reserved for WAT */
-    "processInsufficientMainBudget"                   /* Reserved for WAT */
+    "procInvalidHandle",
+    "procInsufficientPrivilege",
+    "procInvalidTemplate",
+    "procInsufficientResourcesObsolete",
+    "procNotActive",
+    "procInvalidName",
+    "procInsufficientSystemQuota",
+    "procSourceAddressWrapAround",
+    "procDestinationAddressWrapAround",
+    "procSourcePageNotPresent",
+    "procDestinationPageNotPresent",
+    "procInsufficientProcessQuota",
+    "procInsufficientBudget",
+    "procInsufficientRAM",
+    "procInsufficientThreadQuota",
+    "procInsufficientMutexQuota",
+    "procInsufficientEventQuota",
+    "procInsufficientSemaphoreQuota",
+    "procInsufficientMOQuota",
+    "procInsufficientAMOQuota",
+    "procInsufficientEnvelopeQuota",
+    "procInsufficientMailboxQuota",
+    "procInsufficientNameQuota",
+    "procInsufficientPlatformResourceQuota",
+    "procAMOSizeLargerThanParent",
+    "procThreadStackLargerThanParent",
+    "procScheduleBeforePeriodMismatch",
+    "procDestinationPageDeleted",
+    "procInsufficientRetainedBudget",
+    "procNotMemoryAddress",
+    "procArgumentNotOnStack",
+    "procInsufficientArgumentQuota",
+    "procArgumentVectorAllocationError",
+    "procArgumentStringAllocationError",
+    "procArgumentVectorCopyError",
+    "procArgumentStringCopyError",
+    "procWindowActivatedThreadMainPeriodMismatch", /* Reserved for WAT */
+    "procNotZeroMainBudget",                       /* Reserved for WAT */
+    "procInsufficientMainBudget"                   /* Reserved for WAT */
    };
    return ps <= processInsufficientMainBudget ? ps_strs[ps] : "WTF?";
 }
@@ -342,7 +342,7 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
  ****************************************************************************/
 BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 {
-
+    ipcStatus status;
     // If there were any sender processes which could not be granted access,
     // try to connect them each time we do a read.
     if (m_successfulGrantCnt < m_grantListSize )
@@ -351,11 +351,17 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
     }
 
     // Read the mailbox
-    m_ipcStatus = receiveMessage(m_hMailBox,
+    status = receiveMessage(m_hMailBox,
                                  buff,
                                  BYTES_TO_DWORDS(sizeBytes),
                                  bWaitForMessage);
-    return (m_ipcStatus == ipcValid);
+
+    if ( status != ipcNoMessage)
+    {
+        m_ipcStatus = status;
+    }
+
+    return (status == ipcValid);
 }
 
 /*****************************************************************************
@@ -438,6 +444,7 @@ void MailBox::Reset()
             }
             m_successfulGrantCnt = 0;
         }
+        m_procStatus = processInvalidHandle;
         break;
 
     case eUndefined:
@@ -445,7 +452,7 @@ void MailBox::Reset()
     case eSend:
         if (m_hMailBox != NULL)
         {
-            m_ipcStatus = ipcInvalid;
+            m_ipcStatus = ipcNoSuchProduceItem;
             m_hMailBox = NULL;
         }
         break;
@@ -504,7 +511,6 @@ void MailBox::AddSender(const char* procName)
 void MailBox::OpenSenders(void)
 {
   process_handle_t procHandle;
-  processStatus    procStatus;
   ipcMailboxHandle mailBoxHndl;
   ipcStatus        ipcStat;
   INT32 i;
@@ -518,9 +524,9 @@ void MailBox::OpenSenders(void)
         if ( !m_grantList[i].bConnected )
         {
             // Get a handle to the sender process
-            procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
+            m_procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
 
-            if(procStatus == processSuccess)
+            if(m_procStatus == processSuccess)
             {
                 ipcStat = grantMailboxAccess(m_hMailBox, procHandle, FALSE);
                 if (ipcStat == ipcValid)

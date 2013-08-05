@@ -23,8 +23,10 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "alt_stdTypes.h"
+
 #include "AseThread.h"
 #include "SecComm.h"
+#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -56,6 +58,9 @@
 class CmdRspThread : public AseThread
 {
 public:
+    enum CmdRspConstants {
+        eFirstDisplayRow = 2, // change this value to take more rows at top
+    };
     CmdRspThread();
 
     //virtual void Run();
@@ -69,8 +74,12 @@ protected:
     virtual void RunSimulation();
     // This is the real work horse
     virtual void HandlePowerOff() {}
+    virtual void UpdateDisplay(VID_DEFS who=AseMain);
 
-    UINT32          m_systemTick;
+    UINT32  m_systemTick;
+    UINT32  m_frames;
+
+    char m_blankLine[80]; // balnks the video line
 
 };
 

@@ -42,6 +42,7 @@ enum SecCmds {
     ePing           = 4,
     ePowerOn        = 5,
     ePowerOff       = 6,
+    eMsState        = 7,
 
 // Ase Enums 101-199
 

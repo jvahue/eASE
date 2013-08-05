@@ -6,14 +6,6 @@
 //
 //    Description: The file implements the Parameter object processing
 //
-// Video Display Layout
-//
-// Frame: xxxxxx Updated: xxxx
-//
-// <Param1>: <floatValue> - <rawValue>
-// <Param2>: <floatValue> - <rawValue>
-// <Param3>: <floatValue> - <rawValue>
-// ...
 //-----------------------------------------------------------------------------
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
@@ -136,23 +128,13 @@ void IoiProcess::RunSimulation()
 //
 void IoiProcess::UpdateIoi()
 {
-    char rep[80];
-    char outputLine[80];
     UINT32 i;
     Parameter* param;
     ioiStatus writeStatus;
 
-    UINT32 atLine = 2;
 
-    m_frames += 1;
     m_scheduled = m_paramCount; // need to see how many are really scheduled
     m_updated ^= 1;             // toggle the lsb
-
-    debug_str(Ioi, 1, 0, "ePySte: %s IOI: %s SigGen: %s Frame: %d",
-              IS_CONNECTED ? "Conn  " : "NoConn",
-              ioiInitStatus[m_initStatus],
-              m_sgRun ? "Run" : "Hold",
-              m_frames);
 
     if ( m_initStatus == ioiSuccess)
     {
@@ -171,24 +153,7 @@ void IoiProcess::UpdateIoi()
             }
             ++param;
         }
-
-        // display parameter data
-        for (i=0; i < m_displayCount; ++i)
-        {
-            UINT32 x = m_displayIndex[i];
-
-            debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
-                      m_parameters[x].m_name, m_parameters[x].m_updateCount,
-                      m_parameters[x].m_value,
-                      m_parameters[x].m_rawValue, m_parameters[x].m_data);
-            atLine += 1;
-
-            debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
-            atLine += 1;
-        }
     }
-
-    debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -208,6 +173,54 @@ void IoiProcess::HandlePowerOff()
 {
     // TODO: reset mailboxes and IOI
 
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: UpdateDisplay
+// Description: Update the video output display
+//
+// Video Display Layout
+// 0:
+// 1: Frame: xxxxxx Updated: xxxx
+// 2:
+// 3: <Param1>: <floatValue> - <rawValue>
+// 4: <--- parameter info data>
+// 5: <Param3>: <floatValue> - <rawValue>
+// 6: <--- parameter info data>
+// ...
+// n: Scheduled: <x> Updated: <y>
+//-----------------------------------------------------------------------------
+void IoiProcess::UpdateDisplay(VID_DEFS who)
+{
+    char rep[80];
+    char outputLine[80];
+    UINT32 i;
+
+    UINT32 atLine = eFirstDisplayRow;
+
+    CmdRspThread::UpdateDisplay(Ioi);
+
+    debug_str(Ioi, 2, 0, "IOI: %s SigGen: %s",
+              ioiInitStatus[m_initStatus],
+              m_sgRun ? "Run" : "Hold"
+              );
+
+    // display parameter data
+    for (i=0; i < m_displayCount; ++i)
+    {
+        UINT32 x = m_displayIndex[i];
+
+        debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
+                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
+                  m_parameters[x].m_value,
+                  m_parameters[x].m_rawValue, m_parameters[x].m_data);
+        atLine += 1;
+
+        debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
+        atLine += 1;
+    }
+
+    debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -4,11 +4,8 @@
 //
 //    File: CmProcess.cpp
 //
-//    Description:
+//    Description: Simulate the CM Process
 //
-// Video Display Layout
-//
-//-----------------------------------------------------------------------------
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
@@ -38,12 +35,16 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-static CHAR blankLine[80];
 static const CHAR adrfProcessName[] = "adrf";
 
 static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
 static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
+static const CHAR* recfgStatus[] = {
+    "Ok",
+    "Bad File",
+    "No Status"
+};
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
@@ -52,6 +53,7 @@ CmProcess::CmProcess()
 {
     // TODO: remove after debugging
     memset( m_readyFile, 0, sizeof(m_readyFile));
+    memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
 }
 
 /****************************************************************************
@@ -63,7 +65,6 @@ void CmProcess::Run()
 
     // create alias for this process because adrf will be granting write access
     // to CMProcess, not ASE
-    memset(blankLine, 0x20, sizeof(blankLine));
     processStatus ps = createProcessAlias( "CMProcess");
 
     //--------------------------------------------------------------------------
@@ -76,7 +77,7 @@ void CmProcess::Run()
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for processing reconfig msg from ADRF
-    m_reConfigInBox.Create(cmReCfgMailboxName, 512, 2);
+    m_reConfigInBox.Create(cmReCfgMailboxName, 516, 2);
     m_reConfigInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the Reconfig.
@@ -101,11 +102,68 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
-    m_reconfig.ProcessCfgMailboxes(m_reConfigInBox, m_reConfigOutBox);
+    m_reconfig.ProcessCfgMailboxes(IS_MS_ONLINE, m_reConfigInBox, m_reConfigOutBox);
 
     ProcessGseMessages();
 
     ProcessLogMessages();
+
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: UpdateDisplay
+// Description: Update the video output display
+//
+// Video Display Layout
+// 0: ---
+// 1: Frame: xxxxxx Reconfig Mode: %s(%d) Last Status: %s
+// 2:
+// 3: Gse Cmd: %s
+// 4: RxFifo: %d
+// 5: Gse In: <proc>/<ipc> Out: <proc>/<ipc>
+// 5: Cfg In: <proc>/<ipc> Out: <proc>/<ipc>
+// ...
+//-----------------------------------------------------------------------------
+void CmProcess::UpdateDisplay(VID_DEFS who)
+{
+    UINT32 atLine = eFirstDisplayRow;
+
+    CmdRspThread::UpdateDisplay(CmProc);
+
+    // Status Display
+    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Cfg Mode/Status: %s(%d)/%s",
+              m_reconfig.GetModeName(),
+              m_reconfig.m_modeTimeout,
+              recfgStatus[m_reconfig.m_lastStatus]);
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "GseCmd: %s", m_lastGseCmd);
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+    atLine += 1;
+
+    // Update Mailbox Status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Gse In: %s(%d)/%s Out: %s/%s",
+              m_gseInBox.GetProcessStatusString(), m_gseInBox.m_successfulGrantCnt,
+              m_gseInBox.GetIpcStatusString(),
+              m_gseOutBox.GetProcessStatusString(),
+              m_gseOutBox.GetIpcStatusString()
+              );
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Cfg In: %s(%d)/%s Out: %s/%s",
+              m_reConfigInBox.GetProcessStatusString(), m_reConfigInBox.m_successfulGrantCnt,
+              m_reConfigInBox.GetIpcStatusString(),
+              m_reConfigOutBox.GetProcessStatusString(),
+              m_reConfigOutBox.GetIpcStatusString()
+              );
+    atLine += 1;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -126,10 +184,6 @@ void CmProcess::ProcessGseMessages()
         m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
     }
 
-    debug_str(CmProc, 8, 0,"%s", blankLine);
-    debug_str(CmProc, 8, 0, "GseRsp: %s", m_gseInBox.GetIpcStatusString());
-
-    debug_str(CmProc, 11, 0, "GseRxFifo: %d", m_gseRxFifo.Used());
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -187,26 +241,16 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             //            m_gseOutBox.GetIpcStatusString(),
             //            m_gseOutBox.GetProcessStatusString());
 
-            debug_str(CmProc, 10, 0,"%s", blankLine);
-            debug_str(CmProc, 10, 0, "GseCmd: %s", m_gseCmd.commandLine);
 
-            if (m_gseOutBox.GetIpcStatus()     != ipcValid ||
-                m_gseOutBox.GetProcessStatus() != processSuccess)
-            {
-                debug_str(CmProc, 12, 0,"%s",blankLine);
-                debug_str(CmProc, 12, 0, "Mailbox send error Ipc: %s, Proc: %s",
-                            m_gseOutBox.GetIpcStatusString(),
-                            m_gseOutBox.GetProcessStatusString());
-            }
-            else
-            {
-                debug_str(CmProc, 12, 0,"%s",blankLine);
-                debug_str(CmProc, 12, 0, "Mailbox CmProc -> Adrf OK");
-            }
+            // temrinate the cmd before the CR
+
+            request.charData[request.charDataSize-1] = '\0';
+            strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
+
         }
         else
         {
-            secComm.ErrorMsg("Command Length (%d) exceeds (%d)",
+            secComm.ErrorMsg("GSE Command Length (%d) exceeds (%d)",
                              request.charDataSize, GSE_MAX_LINE_SIZE);
             secComm.m_response.successful = FALSE;
         }
@@ -258,6 +302,17 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eStartReconfig:
+        if (m_reconfig.StartReconfig(m_reConfigOutBox))
+        {
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s", m_reconfig.GetModeName());
+            secComm.m_response.successful = FALSE;
+        }
+
+        serviced = TRUE;
         break;
 
     default:
@@ -296,7 +351,7 @@ bool CmProcess::PutFile( SecComm& secComm)
     {
         if (!m_putFile.IsOpen())
         {
-            m_putFile.Open( secComm.m_request.charData, secComm.m_request.sigGenId, 'w');
+            m_putFile.Open( secComm.m_request.charData, File::PartitionType(secComm.m_request.sigGenId), 'w');
             status = true;
 
             // TODO: remove after debugging is complete
@@ -358,7 +413,7 @@ bool CmProcess::GetFile( SecComm& secComm)
         // TODO: how do we determine is a file available?
         if (m_readyFile[0] != '\0')
         {
-            m_getFile.Open( m_readyFile, secComm.m_request.sigGenId, 'r');
+            m_getFile.Open( m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r');
 
             nameLength = strlen(m_getFile.GetFileName());
             strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);

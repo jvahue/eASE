@@ -19,6 +19,7 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "CmReconfig.h"
+#include "File.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -47,20 +48,28 @@ typedef struct {
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+static char* modeNames[] = {
+    "Idle",           // waiting for reconfig action
+    "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
+    "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
+    "SendFilenames",  // locally we are 'delaying' for file fetch from the MS
+    "WaitStatus"      // wait for the recfg status code
+};
 
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmReconfig::CmReconfig()
     : m_state(eCmRecfgIdle)
-    , m_expectedReCfgAck(false)
-    , m_expectedReCfgSts(false)
-    , m_fileNameDelay(0)
+    , m_modeTimeout(0)
+    , m_lastStatus(RECFG_ERR_CODE_MAX)
+    , m_msRerqstDelay(0)
+    , m_fileNameDelay(100)
     , m_recfgAckDelay(0)
-    , m_unexpectedRecfgResult(0)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+    memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -78,49 +87,47 @@ void CmReconfig::SetCfgFileName(const char* name, UINT32 size)
 
 //-------------------------------------------------------------------------------------------------
 // Function: SetCfgFileName
-// Description: Set the filenames to be used during the reconfiguration process
+// Description: MS has requested a reconfig
 //
-void CmReconfig::StartReconfig(MailBox& in, MailBox& out)
+bool CmReconfig::StartReconfig(MailBox& out)
 {
-    CM_TO_ADRF_RESP_STRUCT inData;
-    CM_TO_ADRF_RESP_STRUCT outData;
+    bool status = false;
+    if ( m_state == eCmRecfgIdle)
+    {
+        CM_TO_ADRF_RESP_STRUCT outData;
+        memset( &outData, 0, sizeof(outData));
 
-    outData.code = MS_RECFG_REQ;
-    out.Send( &outData, sizeof(outData));
+        outData.code = MS_RECFG_REQ;
+        out.Send( &outData, sizeof(outData));
 
-    m_expectedReCfgAck = true;
+        m_state = eCmRecfgLatch;
+        m_modeTimeout = 100;
+        status = true;
+    }
+
+    return status;
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: ProcessCfgMailboxes
 // Description: Handle responding to the ADRF mailboxes for Reconfig
 //
-void CmReconfig::ProcessCfgMailboxes(MailBox& in, MailBox& out)
+void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 {
-    CM_TO_ADRF_RESP_STRUCT inData;
-    CM_TO_ADRF_RESP_STRUCT outData;
+    ADRF_TO_CM_RECFG_RESULT inData;
+    memset( &inData, 0, sizeof(inData));
 
-    if( in.Receive(&inData, sizeof(inData)))
+    // any envelopes for us?
+    BOOLEAN inOk = in.Receive(&inData, sizeof(inData));
+
+    // always run ProcessRecfg
+    if (!ProcessRecfg(msOnline, inData, out) && inOk && inData.code != 0)
     {
-        // is the ADRF ready to accept a cfg file set
-        if (inData.code == RECFG_REQ_CODE)
-        {
-            // TODO: are we responding
-            // TODO: are we responding with garbage?
-            outData.code = RECFG_REQ_ACK;
-            out.Send( &outData, sizeof(outData));
+        CM_TO_ADRF_RESP_STRUCT outData;
 
-            m_state = eCmRecfgSendFilenames;
-        }
-        else if (inData.code == RECFG_RESULT_CODE)
-        {
-            if (m_expectedReCfgSts)
-            {
-                m_unexpectedRecfgResult += 1;
-                m_expectedReCfgSts = false;
-            }
-        }
-        else if (inData.code == MS_DATETIME_REQ)
+        memset( &outData, 0, sizeof(outData));
+
+        if (inData.code == MS_DATETIME_REQ)
         {
             // send a datetime stamp into the ADRF
             // TBD: where does this come from?
@@ -141,20 +148,137 @@ void CmReconfig::ProcessCfgMailboxes(MailBox& in, MailBox& out)
             outData.code = MS_DATETIME_RESP;
             out.Send( &outData, sizeof(outData));
         }
+        else
+        {
+            // here we have an unknown command
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: ProcessRecfg
+// Description: Handle commands related to reconfiguration
+//
+// TODO: Handle reseting the protocol state when ADRF send the RECFG_REQ_CODE code
+//
+bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out)
+{
+    bool status;
+    bool cmdHandled = false;
+    ADRF_TO_CM_CODE cmd = inData.code;
+
+    CM_TO_ADRF_RESP_STRUCT outData;
+    memset( &outData, 0, sizeof(outData));
+
+    // is the command (if there is one) directed at recfg?
+    if ( cmd == RECFG_REQ_CODE || cmd == MS_RECFG_ACK || cmd == RECFG_RESULT_CODE)
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
     }
 
-    // is it time for us to send the filenames
-    if (m_state == eCmRecfgSendFilenames)
+    // NOTE: Always running this if statement allows us to handle resetting
+    //       the protocol state whenever ADRF sends the RECFG_REQ_CODE code
+    if (inData.code == RECFG_REQ_CODE)
     {
-        if (m_fileNameDelay-- == 0)
+        // The ADRF is requesting we start a reconfig
+        // TODO: are we responding
+        // TODO: are we responding with garbage?
+        outData.code = RECFG_REQ_ACK;
+        outData.buff[0] = msOnline ?
+                          RECFG_ACK_CM_OK :
+                          RECFG_ACK_CM_NOT_OK; // TODO: 8/5/13: this is opposite the doc
+
+        out.Send( &outData, sizeof(outData));
+
+        m_state = eCmRecfgSendFilenames;
+        m_modeTimeout = m_fileNameDelay;
+        m_lastStatus = RECFG_ERR_CODE_MAX;
+
+        cmdHandled = true;
+    }
+
+    if (m_state == eCmRecfgLatch)
+    {
+        if (inData.code == MS_RECFG_ACK)
         {
+            // recfg request acknowledged wait for the ADRf to start the reconfig
+            m_state = eCmRecfgWaitRequest;
+            cmdHandled = true;
+        }
+        else
+        {
+            if (m_modeTimeout == 0)
+            {
+                // TBD: should we resend the request if we don't get latch (3 times?)
+                m_state = eCmRecfgIdle;
+                m_modeTimeout = 0;
+            }
+            else
+            {
+                m_modeTimeout -= 1;
+            }
+        }
+    }
+
+    else if (m_state == eCmRecfgSendFilenames)
+    {
+        if (m_modeTimeout == 0)
+        {
+            // TODO: ADRF wait up to 2 minutes for files
             outData.code = RECFG_FILE_READY;
             memcpy(&outData.buff[0],   m_cfgFileName, 128);
             memcpy(&outData.buff[128], m_xmlFileName, 128);
             out.Send( &outData, sizeof(outData));
 
-            m_state = eCmRecfgIdle;
-            m_expectedReCfgSts = true;
+            m_state = eCmRecfgStatus;
+            m_modeTimeout = 0;
+        }
+        else
+        {
+            m_modeTimeout -= 1;
         }
     }
+
+    else if (m_state == eCmRecfgStatus)
+    {
+        if (inData.code == RECFG_RESULT_CODE)
+        {
+            m_lastStatus = inData.errCode;
+            m_state = eCmRecfgIdle;
+            if (inData.bOk = TRUE)
+            {
+                // delete the files from the partition
+                File aFile;
+                //aFile.Delete( m_xmlFileName, File::ePartCmProc);
+                //aFile.Delete( m_cfgFileName, File::ePartCmProc);
+
+                // clear the file names
+                memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+                memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+            }
+            cmdHandled = true;
+        }
+    }
+
+    if (status && !cmdHandled)
+    {
+        UINT32 cmdX = cmd - RECFG_REQ_CODE;
+        m_unexpectedCmds[cmdX] += 1;
+    }
+
+    return status;
 }
+
+//-------------------------------------------------------------------------------------------------
+// Function: GetMode
+// Description: Return a string rep of the mode name
+//
+char* CmReconfig::GetModeName() const
+{
+    return modeNames[m_state];
+}
+

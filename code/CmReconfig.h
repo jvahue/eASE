@@ -34,34 +34,44 @@ class CmReconfig
 {
 public:
     enum CmReconfigState {
-        eCmRecfgIdle,
-        eCmRecfgSendFilenames,
-        eCmRecfgGetResult,
+        eCmRecfgIdle,           // waiting for reconfig action
+        eCmRecfgLatch,          // MS recfg rqst sent and latch, don't send rqst again
+        eCmRecfgWaitRequest,    // MS is now waiting for the recfg rqst from ADRF - no timeout
+        eCmRecfgSendFilenames,  // locally we are 'delaying' for file fetch from the MS
+        eCmRecfgStatus,         // wait for the recfg status code
     };
 
     enum  CmReCfgConstants {
         eCmRecfgXml,
         eCmRecfgCfg,
-        eCmRecfgFileSize = 128
+        eCmRecfgFileSize = 128,
+        eCmRecfgAdrfCmds = 4,
 
     };
 
     CmReconfig();
 
-    void SetCfgFileName(const char* name, UINT32 size);
-    void StartReconfig(MailBox& in, MailBox& out);
+    void ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out);
 
-    void ProcessCfgMailboxes(MailBox& in, MailBox& out);
+    void SetCfgFileName(const char* name, UINT32 size);
+    bool StartReconfig(MailBox& out);
+    char* GetModeName() const;
 
     char m_xmlFileName[eCmRecfgFileSize];
     char m_cfgFileName[eCmRecfgFileSize];
+    UINT32 m_unexpectedCmds[eCmRecfgAdrfCmds];
 
     CmReconfigState m_state;
-    bool m_expectedReCfgAck;
-    bool m_expectedReCfgSts;
-    UINT32 m_fileNameDelay;
+    UINT32 m_modeTimeout;
+    RECFG_ERR_CODE_ENUM m_lastStatus;
+
+    // script control items
+    UINT32 m_msRerqstDelay;  // how long will the
+    UINT32 m_fileNameDelay;  // CM response Control flag
     UINT32 m_recfgAckDelay;
-    UINT32 m_unexpectedRecfgResult;
+
+private:
+    bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
 };
 
 #endif /* CMRECONFIG_H_ */

@@ -94,6 +94,9 @@ int main(void)
 
     memset( &aseCommon, 0, sizeof(aseCommon));
 
+    // default to MS being online
+    aseCommon.bMsOnline = true;
+
     // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
     aseCommon.systemTickPtr = systemTickPointer();
 
@@ -103,7 +106,7 @@ int main(void)
     adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
     debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
-    aseCommon.bPowerOnState = (processSuccess == adrfProcStatus) ? TRUE : FALSE;
+    aseCommon.bPowerOnState = (processSuccess == adrfProcStatus);
 
     secComm.Run();
 
@@ -217,6 +220,21 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             aseCommon.bPowerOnState = FALSE;
 
             secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+
+        case eMsState:
+            // Kill the ADRF process to simulate behavior during power off
+            if (request.variableId == 0 || request.variableId == 1)
+            {
+                aseCommon.bMsOnline = request.variableId == 1;
+                secComm.m_response.successful = TRUE;
+            }
+            else
+            {
+                secComm.ErrorMsg("Ms State Error: Accept 0,1 - got %d", request.variableId);
+                secComm.m_response.successful = TRUE;
+            }
             serviced = TRUE;
             break;
 

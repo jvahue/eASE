@@ -59,7 +59,6 @@ class MailBox
       ipcStatus    GetIpcStatus(){return m_ipcStatus;}
       const char*  GetIpcStatusString();
 
-    protected:
       enum
       {
         eMaxGrantsAllowed  = 16, // Max senders to this mailbox

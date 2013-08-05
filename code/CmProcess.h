@@ -23,7 +23,8 @@ class CmProcess : public CmdRspThread
     public:
         enum CmProcConstants
         {
-        	eMaxQueueDepth = 10
+        	eMaxQueueDepth = 10,
+        	eGseCmdSize = 128,
         };
 
 	    CmProcess();
@@ -35,6 +36,7 @@ class CmProcess : public CmdRspThread
     protected:
         // Properties
         BOOLEAN m_bRspPending;
+        char m_lastGseCmd[eGseCmdSize];
 
         GSE_COMMAND  m_gseCmd;
         GSE_RESPONSE m_gseRsp;
@@ -60,6 +62,7 @@ class CmProcess : public CmdRspThread
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
+        virtual void UpdateDisplay(VID_DEFS who);
 
     private:
         CmReconfig m_reconfig;

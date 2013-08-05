@@ -48,6 +48,8 @@ protected:
     void UpdateIoi();
     void UpdateCCDL();
 
+    virtual void UpdateDisplay(VID_DEFS who);
+
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
     UINT32 m_paramLoopEnd;
