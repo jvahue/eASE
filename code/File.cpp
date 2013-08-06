@@ -33,7 +33,7 @@
 #define BYTES_TO_DWORDS(x) ((x / sizeof(UINT32))+1)
 //#define MAILBOX_DEBUG
 
-#define DEFAULT_PORTSIZE  (3*512)  //(200 * 1024)
+#define DEFAULT_PORTSIZE  (200 * 1024)
 #define DEFAULT_READ_SIZE (DEFAULT_PORTSIZE - (1 * 1024)) // Don't read thru end of Blk
                                                // Note PORTREAD_SIZE must be 512 aligned
 #define DEF_NUMPORTS 1
