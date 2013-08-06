@@ -21,7 +21,7 @@
      comment = "This comment block is the one place in the file that users can add comments to the file."
      addlRamPagesForExecuteOutOfRam = "0"
      executableName = "ase.exe"
-     attachedResourceQuota = "2"
+     attachedResourceQuota = "5"
      threadStackVASGap = "yes"
      tlsSpaceInBytes = "0"
      addTLSToStack = "no"
