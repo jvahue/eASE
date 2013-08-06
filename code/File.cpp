@@ -33,7 +33,7 @@
 #define BYTES_TO_DWORDS(x) ((x / sizeof(UINT32))+1)
 //#define MAILBOX_DEBUG
 
-#define DEFAULT_PORTSIZE  512  //(200 * 1024)
+#define DEFAULT_PORTSIZE  (3*512)  //(200 * 1024)
 #define DEFAULT_READ_SIZE (DEFAULT_PORTSIZE - (1 * 1024)) // Don't read thru end of Blk
                                                // Note PORTREAD_SIZE must be 512 aligned
 #define DEF_NUMPORTS 1
@@ -57,7 +57,7 @@
 /*****************************************************************************/
 /* Local Variables                                       */
 /*****************************************************************************/
-
+const char* partName[] = {"CM-partition", "ADRF-partition"};
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -91,12 +91,13 @@ void File::Reset()
 {
     m_sAdr = NULL;
     m_cAdr = NULL;
-    m_bFirstCalled = FALSE;
-    m_bytesInPort = 0;
-    m_physOffset  = 0;
-    m_fileSize    = 0;
-    m_bEOF        = FALSE;
-    m_nextRead    = 0;
+    m_bFirstCalled   = FALSE;
+    m_portBytesInUse = 0;
+    m_physOffset     = 0;
+    m_fileSize       = 0;
+    m_bEOF           = FALSE;
+    m_nextRead       = 0;
+    m_mode           = '\0';
 
     memset(m_clientAccessRes, 0, sizeof(m_clientAccessRes));
     memset(m_fileName, 0,        sizeof(m_fileName));
@@ -106,17 +107,15 @@ void File::Reset()
 // Function: Open
 // Description:
 
-BOOLEAN File::Open(const char* fileName, PartitionType partType, char mode)
+BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode)
 {
     UNSIGNED32  i;
     UNSIGNED32  initVal;
     UNSIGNED32* aliveCnt;
-    const char* partName[] = {"CM-partition", "ADRF-partition", };
 
     Reset();
     // convert partition enum to string
-    i = partType - eBasePart;
-    strncpy(m_partitionName, partName[i], eMaxResName );
+    strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
 
     strncpy(m_fileName, fileName, eMaxFileName);
 
@@ -164,6 +163,7 @@ BOOLEAN File::Open(const char* fileName, PartitionType partType, char mode)
     if (m_resStatus != resValid)
     {
         i = 42; // place to put a BP if needed.
+        m_mode = '\0';
     }
     else
     {
@@ -190,7 +190,6 @@ BOOLEAN File::Open(const char* fileName, PartitionType partType, char mode)
 
         m_portAddr[0] = m_dataReq.dataAddr;
     }
-
     return (m_cffsStatus == cffsSuccess);
 }
 
@@ -201,13 +200,14 @@ BOOLEAN File::Open(const char* fileName, PartitionType partType, char mode)
 SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 {
     UNSIGNED16 i;
-    UNSIGNED32 bytesAvailable;// number of bytes in port available for transfering to pBuff
+    //UNSIGNED32 bytesAvailable;// number of bytes in port available for 'reading' to pBuff
     SIGNED32   bytesRead = 0; // count of bytes copied to pBuff
+    SIGNED32   debug_readCnt;
 
     void*      pDest;    // working-address in pBuff for putting bytes frm port
     UNSIGNED32 destSize; // working-cnt of bytes avail in pBuff
 
-    if (size > MAX_READ_SIZE)
+    if (size > MAX_READ_SIZE || m_mode != 'r')
     {
         return -1;
     }
@@ -220,27 +220,35 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
     pDest = pBuff;
     do
     {
-        bytesAvailable = m_bytesInPort - m_nextRead;
-        destSize = (size - (&pDest - &pBuff));
+        //bytesAvailable = m_portBytesInUse - m_nextRead;
+        destSize = (size - ((unsigned char*)pDest - (unsigned char*)pBuff));
 
-        if(bytesAvailable > 0)
+        // If port has bytes available for 'reading', transfer as many as
+        // the read buffer can accept.
+        if(m_portBytesInUse > 0)
         {
-            UNSIGNED32 limit = min(destSize, bytesAvailable );
-            memcpy(pDest, (m_portAddr[ePortIndex] +  m_nextRead), limit );
-            m_nextRead += limit;
-            bytesRead  += limit;
-            m_bytesInPort -= limit;
+            UNSIGNED32 maxBytes = min(destSize, m_portBytesInUse );
+            memcpy(pDest, ((unsigned char*)m_portAddr[ePortIndex] +  m_nextRead), maxBytes );
+            m_nextRead += maxBytes;
+            bytesRead  += maxBytes;
+            m_portBytesInUse -= maxBytes;
+            debug_readCnt = m_nextRead / size;
+
+            // Move ptr in dest buffer in case this is a partial fill on this pass
+            pDest = (void*)((unsigned char*)pDest + maxBytes);
         }
-        else // port is empty, try to re-fill from media
+        else // port is empty, try to re-populate from media
         {
+            // Call set up function before the first read.
             if ( !m_bFirstCalled )
             {
+                m_bFirstCalled = TRUE;
                 m_cffsStatus = cffsFirst(m_sAdr,
                                          fileSpecific,
                                          m_partitionName,
                                          m_fileName,
                                          &m_findReq);
-                m_bFirstCalled = TRUE;
+
                 m_fileSize    = m_findReq.sizeInBytes;
                 m_physOffset  = 0;
             }
@@ -248,7 +256,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
             if (m_physOffset < m_fileSize )
             {
                 m_dataReq.sizeofStruct = sizeof(m_dataReq);
-                cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);//TBD still needed in v3.7.1
+                cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);//TBD still needed in v3.7.1
 
                 m_cffsStatus = cffsSeekX(m_sAdr,
                                          m_cAdr,
@@ -257,13 +265,13 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
                                          m_fileName,
                                          m_physOffset,
                                          CFFS_OFFSET_NOT_FROM_END,
-                                         m_findReq.sizeInBytes,
+                                         DEFAULT_PORTSIZE,
                                          CFFS_BLOCKING,
                                          &m_dataReq );
 
-                m_physOffset  += m_dataReq.numBytes;
-                m_nextRead    = 0;
-                m_bytesInPort = m_dataReq.numBytes;
+                m_physOffset     += m_dataReq.numBytes; // Increment for next cffsSeekX
+                m_nextRead       = 0;                   // Set read offset to start of port
+                m_portBytesInUse = m_dataReq.numBytes;
             }
             else
             {
@@ -284,36 +292,58 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 
 BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 {
-    UNSIGNED32  bytesAvailable; // number of bytes available for storing in port data struct
+    UNSIGNED32  bytesFree;      // number of bytes in port available for storing out-msg
     UNSIGNED32  bytesToSend;    // number of bytes from 'size' to be written/buffered
-    void*       pDestAddr;      // Address in 'port' to buffer next block.
+    void*       pDestAddr;      // Address in 'port' to buffer next outgoing block.
+
+    static BOOLEAN bFirstTime = TRUE;
+
+    // Debugging purposes
+    if (bFirstTime)
+    {
+        memset (m_portAddr[ePortIndex], 0x20, m_portSize[ePortIndex]);
+        bFirstTime = FALSE;
+    }
+
+    if (size > MAX_WRITE_SIZE || m_mode != 'w')
+    {
+        return FALSE;
+    }
+
 
     // Fill the port before committing(writing)
     bytesToSend = size; // TODO once working use 'size' directly to track outstanding bytes
     do
     {
-        bytesAvailable = m_portSize[ePortIndex] - m_bytesInPort;
-        pDestAddr      = (void*)((UNSIGNED32*)m_portAddr[ePortIndex] + m_bytesInPort);
+        bytesFree = m_portSize[ePortIndex] - m_portBytesInUse;
+        pDestAddr = (void*)((char*)m_portAddr[ePortIndex] + m_portBytesInUse);
 
         // Is there enough room in port to fit pBuff?
-        if ( bytesToSend <= bytesAvailable )
+        if ( bytesToSend <= bytesFree )
         {
             // space is available, copy to port
             memcpy ( pDestAddr, pBuff, bytesToSend);
-            m_bytesInPort += bytesToSend;
+            m_portBytesInUse += bytesToSend;
             bytesToSend = 0;
+            // Assume the 'write' is OK
+            m_cffsStatus = cffsSuccess;
         }
-        else // not enough room, copy what we can to port, flush then buffer the remainder
+        else
         {
-            memcpy ( pDestAddr, pBuff, bytesAvailable);
-            bytesToSend -= bytesAvailable;
+            // not enough room in port, copy what we can to port, flush, then
+            // buffer the remainder on the next pass.
+            memcpy ( pDestAddr, pBuff, bytesFree);
+            m_portBytesInUse += bytesFree;
+
+            bytesToSend -= bytesFree;
+            pBuff = (void*)((unsigned char*)pBuff + bytesFree);
 
             // Perform a phys write from port to cffs...
-            // (NOTE: Flush will resets m_bytesInUse to zero)
+            // (NOTE: Flush will resets m_bytesInUse to zero and set m_cffsStatus)
             Flush();
         }
     }
-    while(bytesToSend > 0);
+    while(bytesToSend > (0 && m_cffsStatus == cffsSuccess));
 
     return (m_cffsStatus == cffsSuccess);
 }
@@ -322,18 +352,27 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 // Function: Delete
 // Description:
 
-BOOLEAN File::Delete(void)
+BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
-    cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);//TBD still needed in v3.7.1
+    // If file not open, do it now to cffs connections
+    if (m_mode == '\0')
+    {
+        Open(fileName, partType , m_mode);
+    }
+
     // Delete the file
+    m_dataReq.sizeofStruct = sizeof(m_dataReq);
+    cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
     m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
-                               m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
+                               fileName, CFFS_BLOCKING, CFFS_FLUSH );
 
     if (m_cffsStatus != cffsSuccess)
     {
         int bp = 42;
     }
-    return (m_cffsStatus == cffsSuccess);
+    // Reset this file so no other ops allowed without an 'Open' call
+    Reset();
+    return (m_cffsStatus == cffsSuccess || m_cffsStatus == cffsFileNotFound );
 }
 
 //------------------------------------------------------------------------------
@@ -342,7 +381,8 @@ BOOLEAN File::Delete(void)
 
 BOOLEAN File::Flush(void)
 {
-    if (m_bytesInPort > 0)
+    BOOLEAN status = FALSE;
+    if ( m_mode == 'w' && m_portBytesInUse > 0)
     {
         cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);
 
@@ -356,8 +396,8 @@ BOOLEAN File::Flush(void)
                                    m_fileName,               // file to write/create
                                    m_physOffset,             // dest offset into phys file
                                    CFFS_OFFSET_NOT_FROM_END,
-                                   m_bytesInPort,            // # bytes to write
-                                   m_portAddr[ePortIndex],  // address of src port
+                                   m_portBytesInUse,         // # bytes to write
+                                   m_portAddr[ePortIndex],   // address of src port
                                    0x0,
                                    0xFF,
                                    CFFS_BLOCKING,
@@ -369,11 +409,12 @@ BOOLEAN File::Flush(void)
          {
              // m_bytesInUse will either be a full port size or some
              // portion on the final flush.
-             m_physOffset += m_bytesInPort;
-             m_bytesInPort = 0;
+             m_physOffset += m_portBytesInUse;
+             m_portBytesInUse = 0;
+             status = TRUE;
          }
      }
-     return (m_cffsStatus == cffsSuccess);
+     return status;
 }
 
 BOOLEAN File::Close(void)

@@ -217,7 +217,7 @@ bool CmProcess::PutFile( SecComm& secComm)
     {
         if (!m_putFile.IsOpen())
         {
-            m_putFile.Open( secComm.m_request.charData, secComm.m_request.sigGenId, 'w');
+            m_putFile.Open( secComm.m_request.charData, (File::PartitionType)secComm.m_request.sigGenId, 'w');
             status = true;
 
             // TODO: remove after debugging is complete
@@ -279,7 +279,7 @@ bool CmProcess::GetFile( SecComm& secComm)
         // TODO: how do we determine is a file available?
         if (m_readyFile[0] != '\0')
         {
-            m_getFile.Open( m_readyFile, secComm.m_request.sigGenId, 'r');
+            m_getFile.Open( m_readyFile, (File::PartitionType)secComm.m_request.sigGenId, 'r');
 
             nameLength = strlen(m_getFile.GetFileName());
             strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);

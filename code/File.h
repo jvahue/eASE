@@ -31,7 +31,7 @@ class File
         SIGNED32 Read (void *pBuff, UNSIGNED32 size);
         BOOLEAN Write(void *pBuff, UNSIGNED32 size);
         BOOLEAN Flush(void);
-        BOOLEAN Delete(void);
+        BOOLEAN Delete(const char* fileName, File::PartitionType partType);
         BOOLEAN Close(void);
 
     // Accessors
@@ -52,11 +52,12 @@ class File
 
         // Object mgmt attributes
         BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
-        UNSIGNED32 m_bytesInPort;    // # bytes currently buffered in port, awaiting write/read
+        UNSIGNED32 m_portBytesInUse; // # bytes currently buffered in port, awaiting write/read
         UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
-        UNSIGNED32 m_nextRead;       // Pointer into port to fetch next 'n' bytes
+        UNSIGNED32 m_nextRead;       // Index port to fetch next 'n' bytes
         UNSIGNED32 m_fileSize;       // size of file being read(bytes).
         BOOLEAN    m_bEOF;
+
         // cffs control structures
         cffsInfoRequest m_infoReq;
         cffsDataRequest m_dataReq;
@@ -77,8 +78,8 @@ class File
         void*      m_portAddr [eNumPorts];
 
         char m_clientAccessRes[eMaxResName]; // Client Access name (CAR)
-        char m_partitionName[eMaxResName]; // name of the XXXX-partition where this file resides.
-        char m_fileName[eMaxFileName];       // name of the file to be used.
+        char m_partitionName  [eMaxResName]; // name of the XXXX-partition where this file resides.
+        char m_fileName       [eMaxFileName];// name of the file to be used.
 
     private:
 
