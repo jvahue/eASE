@@ -38,8 +38,10 @@ class File
         const char* GetFileName() {return m_fileName;}
         BOOLEAN     IsOpen()
         {
-            return (m_cffsStatus == cffsSuccess) && (m_resStatus == resValid);
+            return m_bOpen;
         }
+
+        char* GetFileStatus(char* buffer);
 
     protected:
         enum FileConstants
@@ -56,7 +58,9 @@ class File
         UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
         UNSIGNED32 m_nextRead;       // Index port to fetch next 'n' bytes
         UNSIGNED32 m_fileSize;       // size of file being read(bytes).
+        UINT32     m_bytesMoved; // the number of bytes read or written since opening
         BOOLEAN    m_bEOF;
+        BOOLEAN    m_bOpen;
 
         // cffs control structures
         cffsInfoRequest m_infoReq;

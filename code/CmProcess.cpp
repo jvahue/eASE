@@ -126,6 +126,7 @@ void CmProcess::RunSimulation()
 //-----------------------------------------------------------------------------
 void CmProcess::UpdateDisplay(VID_DEFS who)
 {
+    char buffer[256];
     UINT32 atLine = eFirstDisplayRow;
 
     CmdRspThread::UpdateDisplay(CmProc);
@@ -144,6 +145,26 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
 
     debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+    atLine += 1;
+
+    // Show put file status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
+    atLine += 1;
+
+    // Show get file status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
+    atLine += 1;
+
+    // Show Cfg file names
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
+    atLine += 1;
+
+    // Show Cfg file names
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
     atLine += 1;
 
     // Update Mailbox Status

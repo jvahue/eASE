@@ -64,7 +64,7 @@ CmReconfig::CmReconfig()
     , m_modeTimeout(0)
     , m_lastStatus(RECFG_ERR_CODE_MAX)
     , m_msRerqstDelay(0)
-    , m_fileNameDelay(100)
+    , m_fileNameDelay(500)
     , m_recfgAckDelay(0)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
@@ -82,7 +82,7 @@ void CmReconfig::SetCfgFileName(const char* name, UINT32 size)
 
     strncpy(m_xmlFileName, name, eCmRecfgFileSize);
     xmlLen = strlen(m_xmlFileName);
-    strncpy(m_cfgFileName, &name[xmlLen], eCmRecfgFileSize);
+    strncpy(m_cfgFileName, &name[xmlLen+1], eCmRecfgFileSize);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -249,17 +249,24 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         {
             m_lastStatus = inData.errCode;
             m_state = eCmRecfgIdle;
-            if (inData.bOk = TRUE)
+            if (inData.bOk == TRUE)
             {
-                // delete the files from the partition
                 File aFile;
-                //aFile.Delete( m_xmlFileName, File::ePartCmProc);
-                //aFile.Delete( m_cfgFileName, File::ePartCmProc);
 
-                // clear the file names
-                memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
-                memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+                // delete the files from the partition & clear the names
+                if (strlen(m_xmlFileName) > 0)
+                {
+                    aFile.Delete( m_xmlFileName, File::ePartCmProc);
+                    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+                }
+
+                if (strlen(m_cfgFileName) > 0)
+                {
+                    aFile.Delete( m_cfgFileName, File::ePartCmProc);
+                    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+                }
             }
+
             cmdHandled = true;
         }
     }

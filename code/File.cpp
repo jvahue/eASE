@@ -3,16 +3,17 @@
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
+#include <deos.h>
+#include <videobuf.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include <deos.h>
-#include <videobuf.h>
-#include <string.h>
-#include <stdlib.h>
-
 #include "File.h"
 
 
@@ -89,19 +90,26 @@ File::File()
 
 void File::Reset()
 {
-    m_sAdr = NULL;
-    m_cAdr = NULL;
     m_bFirstCalled   = FALSE;
     m_portBytesInUse = 0;
     m_physOffset     = 0;
-    m_fileSize       = 0;
-    m_bEOF           = FALSE;
     m_nextRead       = 0;
-    m_mode           = '\0';
+    m_fileSize       = 0;
+    m_bytesMoved     = 0;
+    m_bEOF           = FALSE;
+    m_bOpen = FALSE;
+
+    m_sAdr = NULL;
+    m_cAdr = NULL;
+    m_resSize = 0;
+    m_mode    = '\0';
+
+    m_cffsStatus = cffsNoStatus;  // make call to IsOpen == FALSE
+    m_resStatus  = resInvalidHandle;
 
     memset(m_clientAccessRes, 0, sizeof(m_clientAccessRes));
-    memset(m_fileName, 0,        sizeof(m_fileName));
     memset(m_partitionName,   0, sizeof(m_partitionName));
+    memset(m_fileName, 0,        sizeof(m_fileName));
 }
 //------------------------------------------------------------------------------
 // Function: Open
@@ -190,7 +198,10 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
 
         m_portAddr[0] = m_dataReq.dataAddr;
     }
-    return (m_cffsStatus == cffsSuccess);
+
+    m_bOpen = (m_resStatus == resValid);
+
+    return m_bOpen;
 }
 
 //------------------------------------------------------------------------------
@@ -283,6 +294,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 
     bytesRead = (m_cffsStatus == cffsSuccess) ? bytesRead : -1;
 
+    m_bytesMoved += bytesRead;
     return bytesRead;
 
 }
@@ -298,6 +310,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 
     static BOOLEAN bFirstTime = TRUE;
 
+
     // Debugging purposes
     if (bFirstTime)
     {
@@ -310,6 +323,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
         return FALSE;
     }
 
+    m_bytesMoved += size;
 
     // Fill the port before committing(writing)
     bytesToSend = size; // TODO once working use 'size' directly to track outstanding bytes
@@ -355,7 +369,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
     // If file not open, do it now to cffs connections
-    if (m_mode == '\0')
+    if (!IsOpen())
     {
         Open(fileName, partType , m_mode);
     }
@@ -417,10 +431,29 @@ BOOLEAN File::Flush(void)
      return status;
 }
 
+//------------------------------------------------------------------------------
+// Function: Close
+// Description:
+
 BOOLEAN File::Close(void)
 {
     Flush();                      // Force a phys write.
-    m_cffsStatus = cffsNoStatus;  // make call to IsOpen == FALSE
+    Reset();
     return TRUE;
 }
 
+//------------------------------------------------------------------------------
+// Function: GetFileStatus
+// Description:
+
+char* File::GetFileStatus(char* buffer)
+{
+    sprintf(buffer, "Name: %s Open: %s I/O: %d sAdr: 0x%08x cAdr: 0x%08x",
+            m_fileName,
+            IsOpen() ? "Yes" : "No",
+            m_bytesMoved,
+            m_sAdr,
+            m_cAdr);
+
+    return buffer;
+}

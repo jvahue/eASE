@@ -531,7 +531,7 @@ void IoiProcess::InitIoi()
         {1,    "ac_aoa2_raw",   20, PARAM_FMT_A429, 0x36640, 10000, 161, 90},
         {22,   "airspeed1_raw",  4, PARAM_FMT_A429, 0x36220, 10000, 134, 512},
         {23,   "airspeed2_raw",  4, PARAM_FMT_A429, 0x36620, 10000, 134, 512},
-        {2999, "ac_type_raw",    1, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
+        {4,    "ac_ser_num_raw", 1, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
     };
 
     // Initialize IOI Before use
