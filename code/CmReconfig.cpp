@@ -99,11 +99,13 @@ bool CmReconfig::StartReconfig(MailBox& out)
         memset( &outData, 0, sizeof(outData));
 
         outData.code = MS_RECFG_REQ;
-        out.Send( &outData, sizeof(outData));
+        status = out.Send( &outData, sizeof(outData));
 
-        m_state = eCmRecfgLatch;
-        m_modeTimeout = 100;
-        status = true;
+        if (status)
+        {
+            m_state = eCmRecfgLatch;
+            m_modeTimeout = 100;
+        }
     }
 
     return status;
