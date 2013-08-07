@@ -84,9 +84,83 @@ const char* partName[] = {"CM-partition", "ADRF-partition"};
 File::File()
     : m_sAdr(NULL)
     , m_cAdr(NULL)
-
+    , m_bInit(FALSE)
 {
     Reset();
+    UNSIGNED32  i;
+    UNSIGNED32  initVal;
+    UNSIGNED32* aliveCnt;
+
+    Reset();
+
+    strncpy(m_clientAccessRes, "CM-CAR", eMaxResName);
+
+    // Open m_portAddr[] to 0 and the set the portsize.
+    for (i = 0; i < eNumPorts; i++)
+    {
+        m_portAddr[i] = 0;
+        m_portSize[i] = DEFAULT_PORTSIZE;
+    }
+
+    // Attach to the server's metadata resource
+    m_resStatus = attachPlatformResource("", SRV_METADATA_RES,
+                                             &m_hPlatformRes,
+                                             &m_accessStyle,
+                                             &m_sAdr);
+
+    if (m_resStatus == resValid)
+    {
+        // Get a pointer to the alive counter,
+        // wait for increment to show the cffs is running
+        aliveCnt = cffsAliveCounter( m_sAdr );
+        initVal  = *aliveCnt;
+        do
+        {
+            if (*aliveCnt < initVal)
+            {
+                // Note the rollover case is handled
+                initVal = *aliveCnt;
+            }
+            waitUntilNextPeriod();
+        }
+        while (*aliveCnt <= initVal);
+
+        // Attach to the client access resource (CAR)
+        m_resStatus = attachPlatformResource("", m_clientAccessRes,
+                                                 &m_hPlatformRes,
+                                                 &m_accessStyle,
+                                                 &m_cAdr);
+    }
+
+    // if SRV and Client resource attachments are good set up port info
+    if (m_resStatus == resValid)
+    {
+        // Get the platform res size.
+        m_resStatus = platformResourceSize(m_hPlatformRes,&m_resSize);
+
+        cffsCheckPortLayout(m_resSize, eNumPorts, m_portSize);
+
+        // Set the port layout(s) using the sizes returned via the
+        // cffsCheckPortLayout, then get the addresses of the ports.
+        cffsSetPortLayout(m_cAdr, eNumPorts, m_portSize);
+
+        // Get the cffs server info
+        m_infoReq.sizeofStruct = sizeof(m_infoReq);
+        cffsGetInfo(&m_infoReq);
+
+        m_findReq.sizeofStruct  = sizeof(m_findReq);
+        m_findReq.maxNameLength = eMaxFileName;
+        m_findReq.foundName     = m_fileName;
+        m_findReq.sizeInBytes   = DEFAULT_PORTSIZE; // for writing
+
+        m_dataReq.sizeofStruct = sizeof(m_dataReq);
+        cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);
+
+        m_portAddr[0] = m_dataReq.dataAddr;
+
+        // Object init successful.
+        m_bInit = TRUE;
+    }
 }
 // Function: Reset
 // Description:
@@ -120,104 +194,18 @@ void File::Reset()
 
 BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode)
 {
-    UNSIGNED32  i;
-    UNSIGNED32  initVal;
-    UNSIGNED32* aliveCnt;
-
-    Reset();
-    // convert partition enum to string
-    strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
-
-    strncpy(m_fileName, fileName, eMaxFileName);
-
-    // access mode
-    m_mode = (mode == 'r' || mode == 'w') ? mode : '\0';
-    //TODO check for invalid mode
-
-    strncpy(m_clientAccessRes, "CM-CAR", eMaxResName);
-
-    // Open m_portAddr[] to 0 and the portsize according to constructor param.
-    for (i = 0; i < eNumPorts; i++)
+    if (m_bInit)
     {
-        m_portAddr[i] = 0;
-        m_portSize[i] = DEFAULT_PORTSIZE;
+        Reset();
+        // convert partition enum to string
+        strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
+
+        strncpy(m_fileName, fileName, eMaxFileName);
+
+        // access mode
+        m_mode = (mode == 'r' || mode == 'w') ? mode : '\0';
     }
-
-    // Attach to the server's metadata resource
-    if (m_sAdr == NULL)
-    {
-        m_resStatus = attachPlatformResource("",
-                                             SRV_METADATA_RES,
-                                             &m_hPlatformRes,
-                                             &m_accessStyle,
-                                             &m_sAdr);
-    }
-    else
-    {
-        m_resStatus = resValid;
-    }
-
-    // Get a pointer to the alive counter,
-    // wait for increment to show the
-    aliveCnt = cffsAliveCounter( m_sAdr );
-    initVal  = *aliveCnt;
-    do
-    {
-        if (*aliveCnt < initVal)
-        {
-            // Note the rollover case is handled
-            initVal = *aliveCnt;
-        }
-        waitUntilNextPeriod();
-    }
-    while (*aliveCnt <= initVal);
-
-    // Setup Ports
-    // Attach client access resource
-    if (m_cAdr == NULL)
-    {
-        m_resStatus = attachPlatformResource("", m_clientAccessRes,
-                                             &m_hPlatformRes,
-                                             &m_accessStyle,
-                                             &m_cAdr);
-    }
-    else
-    {
-        m_resStatus = resValid;
-    }
-
-    if (m_resStatus != resValid)
-    {
-        i = 42; // place to put a BP if needed.
-        m_mode = '\0';
-    }
-    else
-    {
-        // Get the platform res size.
-        m_resStatus = platformResourceSize(m_hPlatformRes,&m_resSize);
-
-        cffsCheckPortLayout(m_resSize, eNumPorts, m_portSize);
-
-        // Set the port layout(s) using the sizes returned via the
-        // cffsCheckPortLayout, then get the addresses of the ports.
-        cffsSetPortLayout(m_cAdr, eNumPorts, m_portSize);
-
-        // Get the cffs server info
-        m_infoReq.sizeofStruct = sizeof(m_infoReq);
-        cffsGetInfo(&m_infoReq);
-
-        m_findReq.sizeofStruct  = sizeof(m_findReq);
-        m_findReq.maxNameLength = eMaxFileName;
-        m_findReq.foundName     = m_fileName;
-        m_findReq.sizeInBytes   = DEFAULT_PORTSIZE; // for writing
-
-        m_dataReq.sizeofStruct = sizeof(m_dataReq);
-        cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);
-
-        m_portAddr[0] = m_dataReq.dataAddr;
-    }
-
-    m_bOpen = (m_resStatus == resValid);
+    m_bOpen = m_bInit;
 
     return m_bOpen;
 }
@@ -236,7 +224,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
     void*      pDest;    // working-address in pBuff for putting bytes frm port
     UNSIGNED32 destSize; // working-cnt of bytes avail in pBuff
 
-    if (size > MAX_READ_SIZE || m_mode != 'r')
+    if ( !m_bOpen || size > MAX_READ_SIZE || m_mode != 'r')
     {
         return -1;
     }
@@ -282,6 +270,9 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
                 m_physOffset  = 0;
             }
 
+            // If the offset into the physical media is within the file size,
+            // read the next block into the port, else flag that current block
+            // was the last.
             if (m_physOffset < m_fileSize )
             {
                 m_dataReq.sizeofStruct = sizeof(m_dataReq);
@@ -329,14 +320,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
     static BOOLEAN bFirstTime = TRUE;
 
 
-    // Debugging purposes
-    if (bFirstTime)
-    {
-        memset (m_portAddr[ePortIndex], 0x20, m_portSize[ePortIndex]);
-        bFirstTime = FALSE;
-    }
-
-    if (size > MAX_WRITE_SIZE || m_mode != 'w')
+    if ( !m_bOpen || size > MAX_WRITE_SIZE || m_mode != 'w')
     {
         return FALSE;
     }
@@ -386,7 +370,12 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 
 BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
-    // If file not open, do it now to cffs connections
+    if ( 0 == strlen(fileName) )
+    {
+        return FALSE;
+    }
+
+    // If file not open, do it now to set up filename and partition name
     if (!IsOpen())
     {
         Open(fileName, partType , m_mode);
@@ -396,7 +385,7 @@ BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
     m_dataReq.sizeofStruct = sizeof(m_dataReq);
     cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
     m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
-                               fileName, CFFS_BLOCKING, CFFS_FLUSH );
+                               m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
 
     if (m_cffsStatus != cffsSuccess)
     {
@@ -414,7 +403,7 @@ BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 BOOLEAN File::Flush(void)
 {
     BOOLEAN status = FALSE;
-    if ( m_mode == 'w' && m_portBytesInUse > 0)
+    if ( m_bOpen && m_mode == 'w' && m_portBytesInUse > 0)
     {
         cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);
 
@@ -455,8 +444,12 @@ BOOLEAN File::Flush(void)
 
 BOOLEAN File::Close(void)
 {
-    Flush();                      // Force a phys write.
-    Reset();
+    if( m_bOpen )
+    {
+        Flush(); // Force a phys write.
+        Reset();
+    }
+
     return TRUE;
 }
 

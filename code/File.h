@@ -40,6 +40,10 @@ class File
         {
             return m_bOpen;
         }
+        BOOLEAN     IsInit()
+        {
+            return m_bInit;
+        }
 
         char* GetFileStatus(char* buffer);
 
@@ -61,6 +65,8 @@ class File
         UINT32     m_bytesMoved; // the number of bytes read or written since opening
         BOOLEAN    m_bEOF;
         BOOLEAN    m_bOpen;
+        BOOLEAN    m_bInit;          // Flag to show Object construction was successful
+
 
         // cffs control structures
         cffsInfoRequest m_infoReq;
