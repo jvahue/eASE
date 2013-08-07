@@ -32,6 +32,7 @@ class CmProcess : public CmdRspThread
         virtual BOOLEAN CheckCmd( SecComm& secComm);
 
         CHAR m_boxOnTime[32];
+        char m_readyFile[128];
 
     protected:
         // Properties
@@ -40,7 +41,6 @@ class CmProcess : public CmdRspThread
 
         GSE_COMMAND  m_gseCmd;
         GSE_RESPONSE m_gseRsp;
-
 
         // mailboxes
         MailBox m_gseInBox;  // GSE -> CMProcess message
@@ -69,7 +69,6 @@ class CmProcess : public CmdRspThread
 
         File m_putFile;
         File m_getFile;
-        char m_readyFile[256];  // TODO: remove after debugging
 
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);

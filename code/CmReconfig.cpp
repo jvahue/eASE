@@ -19,7 +19,6 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "CmReconfig.h"
-#include "File.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -62,10 +61,12 @@ static char* modeNames[] = {
 CmReconfig::CmReconfig()
     : m_state(eCmRecfgIdle)
     , m_modeTimeout(0)
-    , m_lastStatus(RECFG_ERR_CODE_MAX)
+    , m_lastErrCode(RECFG_ERR_CODE_MAX)
+    , m_lastStatus(false)
     , m_msRerqstDelay(0)
     , m_fileNameDelay(500)
     , m_recfgAckDelay(0)
+    , m_recfgCount(0)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -196,8 +197,9 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 
         m_state = eCmRecfgSendFilenames;
         m_modeTimeout = m_fileNameDelay;
-        m_lastStatus = RECFG_ERR_CODE_MAX;
+        m_lastErrCode = RECFG_ERR_CODE_MAX;
 
+        m_recfgCount += 1;
         cmdHandled = true;
     }
 
@@ -247,22 +249,22 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     {
         if (inData.code == RECFG_RESULT_CODE)
         {
+            m_lastErrCode = inData.errCode;
             m_lastStatus = inData.errCode;
             m_state = eCmRecfgIdle;
-            if (inData.bOk == TRUE)
+            // I know it seems backwards, but then your thinking logically aren't you!
+            if (inData.bOk == FALSE)
             {
-                File aFile;
-
                 // delete the files from the partition & clear the names
                 if (strlen(m_xmlFileName) > 0)
                 {
-                    aFile.Delete( m_xmlFileName, File::ePartCmProc);
+                    m_file.Delete( m_xmlFileName, File::ePartCmProc);
                     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
                 }
 
                 if (strlen(m_cfgFileName) > 0)
                 {
-                    aFile.Delete( m_cfgFileName, File::ePartCmProc);
+                    m_file.Delete( m_cfgFileName, File::ePartCmProc);
                     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
                 }
             }

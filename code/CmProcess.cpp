@@ -133,10 +133,12 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
 
     // Status Display
     debug_str(CmProc, atLine, 0,"%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg Mode/Status: %s(%d)/%s",
+    debug_str(CmProc, atLine, 0, "Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
+              m_reconfig.m_recfgCount,
               m_reconfig.GetModeName(),
               m_reconfig.m_modeTimeout,
-              recfgStatus[m_reconfig.m_lastStatus]);
+              m_reconfig.m_lastStatus ? "Err" : "Ok",
+              recfgStatus[m_reconfig.m_lastErrCode]);
     atLine += 1;
 
     debug_str(CmProc, atLine, 0,"%s", m_blankLine);
@@ -336,6 +338,14 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    case eGetReconfigSts:
+        strcpy( secComm.m_response.streamData, recfgStatus[m_reconfig.m_lastErrCode]);
+        secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+        secComm.m_response.successful = TRUE;
+
+        serviced = TRUE;
+        break;
+
     default:
         break;
     }
@@ -454,7 +464,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             m_getFile.Close();
 
             // TODO: remove after debugging is complete
-            memset(m_readyFile, 0, sizeof(m_readyFile));
+            memset(m_reconfig.m_xmlFileName, 0, sizeof(m_reconfig.m_xmlFileName));
         }
 
         if (bytesRead >= 0)

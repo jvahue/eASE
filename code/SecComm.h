@@ -54,6 +54,7 @@ enum SecCmds {
     eGetFile        = 204,  // get a file from the UUT in a partition
     eSetCfgFileName = 205,
     eStartReconfig  = 206,
+    eGetReconfigSts = 207,
 
 // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partion Id

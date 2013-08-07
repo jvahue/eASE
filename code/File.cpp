@@ -82,6 +82,9 @@ const char* partName[] = {"CM-partition", "ADRF-partition"};
  *
  ****************************************************************************/
 File::File()
+    : m_sAdr(NULL)
+    , m_cAdr(NULL)
+
 {
     Reset();
 }
@@ -99,8 +102,8 @@ void File::Reset()
     m_bEOF           = FALSE;
     m_bOpen = FALSE;
 
-    m_sAdr = NULL;
-    m_cAdr = NULL;
+    //m_sAdr = NULL;
+    //m_cAdr = NULL;
     m_resSize = 0;
     m_mode    = '\0';
 
@@ -141,11 +144,18 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
     }
 
     // Attach to the server's metadata resource
-    m_resStatus = attachPlatformResource("",
-                                          SRV_METADATA_RES,
-                                          &m_hPlatformRes,
-                                          &m_accessStyle,
-                                          &m_sAdr);
+    if (m_sAdr == NULL)
+    {
+        m_resStatus = attachPlatformResource("",
+                                             SRV_METADATA_RES,
+                                             &m_hPlatformRes,
+                                             &m_accessStyle,
+                                             &m_sAdr);
+    }
+    else
+    {
+        m_resStatus = resValid;
+    }
 
     // Get a pointer to the alive counter,
     // wait for increment to show the
@@ -164,10 +174,18 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
 
     // Setup Ports
     // Attach client access resource
-    m_resStatus = attachPlatformResource("", m_clientAccessRes,
-                                         &m_hPlatformRes,
-                                         &m_accessStyle,
-                                         &m_cAdr);
+    if (m_cAdr == NULL)
+    {
+        m_resStatus = attachPlatformResource("", m_clientAccessRes,
+                                             &m_hPlatformRes,
+                                             &m_accessStyle,
+                                             &m_cAdr);
+    }
+    else
+    {
+        m_resStatus = resValid;
+    }
+
     if (m_resStatus != resValid)
     {
         i = 42; // place to put a BP if needed.

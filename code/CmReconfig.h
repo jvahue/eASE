@@ -26,6 +26,7 @@
 #include "alt_stdtypes.h"
 
 #include "AseCommon.h"
+#include "File.h"
 #include "Interface_CM.h"
 #include "MailBox.h"
 
@@ -63,15 +64,19 @@ public:
 
     CmReconfigState m_state;
     UINT32 m_modeTimeout;
-    RECFG_ERR_CODE_ENUM m_lastStatus;
+    RECFG_ERR_CODE_ENUM m_lastErrCode;
+    BOOLEAN m_lastStatus;
 
     // script control items
     UINT32 m_msRerqstDelay;  // how long will the
     UINT32 m_fileNameDelay;  // CM response Control flag
     UINT32 m_recfgAckDelay;
+    UINT32 m_recfgCount;
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
+
+    File m_file;
 };
 
 #endif /* CMRECONFIG_H_ */
