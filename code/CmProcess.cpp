@@ -459,12 +459,13 @@ bool CmProcess::GetFile( SecComm& secComm)
     else if (m_getFile.IsOpen())
     {
         bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
+        secComm.m_response.streamSize = bytesRead;
         if (bytesRead < eSecStreamSize)
         {
             m_getFile.Close();
 
             // TODO: remove after debugging is complete
-            memset(m_reconfig.m_xmlFileName, 0, sizeof(m_reconfig.m_xmlFileName));
+            memset(m_readyFile, 0, sizeof(m_readyFile));
         }
 
         if (bytesRead >= 0)
