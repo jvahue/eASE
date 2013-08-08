@@ -2,6 +2,7 @@
 #define CMPROCESS_H
 
 #include "CmdRspThread.h"
+#include "CmFileXfer.h"
 #include "CmReconfig.h"
 #include "Fifo.h"
 #include "File.h"
@@ -31,7 +32,7 @@ class CmProcess : public CmdRspThread
         virtual void Run();  // override the AseThread::Create
         virtual BOOLEAN CheckCmd( SecComm& secComm);
 
-        CHAR m_boxOnTime[32];
+        char m_boxOnTime[32];
         char m_readyFile[128];
 
     protected:
@@ -66,9 +67,12 @@ class CmProcess : public CmdRspThread
 
     private:
         CmReconfig m_reconfig;
+        CmFileXfer m_fileXfer;
 
         File m_putFile;
         File m_getFile;
+
+        bool m_performAdrfOffload;
 
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);

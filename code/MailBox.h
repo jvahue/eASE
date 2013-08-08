@@ -30,6 +30,7 @@ class MailBox
       // Constructor.
       MailBox(void);
       void Reset(void);
+      char* GetStatusStr(void);
 
       // Receiver methods
       // called by MB owner to create and grant access to senders
@@ -91,6 +92,7 @@ class MailBox
       void OpenSenders(void);
 
     private:
+        char m_statusStr[80];
 
 };
 #endif // CMAILBOX_H
