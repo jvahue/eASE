@@ -11,8 +11,8 @@
 /*****************************************************************************/
 #include <deos.h>
 #include <mem.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */
@@ -40,11 +40,6 @@ static const CHAR adrfProcessName[] = "adrf";
 static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
 static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
-static const CHAR* recfgStatus[] = {
-    "Ok",
-    "Bad File",
-    "No Status"
-};
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
@@ -85,11 +80,11 @@ void CmProcess::Run()
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for processing log file msg from ADRF
-    //m_fileXferInBox.Create(cmReCfgMailboxName, 512, 2);
-    //m_fileXferInBox.IssueGrant(adrfProcessName);
+    m_fileXferInBox.Create("CM_FILE_TRANSFER_ADRF", 512, 2);
+    m_fileXferInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
-    //m_reConfigOutBox.Connect(adrfProcessName, adrfReCfgMailboxName);
+    m_fileXferOutBox.Connect(adrfProcessName, "ADRF_FILE_TRANSFER_CM");
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -102,91 +97,13 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
+    // Handle Reconfig Requests
     m_reconfig.ProcessCfgMailboxes(IS_MS_ONLINE, m_reConfigInBox, m_reConfigOutBox);
 
+    // Handle File Xfer Request
+    m_fileXfer.ProcessFileXfer(IS_MS_ONLINE, m_fileXferInBox, m_fileXferOutBox);
+
     ProcessGseMessages();
-
-    ProcessLogMessages();
-
-}
-
-//-------------------------------------------------------------------------------------------------
-// Function: UpdateDisplay
-// Description: Update the video output display
-//
-// Video Display Layout
-// 0: ---
-// 1: Frame: xxxxxx Reconfig Mode: %s(%d) Last Status: %s
-// 2:
-// 3: Gse Cmd: %s
-// 4: RxFifo: %d
-// 5: Gse In: <proc>/<ipc> Out: <proc>/<ipc>
-// 5: Cfg In: <proc>/<ipc> Out: <proc>/<ipc>
-// ...
-//-----------------------------------------------------------------------------
-void CmProcess::UpdateDisplay(VID_DEFS who)
-{
-    char buffer[256];
-    UINT32 atLine = eFirstDisplayRow;
-
-    CmdRspThread::UpdateDisplay(CmProc);
-
-    // Status Display
-    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
-              m_reconfig.m_recfgCount,
-              m_reconfig.GetModeName(),
-              m_reconfig.m_modeTimeout,
-              m_reconfig.m_lastStatus ? "Err" : "Ok",
-              recfgStatus[m_reconfig.m_lastErrCode]);
-    atLine += 1;
-
-    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "GseCmd: %s", m_lastGseCmd);
-    atLine += 1;
-
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
-    atLine += 1;
-
-    // Show put file status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
-    atLine += 1;
-
-    // Show get file status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
-    atLine += 1;
-
-    // Show Cfg file names
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
-    atLine += 1;
-
-    // Show Cfg file names
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
-    atLine += 1;
-
-    // Update Mailbox Status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Gse In: %s(%d)/%s Out: %s/%s",
-              m_gseInBox.GetProcessStatusString(), m_gseInBox.m_successfulGrantCnt,
-              m_gseInBox.GetIpcStatusString(),
-              m_gseOutBox.GetProcessStatusString(),
-              m_gseOutBox.GetIpcStatusString()
-              );
-    atLine += 1;
-
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg In: %s(%d)/%s Out: %s/%s",
-              m_reConfigInBox.GetProcessStatusString(), m_reConfigInBox.m_successfulGrantCnt,
-              m_reConfigInBox.GetIpcStatusString(),
-              m_reConfigOutBox.GetProcessStatusString(),
-              m_reConfigOutBox.GetIpcStatusString()
-              );
-    atLine += 1;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -206,7 +123,6 @@ void CmProcess::ProcessGseMessages()
         int size = strlen(m_gseRsp.rspMsg);
         m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
     }
-
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -215,6 +131,7 @@ void CmProcess::ProcessGseMessages()
 //
 void CmProcess::ProcessLogMessages()
 {
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -230,8 +147,8 @@ void CmProcess::HandlePowerOff()
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
 
-    //m_fileXferInBox.Reset();
-    //m_fileXferOutBox.Reset();
+    m_fileXferInBox.Reset();
+    m_fileXferOutBox.Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -241,6 +158,7 @@ void CmProcess::HandlePowerOff()
 BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 {
     BOOLEAN serviced = FALSE;
+    BOOLEAN subServiced = FALSE;
     ResponseType rType = eRspNormal;
     int port;  // 0 = gse, 1 = ms
 
@@ -313,40 +231,21 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             secComm.m_response.successful = TRUE;
         }
-        serviced = TRUE;
-
-        break;
-
-    case eSetCfgFileName:
-
-        m_reconfig.SetCfgFileName(request.charData, request.charDataSize);
-        secComm.m_response.successful = TRUE;
-        serviced = TRUE;
-        break;
-
-    case eStartReconfig:
-        if (m_reconfig.StartReconfig(m_reConfigOutBox))
-        {
-            secComm.m_response.successful = TRUE;
-        }
         else
         {
-            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s", m_reconfig.GetModeName());
             secComm.m_response.successful = FALSE;
         }
 
         serviced = TRUE;
-        break;
 
-    case eGetReconfigSts:
-        strcpy( secComm.m_response.streamData, recfgStatus[m_reconfig.m_lastErrCode]);
-        secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
-        secComm.m_response.successful = TRUE;
-
-        serviced = TRUE;
         break;
 
     default:
+        subServiced = m_reconfig.CheckCmd(secComm, m_reConfigOutBox);
+        if (!subServiced)
+        {
+            subServiced = m_fileXfer.CheckCmd(secComm);
+        }
         break;
     }
 
@@ -356,7 +255,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         secComm.IncCmdServiced(rType);
     }
 
-    return serviced;
+    return serviced || subServiced;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -421,7 +320,7 @@ bool CmProcess::PutFile( SecComm& secComm)
 // Description: Handles getting a file from the target system from the partition specified
 //
 // Notes:
-// variableId: 0 = Send file name in m_response.streamData
+// variableId: 0 = Send file name in m_response.streamData indicates file exists
 //             1 = send file data in m_response.streamData
 // sigGenId: holds the partition Id
 //
@@ -430,7 +329,10 @@ bool CmProcess::PutFile( SecComm& secComm)
 //        otherwise m_response.streamData will be empty
 //    (2) File data will be in m_response.streamData
 //        when m_response.streamData is not max size or 0 the get file will close
-
+//
+// To simulate CmProcess when Getting a file we set some state data about if it matches
+// the FileXfer filename.  If it does and the FileXfer filename changes we stop the
+// transfer, and indicate a failure - which allows ePySte to delete the file.
 //
 bool CmProcess::GetFile( SecComm& secComm)
 {
@@ -442,14 +344,19 @@ bool CmProcess::GetFile( SecComm& secComm)
     if (secComm.m_request.variableId == 0)
     {
         // TODO: how do we determine is a file available?
-        if (m_readyFile[0] != '\0')
-        {
-            m_getFile.Open( m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r');
+        memset(m_readyFile, 0, sizeof(m_readyFile));
+        memcpy(m_readyFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
+        if (m_getFile.Open(m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+        {
             nameLength = strlen(m_getFile.GetFileName());
             strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
             secComm.m_response.streamSize = nameLength;
             status = true;
+
+            // check to see if we are uploading a FileXfer request from ADRF
+            m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+
         }
         else
         {
@@ -458,13 +365,15 @@ bool CmProcess::GetFile( SecComm& secComm)
     }
     else if (m_getFile.IsOpen())
     {
+        bool continueAdrf = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+
+        if ((m_performAdrfOffload && !continueAdrf) || !m_performAdrfOffload)
+        {
         bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
         secComm.m_response.streamSize = bytesRead;
         if (bytesRead < eSecStreamSize)
         {
             m_getFile.Close();
-
-            // TODO: remove after debugging is complete
             memset(m_readyFile, 0, sizeof(m_readyFile));
         }
 
@@ -473,6 +382,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             status = true;
         }
     }
+    }
     else
     {
         secComm.ErrorMsg("GetFile: No file open for read");
@@ -480,4 +390,93 @@ bool CmProcess::GetFile( SecComm& secComm)
 
     return status;
 }
+
+//-------------------------------------------------------------------------------------------------
+// Function: UpdateDisplay
+// Description: Update the video output display
+//
+// Video Display Layout
+// 0-1: hdr display
+// 2: Cfg(%d) Mode/Status: %s(%d)/%s(%s)
+// 3: Gse Cmd: %s
+// 4: RxFifo: %d
+// 5: Gse In: <proc>(%d)/<ipc> Out: <proc>/<ipc>
+// 6: Cfg In: <proc>(%d)/<ipc> Out: <proc>/<ipc>
+// 7: Log In: <proc>(%d)/<ipc> Out: <proc>/<ipc>
+// ...
+//-----------------------------------------------------------------------------
+void CmProcess::UpdateDisplay(VID_DEFS who)
+{
+    char buffer[256];
+    UINT32 atLine = eFirstDisplayRow;
+
+    CmdRspThread::UpdateDisplay(CmProc);
+
+    // Status Display
+    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
+              m_reconfig.m_recfgCount,
+              m_reconfig.GetModeName(),
+              m_reconfig.m_modeTimeout,
+              m_reconfig.m_lastStatus ? "Err" : "Ok",
+              m_reconfig.GetCfgStatus());
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
+              m_fileXfer.m_fileXferRqsts,
+              m_fileXfer.m_fileXferMsgs,
+              m_fileXfer.GetModeName(),
+              m_fileXfer.m_modeTimeout
+              );
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "GseCmd: %s", m_lastGseCmd);
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+    atLine += 1;
+
+    // Show put file status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
+    atLine += 1;
+
+    // Show get file status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
+    atLine += 1;
+
+    // Show Cfg file names
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
+    atLine += 1;
+
+    // Show Cfg file names
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
+    atLine += 1;
+
+    // Update Mailbox Status
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Gse %s %s",
+              m_gseInBox.GetStatusStr(),
+              m_gseOutBox.GetStatusStr());
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Cfg %s %s",
+              m_reConfigInBox.GetStatusStr(),
+              m_reConfigOutBox.GetStatusStr());
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    debug_str(CmProc, atLine, 0, "Log %s %s",
+              m_fileXferInBox.GetStatusStr(),
+              m_fileXferOutBox.GetStatusStr());
+
+    atLine += 1;
+}
+
 

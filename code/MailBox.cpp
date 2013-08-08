@@ -14,37 +14,22 @@
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
-
+#include <videobuf.h>
+#include <stdio.h>
+#include <string.h>
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include <videobuf.h>
-#include <string.h>
-#include "video.h"
-
 #include "Mailbox.h"
 #include "AseCommon.h"
+#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
 #define BYTES_TO_DWORDS(x) ((x / sizeof(UINT32))+1)
 //#define MAILBOX_DEBUG
-
-#ifdef MAILBOX_DEBUG
-#include "video.h"
-#define DEBUG_STR(...) debug_str(1,__VA_ARGS__)
-#define DEBUG_STR0(...) debug_str(0,__VA_ARGS__)
-#define DEBUG_STR2(...) debug_str(2,__VA_ARGS__)
-CHAR* ps_to_str(processStatus ps);
-CHAR* is_to_str(ipcStatus is);
-
-#else
-#define DEBUG_STR(...)
-#define DEBUG_STR0(...)
-#define DEBUG_STR2(...)
-#endif
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -186,13 +171,13 @@ const char* ps_to_str(processStatus ps)
  *
  ****************************************************************************/
 MailBox::MailBox(void)
-    :m_hProcess(NULL)
-    ,m_procStatus(processInvalidHandle)
-    ,m_hMailBox(NULL)
-    ,m_ipcStatus(ipcNoSuchProduceItem)
-    ,m_type(eUndefined)
-    ,m_grantListSize(0)
-    ,m_successfulGrantCnt(0)
+    : m_hProcess(NULL)
+    , m_procStatus(processInvalidHandle)
+    , m_hMailBox(NULL)
+    , m_ipcStatus(ipcNoSuchProduceItem)
+    , m_type(eUndefined)
+    , m_grantListSize(0)
+    , m_successfulGrantCnt(0)
     {
         // Init the access grant status list.
         // this is only used by creators(owners)
@@ -202,6 +187,8 @@ MailBox::MailBox(void)
             m_grantList[i].ProcName[0] = '\0';
             m_grantList[i].bConnected  = FALSE;
         }
+
+        memset(m_statusStr, 0, sizeof(m_statusStr));
     }
 
 /******************************************************************************************
@@ -537,4 +524,34 @@ void MailBox::OpenSenders(void)
             }
         }// Process not connected
     }// for grant list table.
+}
+
+/*****************************************************************************
+ * Function:    GetStatus
+ *
+ * Description:  Return the status of this mailbox
+ *
+ * Parameters:   None
+ *
+ * Returns:      None
+ *
+ * Notes:
+ ****************************************************************************/
+char* MailBox::GetStatusStr(void)
+{
+    if (m_type == eSend)
+    {
+        sprintf( m_statusStr, "Out: %s/%s",
+                 GetProcessStatusString(),
+                 GetIpcStatusString());
+    }
+    else
+    {
+        sprintf( m_statusStr, "In: %s(%d)/%s",
+                 GetProcessStatusString(),
+                 m_successfulGrantCnt,
+                 GetIpcStatusString());
+    }
+
+    return m_statusStr;
 }
