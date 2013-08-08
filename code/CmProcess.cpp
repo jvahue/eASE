@@ -331,7 +331,9 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s", m_reconfig.GetModeName());
+            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s MB: <%s>",
+                             m_reconfig.GetModeName(),
+                             m_reConfigOutBox.GetIpcStatusString());
             secComm.m_response.successful = FALSE;
         }
 
