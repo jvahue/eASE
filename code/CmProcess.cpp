@@ -233,7 +233,6 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s", m_reconfig.GetModeName());
             secComm.m_response.successful = FALSE;
         }
 
@@ -421,6 +420,14 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
               m_reconfig.m_modeTimeout,
               m_reconfig.m_lastStatus ? "Err" : "Ok",
               m_reconfig.GetCfgStatus());
+    atLine += 1;
+
+    debug_str(CmProc, atLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
+              m_fileXfer.m_fileXferRqsts,
+              m_fileXfer.m_fileXferMsgs,
+              m_fileXfer.GetModeName(),
+              m_fileXfer.m_modeTimeout
+              );
     atLine += 1;
 
     debug_str(CmProc, atLine, 0,"%s", m_blankLine);

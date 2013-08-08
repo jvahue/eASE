@@ -33,6 +33,13 @@
 //----------------------------------------------------------------------------/
 // Constant Data                                                             -/
 //----------------------------------------------------------------------------/
+static const char* modeNames[] = {
+    "Idle",         //
+    "AckTimeout",   //
+    "FileWait",     //
+    "FileOffload",  //
+    "FileValidate"  //
+};
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -53,6 +60,8 @@ CmFileXfer::CmFileXfer()
     : m_fileXferRequested(false)
     , m_mode(eXferIdle)
     , m_modeTimeout(0)
+    , m_fileXferRqsts(0)
+    , m_fileXferMsgs(0)
 
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
@@ -118,6 +127,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
     // we can recieve a msg at any time
     if (in.Receive(&rcv, sizeof(rcv)))
     {
+        m_fileXferMsgs += 1;
         FileXferResponse(rcv, out);
     }
 
@@ -187,6 +197,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             SendAck(out);
 
             m_fileXferRequested = true;
+            m_fileXferRqsts += 1;
         }
 
         // no override so we only respond if its the same file name
@@ -215,6 +226,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
                 out.Send(&m_sendMsgBuffer, sizeof(m_sendMsgBuffer));
 
                 m_fileXferRequested = false;
+                memset(m_xferFileName, 0, sizeof(m_xferFileName));
             }
         }
     }
@@ -262,4 +274,14 @@ void CmFileXfer::SendAck( MailBox& out)
         // we can send it
         out.Send(&ack, sizeof(ack));
     }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Function: GetMode
+// Description: Display string for current mode
+//
+const char* CmFileXfer::GetModeName() const
+{
+    return modeNames[m_mode];
 }

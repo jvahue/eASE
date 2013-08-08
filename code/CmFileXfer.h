@@ -53,10 +53,13 @@ public:
     void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
     BOOLEAN CheckCmd( SecComm& secComm);
 
+    const char* GetModeName() const;
 
     bool m_fileXferRequested;
     CmFileXferMode m_mode;
     UINT32 m_modeTimeout;
+    UINT32 m_fileXferRqsts;
+    UINT32 m_fileXferMsgs;
 
     char m_xferFileName[CM_FILE_NAME_LEN];
 
@@ -64,6 +67,7 @@ public:
     UINT32 m_tcAckDelay;          // CM_tcAckDelayMs(x) - delay before repsonding with a (N)ACK
     CM_CMD_STATUS m_tcAckStatus;  //
     CM_ACK_INFO m_tcAckInfo;
+
 
 protected:
     void FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out);
