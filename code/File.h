@@ -9,7 +9,20 @@
 #define MAX_WRITE_SIZE eSecCharDataSize  // max size of PySte command
 #define MAX_READ_SIZE  eSecStreamSize    // max size of
 
+typedef enum
+{
+    eNoFileError           = -1,
+    eSrvResAttachFailed    = -2,
+    eClientResAttachFailed = -3,
+    eFileNotFound          = -4,
+    ePartDoesNotExist      = -5,
+    eWriteFailed           = -6,
+    eReadFailed            = -7,
+    eDeleteFailed          = -8,
+    eFileNameInvalid       = -9,
+    eInvalidOperation      = -10
 
+}FileErrorType;
 
 class File
 {
@@ -44,6 +57,10 @@ class File
         {
             return m_bInit;
         }
+        FileErrorType GetFileError()
+        {
+            return m_fileError;
+        }
 
         char* GetFileStatus(char* buffer);
 
@@ -67,6 +84,7 @@ class File
         BOOLEAN    m_bOpen;
         BOOLEAN    m_bInit;          // Flag to show Object construction was successful
 
+        FileErrorType m_fileError;   // The internal ID of the last error detected by this object
 
         // cffs control structures
         cffsInfoRequest m_infoReq;

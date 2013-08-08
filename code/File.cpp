@@ -131,6 +131,10 @@ File::File()
                                                  &m_accessStyle,
                                                  &m_cAdr);
     }
+    else
+    {
+        m_fileError = eSrvResAttachFailed;
+    }
 
     // if SRV and Client resource attachments are good set up port info
     if (m_resStatus == resValid)
@@ -161,6 +165,10 @@ File::File()
         // Object init successful.
         m_bInit = TRUE;
     }
+    else
+    {
+        m_fileError = eClientResAttachFailed;
+    }
 }
 // Function: Reset
 // Description:
@@ -183,6 +191,7 @@ void File::Reset()
 
     m_cffsStatus = cffsNoStatus;  // make call to IsOpen == FALSE
     m_resStatus  = resInvalidHandle;
+    m_fileError  = eNoFileError;
 
     memset(m_clientAccessRes, 0, sizeof(m_clientAccessRes));
     memset(m_partitionName,   0, sizeof(m_partitionName));
@@ -196,6 +205,7 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
 {
     if ( 0 == strlen(fileName) )
     {
+        m_fileError = eFileNameInvalid;
         m_bOpen = FALSE;
     }
     else if (m_bInit)
@@ -242,6 +252,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 
     if ( !m_bOpen || size > MAX_READ_SIZE || m_mode != 'r')
     {
+        m_fileError = eInvalidOperation;
         return -1;
     }
     // Read from cffs for the requested size or EOF, whichever comes first.
@@ -325,6 +336,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 
     if ( !m_bOpen || size > MAX_WRITE_SIZE || m_mode != 'w')
     {
+        m_fileError = eInvalidOperation;
         return FALSE;
     }
 
@@ -375,6 +387,7 @@ BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
     if ( 0 == strlen(fileName) )
     {
+        m_fileError = eFileNameInvalid;
         return FALSE;
     }
 
@@ -392,7 +405,7 @@ BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 
     if (m_cffsStatus != cffsSuccess)
     {
-        int bp = 42;
+        m_fileError = eDeleteFailed;
     }
     // Reset this file so no other ops allowed without an 'Open' call
     Reset();
@@ -436,6 +449,10 @@ BOOLEAN File::Flush(void)
              m_physOffset += m_portBytesInUse;
              m_portBytesInUse = 0;
              status = TRUE;
+         }
+         else
+         {
+             m_fileError = eWriteFailed;
          }
      }
      return status;
@@ -486,7 +503,17 @@ BOOLEAN File::CheckFileExists(void)
                              m_fileName,
                              &m_findReq);
 
-    m_fileSize = m_findReq.sizeInBytes;
-
+    if (m_cffsStatus == cffsPartitionNotFound)
+    {
+        m_fileError =  ePartDoesNotExist;
+    }
+    else if (m_cffsStatus == cffsFileNotFound)
+    {
+        m_fileError =  eFileNotFound;
+    }
+    else
+    {
+        m_fileSize = m_findReq.sizeInBytes;
+    }
     return m_cffsStatus == cffsSuccess;
 }
