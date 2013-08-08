@@ -11,8 +11,9 @@
     reconfiguration.  It handles all requests and responses during the
     reconfiguration.
 
-    It has control items taht allow the test scripts to define how it responds
-    to ADRF.
+    It has control items that allow the test scripts to define how it responds
+    to ADRF.  All of these Test Control item are identified by m_tc<Name>.
+    All of them can be set via commands from the test script.
 
 ******************************************************************************/
 
@@ -29,6 +30,7 @@
 #include "File.h"
 #include "Interface_CM.h"
 #include "MailBox.h"
+#include "SecComm.h"
 
 
 class CmReconfig
@@ -53,10 +55,12 @@ public:
     CmReconfig();
 
     void ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out);
+    BOOLEAN CheckCmd( SecComm& secComm, MailBox& out);
 
     void SetCfgFileName(const char* name, UINT32 size);
     bool StartReconfig(MailBox& out);
     char* GetModeName() const;
+    char* GetCfgStatus() const;
 
     char m_xmlFileName[eCmRecfgFileSize];
     char m_cfgFileName[eCmRecfgFileSize];
@@ -66,17 +70,17 @@ public:
     UINT32 m_modeTimeout;
     RECFG_ERR_CODE_ENUM m_lastErrCode;
     BOOLEAN m_lastStatus;
-
-    // script control items
-    UINT32 m_msRerqstDelay;  // how long will the
-    UINT32 m_fileNameDelay;  // CM response Control flag
-    UINT32 m_recfgAckDelay;
     UINT32 m_recfgCount;
+
+    // script test control items
+    UINT32 m_tcFileNameDelay;  // CM_tcFileNameDelay(x)
+    UINT32 m_tcRecfgAckDelay;  // CM_tcRecfgAckDelay(x)
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
 
     File m_file;
+    char m_mbErr[128];
 };
 
 #endif /* CMRECONFIG_H_ */
