@@ -59,8 +59,8 @@ public:
 
     void SetCfgFileName(const char* name, UINT32 size);
     bool StartReconfig(MailBox& out);
-    char* GetModeName() const;
-    char* GetCfgStatus() const;
+    const char* GetModeName() const;
+    const char* GetCfgStatus() const;
 
     char m_xmlFileName[eCmRecfgFileSize];
     char m_cfgFileName[eCmRecfgFileSize];

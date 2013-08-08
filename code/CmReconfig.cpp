@@ -47,7 +47,7 @@ typedef struct {
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-static char* modeNames[] = {
+static const char* modeNames[] = {
     "Idle",           // waiting for reconfig action
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
@@ -355,7 +355,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 // Function: GetMode
 // Description: Return a string rep of the mode name
 //
-char* CmReconfig::GetModeName() const
+const char* CmReconfig::GetModeName() const
 {
     return modeNames[m_state];
 }
@@ -364,7 +364,7 @@ char* CmReconfig::GetModeName() const
 // Function: GetMode
 // Description: Return a string rep of the mode name
 //
-char* CmReconfig::GetCfgStatus() const
+const char* CmReconfig::GetCfgStatus() const
 {
     return recfgStatus[m_lastErrCode];
 }

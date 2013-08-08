@@ -159,7 +159,6 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 
     default:
         break;
-
     };
 }
 
@@ -194,6 +193,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
         else if (strcmp(m_xferFileName, pXfrMsg->filename) == 0)
         {
             // requesting status on the file transfer
+            SendAck(out);
         }
     }
     else if (rcv.msgId == CM_ID_CRC_VAL)
@@ -226,16 +226,34 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 //
 void CmFileXfer::SendAck( MailBox& out)
 {
-    if ((m_mode != eXferAckTimeout) && (m_tcAckDelay > 0))
+    FILE_ACK_MSG ack;
+
+    if ((m_mode == eXferIdle) && (m_tcAckDelay > 0))
     {
         // init the timeout
         m_mode = eXferAckTimeout;
         m_modeTimeout = m_tcAckDelay;
     }
-    else if (m_modeTimeout == 0 || m_tcAckDelay == 0)
+    else if (m_mode == eXferAckTimeout)
     {
-        FILE_ACK_MSG ack;
+        if (m_modeTimeout > 0)
+        {
+            m_modeTimeout -= 1;
+        }
+        else
+        {
+            ack.msgId = CM_ID_ACK;
+            strcpy( ack.filename, m_xferFileName);
+            ack.ackStatus = m_tcAckStatus;
+            ack.ackInfo = m_tcAckInfo;
 
+            // we can send it
+            out.Send(&ack, sizeof(ack));
+            m_mode = eXferFileWait;
+        }
+    }
+    else
+    {
         ack.msgId = CM_ID_ACK;
         strcpy( ack.filename, m_xferFileName);
         ack.ackStatus = m_tcAckStatus;
@@ -243,11 +261,5 @@ void CmFileXfer::SendAck( MailBox& out)
 
         // we can send it
         out.Send(&ack, sizeof(ack));
-
-        m_mode = eXferFileWait;
-    }
-    else
-    {
-        m_modeTimeout -= 1;
     }
 }

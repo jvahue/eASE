@@ -231,6 +231,11 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             secComm.m_response.successful = TRUE;
         }
+        else
+        {
+            secComm.m_response.successful = FALSE;
+        }
+
         serviced = TRUE;
 
         break;
@@ -315,7 +320,7 @@ bool CmProcess::PutFile( SecComm& secComm)
 // Description: Handles getting a file from the target system from the partition specified
 //
 // Notes:
-// variableId: 0 = Send file name in m_response.streamData
+// variableId: 0 = Send file name in m_response.streamData indicates file exists
 //             1 = send file data in m_response.streamData
 // sigGenId: holds the partition Id
 //
@@ -324,7 +329,10 @@ bool CmProcess::PutFile( SecComm& secComm)
 //        otherwise m_response.streamData will be empty
 //    (2) File data will be in m_response.streamData
 //        when m_response.streamData is not max size or 0 the get file will close
-
+//
+// To simulate CmProcess when Getting a file we set some state data about if it matches
+// the FileXfer filename.  If it does and the FileXfer filename changes we stop the
+// transfer, and indicate a failure - which allows ePySte to delete the file.
 //
 bool CmProcess::GetFile( SecComm& secComm)
 {
@@ -345,6 +353,10 @@ bool CmProcess::GetFile( SecComm& secComm)
             strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
             secComm.m_response.streamSize = nameLength;
             status = true;
+
+            // check to see if we are uploading a FileXfer request from ADRF
+            m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+
         }
         else
         {
@@ -353,19 +365,22 @@ bool CmProcess::GetFile( SecComm& secComm)
     }
     else if (m_getFile.IsOpen())
     {
-        bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
-        secComm.m_response.streamSize = bytesRead;
-        if (bytesRead < eSecStreamSize)
-        {
-            m_getFile.Close();
+        bool continueAdrf = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
 
-            // TODO: remove after debugging is complete
-            memset(m_readyFile, 0, sizeof(m_readyFile));
-        }
-
-        if (bytesRead >= 0)
+        if ((m_performAdrfOffload && !continueAdrf) || !m_performAdrfOffload)
         {
-            status = true;
+            bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
+            secComm.m_response.streamSize = bytesRead;
+            if (bytesRead < eSecStreamSize)
+            {
+                m_getFile.Close();
+                memset(m_readyFile, 0, sizeof(m_readyFile));
+            }
+
+            if (bytesRead >= 0)
+            {
+                status = true;
+            }
         }
     }
     else
@@ -437,30 +452,22 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
 
     // Update Mailbox Status
     debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Gse In: %s(%d)/%s Out: %s/%s",
-              m_gseInBox.GetProcessStatusString(), m_gseInBox.m_successfulGrantCnt,
-              m_gseInBox.GetIpcStatusString(),
-              m_gseOutBox.GetProcessStatusString(),
-              m_gseOutBox.GetIpcStatusString()
-              );
+    debug_str(CmProc, atLine, 0, "Gse %s %s",
+              m_gseInBox.GetStatusStr(),
+              m_gseOutBox.GetStatusStr());
     atLine += 1;
 
     debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg In: %s(%d)/%s Out: %s/%s",
-              m_reConfigInBox.GetProcessStatusString(), m_reConfigInBox.m_successfulGrantCnt,
-              m_reConfigInBox.GetIpcStatusString(),
-              m_reConfigOutBox.GetProcessStatusString(),
-              m_reConfigOutBox.GetIpcStatusString()
-              );
+    debug_str(CmProc, atLine, 0, "Cfg %s %s",
+              m_reConfigInBox.GetStatusStr(),
+              m_reConfigOutBox.GetStatusStr());
     atLine += 1;
 
     debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Log In: %s(%d)/%s Out: %s/%s",
-              m_fileXferInBox.GetProcessStatusString(), m_fileXferInBox.m_successfulGrantCnt,
-              m_fileXferInBox.GetIpcStatusString(),
-              m_fileXferOutBox.GetProcessStatusString(),
-              m_fileXferOutBox.GetIpcStatusString()
-              );
+    debug_str(CmProc, atLine, 0, "Log %s %s",
+              m_fileXferInBox.GetStatusStr(),
+              m_fileXferOutBox.GetStatusStr());
+
     atLine += 1;
 }
 

@@ -72,6 +72,8 @@ class CmProcess : public CmdRspThread
         File m_putFile;
         File m_getFile;
 
+        bool m_performAdrfOffload;
+
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);
 
