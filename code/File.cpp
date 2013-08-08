@@ -167,7 +167,7 @@ File::File()
 
 void File::Reset()
 {
-    m_bFirstCalled   = FALSE;
+    //m_bFirstCalled   = FALSE;
     m_portBytesInUse = 0;
     m_physOffset     = 0;
     m_nextRead       = 0;
@@ -194,18 +194,34 @@ void File::Reset()
 
 BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode)
 {
-    if (m_bInit)
+    if ( 0 == strlen(fileName) )
+    {
+        m_bOpen = FALSE;
+    }
+    else if (m_bInit)
     {
         Reset();
         // convert partition enum to string
         strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
 
         strncpy(m_fileName, fileName, eMaxFileName);
-
-        // access mode
+        // store access mode
         m_mode = (mode == 'r' || mode == 'w') ? mode : '\0';
+
+        if(m_mode == '\0')
+        {
+            m_bOpen = FALSE;
+        }
+        else if (m_mode == 'r')
+        {
+            // For read mode, check that the file exists.
+            m_bOpen = CheckFileExists();
+        }
+        else
+        {
+            m_bOpen = TRUE;
+        }
     }
-    m_bOpen = m_bInit;
 
     return m_bOpen;
 }
@@ -256,19 +272,6 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
         }
         else // port is empty, try to re-populate from media
         {
-            // Call set up function before the first read.
-            if ( !m_bFirstCalled )
-            {
-                m_bFirstCalled = TRUE;
-                m_cffsStatus = cffsFirst(m_sAdr,
-                                         fileSpecific,
-                                         m_partitionName,
-                                         m_fileName,
-                                         &m_findReq);
-
-                m_fileSize    = m_findReq.sizeInBytes;
-                m_physOffset  = 0;
-            }
 
             // If the offset into the physical media is within the file size,
             // read the next block into the port, else flag that current block
@@ -467,4 +470,23 @@ char* File::GetFileStatus(char* buffer)
             m_cAdr);
 
     return buffer;
+}
+
+//------------------------------------------------------------------------------
+// Function: CheckFileExists
+// Description:
+
+BOOLEAN File::CheckFileExists(void)
+{
+    // Call set up function before the first read.
+    m_findReq.sizeofStruct = sizeof(m_findReq);
+    m_cffsStatus = cffsFirst(m_sAdr,
+                             fileSpecific,
+                             m_partitionName,
+                             m_fileName,
+                             &m_findReq);
+
+    m_fileSize = m_findReq.sizeInBytes;
+
+    return m_cffsStatus == cffsSuccess;
 }

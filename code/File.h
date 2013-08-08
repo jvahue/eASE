@@ -57,7 +57,7 @@ class File
         };
 
         // Object mgmt attributes
-        BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
+        //BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
         UNSIGNED32 m_portBytesInUse; // # bytes currently buffered in port, awaiting write/read
         UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
         UNSIGNED32 m_nextRead;       // Index port to fetch next 'n' bytes
@@ -90,6 +90,8 @@ class File
         char m_clientAccessRes[eMaxResName]; // Client Access name (CAR)
         char m_partitionName  [eMaxResName]; // name of the XXXX-partition where this file resides.
         char m_fileName       [eMaxFileName];// name of the file to be used.
+
+        BOOLEAN CheckFileExists(void);
 
     private:
 
