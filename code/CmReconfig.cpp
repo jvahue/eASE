@@ -101,6 +101,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
     case eStartReconfig:
         if (StartReconfig(out))
         {
+            m_lastErrCode = RECFG_ERR_CODE_MAX;
             secComm.m_response.successful = TRUE;
         }
         else
@@ -206,12 +207,12 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
             LINUX_TM_FMT linuxTime;
 
             // linuxTime.tm_year = 110;  // Add this to 1900 to get year
-            linuxTime.tm_year = 2010;  // Straight Year
-            linuxTime.tm_mon = 12;
-            linuxTime.tm_mday = 25;
-            linuxTime.tm_hour = 13;
-            linuxTime.tm_min = 15;
-            linuxTime.tm_sec = 25;
+            linuxTime.tm_year = 2013;  // Straight Year
+            linuxTime.tm_mon = 7;
+            linuxTime.tm_mday = 26;
+            linuxTime.tm_hour = 0;
+            linuxTime.tm_min = 0;
+            linuxTime.tm_sec = 0;
 
             memcpy ( &outData.buff[0], &linuxTime, sizeof(linuxTime));
 

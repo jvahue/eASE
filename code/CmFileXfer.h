@@ -71,6 +71,7 @@ public:
 
 protected:
     void FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out);
+    void SendAckCtrl(MailBox& out);
     void SendAck(MailBox& out);
 
     File m_xferFile;

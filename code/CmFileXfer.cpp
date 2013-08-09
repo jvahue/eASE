@@ -106,8 +106,8 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
     case eLogFileCrc:
         if (m_mode == eXferFileOffload)
         {
-            m_fileCrc = request.variableId;
-            m_fileCrcAck = request.sigGenId ? CM_XFR_ACK : CM_XFR_NACK;
+            m_fileCrc = request.sigGenId;
+            m_fileCrcAck = request.variableId ? CM_XFR_ACK : CM_XFR_NACK;
             m_mode = eXferFileCheck;
             secComm.m_response.successful = true;
         }
@@ -156,7 +156,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
         break;
 
     case eXferAckTimeout:    // ready to respond with an (N)ACK after the timeout
-        SendAck(out);
+        SendAckCtrl(out);
         break;
 
     case eXferFileWait:      // wait for ePySte to request the file
@@ -191,10 +191,11 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
     };
 }
 
-
 //-------------------------------------------------------------------------------------------------
 // Function: FileXferResponse
 // Description: Handle responding to the client
+//
+// TODO: handle aborted transfer overide=On and filename = NULL
 //
 void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 {
@@ -208,12 +209,12 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             // ok we are not in the middle of one accept it
             memcpy(m_xferFileName, pXfrMsg->filename, CM_FILE_NAME_LEN);
 
+            // reset us to idle mode for the call
+            m_mode = eXferIdle;
             // send ACK or delay
             m_tcAckInfo = m_msOnline ? CM_QUEUED_MS_OK : CM_QUEUED_MS_OFFLINE;
 
-            // reset us to idle mode for the call
-            m_mode = eXferIdle;
-            SendAck(out);
+            SendAckCtrl(out);
 
             m_fileXferRequested = true;
             m_fileXferRqsts += 1;
@@ -255,18 +256,24 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: FileXferResponse
-// Description: Handle responding to the client
+// Function: SendAckCtrl
+// Description: Control sending Ack responses to the client
 //
-void CmFileXfer::SendAck( MailBox& out)
+void CmFileXfer::SendAckCtrl( MailBox& out)
 {
-    FILE_ACK_MSG ack;
-
-    if ((m_mode == eXferIdle) && (m_tcAckDelay > 0))
+    if (m_mode == eXferIdle)
     {
-        // init the timeout
-        m_mode = eXferAckTimeout;
-        m_modeTimeout = m_tcAckDelay;
+        if (m_tcAckDelay > 0)
+        {
+            // init the timeout
+            m_mode = eXferAckTimeout;
+            m_modeTimeout = m_tcAckDelay;
+        }
+        else
+        {
+            SendAck(out);
+            m_mode = eXferFileWait;
+        }
     }
     else if (m_mode == eXferAckTimeout)
     {
@@ -276,28 +283,31 @@ void CmFileXfer::SendAck( MailBox& out)
         }
         else
         {
-            ack.msgId = CM_ID_ACK;
-            strcpy( ack.filename, m_xferFileName);
-            ack.ackStatus = m_tcAckStatus;
-            ack.ackInfo = m_tcAckInfo;
-
-            // we can send it
-            out.Send(&ack, sizeof(ack));
+            SendAck(out);
             m_mode = eXferFileWait;
         }
     }
     else
     {
-        ack.msgId = CM_ID_ACK;
-        strcpy( ack.filename, m_xferFileName);
-        ack.ackStatus = m_tcAckStatus;
-        ack.ackInfo = m_tcAckInfo;
-
-        // we can send it
-        out.Send(&ack, sizeof(ack));
+        SendAck(out);
     }
 }
 
+//-------------------------------------------------------------------------------------------------
+// Function: SendAck
+// Description: Send the Ack
+//
+void CmFileXfer::SendAck(MailBox& out)
+{
+    FILE_ACK_MSG ack;
+    ack.msgId = CM_ID_ACK;
+    strcpy( ack.filename, m_xferFileName);
+    ack.ackStatus = m_tcAckStatus;
+    ack.ackInfo = m_tcAckInfo;
+
+    // we can send it
+    out.Send(&ack, sizeof(ack));
+}
 
 //-------------------------------------------------------------------------------------------------
 // Function: GetMode

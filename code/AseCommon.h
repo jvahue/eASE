@@ -19,7 +19,6 @@
 #define IS_POWER_ON       (m_pCommon->bPowerOnState)
 #define IS_MS_ONLINE      (m_pCommon->bMsOnline)
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
