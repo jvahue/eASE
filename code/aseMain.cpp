@@ -133,10 +133,12 @@ int main(void)
                   secComm.GetSocketInfo(),
                   frames);
 
-        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) %s",
+        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d)",
                   secComm.GetRxCount(),
-                  secComm.GetTxCount(),
-                  secComm.GetErrorMsg());
+                  secComm.GetTxCount()
+                  );
+
+        debug_str(AseMain, 2, 0, "%s", secComm.GetErrorMsg());
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
@@ -201,7 +203,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             // Create the ADRF process to simulate behavior during power on
             if ( adrfProcHndl == NULL)
             {
-                createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+                adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
                 debug_str(AseMain, 5, 0, "PowerOn: Create process %s returned: %d",
                                                                  adrfName,
                                                                  adrfProcStatus);

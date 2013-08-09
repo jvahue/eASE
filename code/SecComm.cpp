@@ -262,6 +262,17 @@ void SecComm::CheckCmd(const char* buffer, const int size)
             // check for tx ready
             SendResponse();
         }
+        else
+        {
+            sprintf(m_errMsg, "Checksum Err: A/C 0x%08x/0x%08x", m_bufRqst.checksum, checksum);
+        }
+    }
+    else
+    {
+        sprintf(m_errMsg, "Header Mismatch A/E 0x%08x/0x%08x 0x%08x/0x%08x Size: %d/%d",
+                m_bufRqst.header1, eSecAseH1,
+                m_bufRqst.header2, eSecAseH2,
+                m_bufRqst.size, size);
     }
 }
 
@@ -415,10 +426,12 @@ UINT32 SecComm::Checksum( void* ptr, int size)
 //--------------------------------------------------------------------------------------------------
 const CHAR* SecComm::GetSocketInfo()
 {
-    int p1 = m_socketAddr.sin_addr & 0xff;
-    int p2 = (m_socketAddr.sin_addr >> 8) & 0xff;
-    int p3 = (m_socketAddr.sin_addr >> 16) & 0xff;
-    int p4 = (m_socketAddr.sin_addr >> 24) & 0xff;
+    int sinAddr = htonl(m_socketAddr.sin_addr);
+
+    int p1 = sinAddr & 0xff;
+    int p2 = (sinAddr >> 8) & 0xff;
+    int p3 = (sinAddr >> 16) & 0xff;
+    int p4 = (sinAddr >> 24) & 0xff;
 
     sprintf(m_ipPort, "%s %d/%d(%d) %d.%d.%d.%d:%d Cmd: %d/%d",
             conSts[m_connState],
