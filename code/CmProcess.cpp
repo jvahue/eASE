@@ -343,45 +343,62 @@ bool CmProcess::GetFile( SecComm& secComm)
     // ePySte asking if a file is available
     if (secComm.m_request.variableId == 0)
     {
-        // TODO: how do we determine is a file available?
-        memset(m_readyFile, 0, sizeof(m_readyFile));
-        memcpy(m_readyFile, secComm.m_request.charData, secComm.m_request.charDataSize);
-
-        if (m_getFile.Open(m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+        if (!m_getFile.IsOpen())
         {
-            nameLength = strlen(m_getFile.GetFileName());
-            strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
-            secComm.m_response.streamSize = nameLength;
-            status = true;
+            // charData holds the file name
+            memset(m_readyFile, 0, sizeof(m_readyFile));
+            memcpy(m_readyFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
-            // check to see if we are uploading a FileXfer request from ADRF
-            m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+            if (m_getFile.Open(m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+            {
+                // check to see if we are uploading a FileXfer request from ADRF
+                m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
 
+                nameLength = strlen(m_getFile.GetFileName());
+                strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
+                secComm.m_response.streamSize = nameLength;
+
+                status = true;
+            }
+            else
+            {
+                secComm.ErrorMsg("GetFile: File not available");
+            }
         }
         else
         {
-            secComm.ErrorMsg("GetFile: No Log File available");
+            secComm.ErrorMsg("GetFile: File is Open");
         }
     }
+
+    // ePySte wants file data
     else if (m_getFile.IsOpen())
     {
+        // if we were offloading an ADRF requested file - see if the adrf wants to continue
         bool continueAdrf = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
 
-        if ((m_performAdrfOffload && !continueAdrf) || !m_performAdrfOffload)
+        if ((m_performAdrfOffload && continueAdrf) || !m_performAdrfOffload)
         {
-        bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
-        secComm.m_response.streamSize = bytesRead;
-        if (bytesRead < eSecStreamSize)
+            bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
+            secComm.m_response.streamSize = bytesRead;
+            if (bytesRead < eSecStreamSize)
+            {
+                m_getFile.Close();
+                memset(m_readyFile, 0, sizeof(m_readyFile));
+                m_performAdrfOffload = false;
+            }
+
+            if (bytesRead >= 0)
+            {
+                status = true;
+            }
+        }
+        else
         {
             m_getFile.Close();
             memset(m_readyFile, 0, sizeof(m_readyFile));
+            m_performAdrfOffload = false;
         }
-
-        if (bytesRead >= 0)
-        {
-            status = true;
-        }
-    }
     }
     else
     {

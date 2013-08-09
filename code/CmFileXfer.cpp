@@ -85,17 +85,36 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
     switch (request.cmdId)
     {
     case eLogFileReady:
-        strcpy( secComm.m_response.streamData, m_xferFileName);
-        secComm.m_response.streamSize = strlen(m_xferFileName);
-        m_mode = eXferFileOffload;
+        if (m_mode == eXferFileWait)
+        {
+            strcpy( secComm.m_response.streamData, m_xferFileName);
+            secComm.m_response.streamSize = strlen(m_xferFileName);
+            if (secComm.m_response.streamSize > 0)
+            {
+                m_mode = eXferFileOffload;
+            }
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.m_response.successful = false;
+        }
 
         serviced = TRUE;
         break;
 
     case eLogFileCrc:
-        m_fileCrc = request.variableId;
-        m_fileCrcAck = request.sigGenId ? CM_XFR_ACK : CM_XFR_NACK;
-        m_mode = eXferFileCheck;
+        if (m_mode == eXferFileOffload)
+        {
+            m_fileCrc = request.variableId;
+            m_fileCrcAck = request.sigGenId ? CM_XFR_ACK : CM_XFR_NACK;
+            m_mode = eXferFileCheck;
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.m_response.successful = false;
+        }
 
         serviced = TRUE;
         break;
@@ -228,6 +247,9 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
                 m_fileXferRequested = false;
                 memset(m_xferFileName, 0, sizeof(m_xferFileName));
             }
+
+            // return to idle mode
+            m_mode = eXferIdle;
         }
     }
 }
