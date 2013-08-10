@@ -83,20 +83,26 @@ void debug_str_init(void)
 
     for(i = 0; i < VID_MAX; i++)
     {
-      if((is= createMemoryObject(m_screens[i].smo_name,4096,FALSE,
-                               &m_screens[i].mo))!=ipcValid){}
+      //if not default screen, create a new screen
 
-      else if((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(), TRUE,
+      if(strcmp(m_screens[i].smo_name,"") != 0)
+      {
+        if((is= createMemoryObject(m_screens[i].smo_name,4096,FALSE,
+                               &m_screens[i].mo))!=ipcValid){}
+        else if((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(), TRUE,
                                            readWriteDeleteAccess)) !=ipcValid){}
 
-      else if((is = attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo, readWriteAccess,
+        else if((is = attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo, readWriteAccess,
                                            &m_screens[i].smo, 0x1000, 0,
                                            &m_screens[i].amo)) !=ipcValid){}
-
-      initializeVideoMemory(m_screens[i].smo);
-      m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
-      m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
-      m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+        else
+        {
+          initializeVideoMemory(m_screens[i].smo);
+          m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
+          m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
+          m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+        }
+      }
     }
 }
 
@@ -120,7 +126,7 @@ void debug_str_init(void)
  *****************************************************************************/
 void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 {
-  CHAR buf[80];
+    CHAR buf[1024];
 
 	va_list args;
 
@@ -129,6 +135,8 @@ void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 	vsprintf( buf, str, args);
 
 	va_end(args);
+
+	buf[80] = '\0';
 
 	if(!m_screens[screen].scroll)
 	{

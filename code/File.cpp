@@ -479,12 +479,13 @@ BOOLEAN File::Close(void)
 
 char* File::GetFileStatus(char* buffer)
 {
-    sprintf(buffer, "Name: %s Open: %s I/O: %d sAdr: 0x%08x cAdr: 0x%08x",
-            m_fileName,
+    sprintf(buffer, "Open: %s I/O: %d sAdr: %s cAdr: %s Name: <%s>",
             IsOpen() ? "Yes" : "No",
             m_bytesMoved,
-            m_sAdr,
-            m_cAdr);
+            m_sAdr != NULL ? "Ok" : "Err",
+            m_cAdr != NULL ? "Ok" : "Err",
+            m_fileName
+    );
 
     return buffer;
 }

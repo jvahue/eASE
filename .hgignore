@@ -1,2 +1,5 @@
 syntax: regexp
 ^output.
+^misc/.
+syntax: glob
+.options
