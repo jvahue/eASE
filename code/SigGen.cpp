@@ -4,10 +4,13 @@
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
 #include <deos.h>
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define fabs __builtin_fabs
+
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */
@@ -39,6 +42,7 @@ static char* modeNames[eMaxSensorMode] = {
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
+
 //--------------------------------------------------------------------------------------------------
 SignalGenerator::SignalGenerator()
   : m_type( eSGmanual)
@@ -301,7 +305,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
 
         case eSGsine:
             radians = m_degrees * (3.1415926535897932384626433832795f / 180.0f);
-            sineValue = sin( radians);
+//            sineValue = sin( radians);
             newValue = (float(sineValue) * m_param2) + m_param3;
             //m_degrees += m_param1;
             m_degrees += m_param1 * delta;
