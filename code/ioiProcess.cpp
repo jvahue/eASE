@@ -528,10 +528,10 @@ void IoiProcess::InitIoi()
     // TODO remove and fetch from Cfg file for the real system
     ParamCfg pCfg[pCnt] = {
         {0,    "ac_aoa1_raw",   20, PARAM_FMT_A429, 0x36240, 10000, 161, 90},
-        {1,    "ac_aoa2_raw",   20, PARAM_FMT_A429, 0x36640, 10000, 161, 90},
         {22,   "airspeed1_raw",  4, PARAM_FMT_A429, 0x36220, 10000, 134, 512},
         {23,   "airspeed2_raw",  4, PARAM_FMT_A429, 0x36620, 10000, 134, 512},
-        {4,    "ac_ser_num_raw", 1, PARAM_FMT_A429, 0x38268, 10000, 150, 90},
+        {425,  "woffw_pos1_raw", 10, PARAM_FMT_A429, 0xF18468, 10000, 188, 0},
+        {430,  "woffw_pos2_raw",   10, PARAM_FMT_A429, 0xF18868, 10000, 188, 0},
     };
 
     // Initialize IOI Before use

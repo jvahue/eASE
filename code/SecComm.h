@@ -55,6 +55,12 @@ enum SecCmds {
     eSetCfgFileName = 205,
     eStartReconfig  = 206,
     eGetReconfigSts = 207,
+    eLogFileReady   = 208,
+    eLogFileCrc     = 209,
+
+// CmPRoc Reconfig Controls
+    eCmFileNameDelay = 250,
+    eCmRecfgAckDelay = 251,
 
 // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partion Id

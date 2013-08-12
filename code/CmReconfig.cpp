@@ -13,6 +13,7 @@
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
+#include <stdio.h>
 #include <string.h>
 
 /*****************************************************************************/
@@ -43,16 +44,21 @@ typedef struct {
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-static char* modeNames[] = {
+static const char* modeNames[] = {
     "Idle",           // waiting for reconfig action
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
     "SendFilenames",  // locally we are 'delaying' for file fetch from the MS
     "WaitStatus"      // wait for the recfg status code
+};
+
+static const CHAR* recfgStatus[] = {
+    "Ok",
+    "Bad File",
+    "No Status"
 };
 
 /*****************************************************************************/
@@ -63,15 +69,73 @@ CmReconfig::CmReconfig()
     , m_modeTimeout(0)
     , m_lastErrCode(RECFG_ERR_CODE_MAX)
     , m_lastStatus(false)
-    , m_msRerqstDelay(0)
-    , m_fileNameDelay(500)
-    , m_recfgAckDelay(0)
     , m_recfgCount(0)
+    // Test Control Items
+    , m_tcFileNameDelay(500)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
     memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
 }
+
+//-------------------------------------------------------------------------------------------------
+// Function: CheckCmd
+// Description: Set the filenames to be used during the reconfiguration process
+//
+BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
+{
+    BOOLEAN serviced = FALSE;
+    ResponseType rType = eRspNormal;
+    int port;  // 0 = gse, 1 = ms
+
+    SecRequest request = secComm.m_request;
+    switch (request.cmdId)
+    {
+    case eSetCfgFileName:
+
+        SetCfgFileName(request.charData, request.charDataSize);
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eStartReconfig:
+        if (StartReconfig(out))
+        {
+            m_lastErrCode = RECFG_ERR_CODE_MAX;
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s MB: <%s>",
+                             GetModeName(),
+                             m_mbErr);
+            secComm.m_response.successful = FALSE;
+        }
+
+        serviced = TRUE;
+        break;
+
+    case eGetReconfigSts:
+        strcpy( secComm.m_response.streamData, GetCfgStatus());
+        secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+        secComm.m_response.successful = TRUE;
+
+        serviced = TRUE;
+        break;
+
+    default:
+        break;
+    }
+
+    if (serviced)
+    {
+        secComm.SetHandler("CmReconfig");
+        secComm.IncCmdServiced(rType);
+    }
+
+    return serviced;
+}
+
 
 //-------------------------------------------------------------------------------------------------
 // Function: SetCfgFileName
@@ -99,11 +163,17 @@ bool CmReconfig::StartReconfig(MailBox& out)
         memset( &outData, 0, sizeof(outData));
 
         outData.code = MS_RECFG_REQ;
-        out.Send( &outData, sizeof(outData));
+        status = out.Send( &outData, sizeof(outData));
 
-        m_state = eCmRecfgLatch;
-        m_modeTimeout = 100;
-        status = true;
+        if (status)
+        {
+            m_state = eCmRecfgLatch;
+            m_modeTimeout = 100;
+        }
+        else
+        {
+            sprintf(m_mbErr, "%s", out.GetIpcStatusString());
+        }
     }
 
     return status;
@@ -137,12 +207,12 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
             LINUX_TM_FMT linuxTime;
 
             // linuxTime.tm_year = 110;  // Add this to 1900 to get year
-            linuxTime.tm_year = 2010;  // Straight Year
-            linuxTime.tm_mon = 12;
-            linuxTime.tm_mday = 25;
-            linuxTime.tm_hour = 13;
-            linuxTime.tm_min = 15;
-            linuxTime.tm_sec = 25;
+            linuxTime.tm_year = 2013;  // Straight Year
+            linuxTime.tm_mon = 7;
+            linuxTime.tm_mday = 26;
+            linuxTime.tm_hour = 0;
+            linuxTime.tm_min = 0;
+            linuxTime.tm_sec = 0;
 
             memcpy ( &outData.buff[0], &linuxTime, sizeof(linuxTime));
 
@@ -196,7 +266,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         out.Send( &outData, sizeof(outData));
 
         m_state = eCmRecfgSendFilenames;
-        m_modeTimeout = m_fileNameDelay;
+        m_modeTimeout = m_tcFileNameDelay;
         m_lastErrCode = RECFG_ERR_CODE_MAX;
 
         m_recfgCount += 1;
@@ -250,10 +320,10 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         if (inData.code == RECFG_RESULT_CODE)
         {
             m_lastErrCode = inData.errCode;
-            m_lastStatus = inData.errCode;
+            m_lastStatus = inData.bOk;
             m_state = eCmRecfgIdle;
             // I know it seems backwards, but then your thinking logically aren't you!
-            if (inData.bOk == FALSE)
+            if (m_lastStatus == FALSE)
             {
                 // delete the files from the partition & clear the names
                 if (strlen(m_xmlFileName) > 0)
@@ -286,8 +356,16 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 // Function: GetMode
 // Description: Return a string rep of the mode name
 //
-char* CmReconfig::GetModeName() const
+const char* CmReconfig::GetModeName() const
 {
     return modeNames[m_state];
 }
 
+//-------------------------------------------------------------------------------------------------
+// Function: GetMode
+// Description: Return a string rep of the mode name
+//
+const char* CmReconfig::GetCfgStatus() const
+{
+    return recfgStatus[m_lastErrCode];
+}

@@ -9,7 +9,20 @@
 #define MAX_WRITE_SIZE eSecCharDataSize  // max size of PySte command
 #define MAX_READ_SIZE  eSecStreamSize    // max size of
 
+typedef enum
+{
+    eNoFileError           = -1,
+    eSrvResAttachFailed    = -2,
+    eClientResAttachFailed = -3,
+    eFileNotFound          = -4,
+    ePartDoesNotExist      = -5,
+    eWriteFailed           = -6,
+    eReadFailed            = -7,
+    eDeleteFailed          = -8,
+    eFileNameInvalid       = -9,
+    eInvalidOperation      = -10
 
+}FileErrorType;
 
 class File
 {
@@ -44,6 +57,10 @@ class File
         {
             return m_bInit;
         }
+        FileErrorType GetFileError()
+        {
+            return m_fileError;
+        }
 
         char* GetFileStatus(char* buffer);
 
@@ -57,7 +74,7 @@ class File
         };
 
         // Object mgmt attributes
-        BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
+        //BOOLEAN    m_bFirstCalled;   // used to control read calls(cffsFirst,cffsSeekX)
         UNSIGNED32 m_portBytesInUse; // # bytes currently buffered in port, awaiting write/read
         UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
         UNSIGNED32 m_nextRead;       // Index port to fetch next 'n' bytes
@@ -67,6 +84,7 @@ class File
         BOOLEAN    m_bOpen;
         BOOLEAN    m_bInit;          // Flag to show Object construction was successful
 
+        FileErrorType m_fileError;   // The internal ID of the last error detected by this object
 
         // cffs control structures
         cffsInfoRequest m_infoReq;
@@ -90,6 +108,8 @@ class File
         char m_clientAccessRes[eMaxResName]; // Client Access name (CAR)
         char m_partitionName  [eMaxResName]; // name of the XXXX-partition where this file resides.
         char m_fileName       [eMaxFileName];// name of the file to be used.
+
+        BOOLEAN CheckFileExists(void);
 
     private:
 
