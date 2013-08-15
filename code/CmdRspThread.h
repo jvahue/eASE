@@ -79,7 +79,7 @@ protected:
     UINT32  m_systemTick;
     UINT32  m_frames;
 
-    char m_blankLine[80]; // balnks the video line
+    char m_blankLine[81]; // blanks the video line
 
 };
 

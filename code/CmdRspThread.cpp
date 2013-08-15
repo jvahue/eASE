@@ -55,7 +55,7 @@ CmdRspThread::CmdRspThread()
 
 {
     memset(m_blankLine, 0x20, sizeof(m_blankLine));
-    m_blankLine[79] = '\0';
+    m_blankLine[80] = '\0';
 
 }
 

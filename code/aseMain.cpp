@@ -138,7 +138,7 @@ int main(void)
                   secComm.GetTxCount()
                   );
 
-        debug_str(AseMain, 2, 0, "%s", secComm.GetErrorMsg());
+        debug_str(AseMain, 3, 0, "%s", secComm.GetErrorMsg());
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();

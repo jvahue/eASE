@@ -428,10 +428,10 @@ const CHAR* SecComm::GetSocketInfo()
 {
     int sinAddr = htonl(m_socketAddr.sin_addr);
 
-    int p1 = sinAddr & 0xff;
-    int p2 = (sinAddr >> 8) & 0xff;
-    int p3 = (sinAddr >> 16) & 0xff;
-    int p4 = (sinAddr >> 24) & 0xff;
+    int p4 = sinAddr & 0xff;
+    int p3 = (sinAddr >> 8) & 0xff;
+    int p2 = (sinAddr >> 16) & 0xff;
+    int p1 = (sinAddr >> 24) & 0xff;
 
     sprintf(m_ipPort, "%s %d/%d(%d) %d.%d.%d.%d:%d Cmd: %d/%d",
             conSts[m_connState],
