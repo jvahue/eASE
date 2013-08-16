@@ -59,38 +59,38 @@ const char* is_to_str(ipcStatus is)
 {
     const char* is_strs[] = {
     "ipcValid",
-    "ipcInvalidThread",
+    "ipcInvalidThrd",
     "ipcInvalid",
     "ipcNoSuchProduceItem",
     "ipcInvalidSize",
-    "ipcNoPreviousProducerToCopy",
+    "ipcNoPrevProducerToCopy",
     "ipcNoSuchConsumeItem",
     "ipcCouldNotAttachToProducer",
     "ipcQuotaExceeded",
     "ipcNoSuchMemoryObject",
-    "ipcInsufficientVirtualAddressSpace",
+    "ipcInsufficientVirtualAddrSpace",
     "ipcNoDataFromProducer",
     "ipcInvalidMessage",
     "ipcInvalidMessageLength",
     "ipcStaleMessage",
     "ipcOutOfMemory",
-    "ipcInsufficientPrivilege",
+    "ipcInsufficientPriv",
     "ipcInvalidHandle",
     "ipcInvalidAccessType",
-    "ipcInvalidProcessHandle",
-    "ipcInvalidMemoryObjectHandle",
+    "ipcInvalidProcessHndl",
+    "ipcInvalidMemoryObjectHndl",
     "ipcInvalidMailboxHandle",
-    "ipcInvalidEnvelopeHandle",
+    "ipcInvalidEnvelopeHndl",
     "ipcEnvelopeInMailbox",
     "ipcQueueFull",
     "ipcNoMessage",
     "ipcEnvelopeQuotaExceeded",
     "ipcHandleMismatch",
-    "ipcInsufficientEnvelopePrivilege",
+    "ipcInsufficientEnvelopePriv",
     "ipcAddressNotPageAligned",
     "ipcOffsetNotPageAligned",
     "ipcDuplicateAlias",
-    "ipcAnonymousProcessCantCreateMemoryObject",
+    "ipcAnonymousProcessCantCreateMemoryObj",
     "ipcAbortedByException",
     "ipcMailboxDeleted",
     "ipcInsufficientRAM",
@@ -172,12 +172,13 @@ const char* ps_to_str(processStatus ps)
  ****************************************************************************/
 MailBox::MailBox(void)
     : m_hProcess(NULL)
-    , m_procStatus(processInvalidHandle)
+    , m_procStatus(processNotActive)
     , m_hMailBox(NULL)
-    , m_ipcStatus(ipcNoSuchProduceItem)
+    , m_ipcStatus(ipcInvalid)
     , m_type(eUndefined)
     , m_grantListSize(0)
     , m_successfulGrantCnt(0)
+    , m_connectAttempts(0)
     {
         // Init the access grant status list.
         // this is only used by creators(owners)
@@ -284,6 +285,7 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
             //Deliberate fallthrough...
             //
         case eSend:
+            m_connectAttempts++;
             // Get Process handle for the mailbox owner
             m_procStatus = getProcessHandle(m_procName, &m_hProcess);
             if( m_procStatus == processSuccess)
@@ -416,8 +418,7 @@ const char* MailBox::GetIpcStatusString()
 void MailBox::Reset()
 {
     SIGNED32  i;
-    // Reset my connections based on my config ( sender/receiver)
-
+    // Reset my connections based on my config (sender/receiver)
     switch(m_type)
     {
     case eRecv:
@@ -431,7 +432,7 @@ void MailBox::Reset()
             }
             m_successfulGrantCnt = 0;
         }
-        m_procStatus = processInvalidHandle;
+        m_procStatus = processNotActive;
         break;
 
     case eUndefined:
@@ -439,8 +440,11 @@ void MailBox::Reset()
     case eSend:
         if (m_hMailBox != NULL)
         {
-            m_ipcStatus = ipcNoSuchProduceItem;
+            m_ipcStatus  = ipcInvalid;
+            m_procStatus = processNotActive;
             m_hMailBox = NULL;
+            m_hProcess = NULL;
+            m_connectAttempts = 0;
         }
         break;
     default:
@@ -541,9 +545,10 @@ char* MailBox::GetStatusStr(void)
 {
     if (m_type == eSend)
     {
-        sprintf( m_statusStr, "Out: %s/%s",
+        sprintf( m_statusStr, "Out: %s/%s(%d)",
                  GetProcessStatusString(),
-                 GetIpcStatusString());
+                 GetIpcStatusString(),
+                 m_connectAttempts);
     }
     else
     {
