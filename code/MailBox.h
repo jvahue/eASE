@@ -46,7 +46,7 @@ class MailBox
 
       // Sender methods
       BOOLEAN Connect(const char* procName, const char* mbName);
-      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = FALSE);
+      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = TRUE);
       BOOLEAN IsConnected()
       {
         // Mailbox init as sender and valid handle obtained
@@ -80,6 +80,7 @@ class MailBox
       AccessGrantList m_grantList[eMaxGrantsAllowed];
       INT32           m_grantListSize;
       INT32           m_successfulGrantCnt;
+      INT32           m_connectAttempts;
 
       MailBoxType      m_type;
 
