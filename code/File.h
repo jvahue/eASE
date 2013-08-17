@@ -44,7 +44,7 @@ class File
         SIGNED32 Read (void *pBuff, UNSIGNED32 size);
         BOOLEAN Write(void *pBuff, UNSIGNED32 size);
         BOOLEAN Flush(void);
-        BOOLEAN Delete(const char* fileName, File::PartitionType partType);
+        BOOLEAN Delete(const char* fileName, PartitionType partType);
         BOOLEAN Close(void);
 
     // Accessors

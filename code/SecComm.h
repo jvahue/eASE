@@ -77,6 +77,9 @@ enum SecCmds {
     eSetSdi         = 407,
     eSetSsm         = 408,
     eSetLabel       = 409,
+    eSendParamData  = 410,
+    eInitParamData  = 411,
+    eDisplayParam   = 412,
 
     
 //-------------------------------- unallocated --------------------------------

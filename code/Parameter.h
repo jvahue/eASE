@@ -18,8 +18,9 @@ class Parameter : public ParamConverter
 {
 public:
     Parameter();
-    void Reset( char* name, UINT32 rate, PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
-    virtual void Update(UINT32 sysTick, bool sgRun);
+    void Reset(char* name, UINT32 masterId, UINT32 rate,
+               PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    virtual bool Update(UINT32 sysTick, bool sgRun);
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'chilc' match for the other parameter
     char* Display(char* buffer);
 
@@ -28,7 +29,7 @@ public:
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
 
-    INT32    m_ioiChan;
+    INT32    m_ioiChan;     // deos ioi channel id
     UINT32   m_ioiValue;    // current ioi value after Update
     UINT32   m_ioiValueZ1;  // the last IOI value
 

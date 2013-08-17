@@ -24,20 +24,11 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define PARAM_CFG "param.cfg"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-struct ParamCfg {
-    UINT32 index;
-    ParameterName name;
-    UINT32 rateHz;
-    PARAM_FMT_ENUM fmt;
-    UINT32 gpa;
-    UINT32 gpb;
-    UINT32 gpc;
-    UINT32 scale;
-};
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -66,6 +57,7 @@ IoiProcess::IoiProcess()
     : m_paramCount(0)
     , m_maxParamIndex(0)
     , m_paramLoopEnd(0)
+    , m_paramInfoCount(0)
     , m_displayCount(0)
     , m_frames(0)
     , m_scheduled(0)
@@ -74,6 +66,9 @@ IoiProcess::IoiProcess()
     , m_ioiWriteFailCount(0)
     , m_sgRun(false)
 {
+    // clear out the paramInfo
+    memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+
     // clear out our display index
     memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
 }
@@ -88,10 +83,17 @@ IoiProcess::IoiProcess()
 //
 void IoiProcess::Run()
 {
+    // Initialize IOI Before use
+    m_initStatus = ioi_init("");
+
     // create alias for this process because some process needs to source the
     // ioi data
     processStatus ps = createProcessAlias( "IO");
     // TBD: may want this to act as io cross-channel also
+
+    //m_paramCfg.Open(PARAM_CFG, File::ePartCmProc, 'r');
+    //m_paramCfg.Read(m_paramInfo, sizeof(m_paramInfo));
+    //m_paramCfg.Close();
 
     // create all of the IOI items
     InitIoi();
@@ -133,8 +135,8 @@ void IoiProcess::UpdateIoi()
     ioiStatus writeStatus;
 
 
-    m_scheduled = m_paramCount; // need to see how many are really scheduled
-    m_updated ^= 1;             // toggle the lsb
+    m_scheduled = 0; // need to see how many are really scheduled
+    m_updated = 0;   // toggle the lsb
 
     if ( m_initStatus == ioiSuccess)
     {
@@ -143,12 +145,16 @@ void IoiProcess::UpdateIoi()
         {
             if (param->m_isValid && !param->m_isChild && param->m_ioiValid)
             {
-                param->Update( GET_SYSTEM_TICK, m_sgRun);
+                m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun) ? 1 : 0;
                 writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
                 if (writeStatus != ioiSuccess)
                 {
                     // TODO : what else?
                     m_ioiWriteFailCount += 1;
+                }
+                else
+                {
+                    m_updated += 1; // count how many we updated
                 }
             }
             ++param;
@@ -200,26 +206,38 @@ void IoiProcess::UpdateDisplay(VID_DEFS who)
 
     CmdRspThread::UpdateDisplay(Ioi);
 
-    debug_str(Ioi, 2, 0, "IOI: %s SigGen: %s",
+    debug_str(Ioi, atLine, 0,"%s", m_blankLine);
+    debug_str(Ioi, atLine, 0, "IOI: %s SigGen: %s Params: %d ParamInfo: %d",
               ioiInitStatus[m_initStatus],
-              m_sgRun ? "Run" : "Hold"
-              );
+              m_sgRun ? "Run" : "Hold",
+              m_paramCount,
+              m_paramInfoCount);
+    atLine += 1;
+
+    debug_str(Ioi, atLine, 0, "%s", m_blankLine);
+    debug_str(Ioi, atLine, 0, "Failed Setup %d Write Fail %d",
+              m_ioiOpenFailCount,
+              m_ioiWriteFailCount);
+    atLine += 1;
 
     // display parameter data
     for (i=0; i < m_displayCount; ++i)
     {
         UINT32 x = m_displayIndex[i];
 
+        debug_str(Ioi, atLine, 0,"%s", m_blankLine);
         debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
                   m_parameters[x].m_name, m_parameters[x].m_updateCount,
                   m_parameters[x].m_value,
                   m_parameters[x].m_rawValue, m_parameters[x].m_data);
         atLine += 1;
 
+        debug_str(Ioi, atLine, 0,"%s", m_blankLine);
         debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
         atLine += 1;
     }
 
+    debug_str(Ioi, atLine, 0,"%s", m_blankLine);
     debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
 }
 
@@ -297,6 +315,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             secComm.ErrorMsg("Ioi: Invalid Param Index <%d>", itemId);
             secComm.m_response.successful = FALSE;
         }
+        serviced = TRUE;
         break;
 
     case eResetSG:
@@ -326,6 +345,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             }
         }
 
+        serviced = TRUE;
         break;
 
     case eRunSG:
@@ -339,6 +359,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             secComm.ErrorMsg( "Run SG Error: SGs are Running");
             secComm.m_response.successful = FALSE;
         }
+        serviced = TRUE;
         break;
 
     case eHoldSG:
@@ -352,6 +373,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             secComm.ErrorMsg("Hold SG Error: SGs are Holding");
             secComm.m_response.successful = FALSE;
         }
+        serviced = TRUE;
         break;
 
     //----------------------------------------------------------------------------------------------
@@ -387,6 +409,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             }
 
         }
+        serviced = TRUE;
         break;
 
     //----------------------------------------------------------------------------------------------
@@ -422,43 +445,77 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             }
 
         }
+        serviced = TRUE;
         break;
 
-        //----------------------------------------------------------------------------------------------
-        case eSetLabel:
+    //----------------------------------------------------------------------------------------------
+    case eSetLabel:
+    {
+        // [msb                 lsb]
+        // [Spare | Bus | Lb0 | lb1] <= bytes in itemId
+        int bus = (itemId >> 16) & 0xff;
+        int lb0 = (itemId >> 8 ) & 0xff;
+        int lb1 = (itemId >> 0 ) & 0xff;
+        bool found = false;
+        Parameter* param = &m_parameters[0];
+
+        // scan sensors and see if we can find the signal and any children
+        for ( int i = 0; i < m_paramLoopEnd; ++i)
         {
-            // [msb                 lsb]
-            // [Spare | Bus | Lb0 | lb1] <= bytes in itemId
-            int bus = (itemId >> 16) & 0xff;
-            int lb0 = (itemId >> 8 ) & 0xff;
-            int lb1 = (itemId >> 0 ) & 0xff;
-            bool found = false;
-            Parameter* param = &m_parameters[0];
-
-            // scan sensors and see if we can find the signal and any children
-            for ( int i = 0; i < m_paramLoopEnd; ++i)
+            if (param->m_isValid && param->m_type == PARAM_FMT_A429)
             {
-                if (param->m_isValid && param->m_type == PARAM_FMT_A429)
+                if (param->m_a429.channel == bus && param->m_a429.label == lb0)
                 {
-                    if (param->m_a429.channel == bus && param->m_a429.label == lb0)
-                    {
-                        param->SetLabel( lb1);
-                        // don't break here in case there are children that need to be set
-                        found = true;
-                    }
+                    param->SetLabel( lb1);
+                    // don't break here in case there are children that need to be set
+                    found = true;
                 }
-                ++param;
             }
-
-            if (!found)
-            {
-                secComm.m_response.successful = false;
-                secComm.ErrorMsg("Invalid Signal Bus(%d), Label(%d)", bus, lb0);
-            }
-
+            ++param;
         }
+
+        if (!found)
+        {
+            secComm.m_response.successful = false;
+            secComm.ErrorMsg("Invalid Signal Bus(%d), Label(%d)", bus, lb0);
+        }
+
+    }
+    serviced = TRUE;
+    break;
+
+    //----------------------------------------------------------------------------------------------
+    case eSendParamData:
+        if (CollectParamInfo(request.variableId, request.sigGenId, request.charData))
+        {
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("Parameter Count exceeded: %d ", request.sigGenId);
+            secComm.m_response.successful = false;
+        }
+
+        serviced = TRUE;
         break;
 
+    //----------------------------------------------------------------------------------------------
+    case eInitParamData:
+        InitIoi();
+        secComm.m_response.successful = true;
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eDisplayParam:
+        if (m_parameters[request.variableId].m_isValid)
+        {
+            m_displayIndex[request.sigGenId] = request.variableId;
+            m_displayCount = eIoiMaxDisplay;
+        }
+        secComm.m_response.successful = true;
+        serviced = TRUE;
+        break;
 
     default:
         // we did not service this command
@@ -474,6 +531,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     return serviced;
 }
+
 
 //-------------------------------------------------------------------------------------------------
 // Function: FillSensorNames
@@ -512,6 +570,47 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Se
 ****************************************************************************/
 
 //-------------------------------------------------------------------------------------------------
+// Function: CollectParamInfo
+// Description: Receive the parameter info from ePySte for a Cfg to be loaded
+//
+bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data)
+{
+#define PARAM_SET_SIZE (eSecCharDataSize/sizeof(m_paramInfo))
+    bool status = false;
+    UINT32 i;
+    ParamCfg* pCfg = (ParamCfg*)data;
+
+    if (paramCount <= PARAM_SET_SIZE)
+    {
+        // this is the first set ePySte is sending down - clear out the paramInfo
+        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        m_paramInfoCount = 0;
+    }
+
+    if ( (paramSetCount + m_paramInfoCount) <= eAseMaxParams)
+    {
+        for (i=0; i < paramSetCount; ++i)
+        {
+            m_paramInfo[i+m_paramInfoCount].index    = pCfg->index;
+            m_paramInfo[i+m_paramInfoCount].masterId = pCfg->masterId;
+            strncpy(m_paramInfo[i+m_paramInfoCount].name, pCfg->name, eAseParamNameSize);
+            m_paramInfo[i+m_paramInfoCount].rateHz = pCfg->rateHz;
+            m_paramInfo[i+m_paramInfoCount].fmt = pCfg->fmt;
+            m_paramInfo[i+m_paramInfoCount].gpa = pCfg->gpa;
+            m_paramInfo[i+m_paramInfoCount].gpb = pCfg->gpb;
+            m_paramInfo[i+m_paramInfoCount].gpc = pCfg->gpc;
+            m_paramInfo[i+m_paramInfoCount].scale = pCfg->scale;
+            ++pCfg;
+        }
+
+        m_paramInfoCount += paramSetCount;
+        status = true;
+    }
+
+    return status;
+}
+
+//-------------------------------------------------------------------------------------------------
 // Function: InitIoi
 // Description: Processing done to simulate the ioi process
 //
@@ -519,30 +618,33 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Se
 // child link, that can be followed from the first (parent) param.
 void IoiProcess::InitIoi()
 {
-#define pCnt 5
     UINT32 i;
     UINT32 i1;
     ioiStatus m_initStatus;
     ioiStatus openStatus;
+    ioiStatus closeStatus;
 
-    // TODO remove and fetch from Cfg file for the real system
-    ParamCfg pCfg[pCnt] = {
-        {0,    "ac_aoa1_raw",   20, PARAM_FMT_A429, 0x36240, 10000, 161, 90},
-        {22,   "airspeed1_raw",  4, PARAM_FMT_A429, 0x36220, 10000, 134, 512},
-        {23,   "airspeed2_raw",  4, PARAM_FMT_A429, 0x36620, 10000, 134, 512},
-        {425,  "woffw_pos1_raw", 10, PARAM_FMT_A429, 0xF18468, 10000, 188, 0},
-        {430,  "woffw_pos2_raw",   10, PARAM_FMT_A429, 0xF18868, 10000, 188, 0},
-    };
-
-    // Initialize IOI Before use
-    m_initStatus = ioi_init("");
     if (m_initStatus == ioiSuccess)
     {
+        // close any open ioi
+        for (i=0; i < eAseMaxParams; ++i)
+        {
+            if (m_parameters[i].m_ioiValid)
+            {
+                closeStatus = ioi_close(m_parameters[i].m_ioiChan);
+                if (closeStatus == ioiSuccess)
+                {
+                    m_parameters[i].m_ioiValid = false;
+                    m_parameters[i].m_ioiChan = 0;
+                }
+            }
+        }
+
         m_paramCount = 0;
         m_maxParamIndex = 0;
-        for (i=0; i < pCnt; ++i)
+        for (i=0; i < m_paramInfoCount; ++i)
         {
-            UINT32 index = pCfg[i].index;
+            UINT32 index = m_paramInfo[i].index;
 
             m_paramCount += 1;
             if (index > m_maxParamIndex)
@@ -551,9 +653,10 @@ void IoiProcess::InitIoi()
                 m_paramLoopEnd = m_maxParamIndex + 1;
             }
 
-            m_parameters[index].Reset(pCfg[i].name, pCfg[i].rateHz, pCfg[i].fmt,
-                                      pCfg[i].gpa, pCfg[i].gpb, pCfg[i].gpc,
-                                      pCfg[i].scale);
+            m_parameters[index].Reset(m_paramInfo[i].name, m_paramInfo[i].masterId, m_paramInfo[i].rateHz,
+                                      m_paramInfo[i].fmt,
+                                      m_paramInfo[i].gpa,  m_paramInfo[i].gpb, m_paramInfo[i].gpc,
+                                      m_paramInfo[i].scale);
 
             // check to see if this parameter is a child of any existing parameters
             for (i1=0; i1 < m_paramLoopEnd; ++i1)
@@ -571,7 +674,10 @@ void IoiProcess::InitIoi()
             // if not a child open the IOI channel
             if (!m_parameters[index].m_isChild)
             {
-                openStatus = ioi_open(m_parameters[index].m_name, ioiWritePermission, (int*)&m_parameters[index].m_ioiChan);
+                openStatus = ioi_open(m_parameters[index].m_ioiName,
+                                      ioiWritePermission,
+                                      (int*)&m_parameters[index].m_ioiChan);
+
                 if (openStatus == ioiSuccess)
                 {
                     m_parameters[index].m_ioiValid = true;
@@ -583,12 +689,21 @@ void IoiProcess::InitIoi()
             }
 
             // default the display to the first eIoiMaxDisplay parameters created
-            if (m_displayCount < eIoiMaxDisplay)
+            if (m_displayCount < eIoiMaxDisplay && m_parameters[index].m_ioiValid)
             {
                 m_displayIndex[m_displayCount] = index;
                 m_displayCount += 1;
             }
         }
+
+        // save the param cfg
+        //m_paramCfg.Open(PARAM_CFG, File::ePartCmProc, 'w');
+        //m_paramCfg.Write(&m_paramInfo, sizeof(m_paramInfo[0])*m_paramInfoCount);
+        //m_paramCfg.Close();
+
+        // clear out the paramInfo
+        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        m_paramInfoCount = 0;
 
         ScheduleParameters();
 

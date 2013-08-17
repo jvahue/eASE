@@ -108,12 +108,13 @@ struct ARINC429_WORD_INFO
 class ParamConverter
 {
 public:
-
     ParamConverter();
-    void Reset(PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    void Reset(UINT32 masterId, PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
     virtual UINT32 Convert(FLOAT32 value);
+    void SetIoiName();
     
     bool m_isValid;     // ADRF update rate for the parameter in Hz
+    UINT32  m_masterId;
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
@@ -122,6 +123,7 @@ public:
     FLOAT32 m_maxValue;
     FLOAT32 m_scaleLsb;    // the current value for the parameter
     UINT32  m_data;        // the current value for the parameter
+    ParameterName m_ioiName;
 
     // A429 Parameter Attributes
     ARINC429_WORD_INFO m_a429;
@@ -132,8 +134,10 @@ public:
     void SetSdi( INT32 value);
     void SetSsm( INT32 value);
     void SetLabel( INT32 value);
+    void SetIoiA429Name();
 
     //UINT32 A664Converter();
+    void SetIoiA664Name();
 
 };
 

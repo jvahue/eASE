@@ -4,6 +4,7 @@
 #include <ioiapi.h>
 
 #include "CmdRspThread.h"
+#include "File.h"
 #include "SecComm.h"
 #include "Parameter.h"
 
@@ -15,6 +16,17 @@
 *
 *
 */
+struct ParamCfg {
+    UINT32 index;
+    UINT32 masterId;
+    ParameterName name;
+    UINT32 rateHz;
+    PARAM_FMT_ENUM fmt;
+    UINT32 gpa;
+    UINT32 gpb;
+    UINT32 gpc;
+    UINT32 scale;
+};
 
 class IoiProcess : public CmdRspThread
 {
@@ -43,8 +55,9 @@ protected:
     void FillSensorNames(INT32 start, SensorNames& m_snsNames);       // Send the sensor names to ePySte
     void ScheduleParameters();
 
-    
+    bool CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data);
     void InitIoi();
+    
     void UpdateIoi();
     void UpdateCCDL();
 
@@ -54,6 +67,9 @@ protected:
     UINT32 m_maxParamIndex;
     UINT32 m_paramLoopEnd;
     Parameter m_parameters[eAseMaxParams];
+
+    ParamCfg m_paramInfo[eAseMaxParams];
+    UINT32 m_paramInfoCount;
 
     UINT32 m_displayCount;
     UINT32 m_displayIndex[eIoiMaxDisplay];
@@ -69,7 +85,7 @@ protected:
 
     bool m_sgRun;
 
-
+    //File m_paramCfg;
 };
 
 #endif

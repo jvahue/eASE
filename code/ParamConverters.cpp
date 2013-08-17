@@ -22,6 +22,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#define ALLOW_A429_NAMES
+#include "ParamA429Names.h"
 #include "ParamConverters.h"
 
 /*****************************************************************************/
@@ -126,7 +128,8 @@ UINT32 ParamConverter::A429Converter(float value)
 // Function: Reset
 // Description:
 //
-void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
+void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
+                           UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
 {
     UINT32 rawLabel;
 
@@ -134,6 +137,7 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
     m_gpb = gpb;
     m_gpc = gpc;
     m_type = fmt;
+    m_masterId = masterId;
     m_scale = scale;
     m_maxValue = FLOAT32(scale);
     
@@ -203,7 +207,57 @@ void ParamConverter::Reset( PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 g
     {
         
     }
+
+    SetIoiName();
 }    
+
+//--------------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiName()
+{
+    if (m_type == PARAM_FMT_A429)
+    {
+        SetIoiA429Name();
+    }
+    else
+    {
+        SetIoiA664Name();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiA429Name()
+{
+    UINT32 i;
+    UINT8 sdiMatch = m_a429.ignoreSDI ? A429_IOI_NAME_SDI_IGNORE_VAL : m_a429.sdBits;
+
+    for (i=0; ioiA429Names[i].name != NULL; ++i)
+    {
+        if (m_a429.label == ioiA429Names[i].octal && sdiMatch == ioiA429Names[i].sdi)
+        {
+            //ioiNameUsed[i] += 1;
+            //if (ioiNameUsed[i] == 1)
+           // {
+                strcpy( m_ioiName, ioiA429Names[i].name);
+           // }
+           //else
+            //{
+            //    sprintf( m_ioiName, "%s_%d", ioiA429Names[i].name, ioiNameUsed[i]);
+            //}
+            break;
+        }
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiA664Name()
+{
+    UINT32 src;
+    UINT32 ndo;
+
+    src = m_masterId & 0xff;
+    ndo = (m_masterId >> 8) & 0xffffff;
+    sprintf(m_ioiName, "%d_%d", ndo, src);
+}
 
 //--------------------------------------------------------------------------------------------------
 void ParamConverter::A429ParseGps()

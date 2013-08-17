@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "-1739459415"
+     validityKey = "-1744720544"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -39,7 +39,7 @@
    <memoryPools>
       <memoryPool
            platformPoolID = "0"
-           sizeInPages = "260"
+           sizeInPages = "360"
            defaultPool = "yes"
       ></memoryPool>
    </memoryPools>

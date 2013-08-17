@@ -82,7 +82,7 @@ Parameter::Parameter()
 // Function: Reset
 // Description: Reset the parameter based on the configuraiton values
 //
-void Parameter::Reset( char* name, UINT32 rate, PARAM_FMT_ENUM fmt,
+void Parameter::Reset( char* name, UINT32 masterId, UINT32 rate, PARAM_FMT_ENUM fmt,
                        UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
 {
     UINT32 extraMs;
@@ -96,8 +96,10 @@ void Parameter::Reset( char* name, UINT32 rate, PARAM_FMT_ENUM fmt,
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
-    ParamConverter::Reset(fmt, gpa, gpb, gpc, scale);
+    ParamConverter::Reset(masterId, fmt, gpa, gpb, gpc, scale);
     m_isValid = true;
+
+    m_ioiValid = false;
 }    
 
 //-------------------------------------------------------------------------------------------------
@@ -131,8 +133,10 @@ bool Parameter::IsChild(Parameter& other)
 // Function: Update
 // Description: Update the parameter value
 //
-void Parameter::Update(UINT32 sysTick, bool sgRun)
+bool Parameter::Update(UINT32 sysTick, bool sgRun)
 {
+    bool status = false;
+
     if (m_isValid)
     {
         // see if it is time for an update
@@ -164,8 +168,10 @@ void Parameter::Update(UINT32 sysTick, bool sgRun)
 
             m_nextUpdate = sysTick + m_updateIntervalTicks;
             m_updateCount += 1;
+            status = true;
         }
     }
+    return status;
 }
 
 
