@@ -238,6 +238,7 @@ void SecComm::Process()
 //-------------------------------------------------------------------------------------------------
 void SecComm::CheckCmd(const char* buffer, const int size)
 {
+    UINT8 errCode = 0;
     memcpy( &m_bufRqst, buffer, size);
 
     // got some data, verify the contents
@@ -265,6 +266,8 @@ void SecComm::CheckCmd(const char* buffer, const int size)
         else
         {
             sprintf(m_errMsg, "Checksum Err: A/C 0x%08x/0x%08x", m_bufRqst.checksum, checksum);
+            errCode = eChecksumError;
+            SendAny( &errCode, 1);
         }
     }
     else
@@ -273,6 +276,8 @@ void SecComm::CheckCmd(const char* buffer, const int size)
                 m_bufRqst.header1, eSecAseH1,
                 m_bufRqst.header2, eSecAseH2,
                 m_bufRqst.size, size);
+        errCode = eHeaderError;
+        SendAny( &errCode, 1);
     }
 }
 

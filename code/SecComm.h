@@ -81,7 +81,7 @@ enum SecCmds {
     eInitParamData  = 411,
     eDisplayParam   = 412,
 
-    
+
 //-------------------------------- unallocated --------------------------------
     eStartLogging   = 55560,
     eStopLogging    = 55570,
@@ -123,6 +123,8 @@ enum SecSystemConstants {
     eSecAseH2           = 0xABCD1234, // Header marker2 Sec->Ase
     eAseSecH1           = 0x0A5E25EC, // Header marker1 Ase->Sec
     eAseSecH2           = 0x1234ABCD, // Header marker2 Ase->Sec
+    eHeaderError        = 1,          // The header content was not correct
+    eChecksumError      = 2           // Failed the checksum
 };
 
 enum ResponseType {
@@ -133,7 +135,7 @@ enum ResponseType {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// These three must match up with the structure defined in Python see SecIocPayloads.py to  
+// These three must match up with the structure defined in Python see SecIocPayloads.py to
 // ensure consistency
 struct SecRequest
 {
@@ -265,12 +267,12 @@ public:
     // a thread handling the command set this for error reporting
     void SetHandler(CHAR* const handlerName) {
         m_cmdHandlerName = handlerName;
-    }; 
+    };
 
     const CHAR* GetHandler( const CHAR* handlerName) const {
         return m_cmdHandlerName;
     }
-    
+
     const UINT32 GetCmdId() const {
         return m_request.cmdId;
     }
