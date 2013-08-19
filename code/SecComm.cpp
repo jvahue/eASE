@@ -267,7 +267,7 @@ void SecComm::CheckCmd(const char* buffer, const int size)
         {
             sprintf(m_errMsg, "Checksum Err: A/C 0x%08x/0x%08x", m_bufRqst.checksum, checksum);
             errCode = eChecksumError;
-            SendAny( &errCode, 1);
+            SendAny( (const char*)&errCode, 1);
         }
     }
     else
@@ -277,7 +277,7 @@ void SecComm::CheckCmd(const char* buffer, const int size)
                 m_bufRqst.header2, eSecAseH2,
                 m_bufRqst.size, size);
         errCode = eHeaderError;
-        SendAny( &errCode, 1);
+        SendAny( (const char*)&errCode, 1);
     }
 }
 
