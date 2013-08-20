@@ -430,7 +430,7 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
     CmdRspThread::UpdateDisplay(CmProc);
 
     // Status Display
-    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0,"%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
               m_reconfig.m_recfgCount,
               m_reconfig.GetModeName(),
@@ -447,48 +447,48 @@ void CmProcess::UpdateDisplay(VID_DEFS who)
               );
     atLine += 1;
 
-    debug_str(CmProc, atLine, 0,"%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0,"%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "GseCmd: %s", m_lastGseCmd);
     atLine += 1;
 
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
     atLine += 1;
 
     // Show put file status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
     atLine += 1;
 
     // Show get file status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
     atLine += 1;
 
     // Show Cfg file names
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
     atLine += 1;
 
     // Show Cfg file names
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
     atLine += 1;
 
     // Update Mailbox Status
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Gse %s %s",
               m_gseInBox.GetStatusStr(),
               m_gseOutBox.GetStatusStr());
     atLine += 1;
 
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Cfg %s %s",
               m_reConfigInBox.GetStatusStr(),
               m_reConfigOutBox.GetStatusStr());
     atLine += 1;
 
-    debug_str(CmProc, atLine, 0, "%s", m_blankLine);
+    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
     debug_str(CmProc, atLine, 0, "Log %s %s",
               m_fileXferInBox.GetStatusStr(),
               m_fileXferOutBox.GetStatusStr());

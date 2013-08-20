@@ -134,16 +134,22 @@ void debug_str_init(void)
 void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 {
 static VID_DEFS redirectZ1 = VID_SYS;
+    UINT32 length;
+    CHAR buf[256];
 
-    CHAR buf[1024];
+    memset(buf, ' ', sizeof(buf));
 
 	va_list args;
-
-	va_start(args,str);
-
+	va_start(args, str);
 	vsprintf( buf, str, args);
-
 	va_end(args);
+
+    // always blank out the rest of the line
+	length = strlen(buf);
+	if (length < 80)
+	{
+	    buf[length] = ' ';
+	}
 
 	buf[80] = '\0';
 
@@ -166,6 +172,7 @@ static VID_DEFS redirectZ1 = VID_SYS;
 
 	if(!m_screens[screen].scroll)
 	{
+        //clearRow(screen, row);
 		m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
     }
 

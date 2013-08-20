@@ -206,7 +206,7 @@ void IoiProcess::UpdateDisplay(VID_DEFS who)
 
     CmdRspThread::UpdateDisplay(Ioi);
 
-    debug_str(Ioi, atLine, 0,"%s", m_blankLine);
+    //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
     debug_str(Ioi, atLine, 0, "IOI: %s SigGen: %s Params: %d ParamInfo: %d",
               ioiInitStatus[m_initStatus],
               m_sgRun ? "Run" : "Hold",
@@ -214,7 +214,7 @@ void IoiProcess::UpdateDisplay(VID_DEFS who)
               m_paramInfoCount);
     atLine += 1;
 
-    debug_str(Ioi, atLine, 0, "%s", m_blankLine);
+    //debug_str(Ioi, atLine, 0, "%s", m_blankLine);
     debug_str(Ioi, atLine, 0, "Failed Setup %d Write Fail %d",
               m_ioiOpenFailCount,
               m_ioiWriteFailCount);
@@ -225,19 +225,19 @@ void IoiProcess::UpdateDisplay(VID_DEFS who)
     {
         UINT32 x = m_displayIndex[i];
 
-        debug_str(Ioi, atLine, 0,"%s", m_blankLine);
+        //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
         debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
                   m_parameters[x].m_name, m_parameters[x].m_updateCount,
                   m_parameters[x].m_value,
                   m_parameters[x].m_rawValue, m_parameters[x].m_data);
         atLine += 1;
 
-        debug_str(Ioi, atLine, 0,"%s", m_blankLine);
+        //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
         debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
         atLine += 1;
     }
 
-    debug_str(Ioi, atLine, 0,"%s", m_blankLine);
+    //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
     debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
 }
 

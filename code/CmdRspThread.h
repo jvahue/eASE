@@ -59,7 +59,7 @@ class CmdRspThread : public AseThread
 {
 public:
     enum CmdRspConstants {
-        eFirstDisplayRow = 2, // change this value to take more rows at top
+        eFirstDisplayRow = 1, // change this value to take more rows at top
     };
     CmdRspThread();
 

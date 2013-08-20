@@ -96,8 +96,8 @@ void CmdRspThread::RunSimulation()
 //
 void CmdRspThread::UpdateDisplay(VID_DEFS who)
 {
-    debug_str(who, 1, 0,"%s", m_blankLine);
-    debug_str(who, 1, 0, "ePySte: %s ADRF: %s MS: %s Script: %s Frame: %d",
+    //debug_str(who, 0, 0,"%s", m_blankLine);
+    debug_str(who, 0, 0, "ePySte: %s ADRF: %s MS: %s Script: %s Frame: %d",
               IS_CONNECTED ? "Conn  " : "NoConn",
               IS_POWER_ON ? "On" : "Off",
               IS_MS_ONLINE ? "On" : "Off",
