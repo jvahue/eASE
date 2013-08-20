@@ -43,6 +43,7 @@ enum SecCmds {
     ePowerOn        = 5,
     ePowerOff       = 6,
     eMsState        = 7,
+    eVideoRedirect  = 8,
 
 // Ase Enums 101-199
 

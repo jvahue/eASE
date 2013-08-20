@@ -242,10 +242,27 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             else
             {
                 secComm.ErrorMsg("Ms State Error: Accept 0,1 - got %d", request.variableId);
-                secComm.m_response.successful = TRUE;
+                secComm.m_response.successful = FALSE;
             }
             serviced = TRUE;
             break;
+
+        case eVideoRedirect:
+            // Kill the ADRF process to simulate behavior during power off
+            if (request.variableId >= VID_SYS || request.variableId < VID_MAX)
+            {
+                videoRedirect = (VID_DEFS)request.variableId;
+                secComm.m_response.successful = TRUE;
+            }
+            else
+            {
+                secComm.ErrorMsg("Invalid Video Screen ID: Accept 0..%d, got %d", VID_MAX-1, request.variableId);
+                secComm.m_response.successful = FALSE;
+            }
+            serviced = TRUE;
+            break;
+
+
 
         default:
             break;

@@ -53,6 +53,9 @@ typedef struct
 #define VID_DEF(Id,Name,Scroll) {Name,0,0,0,VideoStream(),Scroll}
 DEBUG_SCREEN_DATA m_screens[] = {VID_DEF_LIST};
 
+VID_DEFS videoRedirect;
+char blankLine[CGA_NUM_COLS+1]; // blanks the video line
+
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
@@ -80,6 +83,10 @@ void debug_str_init(void)
 {
     ipcStatus is;
     INT32 i;
+
+    videoRedirect = VID_SYS;
+    memset(blankLine, 0x20, sizeof(blankLine));
+    blankLine[80] = '\0';
 
     for(i = 0; i < VID_MAX; i++)
     {
@@ -126,6 +133,8 @@ void debug_str_init(void)
  *****************************************************************************/
 void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 {
+static VID_DEFS redirectZ1 = VID_SYS;
+
     CHAR buf[1024];
 
 	va_list args;
@@ -138,6 +147,23 @@ void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 
 	buf[80] = '\0';
 
+	if (screen == videoRedirect)
+	{
+	    // redirect to VID_SYS
+	    screen = VID_SYS;
+
+	    if (redirectZ1 != videoRedirect)
+	    {
+	        redirectZ1 = videoRedirect;
+
+	        // clear VID_SYS if we just changed
+	        for (UINT32 i=0; i < CGA_NUM_ROWS; ++i)
+	        {
+	            clearRow(screen, i);
+	        }
+	    }
+	}
+
 	if(!m_screens[screen].scroll)
 	{
 		m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
@@ -147,3 +173,24 @@ void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 
 }
 
+/******************************************************************************
+ * Function:    clearRow
+ *
+ * Description: clear a row of a display
+ *
+ * Parameters:  [in] screen: Screen enum
+ *              [in] row,col: Initial cursor position, only for screens with no
+ *                            scroll option set.
+ *              [in] str:    Formatted string to write
+ *              [in] ...:    varargs to use with formatted string.
+ *
+ * Returns:     none
+ *
+ * Notes:
+ *
+ *****************************************************************************/
+void clearRow(VID_DEFS screen,  int row)
+{
+    m_screens[screen].vid_stream.getViewPort().cursor().put(row,0);
+    m_screens[screen].vid_stream << blankLine;
+}

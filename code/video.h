@@ -31,13 +31,15 @@ extern "C" {
 
 #undef VID_DEF
 #define VID_DEF(Id,Name,Scroll)
+// ----- If the list changes update eFAST.py in the ePySte -----
 //                      Text      Scroll
 //     Id               Name      Mode
 #define VID_DEF_LIST \
+VID_DEF(VID_SYS,       ""            ,FALSE),\
 VID_DEF(AseMain,       "AseMain", FALSE),\
 VID_DEF(CmProc,        "CmProc",  FALSE),\
 VID_DEF(Ioi,           "Ioi",     FALSE),\
-
+// ----- If the list changes update eFAST.py in the ePySte -----
 
 #undef  VID_DEF
 #define VID_DEF(Id,Name,Scroll) Id
@@ -52,6 +54,9 @@ extern "C" {
 
 void debug_str (VID_DEFS screen, int row, int col, const CHAR* str, ... );
 void debug_str_init(void);
+void clearRow(VID_DEFS screen,  int row);
+
+extern VID_DEFS videoRedirect;
 
 }
 
