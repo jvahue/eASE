@@ -91,9 +91,9 @@ int main(void)
     const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
 
     UINT32 i;
-
     SecComm secComm;
     UINT32 frames = 0;
+    UINT32 cmdIdle = 0;
     UINT32 lastCmdAt = 0;
 
     memset( &aseCommon, 0, sizeof(aseCommon));
@@ -133,9 +133,11 @@ int main(void)
                   secComm.GetSocketInfo(),
                   frames);
 
-        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d)",
+        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) Idle Time: %4d/%d",
                   secComm.GetRxCount(),
-                  secComm.GetTxCount()
+                  secComm.GetTxCount(),
+                  cmdIdle+1,
+                  MAX_IDLE_FRAMES
                   );
 
         debug_str(AseMain, 3, 0, "%s", secComm.GetErrorMsg());
@@ -149,10 +151,15 @@ int main(void)
         {
             lastCmdAt = frames;
         }
-        else if ((frames - lastCmdAt) > MAX_IDLE_FRAMES)
+        else
         {
-            secComm.forceConnectionClosed = TRUE;
-            lastCmdAt = frames;
+            // no timeout if we are running a script
+            cmdIdle = frames - lastCmdAt;
+            if (cmdIdle > MAX_IDLE_FRAMES)
+            {
+                secComm.forceConnectionClosed = TRUE;
+                lastCmdAt = frames;
+            }
         }
 
         aseCommon.bConnected = secComm.IsConnected();
