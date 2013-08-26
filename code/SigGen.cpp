@@ -54,7 +54,7 @@ SignalGenerator::SignalGenerator()
   , m_degrees(0.0f)
 {
     // for deterministic results start with the same seed
-    //srand(0);
+    m_random.Seed(0);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ float SignalGenerator::Reset( float lastValue)
         break;
     case eSGrandom:
         // for deterministic results start with the same seed on each reset
-        //srand(0);
+        m_random.Seed(0);
         newValue = m_param1;  // set to the low value
         break;
     }
@@ -362,7 +362,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             {
                 newValue += 0.5f;
             }
-            //newValue = lowest + ((range * float(rand())) / (float(RAND_MAX) + 1.0f));
+            newValue = lowest + ((range * float(m_random.Rand())) / (float(RAND_MAX) + 1.0f));
             break;
 
         default:
