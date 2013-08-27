@@ -23,6 +23,7 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define ADRF_CFG_FILE "config.bin"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -237,7 +238,21 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
 
         serviced = TRUE;
+        break;
 
+    case eDeleteCfgFile:
+        // see if the file exists
+        if (m_getFile.Open(ADRF_CFG_FILE, File::ePartAdrf, 'r'))
+        {
+            secComm.m_response.successful = m_getFile.Delete(ADRF_CFG_FILE, File::ePartAdrf);
+        }
+        else
+        {
+            // file does not exist so it like we deleted it !
+            secComm.m_response.successful = TRUE;
+        }
+
+        serviced = TRUE;
         break;
 
     default:

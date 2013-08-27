@@ -71,6 +71,9 @@ processStatus CreateAdrfProcess();
 void FileSystemTestSmall();
 void FileSystemTestBig();
 
+void SetVideoScreen( UINT32 videoDisplay);
+
+
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
@@ -179,6 +182,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         cmdSeen = TRUE;
         SecRequest request = secComm.m_request;
 
+        videoRedirect = (VID_DEFS)request.videoDisplay;
+
         debug_str(AseMain, 2, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
@@ -254,23 +259,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        case eVideoRedirect:
-            // Kill the ADRF process to simulate behavior during power off
-            if (request.variableId >= VID_SYS || request.variableId < VID_MAX)
-            {
-                videoRedirect = (VID_DEFS)request.variableId;
-                secComm.m_response.successful = TRUE;
-            }
-            else
-            {
-                secComm.ErrorMsg("Invalid Video Screen ID: Accept 0..%d, got %d", VID_MAX-1, request.variableId);
-                secComm.m_response.successful = FALSE;
-            }
-            serviced = TRUE;
-            break;
-
-
-
         default:
             break;
         }
@@ -295,6 +283,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
     return cmdSeen;
 }
+
+//-------------------------------------------------------------------------------------------------
+
+
 
 processStatus CreateAdrfProcess()
 {

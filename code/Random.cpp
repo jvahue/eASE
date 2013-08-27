@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+//#include "StdAfx.h"
 #include "Random.h"
 
 RandGen::RandGen(void)
@@ -8,10 +8,6 @@ RandGen::RandGen(void)
    m_increment  = 12345;
    m_seedMask   = 0x7FFF0000; // bits 30..16 of seed are used
    m_shiftCnt   = 16;
-}
-
-RandGen::~RandGen(void)
-{
 }
 
 void RandGen::Seed(unsigned int seed)

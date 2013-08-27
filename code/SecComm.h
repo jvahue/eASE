@@ -43,7 +43,6 @@ enum SecCmds {
     ePowerOn        = 5,
     ePowerOff       = 6,
     eMsState        = 7,
-    eVideoRedirect  = 8,
 
 // Ase Enums 101-199
 
@@ -59,9 +58,11 @@ enum SecCmds {
     eLogFileReady   = 208,
     eLogFileCrc     = 209,
 
-// CmPRoc Reconfig Controls
+// CmProc Reconfig Controls
     eCmFileNameDelay = 250,
     eCmRecfgAckDelay = 251,
+    eGetRcfCount     = 252,
+    eDeleteCfgFile   = 253,
 
 // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partion Id
@@ -81,6 +82,7 @@ enum SecCmds {
     eSendParamData  = 410,
     eInitParamData  = 411,
     eDisplayParam   = 412,
+    eResetIoi       = 413,
 
 
 //-------------------------------- unallocated --------------------------------
@@ -151,6 +153,7 @@ struct SecRequest
     UINT32  sigGenId;
     UINT32  resetRequest;
     UINT32  clearCfgRequest;
+    UINT32  videoDisplay;
 
     FLOAT32 value;
     FLOAT32 param1;

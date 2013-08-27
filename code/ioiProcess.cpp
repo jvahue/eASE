@@ -39,14 +39,14 @@
 /*****************************************************************************/
 const char* ioiInitStatus[] = {
 //   !  max length    !
-    "Success          ",
-    "CfgFileNotFound  ",
-    "CfgFileFailure   ",
-    "NoCfgInfoForProc ",
-    "InsufficientRAM  ",
+    "Success",
+    "CfgFileNotFound",
+    "CfgFileFailure",
+    "NoCfgInfoForProc",
+    "InsufficientRAM",
     "FmttLibLoadFailed",
     "BffrLibLoadFailed",
-    "SMONotCreated    ",
+    "SMONotCreated",
     "CannotAttachToSMO"
 };
 
@@ -514,6 +514,17 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             m_displayCount = eIoiMaxDisplay;
         }
         secComm.m_response.successful = true;
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eResetIoi:
+        // this is the first set ePySte is sending down - clear out the paramInfo
+        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        m_paramInfoCount = 0;
+        InitIoi();
+        secComm.m_response.successful = true;
+
         serviced = TRUE;
         break;
 

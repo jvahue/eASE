@@ -7,7 +7,6 @@ class RandGen
 {
   public:
     RandGen(void);
-    virtual ~RandGen(void);
     virtual void   Seed(UINT32 seed);
     virtual UINT32 Rand();
 

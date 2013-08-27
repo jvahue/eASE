@@ -71,7 +71,7 @@ CmReconfig::CmReconfig()
     , m_lastStatus(false)
     , m_recfgCount(0)
     // Test Control Items
-    , m_tcFileNameDelay(500)
+    , m_tcFileNameDelay(0)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -118,6 +118,23 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
     case eGetReconfigSts:
         strcpy( secComm.m_response.streamData, GetCfgStatus());
         secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+        secComm.m_response.successful = TRUE;
+
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------
+    // Test Controls/Status
+    case eCmFileNameDelay:
+        // send the old one back and set the new value
+        secComm.m_response.value = float(m_tcFileNameDelay);
+        m_tcFileNameDelay = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eGetRcfCount:
+        secComm.m_response.value = float(m_recfgCount);
         secComm.m_response.successful = TRUE;
 
         serviced = TRUE;
