@@ -71,9 +71,6 @@ processStatus CreateAdrfProcess();
 void FileSystemTestSmall();
 void FileSystemTestBig();
 
-void SetVideoScreen( UINT32 videoDisplay);
-
-
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
@@ -91,7 +88,7 @@ int main(void)
 {
     // These variables are used to hold values we want to output to video memory.
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
-    const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
+    const UINT32 MAX_IDLE_FRAMES = 15 * systemTickTimeInHz;
 
     UINT32 i;
     SecComm secComm;

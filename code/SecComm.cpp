@@ -172,8 +172,9 @@ void SecComm::Process()
         {
             if (forceConnectionClosed)
             {
-                ResetConn();
                 forceConnectionClosed = FALSE;
+                ResetConn();
+                waitUntilNextPeriod();
             }
 
             // if we don't have a client try and get one
@@ -200,7 +201,8 @@ void SecComm::Process()
             }
 
             rxed = 0;
-            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size)
+            cbBytesRet = 0;
+            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size && !forceConnectionClosed)
             {
                 cbBytesRet = recv(m_clientSocket, &buffer[rxed], MAX_RX-rxed, 0);
 
@@ -219,7 +221,7 @@ void SecComm::Process()
             {
                 CheckCmd( buffer, size);
             }
-            else
+            else if (!forceConnectionClosed)
             {
                 socketErrorType* lastErr;
                 lastErr = socketTransportLastError();

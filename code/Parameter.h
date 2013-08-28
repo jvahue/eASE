@@ -18,8 +18,9 @@ class Parameter : public ParamConverter
 {
 public:
     Parameter();
-    void Reset(char* name, UINT32 masterId, UINT32 rate,
-               PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    void Reset();
+    void Init(char* name, UINT32 masterId, UINT32 rate,
+              PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
     virtual bool Update(UINT32 sysTick, bool sgRun);
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'chilc' match for the other parameter
     char* Display(char* buffer);

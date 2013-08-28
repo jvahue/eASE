@@ -32,6 +32,7 @@ class IoiProcess : public CmdRspThread
 {
 public:
     enum IoiConstants {
+        eIoiFailDisplay = 5,
         eIoiMaxDisplay = 10,
     };
     
@@ -81,7 +82,11 @@ protected:
     ioiStatus m_initStatus;
 
     UINT32 m_ioiOpenFailCount;
+    UINT32 m_ioiCloseFailCount;
     UINT32 m_ioiWriteFailCount;
+
+    ParameterName m_openFailNames[eIoiFailDisplay];
+    ParameterName m_closeFailNames[eIoiFailDisplay];
 
     bool m_sgRun;
 

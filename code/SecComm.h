@@ -126,8 +126,8 @@ enum SecSystemConstants {
     eSecAseH2           = 0xABCD1234, // Header marker2 Sec->Ase
     eAseSecH1           = 0x0A5E25EC, // Header marker1 Ase->Sec
     eAseSecH2           = 0x1234ABCD, // Header marker2 Ase->Sec
-    eHeaderError        = 1,          // The header content was not correct
-    eChecksumError      = 2           // Failed the checksum
+    eHeaderError        = 254,        // The header content was not correct
+    eChecksumError      = 255         // Failed the checksum
 };
 
 enum ResponseType {

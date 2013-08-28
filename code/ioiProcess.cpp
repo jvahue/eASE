@@ -63,6 +63,7 @@ IoiProcess::IoiProcess()
     , m_scheduled(0)
     , m_updated(0)
     , m_ioiOpenFailCount(0)
+    , m_ioiCloseFailCount(0)
     , m_ioiWriteFailCount(0)
     , m_sgRun(false)
 {
@@ -71,6 +72,9 @@ IoiProcess::IoiProcess()
 
     // clear out our display index
     memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
+
+    memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
+    memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
 }
 
 /****************************************************************************
@@ -215,13 +219,25 @@ void IoiProcess::UpdateDisplay(VID_DEFS who)
     atLine += 1;
 
     //debug_str(Ioi, atLine, 0, "%s", m_blankLine);
-    debug_str(Ioi, atLine, 0, "Failed Setup %d Write Fail %d",
+    debug_str(Ioi, atLine, 0, "OpenErr %d Write Fail %d CloseErr %d",
               m_ioiOpenFailCount,
-              m_ioiWriteFailCount);
+              m_ioiWriteFailCount,
+              m_ioiCloseFailCount);
     atLine += 1;
 
-    // display parameter data
-    for (i=0; i < m_displayCount; ++i)
+    if (m_ioiOpenFailCount > 0 || m_ioiCloseFailCount > 0)
+    {
+        UINT8 i;
+        UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
+        for (i=0; i < stop; ++i)
+        {
+            debug_str(Ioi, atLine, 0, "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
+            atLine += 1;
+        }
+    }
+
+    // display parameter data - 23 usable line on the display
+    for (i=0; i < m_displayCount && atLine < 23; ++i)
     {
         UINT32 x = m_displayIndex[i];
 
@@ -519,7 +535,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     //----------------------------------------------------------------------------------------------
     case eResetIoi:
-        // this is the first set ePySte is sending down - clear out the paramInfo
+        // clear the paramInfo array
         memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
         m_paramInfoCount = 0;
         InitIoi();
@@ -547,8 +563,11 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 //-------------------------------------------------------------------------------------------------
 // Function: FillSensorNames
 // Description: Send the parameter names up to ePySte
+// Start at the location defined from PySte t0=0, t1..n=base+125
+// Send up to 125 at a time
+// - loop until we find a valid one starting from 'start' the do 125 consecutive
 //
-void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)       // Send the sensor names to ePySte
+void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)
 {
     UINT32 i;
     UINT32 filledIn = 0;
@@ -637,22 +656,41 @@ void IoiProcess::InitIoi()
 
     if (m_initStatus == ioiSuccess)
     {
+        // clear the display
+        memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
+        m_displayCount = 0;
+
+        m_ioiOpenFailCount = 0;
+        memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
+
+        m_ioiCloseFailCount = 0;
+        memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
+
         // close any open ioi
         for (i=0; i < eAseMaxParams; ++i)
         {
             if (m_parameters[i].m_ioiValid)
             {
                 closeStatus = ioi_close(m_parameters[i].m_ioiChan);
-                if (closeStatus == ioiSuccess)
+                if (closeStatus != ioiSuccess)
                 {
-                    m_parameters[i].m_ioiValid = false;
-                    m_parameters[i].m_ioiChan = 0;
+                    // copy name for display
+                    if (m_ioiCloseFailCount < eIoiFailDisplay)
+                    {
+                        strncpy(m_closeFailNames[m_ioiCloseFailCount],
+                                m_parameters[i].m_name, eAseParamNameSize);
+                    }
+                    m_ioiCloseFailCount += 1;
                 }
             }
+
+            // reset all parameters
+            m_parameters[i].Reset();
         }
 
         m_paramCount = 0;
         m_maxParamIndex = 0;
+
         for (i=0; i < m_paramInfoCount; ++i)
         {
             UINT32 index = m_paramInfo[i].index;
@@ -664,10 +702,10 @@ void IoiProcess::InitIoi()
                 m_paramLoopEnd = m_maxParamIndex + 1;
             }
 
-            m_parameters[index].Reset(m_paramInfo[i].name, m_paramInfo[i].masterId, m_paramInfo[i].rateHz,
-                                      m_paramInfo[i].fmt,
-                                      m_paramInfo[i].gpa,  m_paramInfo[i].gpb, m_paramInfo[i].gpc,
-                                      m_paramInfo[i].scale);
+            m_parameters[index].Init(m_paramInfo[i].name, m_paramInfo[i].masterId, m_paramInfo[i].rateHz,
+                                     m_paramInfo[i].fmt,
+                                     m_paramInfo[i].gpa,  m_paramInfo[i].gpb, m_paramInfo[i].gpc,
+                                     m_paramInfo[i].scale);
 
             // check to see if this parameter is a child of any existing parameters
             for (i1=0; i1 < m_paramLoopEnd; ++i1)
@@ -695,6 +733,12 @@ void IoiProcess::InitIoi()
                 }
                 else
                 {
+                    // copy name for display
+                    if (m_ioiOpenFailCount < eIoiFailDisplay)
+                    {
+                        strncpy(m_openFailNames[m_ioiOpenFailCount],
+                                m_parameters[index].m_name, eAseParamNameSize);
+                    }
                     m_ioiOpenFailCount += 1;
                 }
             }
