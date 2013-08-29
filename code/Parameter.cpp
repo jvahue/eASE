@@ -61,29 +61,38 @@ const char* a429Fmt[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 Parameter::Parameter()
-    : m_ioiValid(false)
-    , m_value(0.0f)     // the current value for the parameter
-    , m_rawValue(0)
-    , m_ioiValue(0)    // current ioi value after Update
-    , m_ioiValueZ1(0)  // the last IOI value
-    , m_rateHz(0)       // ADRF update rate for the parameter in Hz
-    , m_updateMs(0)
-    , m_updateIntervalTicks(0)     // ASE update rate for the parameter in Hz = 2x m_rateHz
-    , m_offset(0)       // frame offset 0-90 step 10
-    , m_nextUpdate(0)
-    , m_updateCount(0)
-    , m_link(NULL)
-    , m_isChild(false)
 {
-    m_name[0] = '\0';
+    Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: Reset
-// Description: Reset the parameter based on the configuraiton values
+// Description: Initialize the parameter based on the configuraiton values
 //
-void Parameter::Reset( char* name, UINT32 masterId, UINT32 rate, PARAM_FMT_ENUM fmt,
-                       UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
+void Parameter::Reset()
+{
+    m_ioiValid = false;
+    m_value = 0.0f;     // the current value for the parameter
+    m_rawValue = 0;
+    m_ioiValue = 0;     // current ioi value after Update
+    m_ioiValueZ1 = 0;   // the last IOI value
+    m_rateHz = 0;       // ADRF update rate for the parameter in Hz
+    m_updateMs = 0;
+    m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz
+    m_offset = 0;              // frame offset 0-90 step 10
+    m_nextUpdate = 0;
+    m_updateCount = 0;
+    m_link = NULL;
+    m_isChild = false;
+    m_name[0] = '\0';
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: Init
+// Description: Initialize the parameter based on the configuraiton values
+//
+void Parameter::Init( char* name, UINT32 masterId, UINT32 rate, PARAM_FMT_ENUM fmt,
+                      UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
 {
     UINT32 extraMs;
 
@@ -100,7 +109,7 @@ void Parameter::Reset( char* name, UINT32 masterId, UINT32 rate, PARAM_FMT_ENUM 
     m_isValid = true;
 
     m_ioiValid = false;
-}    
+}
 
 //-------------------------------------------------------------------------------------------------
 // Function: IsChild

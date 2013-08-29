@@ -90,26 +90,31 @@ void debug_str_init(void)
 
     for(i = 0; i < VID_MAX; i++)
     {
-      //if not default screen, create a new screen
-
-      if(strcmp(m_screens[i].smo_name,"") != 0)
-      {
-        if((is= createMemoryObject(m_screens[i].smo_name,4096,FALSE,
-                               &m_screens[i].mo))!=ipcValid){}
-        else if((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(), TRUE,
-                                           readWriteDeleteAccess)) !=ipcValid){}
-
-        else if((is = attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo, readWriteAccess,
-                                           &m_screens[i].smo, 0x1000, 0,
-                                           &m_screens[i].amo)) !=ipcValid){}
-        else
+        //if not default screen, create a new screen
+        if(strcmp(m_screens[i].smo_name,"") != 0)
         {
-          initializeVideoMemory(m_screens[i].smo);
-          m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
-          m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
-          m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+          if ((is = getMemoryObjectHandle(m_screens[i].smo_name, &m_screens[i].mo)) == ipcValid)
+          {
+          }
+          else if ((is = createMemoryObject(m_screens[i].smo_name,
+                                            4096,FALSE, &m_screens[i].mo)) != ipcValid)
+          {
+          }
+          else if ((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(),
+                                                 TRUE, readWriteDeleteAccess)) != ipcValid)
+          {
+          }
+
+          if (is == ipcValid && attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo,
+                                                   readWriteAccess, &m_screens[i].smo,
+                                                   0x1000, 0, &m_screens[i].amo) == ipcValid)
+          {
+            initializeVideoMemory(m_screens[i].smo);
+            m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
+            m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
+            m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+          }
         }
-      }
     }
 }
 

@@ -88,7 +88,7 @@ int main(void)
 {
     // These variables are used to hold values we want to output to video memory.
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
-    const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
+    const UINT32 MAX_IDLE_FRAMES = 15 * systemTickTimeInHz;
 
     UINT32 i;
     SecComm secComm;
@@ -179,6 +179,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         cmdSeen = TRUE;
         SecRequest request = secComm.m_request;
 
+        videoRedirect = (VID_DEFS)request.videoDisplay;
+
         debug_str(AseMain, 2, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
@@ -254,23 +256,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        case eVideoRedirect:
-            // Kill the ADRF process to simulate behavior during power off
-            if (request.variableId >= VID_SYS || request.variableId < VID_MAX)
-            {
-                videoRedirect = (VID_DEFS)request.variableId;
-                secComm.m_response.successful = TRUE;
-            }
-            else
-            {
-                secComm.ErrorMsg("Invalid Video Screen ID: Accept 0..%d, got %d", VID_MAX-1, request.variableId);
-                secComm.m_response.successful = FALSE;
-            }
-            serviced = TRUE;
-            break;
-
-
-
         default:
             break;
         }
@@ -295,6 +280,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
     return cmdSeen;
 }
+
+//-------------------------------------------------------------------------------------------------
+
+
 
 processStatus CreateAdrfProcess()
 {
