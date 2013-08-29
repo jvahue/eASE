@@ -306,6 +306,7 @@ public:
     UINT16 m_port;          // what port are we on - default = 54321
     UINT32 m_lastSequence;  // the last command sequence number
     BOOLEAN forceConnectionClosed;  // connection has been idle too long close and reopen
+    BOOLEAN isRxing;
 
     SecRequest  m_request;  // the current or last cmd received
     SecRequest  m_bufRqst;  // a buffer for the in coming cmd

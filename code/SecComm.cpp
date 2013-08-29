@@ -69,6 +69,7 @@ SecComm::SecComm()
     , m_port(eSecPortNumber)
     , m_lastSequence(0)
     , forceConnectionClosed(FALSE)
+    , isRxing(false)
     , m_rspType(eRspWait)
     , m_cmdRequest(0)
     , m_cmdServiced(0)
@@ -187,6 +188,7 @@ void SecComm::Process()
                 if (m_clientSocket != SOCKET_ERROR)
                 {
                     m_connState = eConnConnected;
+                    forceConnectionClosed = false;
                 }
                 else
                 {
@@ -204,12 +206,15 @@ void SecComm::Process()
             cbBytesRet = 0;
             while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size && !forceConnectionClosed)
             {
+                isRxing = true;
                 cbBytesRet = recv(m_clientSocket, &buffer[rxed], MAX_RX-rxed, 0);
+                isRxing = false;
 
                 if (cbBytesRet != SOCKET_ERROR && cbBytesRet != 0)
                 {
                     rxed += cbBytesRet;
                     m_rxCount += cbBytesRet;
+                    forceConnectionClosed = false;
                 }
                 else if (cbBytesRet == 0)
                 {
@@ -219,7 +224,10 @@ void SecComm::Process()
 
             if (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR)
             {
-                CheckCmd( buffer, size);
+                if (cbBytesRet > 0)
+                {
+                    CheckCmd( buffer, size);
+                }
             }
             else if (!forceConnectionClosed)
             {
@@ -376,7 +384,8 @@ INT32 SecComm::SetupTransport(clientConnectionHandleType &connectionHandle, CHAR
     }
     else
     {
-        setupStatus = socketTransportClientInitialize((DWORD)waitIndefinitely, &setupError);
+        setupStatus = socketTransportClientInitialize((DWORD)waitIndefinitely,
+                                                      &setupError);
         if (setupStatus != transportSuccess)
         {
             sprintf(m_errMsg,

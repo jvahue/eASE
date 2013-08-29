@@ -124,6 +124,8 @@ int main(void)
 
     debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
 
+    videoRedirect = AseMain;
+
 
     // The main thread goes into an infinite loop.
     while (1)
@@ -133,9 +135,11 @@ int main(void)
                   secComm.GetSocketInfo(),
                   frames);
 
-        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) Idle Time: %4d/%d",
+        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
                   secComm.GetRxCount(),
                   secComm.GetTxCount(),
+                  secComm.isRxing ? "Yes" : "No",
+                  secComm.forceConnectionClosed ? "Yes" : "No",
                   cmdIdle+1,
                   MAX_IDLE_FRAMES
                   );

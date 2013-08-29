@@ -85,6 +85,7 @@ File::File()
     : m_sAdr(NULL)
     , m_cAdr(NULL)
     , m_bInit(FALSE)
+    , m_fileError(eNoFileError)
 {
     Reset();
     UNSIGNED32  i;
@@ -191,7 +192,7 @@ void File::Reset()
 
     m_cffsStatus = cffsNoStatus;  // make call to IsOpen == FALSE
     m_resStatus  = resInvalidHandle;
-    m_fileError  = eNoFileError;
+    //m_fileError  = eNoFileError;
 
     memset(m_clientAccessRes, 0, sizeof(m_clientAccessRes));
     memset(m_partitionName,   0, sizeof(m_partitionName));
@@ -203,6 +204,7 @@ void File::Reset()
 
 BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode)
 {
+
     if ( 0 == strlen(fileName) )
     {
         m_fileError = eFileNameInvalid;
@@ -210,7 +212,9 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
     }
     else if (m_bInit)
     {
+        m_fileError  = eNoFileError;
         Reset();
+
         // convert partition enum to string
         strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
 
@@ -221,6 +225,7 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
         if(m_mode == '\0')
         {
             m_bOpen = FALSE;
+            m_fileError = eInvalidAccesMode;
         }
         else if (m_mode == 'r')
         {
@@ -385,31 +390,33 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 
 BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
-    if ( 0 == strlen(fileName) )
+    BOOLEAN status;
+
+    // always open as it really doesn't matter in cffs
+    if ( Open(fileName, partType, 'r'))
     {
-        m_fileError = eFileNameInvalid;
-        return FALSE;
+        // Delete the file
+        m_dataReq.sizeofStruct = sizeof(m_dataReq);
+        cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
+        m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
+                                   m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
+
+        if (m_cffsStatus != cffsSuccess)
+        {
+            m_fileError = eDeleteFailed;
+        }
+
+        status = (m_cffsStatus == cffsSuccess);
+    }
+    else
+    {
+        status = m_fileError == eFileNotFound;
     }
 
-    // If file not open, do it now to set up filename and partition name
-    if (!IsOpen())
-    {
-        Open(fileName, partType , m_mode);
-    }
-
-    // Delete the file
-    m_dataReq.sizeofStruct = sizeof(m_dataReq);
-    cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
-    m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
-                               m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
-
-    if (m_cffsStatus != cffsSuccess)
-    {
-        m_fileError = eDeleteFailed;
-    }
     // Reset this file so no other ops allowed without an 'Open' call
     Reset();
-    return (m_cffsStatus == cffsSuccess || m_cffsStatus == cffsFileNotFound );
+
+    return status;
 }
 
 //------------------------------------------------------------------------------

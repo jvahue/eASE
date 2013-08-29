@@ -242,14 +242,12 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
     case eDeleteCfgFile:
         // see if the file exists
-        if (m_getFile.Open(ADRF_CFG_FILE, File::ePartAdrf, 'r'))
+        secComm.m_response.successful = m_getFile.Delete(ADRF_CFG_FILE, File::ePartAdrf);
+        if (!secComm.m_response.successful)
         {
-            secComm.m_response.successful = m_getFile.Delete(ADRF_CFG_FILE, File::ePartAdrf);
-        }
-        else
-        {
-            // file does not exist so it like we deleted it !
-            secComm.m_response.successful = TRUE;
+            secComm.ErrorMsg("Failed File Delete of <%s> errorCode: %d",
+                             ADRF_CFG_FILE, m_getFile.GetFileError());
+            secComm.m_response.value = float(m_getFile.GetFileError());
         }
 
         serviced = TRUE;
