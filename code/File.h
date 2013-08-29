@@ -20,7 +20,8 @@ typedef enum
     eReadFailed            = -7,
     eDeleteFailed          = -8,
     eFileNameInvalid       = -9,
-    eInvalidOperation      = -10
+    eInvalidOperation      = -10,
+    eInvalidAccesMode      = -11
 
 }FileErrorType;
 
