@@ -47,8 +47,8 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 static const CHAR* conSts[] = {
     "No Socket",
-    "Wait Connection",
-    "No Connection",
+    "Wait Conn",
+    "No Conn",
     "Connected",
 };
 

@@ -39,7 +39,7 @@ const char* paramType[] = {
     "None ",
     "A664B",
     "A664F",
-    " A429"
+    "A429 "
 };
 
 const char* a429Fmt[] = {
@@ -67,7 +67,7 @@ Parameter::Parameter()
 
 //-------------------------------------------------------------------------------------------------
 // Function: Reset
-// Description: Initialize the parameter based on the configuraiton values
+// Description: Reset the parameter values
 //
 void Parameter::Reset()
 {
@@ -85,27 +85,27 @@ void Parameter::Reset()
     m_link = NULL;
     m_isChild = false;
     m_name[0] = '\0';
+    m_childCount = 0;
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: Init
-// Description: Initialize the parameter based on the configuraiton values
+// Description: Initialize the parameter based on the configuration values
 //
-void Parameter::Init( char* name, UINT32 masterId, UINT32 rate, PARAM_FMT_ENUM fmt,
-                      UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
+void Parameter::Init(ParamCfg* paramInfo)
 {
     UINT32 extraMs;
 
-    strncpy(m_name, name, eAseParamNameSize);
+    strncpy(m_name, paramInfo->name, eAseParamNameSize);
 
-    m_rateHz = rate;
+    m_rateHz = paramInfo->rateHz;
 
-    m_updateMs = 1000 / (rate * 2.0);
+    m_updateMs = 1000 / (paramInfo->rateHz * 2.0);
     extraMs = m_updateMs % 10;
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
-    ParamConverter::Reset(masterId, fmt, gpa, gpb, gpc, scale);
+    ParamConverter::Reset(paramInfo);
     m_isValid = true;
 
     m_ioiValid = false;
@@ -144,42 +144,40 @@ bool Parameter::IsChild(Parameter& other)
 //
 bool Parameter::Update(UINT32 sysTick, bool sgRun)
 {
+    UINT32 start;
     bool status = false;
 
-    if (m_isValid)
+    // see if it is time for an update
+    if (m_nextUpdate < sysTick)
     {
-        // see if it is time for an update
-        if (m_nextUpdate < sysTick)
+        start = HsTimer();
+        // compute the children of this parameter
+        UINT32 children = 0;
+        Parameter* cp = m_link;
+
+        m_childCount = 0;
+        while (cp != NULL)
         {
-            // compute the children of this parameter
-            UINT32 children = 0;
-            Parameter* cp = m_link;
-
-            while (cp != NULL)
-            {
-              cp->Update(sysTick, sgRun);
-              children |= cp->m_rawValue;
-              cp = cp->m_link;
-            }
-
-            // Update the value with the SigGen
-            m_value = m_sigGen.Update(m_value, sgRun);
-
-            // Convert it to the raw ioi format
-            m_rawValue = Convert(m_value);
-
-            m_ioiValue = m_rawValue | children;
-
-            if (m_ioiValue != m_ioiValueZ1)
-            {
-                // TODO: issue ioi update call
-            }
-
-            m_nextUpdate = sysTick + m_updateIntervalTicks;
-            m_updateCount += 1;
-            status = true;
+            m_childCount += 1;
+            cp->Update(sysTick, sgRun);
+            children |= cp->m_rawValue;
+            cp = cp->m_link;
         }
+
+        // Update the value with the SigGen
+        m_value = m_sigGen.Update(m_value, sgRun);
+
+        // Convert it to the raw ioi format
+        m_rawValue = Convert(m_value);
+
+        m_ioiValue = m_rawValue | children;
+
+        m_nextUpdate = sysTick + m_updateIntervalTicks;
+        m_updateCount += 1;
+        status = true;
+        m_updateDuration = HsTimeDiff(start);
     }
+
     return status;
 }
 
@@ -196,12 +194,13 @@ char* Parameter::Display(char* buffer)
     if (m_type == PARAM_FMT_A429)
     {
         //              Type(Fmt) Rate Child SigGen
-        sprintf(buffer, "%s(%s) %dHz %s %s",
+        sprintf(buffer, "%s(%s) %dHz %s %s - %d in %d",
             paramType[m_type],
             a429Fmt[m_a429.format],
             m_rateHz,
             m_isChild ? "Child" : "",
-            sgRep
+            sgRep,
+            m_childCount+1, m_updateDuration
         );
     }
     else

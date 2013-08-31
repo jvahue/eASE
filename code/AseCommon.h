@@ -10,6 +10,8 @@
 *
 *
 */
+# define version "v0.0.2"
+
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 
 // Handy #defs for accessing fields in AseCommon
@@ -18,6 +20,11 @@
 #define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
 #define IS_POWER_ON       (m_pCommon->bPowerOnState)
 #define IS_MS_ONLINE      (m_pCommon->bMsOnline)
+
+// high speed timer
+#define HsTimer() getTimeStamp()
+
+#define HsTimeDiff(start) (HsTimer() - start)/getSystemInfoDEOS()->eventLogClockFrequency
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
@@ -51,6 +58,15 @@ enum PARAM_FMT_ENUM {
   PARAM_FMT_MAX
 };
 
+typedef enum {
+  PARAM_SRC_NONE=0, // SRC not specified
+  PARAM_SRC_HMU,    // SRC from HMU interface - Inc data fmt of A492, A664
+  PARAM_SRC_A429,   // SRC from A429 interface - Place Holder
+  PARAM_SRC_A664,   // SRC from A664 interface - Place Holder
+  PARAM_SRC_CROSS,  // SRC from cross channel interface
+  PARAM_SRC_MAX
+} PARAM_SRC_ENUM;
+
 
 typedef char ParameterName[eAseParamNameSize];
 
@@ -63,5 +79,6 @@ typedef struct
     bool       bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
     bool       bMsOnline;      // is the MS online
 } AseCommon;
+
 
 #endif

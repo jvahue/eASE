@@ -68,19 +68,19 @@ public:
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
 
+    UINT32  m_frames;
 protected:
     virtual void Process();
     // Normally does not need to be overridden
     virtual void RunSimulation();
     // This is the real work horse
     virtual void HandlePowerOff() {}
-    virtual void UpdateDisplay(VID_DEFS who=AseMain);
+
+    virtual int UpdateDisplay(int theLine);
 
     UINT32  m_systemTick;
-    UINT32  m_frames;
-
-    char m_blankLine[81]; // blanks the video line
-
+    UINT32  m_overrunCount;
+    VID_DEFS m_defaultScreen;
 };
 
 #endif

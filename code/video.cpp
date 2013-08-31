@@ -90,9 +90,9 @@ void debug_str_init(void)
 
     for(i = 0; i < VID_MAX; i++)
     {
-        //if not default screen, create a new screen
-        if(strcmp(m_screens[i].smo_name,"") != 0)
-        {
+      //if not default screen, create a new screen
+      if(strcmp(m_screens[i].smo_name,"") != 0)
+      {
           if ((is = getMemoryObjectHandle(m_screens[i].smo_name, &m_screens[i].mo)) == ipcValid)
           {
           }
@@ -108,13 +108,13 @@ void debug_str_init(void)
           if (is == ipcValid && attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo,
                                                    readWriteAccess, &m_screens[i].smo,
                                                    0x1000, 0, &m_screens[i].amo) == ipcValid)
-          {
-            initializeVideoMemory(m_screens[i].smo);
-            m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
-            m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
-            m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
-          }
+        {
+          initializeVideoMemory(m_screens[i].smo);
+          m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
+          m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
+          m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
         }
+      }
     }
 }
 

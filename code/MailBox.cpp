@@ -371,8 +371,6 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  ****************************************************************************/
 BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 {
-    BOOLEAN result = TRUE;
-
     // try to (re-)connect as necessary
     if ( !IsConnected() )
     {
@@ -502,7 +500,7 @@ void MailBox::AddSender(const char* procName)
 void MailBox::OpenSenders(void)
 {
   process_handle_t procHandle;
-  ipcMailboxHandle mailBoxHndl;
+  //ipcMailboxHandle mailBoxHndl;
   ipcStatus        ipcStat;
   INT32 i;
 

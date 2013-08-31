@@ -91,6 +91,8 @@ int main(void)
     const UINT32 MAX_IDLE_FRAMES = 15 * systemTickTimeInHz;
 
     UINT32 i;
+    UINT32 start;
+    UINT32 td;
     SecComm secComm;
     UINT32 frames = 0;
     UINT32 cmdIdle = 0;
@@ -126,25 +128,31 @@ int main(void)
 
     videoRedirect = AseMain;
 
+    // overhead of timing
+    start = HsTimer();
+    td = HsTimeDiff(start);
+    td = HsTimeDiff(start);
 
     // The main thread goes into an infinite loop.
     while (1)
     {
         // Write the system tick value to video memory.
-        debug_str(AseMain, 0, 0, "SecComm(%s) %d",
+        debug_str(AseMain, 0, 0, "SecComm(%s) %d - %d : %s",
                   secComm.GetSocketInfo(),
-                  frames);
+                  frames, td,
+                  version);
 
         debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
                   secComm.GetRxCount(),
                   secComm.GetTxCount(),
-                  secComm.isRxing ? "Yes" : "No",
+                  secComm.isRxing ? "Yes" : "No ",
                   secComm.forceConnectionClosed ? "Yes" : "No",
                   cmdIdle+1,
                   MAX_IDLE_FRAMES
                   );
 
         debug_str(AseMain, 3, 0, "%s", secComm.GetErrorMsg());
+        debug_str(AseMain, 6, 0, "CmProc: %d Ioi: %d", cmProc.m_frames, ioiProc.m_frames);
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();

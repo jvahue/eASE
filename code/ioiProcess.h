@@ -16,18 +16,6 @@
 *
 *
 */
-struct ParamCfg {
-    UINT32 index;
-    UINT32 masterId;
-    ParameterName name;
-    UINT32 rateHz;
-    PARAM_FMT_ENUM fmt;
-    UINT32 gpa;
-    UINT32 gpb;
-    UINT32 gpc;
-    UINT32 scale;
-};
-
 class IoiProcess : public CmdRspThread
 {
 public:
@@ -52,8 +40,10 @@ public:
 protected:
 
      // Methods
-    virtual void RunSimulation(); // override the CmdRspThread::RunSimulation
-    void FillSensorNames(INT32 start, SensorNames& m_snsNames);       // Send the sensor names to ePySte
+    // override the CmdRspThread::RunSimulation
+    virtual void RunSimulation(); 
+    // Send the sensor names to ePySte
+    void FillSensorNames(INT32 start, SensorNames& m_snsNames) const;   
     void ScheduleParameters();
 
     bool CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data);
@@ -62,7 +52,7 @@ protected:
     void UpdateIoi();
     void UpdateCCDL();
 
-    virtual void UpdateDisplay(VID_DEFS who);
+    virtual int UpdateDisplay(int theLine);
 
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
@@ -75,7 +65,6 @@ protected:
     UINT32 m_displayCount;
     UINT32 m_displayIndex[eIoiMaxDisplay];
 
-    UINT32 m_frames;
     UINT32 m_scheduled;
     UINT32 m_updated;
 
@@ -89,6 +78,12 @@ protected:
     ParameterName m_closeFailNames[eIoiFailDisplay];
 
     bool m_sgRun;
+
+    // debug timing
+    UINT32 m_avgIoiTime;
+    UINT32 m_totalParamTime;
+    UINT32 m_totalIoiTime;
+
 
     //File m_paramCfg;
 };

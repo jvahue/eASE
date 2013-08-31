@@ -54,7 +54,6 @@ protected:
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     AseCommon*      m_pCommon;
-    UINT32          m_overrunCount;
 
     void Launch(const CHAR* name, const CHAR* tName);
 

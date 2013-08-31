@@ -33,6 +33,7 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
+static char outputLines[26][80];
 
 /*****************************************************************************/
 /* Constant Data                                                             */
@@ -59,7 +60,6 @@ IoiProcess::IoiProcess()
     , m_paramLoopEnd(0)
     , m_paramInfoCount(0)
     , m_displayCount(0)
-    , m_frames(0)
     , m_scheduled(0)
     , m_updated(0)
     , m_ioiOpenFailCount(0)
@@ -75,6 +75,7 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
+    m_defaultScreen = Ioi;
 }
 
 /****************************************************************************
@@ -135,34 +136,54 @@ void IoiProcess::RunSimulation()
 void IoiProcess::UpdateIoi()
 {
     UINT32 i;
+    UINT32 start;
     Parameter* param;
     ioiStatus writeStatus;
-
 
     m_scheduled = 0; // need to see how many are really scheduled
     m_updated = 0;   // toggle the lsb
 
     if ( m_initStatus == ioiSuccess)
     {
+        m_totalParamTime = 0;
+        m_totalIoiTime = 0;
+
         param = &m_parameters[0];
         for (i=0; i < m_paramLoopEnd; ++i)
         {
-            if (param->m_isValid && !param->m_isChild && param->m_ioiValid)
+            if (param->m_ioiValid)
             {
                 m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun) ? 1 : 0;
-                writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
-                if (writeStatus != ioiSuccess)
+                m_totalParamTime += param->m_updateDuration;
+
+                if (param->m_ioiValue != param->m_ioiValueZ1)
                 {
-                    // TODO : what else?
-                    m_ioiWriteFailCount += 1;
-                }
-                else
-                {
-                    m_updated += 1; // count how many we updated
+                    start = HsTimer();
+                    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+                    m_totalIoiTime += HsTimeDiff(start);
+
+                    if (writeStatus != ioiSuccess)
+                    {
+                        // TODO : what else?
+                        m_ioiWriteFailCount += 1;
+                    }
+                    else
+                    {
+                        m_updated += 1; // count how many we updated
+                    }
                 }
             }
             ++param;
         }
+    }
+
+    if (m_updated > 0)
+    {
+           m_avgIoiTime /= m_updated;
+    }
+    else
+    {
+        m_avgIoiTime = 0;
     }
 }
 
@@ -200,61 +221,73 @@ void IoiProcess::HandlePowerOff()
 // ...
 // n: Scheduled: <x> Updated: <y>
 //-----------------------------------------------------------------------------
-void IoiProcess::UpdateDisplay(VID_DEFS who)
+int IoiProcess::UpdateDisplay(int theLine)
 {
-    char rep[80];
-    char outputLine[80];
     UINT32 i;
-
+    char rep[80];
     UINT32 atLine = eFirstDisplayRow;
 
-    CmdRspThread::UpdateDisplay(Ioi);
+    CmdRspThread::UpdateDisplay(0);
 
-    //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
-    debug_str(Ioi, atLine, 0, "IOI: %s SigGen: %s Params: %d ParamInfo: %d",
-              ioiInitStatus[m_initStatus],
-              m_sgRun ? "Run" : "Hold",
-              m_paramCount,
-              m_paramInfoCount);
-    atLine += 1;
-
-    //debug_str(Ioi, atLine, 0, "%s", m_blankLine);
-    debug_str(Ioi, atLine, 0, "OpenErr %d Write Fail %d CloseErr %d",
-              m_ioiOpenFailCount,
-              m_ioiWriteFailCount,
-              m_ioiCloseFailCount);
-    atLine += 1;
-
-    if (m_ioiOpenFailCount > 0 || m_ioiCloseFailCount > 0)
+    if (theLine == eFirstDisplayRow)
     {
-        UINT8 i;
-        UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
-        for (i=0; i < stop; ++i)
+        memset(outputLines, 0, sizeof(outputLines));
+
+        sprintf(outputLines[atLine],
+                "IOI: %s SigGen: %s Params: %d ParamInfo: %d Sched: %4d Updated: %4d",
+                ioiInitStatus[m_initStatus],
+                m_sgRun ? "Run" : "Hold",
+                m_paramCount,
+                m_paramInfoCount,
+                m_scheduled, m_updated);
+        atLine += 1;
+
+        sprintf(outputLines[atLine],
+                "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
+                m_ioiOpenFailCount,
+                m_ioiWriteFailCount,
+                m_ioiCloseFailCount,
+                m_totalParamTime,
+                m_totalIoiTime,
+                m_avgIoiTime);
+        atLine += 1;
+
+        if (m_ioiOpenFailCount > 0 || m_ioiCloseFailCount > 0)
         {
-            debug_str(Ioi, atLine, 0, "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
+            UINT8 i;
+            UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
+            for (i=0; i < stop; ++i)
+            {
+                sprintf(outputLines[atLine], "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
+                atLine += 1;
+            }
+        }
+
+        // display parameter data - 23 usable line on the display
+        for (i=0; i < m_displayCount && atLine < 23; ++i)
+        {
+            UINT32 x = m_displayIndex[i];
+
+            sprintf(outputLines[atLine], "%-32s(%6d): %11.4f - 0x%08x(0x%08x)",
+                      m_parameters[x].m_name, m_parameters[x].m_updateCount,
+                      m_parameters[x].m_value,
+                      m_parameters[x].m_rawValue, m_parameters[x].m_data);
+            atLine += 1;
+
+            sprintf(outputLines[atLine],"%s", m_parameters[x].Display(rep));
             atLine += 1;
         }
     }
 
-    // display parameter data - 23 usable line on the display
-    for (i=0; i < m_displayCount && atLine < 23; ++i)
+    debug_str(Ioi, theLine, 0, outputLines[theLine]);
+    theLine += 1;
+
+    if (outputLines[theLine][0] == '\0')
     {
-        UINT32 x = m_displayIndex[i];
-
-        //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
-        debug_str(Ioi, atLine, 0, "%32s(%6d): %11.4f - 0x%08x(0x%08x)",
-                  m_parameters[x].m_name, m_parameters[x].m_updateCount,
-                  m_parameters[x].m_value,
-                  m_parameters[x].m_rawValue, m_parameters[x].m_data);
-        atLine += 1;
-
-        //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
-        debug_str(Ioi, atLine, 0, "%s", m_parameters[x].Display(rep));
-        atLine += 1;
+        theLine = eFirstDisplayRow;
     }
 
-    //debug_str(Ioi, atLine, 0,"%s", m_blankLine);
-    debug_str(Ioi, atLine, 0, "Scheduled: %4d Updated: %4d", m_scheduled, m_updated);
+    return theLine;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -265,7 +298,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 {
     BOOLEAN serviced = TRUE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
+    //int port;  // 0 = gse, 1 = ms
     int itemId;
 
     SecRequest request = secComm.m_request;
@@ -536,7 +569,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     //----------------------------------------------------------------------------------------------
     case eResetIoi:
         // clear the paramInfo array
-        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
         m_paramInfoCount = 0;
         InitIoi();
         secComm.m_response.successful = true;
@@ -567,7 +600,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 // Send up to 125 at a time
 // - loop until we find a valid one starting from 'start' the do 125 consecutive
 //
-void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)
+void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames) const
 {
     UINT32 i;
     UINT32 filledIn = 0;
@@ -580,16 +613,16 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames)
         snsNames.names[i][0] = '\0';
     }
 
-    snsNames.pBaseIndex = eAseMaxParams;
-    for (i = start; (filledIn < eSecNumberOfSensors && i < eAseMaxParams); ++i)
+    snsNames.pBaseIndex = (UINT32)eAseMaxParams;
+    for (i = start; (filledIn < (UINT32)eSecNumberOfSensors && i < eAseMaxParams); ++i)
     {
-        if (snsNames.pBaseIndex != eAseMaxParams || m_parameters[i].m_isValid)
+        if (snsNames.pBaseIndex != (UINT32)eAseMaxParams || m_parameters[i].m_isValid)
         {
-            if (snsNames.pBaseIndex == eAseMaxParams)
+            if (snsNames.pBaseIndex == (UINT32)eAseMaxParams)
             {
                 snsNames.pBaseIndex = i;
             }
-            strncpy(snsNames.names[filledIn], m_parameters[i].m_name, eAseParamNameSize);
+            strncpy(snsNames.names[filledIn], m_parameters[i].m_name, (int)eAseParamNameSize);
             filledIn += 1;
         }
     }
@@ -613,18 +646,19 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
     if (paramCount <= PARAM_SET_SIZE)
     {
         // this is the first set ePySte is sending down - clear out the paramInfo
-        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
         m_paramInfoCount = 0;
     }
 
-    if ( (paramSetCount + m_paramInfoCount) <= eAseMaxParams)
+    if ( ((UINT32)paramSetCount + m_paramInfoCount) <= (int)eAseMaxParams)
     {
-        for (i=0; i < paramSetCount; ++i)
+        for (i=0; i < (UINT32)paramSetCount; ++i)
         {
             m_paramInfo[i+m_paramInfoCount].index    = pCfg->index;
             m_paramInfo[i+m_paramInfoCount].masterId = pCfg->masterId;
-            strncpy(m_paramInfo[i+m_paramInfoCount].name, pCfg->name, eAseParamNameSize);
+            strncpy(m_paramInfo[i+m_paramInfoCount].name, pCfg->name, (int)eAseParamNameSize);
             m_paramInfo[i+m_paramInfoCount].rateHz = pCfg->rateHz;
+            m_paramInfo[i+m_paramInfoCount].src = pCfg->src;
             m_paramInfo[i+m_paramInfoCount].fmt = pCfg->fmt;
             m_paramInfo[i+m_paramInfoCount].gpa = pCfg->gpa;
             m_paramInfo[i+m_paramInfoCount].gpb = pCfg->gpb;
@@ -633,7 +667,7 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
             ++pCfg;
         }
 
-        m_paramInfoCount += paramSetCount;
+        m_paramInfoCount += (UINT32)paramSetCount;
         status = true;
     }
 
@@ -650,14 +684,13 @@ void IoiProcess::InitIoi()
 {
     UINT32 i;
     UINT32 i1;
-    ioiStatus m_initStatus;
     ioiStatus openStatus;
     ioiStatus closeStatus;
 
     if (m_initStatus == ioiSuccess)
     {
         // clear the display
-        memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
+        memset((void*)m_displayIndex, 0, sizeof(m_displayIndex));
         m_displayCount = 0;
 
         m_ioiOpenFailCount = 0;
@@ -667,7 +700,7 @@ void IoiProcess::InitIoi()
         memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
 
         // close any open ioi
-        for (i=0; i < eAseMaxParams; ++i)
+        for (i=0; i < (int)eAseMaxParams; ++i)
         {
             if (m_parameters[i].m_ioiValid)
             {
@@ -675,10 +708,10 @@ void IoiProcess::InitIoi()
                 if (closeStatus != ioiSuccess)
                 {
                     // copy name for display
-                    if (m_ioiCloseFailCount < eIoiFailDisplay)
+                    if (m_ioiCloseFailCount < (int)eIoiFailDisplay)
                     {
                         strncpy(m_closeFailNames[m_ioiCloseFailCount],
-                                m_parameters[i].m_name, eAseParamNameSize);
+                                m_parameters[i].m_name, (int)eAseParamNameSize);
                     }
                     m_ioiCloseFailCount += 1;
                 }
@@ -702,10 +735,7 @@ void IoiProcess::InitIoi()
                 m_paramLoopEnd = m_maxParamIndex + 1;
             }
 
-            m_parameters[index].Init(m_paramInfo[i].name, m_paramInfo[i].masterId, m_paramInfo[i].rateHz,
-                                     m_paramInfo[i].fmt,
-                                     m_paramInfo[i].gpa,  m_paramInfo[i].gpb, m_paramInfo[i].gpc,
-                                     m_paramInfo[i].scale);
+            m_parameters[index].Init(&m_paramInfo[i]);
 
             // check to see if this parameter is a child of any existing parameters
             for (i1=0; i1 < m_paramLoopEnd; ++i1)
@@ -734,17 +764,17 @@ void IoiProcess::InitIoi()
                 else
                 {
                     // copy name for display
-                    if (m_ioiOpenFailCount < eIoiFailDisplay)
+                    if (m_ioiOpenFailCount < (int)eIoiFailDisplay)
                     {
                         strncpy(m_openFailNames[m_ioiOpenFailCount],
-                                m_parameters[index].m_name, eAseParamNameSize);
+                                m_parameters[index].m_name, (int)eAseParamNameSize);
                     }
                     m_ioiOpenFailCount += 1;
                 }
             }
 
             // default the display to the first eIoiMaxDisplay parameters created
-            if (m_displayCount < eIoiMaxDisplay && m_parameters[index].m_ioiValid)
+            if (m_displayCount < (int)eIoiMaxDisplay && m_parameters[index].m_ioiValid)
             {
                 m_displayIndex[m_displayCount] = index;
                 m_displayCount += 1;
@@ -757,14 +787,11 @@ void IoiProcess::InitIoi()
         //m_paramCfg.Close();
 
         // clear out the paramInfo
-        memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+        memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
         m_paramInfoCount = 0;
 
         ScheduleParameters();
-
-        m_updated = 3; // TODO: delete this line
     }
-
 }
 
 //-------------------------------------------------------------------------------------------------

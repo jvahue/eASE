@@ -103,7 +103,7 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            m_data = UINT32(value / m_scaleLsb);
+            m_data = UINT32((value + 0.5f) / m_scaleLsb);
 
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
             if (value < 0.0f)
@@ -128,18 +128,18 @@ UINT32 ParamConverter::A429Converter(float value)
 // Function: Reset
 // Description:
 //
-void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
-                           UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
+void ParamConverter::Reset(ParamCfg* paramInfo)
 {
     UINT32 rawLabel;
 
-    m_gpa = gpa;
-    m_gpb = gpb;
-    m_gpc = gpc;
-    m_type = fmt;
-    m_masterId = masterId;
-    m_scale = scale;
-    m_maxValue = FLOAT32(scale);
+    m_gpa = paramInfo->gpa;
+    m_gpb = paramInfo->gpb;
+    m_gpc = paramInfo->gpc;
+    m_src = paramInfo->src;
+    m_type = paramInfo->fmt;
+    m_masterId = paramInfo->masterId;
+    m_scale = paramInfo->scale;
+    m_maxValue = FLOAT32(paramInfo->scale);
     
     if (m_type == PARAM_FMT_A429)
     {
@@ -147,7 +147,7 @@ void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
 
         if (m_a429.format == eBNR)
         {
-            m_scaleLsb = float(scale) / pow(2.0f, float(m_a429.wordSize));
+            m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
         }
         // TODO: other formats
 
@@ -214,11 +214,11 @@ void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
 //--------------------------------------------------------------------------------------------------
 void ParamConverter::SetIoiName()
 {
-    if (m_type == PARAM_FMT_A429)
+    if (m_src == PARAM_SRC_A429)
     {
         SetIoiA429Name();
     }
-    else
+    else if (m_src == PARAM_SRC_A664)
     {
         SetIoiA664Name();
     }

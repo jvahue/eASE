@@ -104,12 +104,26 @@ struct ARINC429_WORD_INFO
 
 };
 
+// Parameter Configuration info
+struct ParamCfg {
+    UINT32 index;
+    UINT32 masterId;
+    ParameterName name;
+    UINT32 rateHz;
+    PARAM_SRC_ENUM src;
+    PARAM_FMT_ENUM fmt;
+    UINT32 gpa;
+    UINT32 gpb;
+    UINT32 gpc;
+    UINT32 scale;
+};
+
 //==================================================================================================
 class ParamConverter
 {
 public:
     ParamConverter();
-    void Reset(UINT32 masterId, PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    void Reset(ParamCfg* paramInfo);
     virtual UINT32 Convert(FLOAT32 value);
     void SetIoiName();
     
@@ -118,6 +132,7 @@ public:
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
+    PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
     UINT32  m_scale;       // the current value for the parameter
     FLOAT32 m_maxValue;

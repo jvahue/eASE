@@ -19,10 +19,9 @@ class Parameter : public ParamConverter
 public:
     Parameter();
     void Reset();
-    void Init(char* name, UINT32 masterId, UINT32 rate,
-              PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    void Init(ParamCfg* paramInfo);
     virtual bool Update(UINT32 sysTick, bool sgRun);
-    bool IsChild(Parameter& other);  // indicates if this parameter is a 'chilc' match for the other parameter
+    bool IsChild(Parameter& other);  // indicates if this parameter is a 'child' match for the other parameter
     char* Display(char* buffer);
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
@@ -46,6 +45,8 @@ public:
     bool   m_isChild;        // indicates this is a child (no IOI required)
 
     SignalGenerator m_sigGen;       // the parameter's signal generator
+    UINT32 m_updateDuration;
+    UINT32 m_childCount;
 };
 
 #endif

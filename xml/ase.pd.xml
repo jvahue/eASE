@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "-1744720544"
+     validityKey = "-179436543"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -39,7 +39,7 @@
    <memoryPools>
       <memoryPool
            platformPoolID = "0"
-           sizeInPages = "360"
+           sizeInPages = "600"
            defaultPool = "yes"
       ></memoryPool>
    </memoryPools>
@@ -140,7 +140,7 @@
       <threadTemplate
            name = "StdThreadTemplate"
            budget = "500"
-           instanceCount = "7"
+           instanceCount = "5"
            slackEnabled = "no"
            stackSizeInPages = "5"
            period = "fastest"

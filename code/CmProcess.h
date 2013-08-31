@@ -63,7 +63,7 @@ class CmProcess : public CmdRspThread
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
-        virtual void UpdateDisplay(VID_DEFS who);
+        virtual int UpdateDisplay(int theLine);
 
     private:
         CmReconfig m_reconfig;
