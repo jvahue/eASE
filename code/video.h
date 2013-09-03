@@ -53,6 +53,7 @@ typedef enum {
 extern "C" {
 
 void debug_str (VID_DEFS screen, int row, int col, const CHAR* str, ... );
+void debug_str1 (VID_DEFS screen, int row, int col, CHAR* str);
 void debug_str_init(void);
 void clearRow(VID_DEFS screen,  int row);
 

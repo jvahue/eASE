@@ -1,6 +1,7 @@
 #pragma once
 
-#define UINT32 unsigned int
+#include "alt_stdtypes.h"
+
 #define RAND_MAX 0x7fff
 
 // Linear Congruential Generator class

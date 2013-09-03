@@ -4,8 +4,8 @@
 #include <ioiapi.h>
 
 #include "CmdRspThread.h"
-#include "File.h"
-#include "SecComm.h"
+//#include "File.h"
+//#include "SecComm.h"
 #include "Parameter.h"
 
 // File: ioiProcess.h
@@ -21,20 +21,19 @@ class IoiProcess : public CmdRspThread
 public:
     enum IoiConstants {
         eIoiFailDisplay = 5,
-        eIoiMaxDisplay = 10,
+        eIoiMaxDisplay = 10
     };
     
-    enum IoiState {
-        eIoiStateInit,
-        eIoiStateInitFail,
-        eIoiState
-    };
+    //enum IoiState {
+    //    eIoiStateInit,
+    //    eIoiStateInitFail,
+    //    eIoiState
+    //};
 
     IoiProcess();
 
     // specialization of CmdRspThread
     virtual void Run();
-    virtual void HandlePowerOff();
     virtual BOOLEAN CheckCmd( SecComm& secComm);
 
 protected:
@@ -42,6 +41,7 @@ protected:
      // Methods
     // override the CmdRspThread::RunSimulation
     virtual void RunSimulation(); 
+    virtual void HandlePowerOff();
     // Send the sensor names to ePySte
     void FillSensorNames(INT32 start, SensorNames& m_snsNames) const;   
     void ScheduleParameters();

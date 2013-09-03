@@ -72,6 +72,7 @@ Parameter::Parameter()
 void Parameter::Reset()
 {
     m_ioiValid = false;
+    m_index = eAseMaxParams;
     m_value = 0.0f;     // the current value for the parameter
     m_rawValue = 0;
     m_ioiValue = 0;     // current ioi value after Update
@@ -97,6 +98,7 @@ void Parameter::Init(ParamCfg* paramInfo)
     UINT32 extraMs;
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);
+    m_index = paramInfo->index;
 
     m_rateHz = paramInfo->rateHz;
 

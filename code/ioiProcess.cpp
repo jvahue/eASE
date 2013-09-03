@@ -33,12 +33,12 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-static char outputLines[26][80];
+static char ioiOutputLines[26][80];
 
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-const char* ioiInitStatus[] = {
+static const char* ioiInitStatus[] = {
 //   !  max length    !
     "Success",
     "CfgFileNotFound",
@@ -68,10 +68,10 @@ IoiProcess::IoiProcess()
     , m_sgRun(false)
 {
     // clear out the paramInfo
-    memset((void*)&m_paramInfo, 0, sizeof(m_paramInfo));
+    memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
 
     // clear out our display index
-    memset((void*)&m_displayIndex, 0, sizeof(m_displayIndex));
+    memset((void*)m_displayIndex, 0, sizeof(m_displayIndex));
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
@@ -231,9 +231,9 @@ int IoiProcess::UpdateDisplay(int theLine)
 
     if (theLine == eFirstDisplayRow)
     {
-        memset(outputLines, 0, sizeof(outputLines));
+        memset(ioiOutputLines, ' ', sizeof(ioiOutputLines));
 
-        sprintf(outputLines[atLine],
+        sprintf(ioiOutputLines[atLine],
                 "IOI: %s SigGen: %s Params: %d ParamInfo: %d Sched: %4d Updated: %4d",
                 ioiInitStatus[m_initStatus],
                 m_sgRun ? "Run" : "Hold",
@@ -242,7 +242,7 @@ int IoiProcess::UpdateDisplay(int theLine)
                 m_scheduled, m_updated);
         atLine += 1;
 
-        sprintf(outputLines[atLine],
+        sprintf(ioiOutputLines[atLine],
                 "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
                 m_ioiOpenFailCount,
                 m_ioiWriteFailCount,
@@ -258,7 +258,7 @@ int IoiProcess::UpdateDisplay(int theLine)
             UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
             for (i=0; i < stop; ++i)
             {
-                sprintf(outputLines[atLine], "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
+                sprintf(ioiOutputLines[atLine], "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
                 atLine += 1;
             }
         }
@@ -268,21 +268,24 @@ int IoiProcess::UpdateDisplay(int theLine)
         {
             UINT32 x = m_displayIndex[i];
 
-            sprintf(outputLines[atLine], "%-32s(%6d): %11.4f - 0x%08x(0x%08x)",
-                      m_parameters[x].m_name, m_parameters[x].m_updateCount,
+            sprintf(ioiOutputLines[atLine], "%4d:%-32s: %11.4f - 0x%08x(0x%05x)",
+                      m_parameters[x].m_index, m_parameters[x].m_name,
                       m_parameters[x].m_value,
                       m_parameters[x].m_rawValue, m_parameters[x].m_data);
             atLine += 1;
 
-            sprintf(outputLines[atLine],"%s", m_parameters[x].Display(rep));
+            sprintf(ioiOutputLines[atLine],"%s", m_parameters[x].Display(rep));
             atLine += 1;
         }
+
+        // terminate the display
+        ioiOutputLines[atLine][0] = '\0';
     }
 
-    debug_str(Ioi, theLine, 0, outputLines[theLine]);
+    debug_str1(Ioi, theLine, 0, ioiOutputLines[theLine]);
     theLine += 1;
 
-    if (outputLines[theLine][0] == '\0')
+    if (ioiOutputLines[theLine][0] == '\0')
     {
         theLine = eFirstDisplayRow;
     }

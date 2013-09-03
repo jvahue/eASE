@@ -255,6 +255,26 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    case eFileExists:
+        // see if a file exists on target
+        if ( m_getFile.Open(secComm.m_request.charData,
+                            File::PartitionType(secComm.m_request.sigGenId), 'r'))
+        {
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            if (m_getFile.GetFileError() != eFileNotFound)
+            {
+               secComm.ErrorMsg("Failed File Exists Check Error(%d)", m_getFile.GetFileError());
+            }
+            secComm.m_response.successful = FALSE;
+        }
+        m_getFile.Close();
+
+        serviced = TRUE;
+        break;
+
     default:
         subServiced = m_reconfig.CheckCmd(secComm, m_reConfigOutBox);
         if (!subServiced)
@@ -447,7 +467,7 @@ int CmProcess::UpdateDisplay(int theLine)
     // Status Display
     if (theLine == eFirstDisplayRow)
     {
-        memset(outputLines, 0, sizeof(outputLines));
+        memset(outputLines, ' ', sizeof(outputLines));
 
         sprintf(outputLines[atLine],"Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
                   m_reconfig.m_recfgCount,
@@ -502,7 +522,10 @@ int CmProcess::UpdateDisplay(int theLine)
                   m_fileXferInBox.GetStatusStr(),
                   m_fileXferOutBox.GetStatusStr());
         atLine += 1;
-    }
+
+        // terminate the display
+        outputLines[atLine][0] = '\0';
+   }
 
     debug_str(CmProc, theLine, 0, outputLines[theLine]);
     theLine += 1;

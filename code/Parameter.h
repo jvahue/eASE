@@ -26,6 +26,7 @@ public:
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
     ParameterName m_name;  // the parameter name
+    UINT32  m_index;
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
 

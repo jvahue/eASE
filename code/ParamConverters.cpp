@@ -103,7 +103,7 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            m_data = UINT32((value + 0.5f) / m_scaleLsb);
+            m_data = UINT32( (value / m_scaleLsb) + 0.5f);
 
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
             if (value < 0.0f)

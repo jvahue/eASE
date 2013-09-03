@@ -57,6 +57,7 @@ enum SecCmds {
     eGetReconfigSts = 207,
     eLogFileReady   = 208,
     eLogFileCrc     = 209,
+    eFileExists     = 210,
 
 // CmProc Reconfig Controls
     eCmFileNameDelay = 250,

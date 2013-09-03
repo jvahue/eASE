@@ -9,12 +9,12 @@ RandGen::RandGen(void)
    m_shiftCnt   = 16;
 }
 
-void RandGen::Seed(unsigned int seed)
+void RandGen::Seed(UINT32 seed)
 {
   m_seed = seed;
 }
 
-unsigned int RandGen::Rand()
+UINT32 RandGen::Rand()
 {
   // Generate next seed
   m_seed = ((m_multiplier * m_seed) + m_increment); // % m_modulus;

@@ -185,6 +185,38 @@ static VID_DEFS redirectZ1 = VID_SYS;
 
 }
 
+//-------------------------------------------------------------------------------------------------
+// The output string is all set to go
+void debug_str1(VID_DEFS screen, int row, int col, CHAR* str)
+{
+    static VID_DEFS redirectZ1 = VID_SYS;
+
+    if (screen == videoRedirect)
+    {
+        // redirect to VID_SYS
+        screen = VID_SYS;
+
+        if (redirectZ1 != videoRedirect)
+        {
+            redirectZ1 = videoRedirect;
+
+            // clear VID_SYS if we just changed
+            for (UINT32 i=0; i < CGA_NUM_ROWS; ++i)
+            {
+                clearRow(screen, i);
+            }
+        }
+    }
+
+    if(!m_screens[screen].scroll)
+    {
+        //clearRow(screen, row);
+        m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
+    }
+
+    m_screens[screen].vid_stream << str;
+}
+
 /******************************************************************************
  * Function:    clearRow
  *
