@@ -49,6 +49,7 @@ typedef struct {
 /*****************************************************************************/
 static const char* modeNames[] = {
     "Idle",           // waiting for reconfig action
+    "WaitAck",        // wait before send ACK to ADRF
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
     "SendFilenames",  // locally we are 'delaying' for file fetch from the MS
@@ -61,6 +62,14 @@ static const CHAR* recfgStatus[] = {
     "No Status"
 };
 
+static const CHAR* cmdStrings[] = {
+    "RecfgRqst",  // RECFG_REQ_CODE = 0x100,   // Request Cfg File from CM
+    "RecfgRslt",  // RECFG_RESULT_CODE = 0x101,
+    "MsRecfgAck", // MS_RECFG_ACK = 0x102,
+    "MsDtRqst",   // MS_DATETIME_REQ = 0x103,
+    "None"        // = 104
+};
+
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
@@ -70,8 +79,12 @@ CmReconfig::CmReconfig()
     , m_lastErrCode(RECFG_ERR_CODE_MAX)
     , m_lastStatus(false)
     , m_recfgCount(0)
+    , m_recfgCmds(0)
     // Test Control Items
+    , m_tcRecfgAckDelay(0)
     , m_tcFileNameDelay(0)
+    , m_tcRecfgLatchWait(1000)
+    , m_lastCmd(ADRF_TO_CM_CODE_MAX)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -124,7 +137,15 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         break;
 
     //----------------------------------------------------------------------------
-    // Test Controls/Status
+    // Test Controls
+    case eCmRecfgAckDelay:
+        // send the old one back and set the new value
+        secComm.m_response.value = float(m_tcRecfgAckDelay);
+        m_tcRecfgAckDelay = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
     case eCmFileNameDelay:
         // send the old one back and set the new value
         secComm.m_response.value = float(m_tcFileNameDelay);
@@ -133,12 +154,22 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         serviced = TRUE;
         break;
 
+    case eCmLatchWait:
+        // set the mode timeout for waiting in the request recfg latch state
+        secComm.m_response.value = float(m_tcRecfgLatchWait);
+        m_tcRecfgLatchWait = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------
+    // Test Status
     case eGetRcfCount:
         secComm.m_response.value = float(m_recfgCount);
         secComm.m_response.successful = TRUE;
-
         serviced = TRUE;
         break;
+
 
     default:
         break;
@@ -185,7 +216,7 @@ bool CmReconfig::StartReconfig(MailBox& out)
         if (status)
         {
             m_state = eCmRecfgLatch;
-            m_modeTimeout = 100;
+            m_modeTimeout = m_tcRecfgLatchWait;
         }
         else
         {
@@ -262,6 +293,8 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     if ( cmd == RECFG_REQ_CODE || cmd == MS_RECFG_ACK || cmd == RECFG_RESULT_CODE)
     {
         status = true;
+        m_lastCmd = cmd;
+        m_recfgCmds += 1;
     }
     else
     {
@@ -275,22 +308,36 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         // The ADRF is requesting we start a reconfig
         // TODO: are we responding
         // TODO: are we responding with garbage?
-        outData.code = RECFG_REQ_ACK;
-        outData.buff[0] = msOnline ?
-                          RECFG_ACK_CM_OK :
-                          RECFG_ACK_CM_NOT_OK; // TODO: 8/5/13: this is opposite the doc
-
-        out.Send( &outData, sizeof(outData));
-
-        m_state = eCmRecfgSendFilenames;
-        m_modeTimeout = m_tcFileNameDelay;
+        m_modeTimeout = m_tcRecfgAckDelay;
+        m_state = eCmRecfgWaitAck;
         m_lastErrCode = RECFG_ERR_CODE_MAX;
 
         m_recfgCount += 1;
         cmdHandled = true;
     }
 
-    if (m_state == eCmRecfgLatch)
+    if (m_state == eCmRecfgWaitAck)
+    {
+        if (m_modeTimeout == 0)
+        {
+            outData.code = RECFG_REQ_ACK;
+            outData.buff[0] = msOnline ?
+                              RECFG_ACK_CM_OK :
+                              RECFG_ACK_CM_NOT_OK; // TODO: 8/5/13: this is opposite the doc
+
+            out.Send( &outData, sizeof(outData));
+
+            m_state = eCmRecfgSendFilenames;
+            m_modeTimeout = m_tcFileNameDelay;
+            m_lastErrCode = RECFG_ERR_CODE_MAX;
+        }
+        else
+        {
+            m_modeTimeout -= 1;
+        }
+    }
+
+    else if (m_state == eCmRecfgLatch)
     {
         if (inData.code == MS_RECFG_ACK)
         {
@@ -310,6 +357,20 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             {
                 m_modeTimeout -= 1;
             }
+        }
+    }
+
+    else if (m_state == eCmRecfgWaitRequest)
+    {
+        if (m_modeTimeout == 0)
+        {
+            // TBD: should we resend the request if we don't get latch (3 times?)
+            m_state = eCmRecfgIdle;
+            m_modeTimeout = 0;
+        }
+        else
+        {
+            m_modeTimeout -= 1;
         }
     }
 
@@ -385,4 +446,9 @@ const char* CmReconfig::GetModeName() const
 const char* CmReconfig::GetCfgStatus() const
 {
     return recfgStatus[m_lastErrCode];
+}
+
+const char* CmReconfig::GetLastCmd() const
+{
+    return cmdStrings[m_lastCmd-RECFG_REQ_CODE];
 }

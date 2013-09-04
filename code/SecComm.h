@@ -64,6 +64,7 @@ enum SecCmds {
     eCmRecfgAckDelay = 251,
     eGetRcfCount     = 252,
     eDeleteCfgFile   = 253,
+    eCmLatchWait     = 254,
 
 // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partion Id

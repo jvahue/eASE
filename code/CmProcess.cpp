@@ -469,8 +469,9 @@ int CmProcess::UpdateDisplay(int theLine)
     {
         memset(outputLines, ' ', sizeof(outputLines));
 
-        sprintf(outputLines[atLine],"Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
-                  m_reconfig.m_recfgCount,
+        sprintf(outputLines[atLine],"Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
+                  m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
+                  m_reconfig.GetLastCmd(),
                   m_reconfig.GetModeName(),
                   m_reconfig.m_modeTimeout,
                   m_reconfig.m_lastStatus ? "Err" : "Ok",

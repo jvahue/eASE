@@ -38,6 +38,7 @@ class CmReconfig
 public:
     enum CmReconfigState {
         eCmRecfgIdle,           // waiting for reconfig action
+        eCmRecfgWaitAck,        // wait before send ACK
         eCmRecfgLatch,          // MS recfg rqst sent and latch, don't send rqst again
         eCmRecfgWaitRequest,    // MS is now waiting for the recfg rqst from ADRF - no timeout
         eCmRecfgSendFilenames,  // locally we are 'delaying' for file fetch from the MS
@@ -61,6 +62,7 @@ public:
     bool StartReconfig(MailBox& out);
     const char* GetModeName() const;
     const char* GetCfgStatus() const;
+    const char* GetLastCmd() const;
 
     char m_xmlFileName[eCmRecfgFileSize];
     char m_cfgFileName[eCmRecfgFileSize];
@@ -70,11 +72,15 @@ public:
     UINT32 m_modeTimeout;
     RECFG_ERR_CODE_ENUM m_lastErrCode;
     BOOLEAN m_lastStatus;
-    UINT32 m_recfgCount;
+    UINT32 m_recfgCount;  // how many recfg rqst have we seen
+    UINT32 m_recfgCmds;   // how many recfg rqst have we seen
 
     // script test control items
-    UINT32 m_tcFileNameDelay;  // CM_tcFileNameDelay(x)
     UINT32 m_tcRecfgAckDelay;  // CM_tcRecfgAckDelay(x)
+    UINT32 m_tcFileNameDelay;  // CM_tcFileNameDelay(x)
+    UINT32 m_tcRecfgLatchWait; // CM_tcRecfgLatchWait(x)
+
+    ADRF_TO_CM_CODE m_lastCmd; // what was the last cmd
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);

@@ -10,7 +10,7 @@
 *
 *
 */
-# define version "v0.0.2"
+# define version "v0.0.3"
 
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 
