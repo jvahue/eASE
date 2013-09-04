@@ -80,5 +80,6 @@ typedef struct
     bool       bMsOnline;      // is the MS online
 } AseCommon;
 
+extern AseCommon aseCommon;
 
 #endif

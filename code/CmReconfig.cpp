@@ -91,6 +91,19 @@ CmReconfig::CmReconfig()
     memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
 }
 
+
+//-------------------------------------------------------------------------------------------------
+// Function: ResetControls
+// Description: reset the object controls to their defaults when a script ends
+//
+void CmReconfig::ResetControls()
+{
+    // reset the object controls to their defaults when a script ends
+    m_tcRecfgAckDelay = 0;
+    m_tcFileNameDelay = 0;
+    m_tcRecfgLatchWait = 1000;
+}
+
 //-------------------------------------------------------------------------------------------------
 // Function: CheckCmd
 // Description: Set the filenames to be used during the reconfiguration process
@@ -271,6 +284,11 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
         {
             // here we have an unknown command
         }
+    }
+
+    if ( !aseCommon.bScriptRunning)
+    {
+        ResetControls();
     }
 }
 

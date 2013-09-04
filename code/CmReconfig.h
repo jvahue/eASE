@@ -84,6 +84,8 @@ public:
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
+    void ResetControls();
+
 
     File m_file;
     char m_mbErr[128];
