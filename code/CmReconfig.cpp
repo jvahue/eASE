@@ -133,9 +133,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         }
         else
         {
-            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s MB: <%s>",
-                             GetModeName(),
-                             m_mbErr);
+            secComm.ErrorMsg("MS Recfg Rqst Fail: <%s>", m_mbErr);
             secComm.m_response.successful = FALSE;
         }
 
@@ -234,12 +232,12 @@ bool CmReconfig::StartReconfig(MailBox& out)
         }
         else
         {
-            sprintf(m_mbErr, "%s", out.GetIpcStatusString());
+            sprintf(m_mbErr, "Mailbox Send IPC: %s", out.GetIpcStatusString());
         }
     }
     else
     {
-        sprintf(m_mbErr, "Invalid Mode <%s> for Request s/b <Idle>", GetModeName());
+        sprintf(m_mbErr, "Invalid Mode <%s> s/b <Idle>", GetModeName());
     }
 
     return status;

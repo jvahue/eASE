@@ -272,7 +272,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         secComm.m_response.successful = m_getFile.Delete(ADRF_CFG_FILE, File::ePartAdrf);
         if (!secComm.m_response.successful)
         {
-            secComm.ErrorMsg("Failed File Delete of <%s> errorCode: %d",
+            secComm.ErrorMsg("Failed File Delete <%s> errorCode: %d",
                              ADRF_CFG_FILE, m_getFile.GetFileError());
             secComm.m_response.value = float(m_getFile.GetFileError());
         }
