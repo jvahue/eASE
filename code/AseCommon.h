@@ -18,18 +18,18 @@
 #define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
 #define IS_CONNECTED      (m_pCommon->bConnected)
 #define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
-#define IS_POWER_ON       (m_pCommon->bPowerOnState)
+#define IS_POWER_ON       (m_pCommon->adrfState != eAdrfOff)
 #define IS_MS_ONLINE      (m_pCommon->bMsOnline)
 
 // high speed timer
 #define HsTimer() getTimeStamp()
 
-#define HsTimeDiff(start) (HsTimer() - start)/getSystemInfoDEOS()->eventLogClockFrequency
+#define HsTimeDiff(start) ((HsTimer() - start)/getSystemInfoDEOS()->eventLogClockFrequency)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
-    eAseMaxParams = 3000,      // a maximum of 3000 parameters in the system
+    eAseMaxParams = 3000      // a maximum of 3000 parameters in the system
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,13 +70,19 @@ typedef enum {
 
 typedef char ParameterName[eAseParamNameSize];
 
+enum AdrfState {
+    eAdrfOff,
+    eAdrfOn,
+    eAdrfReady
+};
+
 // Structure of control attribs for managing the UUT
 typedef struct
 {
+    AdrfState  adrfState;      // Current state of UUT. off, on, rdy = gse connection active
     UNSIGNED32 *systemTickPtr; // Pointer to the system tick value.
     bool       bConnected;     // ePySte Connection
     bool       bScriptRunning; // Is a script actively running
-    bool       bPowerOnState;  // Current "virtual" power state of UUT. True = PwrOn, FALSE = PwrOff
     bool       bMsOnline;      // is the MS online
 } AseCommon;
 

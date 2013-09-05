@@ -37,6 +37,12 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+static const char* adrfState[] = {
+    "Off",
+    "On",
+    "Ready",
+};
+
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -97,9 +103,10 @@ void CmdRspThread::RunSimulation()
 int CmdRspThread::UpdateDisplay(int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
-    debug_str(m_defaultScreen, theLine, 0, "ePySte: %s ADRF: %s MS: %s Script: %s Frame: %d/%d",
-              IS_CONNECTED ? "Conn  " : "NoConn",
-              IS_POWER_ON ? "On" : "Off",
+    debug_str(m_defaultScreen, theLine, 0,
+              "ePySte(%s) ADRF(%s) MS(%s) Script(%s) Frame(%d/%d)",
+              IS_CONNECTED ? "Conn" : "NoConn",
+              adrfState[m_pCommon->adrfState],
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",
               m_frames, m_overrunCount

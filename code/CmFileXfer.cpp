@@ -79,7 +79,6 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
 {
     BOOLEAN serviced = FALSE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
 
     SecRequest request = secComm.m_request;
     switch (request.cmdId)
@@ -240,7 +239,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             {
                 // send Complete Message
                 FILE_COMPLETE_MSG* pCompleteMsg = (FILE_COMPLETE_MSG*)&m_sendMsgBuffer;
-                strncpy(pCompleteMsg->filename, pCrcValMsg->filename, MAX_MSG_LEN);
+                strncpy(pCompleteMsg->filename, pCrcValMsg->filename, CM_FILE_NAME_LEN);
                 pCompleteMsg->msgId = CM_ID_COMPLETE;
 
                 out.Send(&m_sendMsgBuffer, sizeof(m_sendMsgBuffer));

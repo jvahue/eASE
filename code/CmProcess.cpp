@@ -42,11 +42,15 @@ static const CHAR adrfProcessName[] = "adrf";
 static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
 static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
+static const CHAR pingCmd[] = "efast";
+
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmProcess::CmProcess()
-    : m_bRspPending(FALSE)
+    : m_requestPing(false)
+    , m_lastGseSent(0)
+
 {
     // TODO: remove after debugging
     memset( m_readyFile, 0, sizeof(m_readyFile));
@@ -107,6 +111,20 @@ void CmProcess::RunSimulation()
     m_fileXfer.ProcessFileXfer(IS_MS_ONLINE, m_fileXferInBox, m_fileXferOutBox);
 
     ProcessGseMessages();
+
+    if (m_gseOutBox.GetIpcStatus() == ipcValid)
+    {
+        m_pCommon->adrfState = eAdrfReady;
+    }
+    else if (m_pCommon->adrfState == eAdrfOn)
+    {
+        // see if the adrf is ready
+        if ((m_frames - m_lastGseSent) > 150)
+        {
+            m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
+            m_lastGseSent = m_frames;
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -152,6 +170,9 @@ void CmProcess::HandlePowerOff()
 
     m_fileXferInBox.Reset();
     m_fileXferOutBox.Reset();
+
+    m_requestPing = false;
+    m_lastGseSent = 0;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -171,7 +192,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     case eWriteStream:
         if ( request.charDataSize < GSE_MAX_LINE_SIZE)
         {
-            GSE_COMMAND* mb;
+            //GSE_COMMAND* mb;
             port = request.variableId;  // 0 = gse, 1 = ms
 
             memcpy((void*)m_gseCmd.commandLine, (void*)request.charData, request.charDataSize);
@@ -179,6 +200,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
             m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd));
             secComm.m_response.successful = TRUE;
+            m_lastGseSent = m_frames;
 
             //sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
             //            m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
@@ -526,7 +548,7 @@ int CmProcess::UpdateDisplay(int theLine)
 
         // terminate the display
         outputLines[atLine][0] = '\0';
-   }
+    }
 
     debug_str(CmProc, theLine, 0, outputLines[theLine]);
     theLine += 1;

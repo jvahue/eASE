@@ -66,10 +66,6 @@ CmdRspThread* cmdRspThreads[MAX_CMD_RSP] = {
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
-processStatus CreateAdrfProcess();
-
-void FileSystemTestSmall();
-void FileSystemTestBig();
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -112,7 +108,7 @@ int main(void)
     adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
     debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
-    aseCommon.bPowerOnState = (processSuccess == adrfProcStatus);
+    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
 
     secComm.Run();
 
@@ -229,7 +225,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                                                                  adrfName,
                                                                  adrfProcStatus);
                 // Update the global-shared data block
-                aseCommon.bPowerOnState = TRUE;
+                aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
             }
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -247,7 +243,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 adrfProcHndl   = NULL;
             }
             // Update the global-shared data block
-            aseCommon.bPowerOnState = FALSE;
+            aseCommon.adrfState = eAdrfOff;
 
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -294,191 +290,3 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 }
 
 //-------------------------------------------------------------------------------------------------
-
-
-
-processStatus CreateAdrfProcess()
-{
-    return createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-}
-
-void FileSystemTestSmall()
-{
-    char writeTest[] =
-    {   "[01 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[02 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[03 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[04 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[05 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[06 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[07 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[08 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[09 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[10 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[11 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[12 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[13 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[14 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[15 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[16 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[17 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[18 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[19 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[20 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[21 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[22 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[23 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[24 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[25 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[26 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[27 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[28 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[29 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[30 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[31 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[32 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[33 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[34 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[35 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[36 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[37 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[38 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[39 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[40 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[41 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[42 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[43 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[44 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[45 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[46 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[47 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[48 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-   };
-    SIGNED16   i, recSize = 41;
-    char readTest[50*41];
-    UNSIGNED32 offset  = 0;
-    BOOLEAN ok = TRUE;
-    File      fileObj;
-
-    fileObj.Delete("TestFile.cfg", File::ePartCmProc);
-
-    // PERFORM WRITE
-    if (1)
-    {
-        fileObj.Open("TestFile.cfg", File::ePartCmProc, 'w');
-        do
-        {
-            if (!fileObj.Write(&writeTest[offset], recSize))
-            {
-                ok = FALSE;
-            }
-            offset += recSize;
-        }
-        while( ok && offset < strlen(writeTest) );
-        fileObj.Close();
-    }
-
-    // PERFORM READ
-    fileObj.Open("TestFile.cfg", File::ePartCmProc, 'r');
-    offset  = 0;
-    SIGNED32 bytesRead = 0;
-    memset(readTest, 0x20, sizeof(readTest) );
-    do
-    {
-        bytesRead = fileObj.Read(&readTest[offset], recSize);
-        if (bytesRead == 0)
-        {
-            ok = FALSE;
-        }
-        offset += bytesRead;
-    }
-    while(ok && offset < strlen(writeTest));
-    fileObj.Close();
-
-    // COMPARE
-    UNSIGNED32 size = strlen(writeTest);
-    if ( 0 == strncmp(writeTest, readTest, size) )
-    {
-        i = 42;
-    }
-    else
-    {
-        i = 42;
-    }
-}
-
-// write and read back/verify 8K integer numbers
-void FileSystemTestBig()
-{
-    UNSIGNED32 limit = 8192;
-    SIGNED16   i, recSize;
-    SIGNED32   len;
-
-    BOOLEAN ok = TRUE;
-    #define SIZE 13
-    UNSIGNED32 writeBuff[SIZE];
-    UNSIGNED32 expectBuff[SIZE];
-    UNSIGNED32 readBuff[SIZE];
-    File      fileObj;
-    void* ptr;
-
-    recSize = sizeof(writeBuff);
-    len     = SIZE;
-
-    fileObj.Delete("TestFile.cfg", File::ePartCmProc);
-
-    // PERFORM WRITE
-    if (1)
-    {
-        fileObj.Open("TestFile.cfg", File::ePartCmProc, 'w');
-        ptr = (void*)&writeBuff;
-        for (i = 0; i < limit; ++i)
-        {
-            // Fill a buffer with incrementing numbers
-            writeBuff[i%SIZE] = i;
-
-            // When the buffer is full, write it out
-            if ((i%SIZE) == (SIZE -1))
-            {
-                if (!fileObj.Write( ptr, recSize ))
-                {
-                    ok = FALSE;
-                }
-            }
-        }
-        fileObj.Close();
-    }
-
-    // PERFORM READ
-    fileObj.Open("TestFile.cfg", File::ePartCmProc, 'r');
-    ok = TRUE;
-    SIGNED32 bytesRead = 0;
-    BOOLEAN result = TRUE;
-
-    ptr = (void*)&readBuff;
-    void* ptrE = (void*)&expectBuff;
-
-    for (i = 0; (i < limit + 2) && ok; ++i)
-    {
-
-        // Fill a buffer with incrementing numbers
-        expectBuff[i%SIZE] = i;
-
-        // When the buffer is full read the next rec and compare to expect
-        if ((i%SIZE) == (SIZE -1))
-        {
-            bytesRead = fileObj.Read(ptr, recSize);
-            if (bytesRead == 0)
-            {
-                ok = FALSE;
-            }
-
-            if (memcmp(readBuff,expectBuff,recSize) != 0)
-            {
-                result = FALSE;
-            }
-        }
-    }
-    fileObj.Close();
-}
-

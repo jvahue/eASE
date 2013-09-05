@@ -122,7 +122,7 @@ void IoiProcess::RunSimulation()
     UpdateIoi();
 
     // at 50 Hz pack the CCDL message and send it out
-    if (m_systemTick & 1 == 1)
+    if ((m_systemTick & 1) == 1)
     {
         UpdateCCDL();
     }
@@ -476,7 +476,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             Parameter* param = &m_parameters[0];
 
             // scan sensors and see if we can find the signal and any children
-            for ( int i = 0; i < m_paramLoopEnd; ++i)
+            for ( UINT32 i = 0; i < m_paramLoopEnd; ++i)
             {
                 if (param->m_isValid && param->m_type == PARAM_FMT_A429)
                 {
@@ -512,7 +512,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         Parameter* param = &m_parameters[0];
 
         // scan sensors and see if we can find the signal and any children
-        for ( int i = 0; i < m_paramLoopEnd; ++i)
+        for ( UINT32 i = 0; i < m_paramLoopEnd; ++i)
         {
             if (param->m_isValid && param->m_type == PARAM_FMT_A429)
             {

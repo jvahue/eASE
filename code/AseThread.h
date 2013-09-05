@@ -21,17 +21,14 @@
 #include "procapi.h"
 #include "AseCommon.h"
 
-// Fwd decls
-class CmdObj;
-
 class AseThread
 {
 public:
     enum AseThreadState {
         eNotCreated,
-        eStop,
+        //eStop,
         eRun,
-        eSusp,
+        //eSusp,
         eComplete,
         eError};
 

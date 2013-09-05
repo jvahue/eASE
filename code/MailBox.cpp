@@ -380,13 +380,12 @@ BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
     if (IsConnected())
     {
         m_ipcStatus = sendMessage(m_hMailBox,
-                                         buff,
-                                         BYTES_TO_DWORDS(sizeBytes),
-                                         bBlockOnQueueFull);
+                                  buff,
+                                  BYTES_TO_DWORDS(sizeBytes),
+                                  bBlockOnQueueFull);
     }
     return (m_ipcStatus == ipcValid);
 }
-
 
 const char* MailBox::GetProcessStatusString()
 {

@@ -37,15 +37,16 @@ class CmProcess : public CmdRspThread
 
     protected:
         // Properties
-        BOOLEAN m_bRspPending;
         char m_lastGseCmd[eGseCmdSize];
 
         GSE_COMMAND  m_gseCmd;
         GSE_RESPONSE m_gseRsp;
 
         // mailboxes
-        MailBox m_gseInBox;  // GSE -> CMProcess message
-        MailBox m_gseOutBox; // CMProcess -> GSE messages
+        MailBox m_gseInBox;   // GSE -> CMProcess message
+        MailBox m_gseOutBox;  // CMProcess -> GSE messages
+        UINT32 m_lastGseSent; // when was the last gse cmd sent?
+        bool m_requestPing;   // request adrf status
 
         FIFO m_gseRxFifo;  // holds any data received from the GSE MB
 

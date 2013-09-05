@@ -449,20 +449,20 @@ BOOLEAN File::Flush(void)
                                    CFFS_NO_FLUSH,
                                    &m_dataReq );
 
-         if(m_cffsStatus == cffsSuccess)
-         {
-             // m_bytesInUse will either be a full port size or some
-             // portion on the final flush.
-             m_physOffset += m_portBytesInUse;
-             m_portBytesInUse = 0;
-             status = TRUE;
-         }
-         else
-         {
-             m_fileError = eWriteFailed;
-         }
-     }
-     return status;
+        if(m_cffsStatus == cffsSuccess)
+        {
+            // m_bytesInUse will either be a full port size or some
+            // portion on the final flush.
+            m_physOffset += m_portBytesInUse;
+            m_portBytesInUse = 0;
+            status = TRUE;
+        }
+        else
+        {
+            m_fileError = eWriteFailed;
+        }
+    }
+    return status;
 }
 
 //------------------------------------------------------------------------------

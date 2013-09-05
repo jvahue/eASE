@@ -328,9 +328,8 @@ void SecComm::SendResponse()
             m_snsNames.checksum = Checksum( &m_snsNames, sizeof( m_snsNames));
             SendAny( (char*)&m_snsNames, sizeof( m_snsNames));
             memset((void*)&m_snsNames, 0, sizeof(m_snsNames));
-       }
-
-        m_rspType = eRspWait;
+        }
+         m_rspType = eRspWait;
     }
 }
 

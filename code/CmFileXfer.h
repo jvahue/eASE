@@ -44,7 +44,7 @@ public:
         eXferFileWait,      // wait for ePySte to request the file
         eXferFileOffload,   // stream file up to ePySte to verify the CRC
         eXferFileCheck,     // wait for ePySTe to return the CRC
-        eXferFileValid,     // wait for ADRF to validate the CRC
+        eXferFileValid      // wait for ADRF to validate the CRC
 
         // ADRF States
     };
