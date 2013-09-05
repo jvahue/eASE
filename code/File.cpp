@@ -379,7 +379,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
             Flush();
         }
     }
-    while(bytesToSend > (0 && m_cffsStatus == cffsSuccess));
+    while((bytesToSend > 0) && (m_cffsStatus == cffsSuccess));
 
     return (m_cffsStatus == cffsSuccess);
 }
