@@ -50,12 +50,15 @@ static const CHAR pingCmd[] = "efast";
 CmProcess::CmProcess()
     : m_requestPing(false)
     , m_lastGseSent(0)
+    , m_performAdrfOffload(false)
 
 {
     // TODO: remove after debugging
     memset( m_readyFile, 0, sizeof(m_readyFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
-    m_defaultScreen = CmProc;
+    memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
+    memset( (void*)&m_gseCmd, 0, sizeof(m_gseCmd));
+    memset( (void*)&m_gseRsp, 0, sizeof(m_gseRsp));
 }
 
 /****************************************************************************
@@ -479,12 +482,12 @@ bool CmProcess::GetFile( SecComm& secComm)
 // 7: Log In: <proc>(%d)/<ipc> Out: <proc>/<ipc>
 // ...
 //-----------------------------------------------------------------------------
-int CmProcess::UpdateDisplay(int theLine)
+int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
     char buffer[256];
     UINT32 atLine = eFirstDisplayRow;
 
-    CmdRspThread::UpdateDisplay(0);
+    CmdRspThread::UpdateDisplay(CmProc, 0);
 
     // Status Display
     if (theLine == eFirstDisplayRow)

@@ -1,6 +1,7 @@
 #include "Random.h"
 
 RandGen::RandGen(void)
+    : m_seed(0)
 {
    m_multiplier = 1103515245;
    m_modulus    = 0x80000000; // pow(2,31)

@@ -89,6 +89,7 @@ CmReconfig::CmReconfig()
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
     memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
+    memset(m_mbErr, 0, sizeof(m_mbErr));
 }
 
 
@@ -235,6 +236,10 @@ bool CmReconfig::StartReconfig(MailBox& out)
         {
             sprintf(m_mbErr, "%s", out.GetIpcStatusString());
         }
+    }
+    else
+    {
+        sprintf(m_mbErr, "Invalid Mode <%s> for Request s/b <Idle>", GetModeName());
     }
 
     return status;

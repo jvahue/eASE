@@ -66,9 +66,15 @@ CmFileXfer::CmFileXfer()
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
     , m_tcAckInfo(CM_FILE_XFR)
+    
+    , m_fileCrc(0)
+    , m_fileCrcAck(0)
+    
+    , m_msOnline(false)
 
 {
-    memset(m_xferFileName, 0, sizeof(m_xferFileName));
+  memset(m_xferFileName, 0, sizeof(m_xferFileName));
+  memset((void*)&m_sendMsgBuffer, 0, sizeof(m_sendMsgBuffer));
 }
 
 //-------------------------------------------------------------------------------------------------

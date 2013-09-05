@@ -50,8 +50,15 @@ SignalGenerator::SignalGenerator()
   , m_param2(0.0f)
   , m_param3(0.0f)
   , m_param4(0.0f)
+  , m_orgParam1(0.0f)
+  , m_orgParam2(0.0f)
+  , m_orgParam3(0.0f)
+  , m_orgParam4(0.0f)
   , m_counter(-1)
   , m_degrees(0.0f)
+  , m_step0(0.0f)
+  , m_firstRun(true)
+  , m_last(0)
 {
     // for deterministic results start with the same seed
     m_random.Seed(0);

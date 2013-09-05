@@ -67,6 +67,7 @@ public:
     //virtual void Create();
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
+    virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
     UINT32  m_frames;
 protected:
@@ -76,11 +77,9 @@ protected:
     // This is the real work horse
     virtual void HandlePowerOff() {}
 
-    virtual int UpdateDisplay(int theLine);
 
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
-    VID_DEFS m_defaultScreen;
 };
 
 #endif

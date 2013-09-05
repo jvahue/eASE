@@ -55,15 +55,19 @@
 /*****************************************************************************/
 ParamConverter::ParamConverter()
     : m_isValid(false)
+    , m_masterId(0)
     , m_gpa(0)
     , m_gpb(0)
     , m_gpc(0)
+    , m_src(PARAM_SRC_MAX)
     , m_type(PARAM_FMT_NONE)
     , m_scale(0)          // the current value for the parameter
     , m_maxValue(0.0f)
     , m_scaleLsb(0.0f)    // the current value for the parameter
     , m_data(0)
 {
+  memset(m_ioiName, 0, sizeof(m_ioiName));
+  memset(&m_a429, 0, sizeof(m_a429));
 }
 
 //-------------------------------------------------------------------------------------------------

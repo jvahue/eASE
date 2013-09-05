@@ -31,6 +31,7 @@ class CmProcess : public CmdRspThread
 	    CmProcess();
         virtual void Run();  // override the AseThread::Create
         virtual BOOLEAN CheckCmd( SecComm& secComm);
+        virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
         char m_boxOnTime[32];
         char m_readyFile[128];
@@ -64,7 +65,6 @@ class CmProcess : public CmdRspThread
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
-        virtual int UpdateDisplay(int theLine);
 
     private:
         CmReconfig m_reconfig;

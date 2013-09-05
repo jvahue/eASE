@@ -106,7 +106,6 @@ int main(void)
 
     // Initially create the adrf to start it running.
     adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
-    debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
     aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
 
@@ -118,10 +117,6 @@ int main(void)
         cmdRspThreads[i]->Run(&aseCommon);
     }
 
-    //FileSystemTestBig();
-
-    debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
-
     videoRedirect = AseMain;
 
     // overhead of timing
@@ -129,16 +124,21 @@ int main(void)
     td = HsTimeDiff(start);
     td = HsTimeDiff(start);
 
+    debug_str(AseMain, 3, 0, "Last Cmd Id: 0");
+
     // The main thread goes into an infinite loop.
     while (1)
     {
+        // call the base class to get the first row
+        cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
+
         // Write the system tick value to video memory.
-        debug_str(AseMain, 0, 0, "SecComm(%s) %d - %d : %s",
+        debug_str(AseMain, 1, 0, "SecComm(%s) %d - %d : %s",
                   secComm.GetSocketInfo(),
                   frames, td,
                   version);
 
-        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
+        debug_str(AseMain, 2, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
                   secComm.GetRxCount(),
                   secComm.GetTxCount(),
                   secComm.isRxing ? "Yes" : "No ",
@@ -147,8 +147,8 @@ int main(void)
                   MAX_IDLE_FRAMES
                   );
 
-        debug_str(AseMain, 3, 0, "%s", secComm.GetErrorMsg());
-        debug_str(AseMain, 6, 0, "CmProc: %d Ioi: %d", cmProc.m_frames, ioiProc.m_frames);
+        debug_str(AseMain, 4, 0, "%s", secComm.GetErrorMsg());
+        debug_str(AseMain, 5, 0, "CmProc: %d Ioi: %d", cmProc.m_frames, ioiProc.m_frames);
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
@@ -189,7 +189,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
-        debug_str(AseMain, 2, 0, "Last Cmd Id: %d        ", request.cmdId);
+        debug_str(AseMain, 3, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {

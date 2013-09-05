@@ -59,7 +59,6 @@ CmdRspThread::CmdRspThread()
     : m_systemTick(0)
     , m_frames(0)
     , m_overrunCount(0)
-    , m_defaultScreen(VID_SYS)
 {
 }
 
@@ -86,7 +85,7 @@ void CmdRspThread::Process()
             m_overrunCount += 1;
         }
 
-        theLine = UpdateDisplay(theLine);
+        theLine = UpdateDisplay(VID_SYS, theLine);
 
         waitUntilNextPeriod();
     }
@@ -100,10 +99,10 @@ void CmdRspThread::RunSimulation()
 // Function: UpdateDisplay
 // Description: Display the common proc state info at the top of the screen
 //
-int CmdRspThread::UpdateDisplay(int theLine)
+int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
-    debug_str(m_defaultScreen, theLine, 0,
+    debug_str(who, theLine, 0,
               "ePySte(%s) ADRF(%s) MS(%s) Script(%s) Frame(%d/%d)",
               IS_CONNECTED ? "Conn" : "NoConn",
               adrfState[m_pCommon->adrfState],

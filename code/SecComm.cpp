@@ -89,7 +89,8 @@ SecComm::SecComm()
 
     memset((void*)m_errMsg, 0, sizeof(m_errMsg));
     memset((void*)m_ipPort, 0, sizeof(m_ipPort));
-
+    memset((void*)&m_socketAddr, 0, sizeof(m_socketAddr));
+    memset((void*)&m_pysteHandle, 0, sizeof(m_pysteHandle));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

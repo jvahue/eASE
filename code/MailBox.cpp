@@ -190,6 +190,8 @@ MailBox::MailBox(void)
         }
 
         memset(m_statusStr, 0, sizeof(m_statusStr));
+        memset(m_procName, 0, sizeof(m_procName));
+        memset(m_mailBoxName, 0, sizeof(m_mailBoxName));
     }
 
 /******************************************************************************************

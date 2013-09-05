@@ -62,10 +62,14 @@ IoiProcess::IoiProcess()
     , m_displayCount(0)
     , m_scheduled(0)
     , m_updated(0)
+    , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
     , m_ioiOpenFailCount(0)
     , m_ioiCloseFailCount(0)
     , m_ioiWriteFailCount(0)
     , m_sgRun(false)
+    , m_avgIoiTime(0)
+    , m_totalParamTime(0)
+    , m_totalIoiTime(0)
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -75,7 +79,6 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
-    m_defaultScreen = Ioi;
 }
 
 /****************************************************************************
@@ -221,13 +224,13 @@ void IoiProcess::HandlePowerOff()
 // ...
 // n: Scheduled: <x> Updated: <y>
 //-----------------------------------------------------------------------------
-int IoiProcess::UpdateDisplay(int theLine)
+int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
     UINT32 i;
     char rep[80];
     UINT32 atLine = eFirstDisplayRow;
 
-    CmdRspThread::UpdateDisplay(0);
+    CmdRspThread::UpdateDisplay(Ioi, 0);
 
     if (theLine == eFirstDisplayRow)
     {

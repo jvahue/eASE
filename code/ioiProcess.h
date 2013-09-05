@@ -35,6 +35,7 @@ public:
     // specialization of CmdRspThread
     virtual void Run();
     virtual BOOLEAN CheckCmd( SecComm& secComm);
+    virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
 protected:
 
@@ -52,7 +53,6 @@ protected:
     void UpdateIoi();
     void UpdateCCDL();
 
-    virtual int UpdateDisplay(int theLine);
 
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
