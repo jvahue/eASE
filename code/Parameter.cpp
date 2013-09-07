@@ -73,11 +73,11 @@ void Parameter::Reset()
 {
     m_ioiValid = false;
     m_index = eAseMaxParams;
-    m_value = 0.0f;     // the current value for the parameter
+    m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
-    m_ioiValue = 0;     // current ioi value after Update
-    m_ioiValueZ1 = 0;   // the last IOI value
-    m_rateHz = 0;       // ADRF update rate for the parameter in Hz
+    m_ioiValue = 0;            // current ioi value after Update
+    //m_ioiValueZ1 = 0xffffffff; // the last IOI value
+    m_rateHz = 0;              // ADRF update rate for the parameter in Hz
     m_updateMs = 0;
     m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz
     m_offset = 0;              // frame offset 0-90 step 10
@@ -159,6 +159,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 {
     UINT32 start;
     UINT32 count = 0;
+    UINT32 children = 0;
 
     // see if it is time for an update
     if (m_nextUpdate < sysTick)
@@ -169,7 +170,6 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         if (!m_isChild)
         {
             // compute the children of this parameter
-            UINT32 children = 0;
             Parameter* cp = m_link;
 
             m_childCount = 0;

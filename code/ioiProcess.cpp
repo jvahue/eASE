@@ -40,7 +40,7 @@ static char ioiOutputLines[26][80];
 /*****************************************************************************/
 static const char* ioiInitStatus[] = {
 //   !  max length    !
-    "Success",
+    "Ok",
     "CfgFileNotFound",
     "CfgFileFailure",
     "NoCfgInfoForProc",
@@ -140,6 +140,7 @@ void IoiProcess::UpdateIoi()
 {
     UINT32 i;
     UINT32 start;
+    UINT32 scheduleZ1 = 3001;
     Parameter* param;
     ioiStatus writeStatus;
 
@@ -159,13 +160,13 @@ void IoiProcess::UpdateIoi()
                 m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
 
-                if (param->m_ioiValue != param->m_ioiValueZ1)
+                if (m_scheduled != scheduleZ1)
                 {
                     start = HsTimer();
                     writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
                     m_totalIoiTime += HsTimeDiff(start);
 
-                    param->m_ioiValueZ1 = param->m_ioiValue;
+                    scheduleZ1 = m_scheduled;
 
                     if (writeStatus == ioiSuccess)
                     {
@@ -239,9 +240,9 @@ int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
         memset(ioiOutputLines, ' ', sizeof(ioiOutputLines));
 
         sprintf(ioiOutputLines[atLine],
-                "IOI: %s SigGen: %s Params: %d ParamInfo: %d Sched: %4d Updated: %4d",
+                "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
                 ioiInitStatus[m_initStatus],
-                m_sgRun ? "Run" : "Hold",
+                m_sgRun ? " On" : "Off",
                 m_paramCount,
                 m_paramInfoCount,
                 m_scheduled, m_updated);
@@ -261,7 +262,7 @@ int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
         {
             UINT8 i;
             UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
-            for (i=0; i < stop; ++i)
+            for (i=0; i < stop && i < (UINT32)eIoiFailDisplay; ++i)
             {
                 sprintf(ioiOutputLines[atLine], "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
                 atLine += 1;

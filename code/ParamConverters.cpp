@@ -288,6 +288,10 @@ void ParamConverter::A429ParseGps()
     else if ( m_a429.format == eDisc)
     {
         m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
+        if (m_a429.wordSize == 1)
+        {
+            m_a429.msb += 1;
+        }
     }
     else // eBNR
     {
