@@ -156,7 +156,7 @@ void IoiProcess::UpdateIoi()
         {
             if (param->m_ioiValid)
             {
-                m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun) ? 1 : 0;
+                m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
 
                 if (param->m_ioiValue != param->m_ioiValueZ1)
@@ -165,14 +165,16 @@ void IoiProcess::UpdateIoi()
                     writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
                     m_totalIoiTime += HsTimeDiff(start);
 
-                    if (writeStatus != ioiSuccess)
+                    param->m_ioiValueZ1 = param->m_ioiValue;
+
+                    if (writeStatus == ioiSuccess)
                     {
-                        // TODO : what else?
-                        m_ioiWriteFailCount += 1;
+                        m_updated += 1; // count how many we updated
                     }
                     else
                     {
-                        m_updated += 1; // count how many we updated
+                        // TODO : what else, anything?
+                        m_ioiWriteFailCount += 1;
                     }
                 }
             }

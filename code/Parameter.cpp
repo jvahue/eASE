@@ -151,27 +151,35 @@ bool Parameter::IsChild(Parameter& other)
 //-------------------------------------------------------------------------------------------------
 // Function: Update
 // Description: Update the parameter value
+// sysTick: what time is it now
+// sgRun: is the Sig Gen running
+// Returns: count of params updated under this one
 //
-bool Parameter::Update(UINT32 sysTick, bool sgRun)
+UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 {
     UINT32 start;
-    bool status = false;
+    UINT32 count = 0;
 
     // see if it is time for an update
     if (m_nextUpdate < sysTick)
     {
         start = HsTimer();
-        // compute the children of this parameter
-        UINT32 children = 0;
-        Parameter* cp = m_link;
 
-        m_childCount = 0;
-        while (cp != NULL)
+        // only the 'root' parent updates its children
+        if (!m_isChild)
         {
-            m_childCount += 1;
-            cp->Update(sysTick, sgRun);
-            children |= cp->m_rawValue;
-            cp = cp->m_link;
+            // compute the children of this parameter
+            UINT32 children = 0;
+            Parameter* cp = m_link;
+
+            m_childCount = 0;
+            while (cp != NULL)
+            {
+                m_childCount += 1;
+                count += cp->Update(sysTick, sgRun);
+                children |= cp->m_rawValue;
+                cp = cp->m_link;
+            }
         }
 
         // Update the value with the SigGen
@@ -184,11 +192,11 @@ bool Parameter::Update(UINT32 sysTick, bool sgRun)
 
         m_nextUpdate = sysTick + m_updateIntervalTicks;
         m_updateCount += 1;
-        status = true;
+        count += 1;
         m_updateDuration = HsTimeDiff(start);
     }
 
-    return status;
+    return count;
 }
 
 

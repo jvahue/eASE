@@ -20,7 +20,7 @@ public:
     Parameter();
     void Reset();
     void Init(ParamCfg* paramInfo);
-    virtual bool Update(UINT32 sysTick, bool sgRun);
+    virtual UINT32 Update(UINT32 sysTick, bool sgRun);
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'child' match for the other parameter
     char* Display(char* buffer);
 
