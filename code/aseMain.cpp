@@ -57,9 +57,10 @@ AseCommon aseCommon;
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-CmdRspThread* cmdRspThreads[MAX_CMD_RSP] = {
+CmdRspThread* cmdRspThreads[] = {
   &cmProc,
-  &ioiProc
+  &ioiProc,
+  NULL
 };
 
 /*****************************************************************************/
@@ -103,21 +104,21 @@ int main(void)
     aseCommon.systemTickPtr = systemTickPointer();
 
     debug_str_init();
+    videoRedirect = AseMain;
 
     // Initially create the adrf to start it running.
     adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
+    debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
     aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
 
     secComm.Run();
 
     // Run all of the cmd response threads
-    for (i=0; i < MAX_CMD_RSP; ++i)
+    for (i=0; cmdRspThreads[i] != NULL; ++i)
     {
         cmdRspThreads[i]->Run(&aseCommon);
     }
-
-    videoRedirect = AseMain;
 
     // overhead of timing
     start = HsTimer();
@@ -148,7 +149,6 @@ int main(void)
                   );
 
         debug_str(AseMain, 4, 0, "%s", secComm.GetErrorMsg());
-        debug_str(AseMain, 5, 0, "CmProc: %d Ioi: %d", cmProc.m_frames, ioiProc.m_frames);
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();

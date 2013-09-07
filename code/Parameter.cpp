@@ -120,21 +120,29 @@ void Parameter::Init(ParamCfg* paramInfo)
 //
 bool Parameter::IsChild(Parameter& other)
 {
-    if (m_type == PARAM_FMT_A429 && other.m_type == PARAM_FMT_A429)
+    if (m_src == other.m_src)
     {
-        if (m_a429.channel == other.m_a429.channel &&  // same channel
-            m_a429.label   == other.m_a429.label   &&  // same label
-            m_a429.sdBits  == other.m_a429.sdBits)     // same SDI
+        if (m_src == PARAM_SRC_A664)
         {
-            m_isChild = true;
-            // walk down the child list and attach this
-            Parameter* parent = &other;
-            while (parent->m_link != NULL)
-            {
-                parent = parent->m_link;
-            }
-            parent->m_link = this;
+            m_isChild = m_masterId == other.m_masterId;
         }
+        else if (m_type == PARAM_FMT_A429 && other.m_type == PARAM_FMT_A429)
+        {
+            if (//m_a429.channel == other.m_a429.channel &&  // same channel
+                m_a429.label   == other.m_a429.label   &&  // same label
+                m_a429.sdBits  == other.m_a429.sdBits)     // same SDI
+            {
+                m_isChild = true;
+                // walk down the child list and attach this
+                Parameter* parent = &other;
+                while (parent->m_link != NULL)
+                {
+                    parent = parent->m_link;
+                }
+                parent->m_link = this;
+            }
+        }
+        // TODO check A664 children?
     }
 
     return m_isChild;
