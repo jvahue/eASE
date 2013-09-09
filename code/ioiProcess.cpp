@@ -214,61 +214,63 @@ void IoiProcess::HandlePowerOff()
 
 //-------------------------------------------------------------------------------------------------
 // Function: UpdateDisplay
-// Description: Update the video output display
-//
-// Video Display Layout
-// 0:
-// 1: Frame: xxxxxx Updated: xxxx
-// 2:
-// 3: <Param1>: <floatValue> - <rawValue>
-// 4: <--- parameter info data>
-// 5: <Param3>: <floatValue> - <rawValue>
-// 6: <--- parameter info data>
-// ...
-// n: Scheduled: <x> Updated: <y>
+// Description: Manage the display of the IOI Status page and the Param data page
 //-----------------------------------------------------------------------------
 int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
-    UINT32 i;
-    char rep[80];
-    UINT32 atLine = eFirstDisplayRow;
+    
+}
 
-    CmdRspThread::UpdateDisplay(Ioi, 0);
-
-    if (theLine == eFirstDisplayRow)
+int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
+{
+    if (theLine == 0)
     {
-        memset(ioiOutputLines, ' ', sizeof(ioiOutputLines));
-
-        sprintf(ioiOutputLines[atLine],
-                "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
-                ioiInitStatus[m_initStatus],
-                m_sgRun ? " On" : "Off",
-                m_paramCount,
-                m_paramInfoCount,
-                m_scheduled, m_updated);
-        atLine += 1;
-
-        sprintf(ioiOutputLines[atLine],
-                "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
-                m_ioiOpenFailCount,
-                m_ioiWriteFailCount,
-                m_ioiCloseFailCount,
-                m_totalParamTime,
-                m_totalIoiTime,
-                m_avgIoiTime);
-        atLine += 1;
-
-        if (m_ioiOpenFailCount > 0 || m_ioiCloseFailCount > 0)
+        CmdRspThread::UpdateDisplay(Ioi, theLine);
+    }
+    else if (theLine == 1)
+    {
+        dbg_string(Ioi, theLine, 0, 
+                   "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
+                   ioiInitStatus[m_initStatus],
+                   m_sgRun ? " On" : "Off",
+                   m_paramCount,
+                   m_paramInfoCount,
+                   m_scheduled, m_updated);
+    }   
+    else if (theLine == 2)
+    {
+        dbg_string(Ioi, theLine, 0, 
+                   "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
+                   m_ioiOpenFailCount,
+                   m_ioiWriteFailCount,
+                   m_ioiCloseFailCount,
+                   m_totalParamTime,
+                   m_totalIoiTime,
+                   m_avgIoiTime);
+    }
+    else
+    {
+        int tempLine = theLine - 3;
+        
+        if (tempLine < (int)eIoiFailDisplay)
         {
-            UINT8 i;
-            UINT8 stop = m_ioiOpenFailCount > m_ioiCloseFailCount ? m_ioiOpenFailCount : m_ioiCloseFailCount;
-            for (i=0; i < stop && i < (UINT32)eIoiFailDisplay; ++i)
-            {
-                sprintf(ioiOutputLines[atLine], "Open %-32s - Close %-32s", m_openFailNames[i], m_closeFailNames[i]);
-                atLine += 1;
-            }
+            dbg_string(Ioi, theLine, 0, "Open %-32s - Close %-32s", 
+                       m_openFailNames[tempLine], m_closeFailNames[tempLine]);
         }
-
+        else
+        {
+            theLine = -1;
+            nextPage = True;
+        }
+    }
+    
+    theLine += 1;
+    
+    return theLine;
+}
+    
+int IoiProcess::PageParams(int theLine, bool& nextPage)
+{    
         // display parameter data - 23 usable line on the display
         for (i=0; i < m_displayCount && atLine < 23; ++i)
         {

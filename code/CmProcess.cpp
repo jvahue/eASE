@@ -484,82 +484,86 @@ bool CmProcess::GetFile( SecComm& secComm)
 //-----------------------------------------------------------------------------
 int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
-    char buffer[256];
-    UINT32 atLine = eFirstDisplayRow;
+    switch (theLine) {
+    case 0:
+        CmdRspThread::UpdateDisplay(CmProc, 0);
+        break;
+        
+    case 1:
+       dbg_string(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
+                   m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
+                   m_reconfig.GetLastCmd(),
+                   m_reconfig.GetModeName(),
+                   m_reconfig.m_modeTimeout,
+                   m_reconfig.m_lastStatus ? "Err" : "Ok",
+                   m_reconfig.GetCfgStatus());
+       break;
+    
+    case 2:
+        dbg_string(CmProc, theLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
+                   m_fileXfer.m_fileXferRqsts,
+                   m_fileXfer.m_fileXferMsgs,
+                   m_fileXfer.GetModeName(),
+                   m_fileXfer.m_modeTimeout
+                   );
+        break;
+        
+    case 3:
+        dbg_string(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
+        break;
 
-    CmdRspThread::UpdateDisplay(CmProc, 0);
+    case 4:
+        dbg_string(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+        break;
 
-    // Status Display
-    if (theLine == eFirstDisplayRow)
-    {
-        memset(outputLines, ' ', sizeof(outputLines));
-
-        sprintf(outputLines[atLine],"Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
-                  m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
-                  m_reconfig.GetLastCmd(),
-                  m_reconfig.GetModeName(),
-                  m_reconfig.m_modeTimeout,
-                  m_reconfig.m_lastStatus ? "Err" : "Ok",
-                  m_reconfig.GetCfgStatus());
-        atLine += 1;
-
-        sprintf(outputLines[atLine],"Log(%d) Msgs: %d Mode: %s(%d)",
-                  m_fileXfer.m_fileXferRqsts,
-                  m_fileXfer.m_fileXferMsgs,
-                  m_fileXfer.GetModeName(),
-                  m_fileXfer.m_modeTimeout
-                  );
-        atLine += 1;
-
-        sprintf(outputLines[atLine],"GseCmd: %s", m_lastGseCmd);
-        atLine += 1;
-
-        sprintf(outputLines[atLine],"Gse RxFifo: %d", m_gseRxFifo.Used());
-        atLine += 1;
-
+    case 5:
         // Show put file status
-        sprintf(outputLines[atLine],"PUT: %s", m_putFile.GetFileStatus(buffer));
-        atLine += 1;
-
+        dbg_string(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
+        break;
+        
+    case 6:
         // Show get file status
-        sprintf(outputLines[atLine],"GET: %s", m_getFile.GetFileStatus(buffer));
-        atLine += 1;
-
+        dbg_string(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
+        break;
+        
+    case 7:
         // Show Cfg file names
-        sprintf(outputLines[atLine],"XML: %s", m_reconfig.m_xmlFileName);
-        atLine += 1;
-
+        dbg_string(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
+        break;
+        
+    case 8:
         // Show Cfg file names
-        sprintf(outputLines[atLine],"CFG: %s", m_reconfig.m_cfgFileName);
-        atLine += 1;
+        dbg_string(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
+        break;
 
+    case 9:
         // Update Mailbox Status
-        sprintf(outputLines[atLine],"Gse %s %s",
-                  m_gseInBox.GetStatusStr(),
-                  m_gseOutBox.GetStatusStr());
-        atLine += 1;
+        dbg_string(CmProc, theLine, 0, "Gse %s %s",
+                   m_gseInBox.GetStatusStr(),
+                   m_gseOutBox.GetStatusStr());
+        break;
 
-        sprintf(outputLines[atLine],"Cfg %s %s",
-                  m_reConfigInBox.GetStatusStr(),
-                  m_reConfigOutBox.GetStatusStr());
-        atLine += 1;
+    case 10:
+        dbg_string(CmProc, theLine, 0, "Cfg %s %s",
+                   m_reConfigInBox.GetStatusStr(),
+                   m_reConfigOutBox.GetStatusStr());
+        break;
 
-        sprintf(outputLines[atLine],"Log %s %s",
-                  m_fileXferInBox.GetStatusStr(),
-                  m_fileXferOutBox.GetStatusStr());
-        atLine += 1;
+    case 11:
+        dbg_string(CmProc, theLine, 0, "Log %s %s",
+                   m_fileXferInBox.GetStatusStr(),
+                   m_fileXferOutBox.GetStatusStr());
+        break;
+        
+    default:
+        theLine = -1;
 
         // terminate the display
         outputLines[atLine][0] = '\0';
     }
 
-    debug_str(CmProc, theLine, 0, outputLines[theLine]);
+    // go to the next line or back to 0
     theLine += 1;
-
-    if (outputLines[theLine][0] == '\0')
-    {
-        theLine = eFirstDisplayRow;
-    }
 
     return theLine;
 }
