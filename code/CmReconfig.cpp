@@ -421,21 +421,22 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             m_lastErrCode = inData.errCode;
             m_lastStatus = inData.bOk;
             m_state = eCmRecfgIdle;
+
+            // delete the files
+            m_file.Delete( m_xmlFileName, File::ePartCmProc);
+            m_file.Delete( m_cfgFileName, File::ePartCmProc);
+
             // I know it seems backwards, but then your thinking logically aren't you!
             if (m_lastStatus == FALSE)
             {
                 // delete the files from the partition & clear the names
-                if (strlen(m_xmlFileName) > 0)
-                {
-                    m_file.Delete( m_xmlFileName, File::ePartCmProc);
-                    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
-                }
-
-                if (strlen(m_cfgFileName) > 0)
-                {
-                    m_file.Delete( m_cfgFileName, File::ePartCmProc);
-                    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
-                }
+                memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+                memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+            }
+            else
+            {
+                sprintf(m_xmlFileName, "Failed Reconfig");
+                sprintf(m_cfgFileName, "Failed Reconfig");
             }
 
             cmdHandled = true;
