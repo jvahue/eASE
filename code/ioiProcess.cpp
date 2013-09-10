@@ -250,12 +250,12 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     }
     else
     {
-        int tempLine = theLine - 3;
+        int tgtLine = theLine - 3;
         
-        if (tempLine < (int)eIoiFailDisplay)
+        if (tgtLine < (int)eIoiFailDisplay)
         {
             dbg_string(Ioi, theLine, 0, "Open %-32s - Close %-32s", 
-                       m_openFailNames[tempLine], m_closeFailNames[tempLine]);
+                       m_openFailNames[tgtLine], m_closeFailNames[tgtLine]);
         }
         else
         {
@@ -269,35 +269,54 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     return theLine;
 }
     
+//-------------------------------------------------------------------------------------------------
+// Function: PageParams
+// Description: Manage the display of the parameter values and info
+//-----------------------------------------------------------------------------
 int IoiProcess::PageParams(int theLine, bool& nextPage)
 {    
-        // display parameter data - 23 usable line on the display
-        for (i=0; i < m_displayCount && atLine < 23; ++i)
+    UINT32 rowIndex;
+    UINT32 baseIndex;
+    Parameter* p1;
+    Parameter* p2;
+    char buf1[80];
+    char buf2[80];
+    
+    switch (theLine) {
+    case 0:
+        CmdRspThread::UpdateDisplay(Params, 0);
+        break;
+            
+    case 1:
+        dbg_string(Params, theLine, 0, "Status: User Select");
+        break;
+            
+    default:
+        if (theLine >= 2 and theLine <= 21)
         {
-            UINT32 x = m_displayIndex[i];
-
-            sprintf(ioiOutputLines[atLine], "%4d:%-32s: %11.4f - 0x%08x(0x%05x)",
-                      m_parameters[x].m_index, m_parameters[x].m_name,
-                      m_parameters[x].m_value,
-                      m_parameters[x].m_rawValue, m_parameters[x].m_data);
-            atLine += 1;
-
-            sprintf(ioiOutputLines[atLine],"%s", m_parameters[x].Display(rep));
-            atLine += 1;
+            baseIndex = (theLine - 2) * 2; # 2:0, 3:2, 4:4, 5:6 ... 21:38
+            p1 = displayIndex[theBase];
+            p2 = displayIndex[theBase+1];
+            dbg_string(Params, theLine, 0, '%s%s', p1->Display(buf1), p2->Display(buf2));
         }
-
-        // terminate the display
-        ioiOutputLines[atLine][0] = '\0';
+        else if (theLine == 22 || theLine == 23)
+        {
+            rowIndex = theLine - 22;
+            // pick mode display
+            p1 = displayIndex[0];
+            p2 = displayIndex[1];
+            dbg_string(Params, theLine, 0, '%s%s', 
+                       p1->ParamInfo(buf1,rowIndex), p2->ParamInfo(buf2,rowIndex));
+                       
+            if (theLine == 23)
+            {
+                nextPage = true)
+            }
+        }
     }
-
-    debug_str1(Ioi, theLine, 0, ioiOutputLines[theLine]);
+    
     theLine += 1;
-
-    if (ioiOutputLines[theLine][0] == '\0')
-    {
-        theLine = eFirstDisplayRow;
-    }
-
+    
     return theLine;
 }
 

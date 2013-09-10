@@ -35,14 +35,14 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-const char* paramType[] = {
+const char* paramType5[] = {
     "None ",
     "A664B",
     "A664F",
     "A429 "
 };
 
-const char* a429Fmt[] = {
+const char* a429Fmt5[] = {
     "BNR  ",
     "BCD  ",
     "Disc ",
@@ -90,14 +90,56 @@ void Parameter::Reset()
 }
 
 //-------------------------------------------------------------------------------------------------
+// Function: Shrink
+// Description: remove vowels from the end until strlen <= size
+//
+char* Parameter::Shrink(char* src, int size)
+{
+    char* vowel;
+    char* from;
+    char* to;
+    int at = strlen(src) - 1;
+
+    // remove vowels from the back until less than 24 chars long
+    while (strlen(src) > size && at >= 0)
+    {
+        vowel = strpbrk(&src[at], "aeiouyAEIOUY");
+        if (vowel != NULL)
+        {
+            to = vowel;
+            from = ++vowel;
+            while (*from != NULL && from != &src[at])
+            {
+                *to++ = *from++;
+            }
+            *to = '\0';
+        }
+        at -= 1;
+    }
+
+    if (strlen(src) > size)
+    {
+        src[size] = '\0';
+    }
+
+    return src;
+}
+
+
+//-------------------------------------------------------------------------------------------------
 // Function: Init
 // Description: Initialize the parameter based on the configuration values
 //
 void Parameter::Init(ParamCfg* paramInfo)
 {
+    UINT32 at;
+    UINT32 dst;
     UINT32 extraMs;
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);
+    strncpy(m_shortName, paramInfo->name, eAseParamNameSize);
+    Shrink(m_shortName, eParamShort);
+
     m_index = paramInfo->index;
 
     m_rateHz = paramInfo->rateHz;
@@ -206,20 +248,43 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 //
 char* Parameter::Display(char* buffer)
 {
+    sprintf(buffer, "%4d:%-23s:%11.4f", m_index, m_shortName, m_value);
+    return buffer;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: ParamInfo
+// Description: Display some info about the param
+// row = 0: param type, child, rate, etc.
+// row = 1: sigGen info
+//
+char* Parameter::ParamInfo(char* buffer, int row)
+{
     char sgRep[80];
-    m_sigGen.GetRepresentation(sgRep);
 
     if (m_type == PARAM_FMT_A429)
     {
-        //              Type(Fmt) Rate Child SigGen
-        sprintf(buffer, "%s(%s) %dHz %s %s - %d in %d",
-            paramType[m_type],
-            a429Fmt[m_a429.format],
-            m_rateHz,
-            m_isChild ? "Child" : "",
-            sgRep,
-            m_childCount+1, m_updateDuration
-        );
+        if ( row == 0)
+        {
+            //              Type(Fmt) Rate Child SigGen
+            //               0  6   13      20     28  32
+            //               v  v   v       v      v   v
+            sprintf(buffer, "%s(%s) %2dHz - %3d in %3d %s",
+                paramType5[m_type],
+                a429Fmt5[m_a429.format],
+                m_rateHz,
+                m_isChild ? "Child" : "",
+                m_childCount+1, m_updateDuration
+            );
+        }
+        else if ( row == 1)
+        {
+            m_sigGen.GetRepresentation(sgRep);
+            sprintf("%s", sgRep);
+        }
+        else
+        {
+            sprintf(buffer, "Invalid row %d", row);
     }
     else
     {

@@ -393,33 +393,33 @@ void SignalGenerator::GetRepresentation(char* buffer) const
     switch (m_type)
     {
         case eSGmanual:
-            sprintf(buffer, "manual(%.3f)", m_orgParam1);
+            sprintf(buffer, "manual(%.2f)", m_orgParam1);
             break;
         case eSGramp:
-            sprintf(buffer, "ramp(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            sprintf(buffer, "ramp(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
           break;
         case eSGrampHold:
-            sprintf(buffer, "rampHold(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            sprintf(buffer, "rampHold(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
             break;
         case eSGtriangle:
-            sprintf(buffer, "triangle(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            sprintf(buffer, "triangle(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
             break;
         case eSGsine:
-            sprintf(buffer, "sine(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            sprintf(buffer, "sine(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
             break;
         case eSG1Shot:
-            sprintf(buffer, "oneshot(%.3f, %.3f, %.3f)", m_orgParam1, m_orgParam2, m_orgParam3);
+            sprintf(buffer, "oneshot(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
             break;
         case eSGnShot:
-            sprintf(buffer, "nshot(%.3f, %.3f, %.3f, %.3f)",
+            sprintf(buffer, "nshot(%.2f, %.2f, %.2f, %.2f)",
                              m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
             break;
         case eSGpwm:
-            sprintf(buffer, "pwm(%.3f, %.3f, %.3f, %.3f)",
+            sprintf(buffer, "pwm(%.2f, %.2f, %.2f, %.2f)",
                              m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
             break;
         case eSGrandom:
-            sprintf(buffer, "random(%.3f, %.3f)", m_orgParam1, m_orgParam2);
+            sprintf(buffer, "random(%.2f, %.2f)", m_orgParam1, m_orgParam2);
             break;
         default:
             sprintf(buffer, "Unknown(%d)", m_type);

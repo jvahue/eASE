@@ -17,15 +17,20 @@
 class Parameter : public ParamConverter
 {
 public:
+enum ParamConstants {eParamShort = 23};
+
     Parameter();
     void Reset();
     void Init(ParamCfg* paramInfo);
     virtual UINT32 Update(UINT32 sysTick, bool sgRun);
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'child' match for the other parameter
     char* Display(char* buffer);
+    char* ParamInfo(char* buffer, int row);
+    char* Shrink(char* src, int size);
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
-    ParameterName m_name;  // the parameter name
+    ParameterName m_name;       // the parameter name
+    ParameterName m_shortName;  // the short parameter name for the display
     UINT32  m_index;
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI

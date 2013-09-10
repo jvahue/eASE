@@ -20,8 +20,8 @@ class IoiProcess : public CmdRspThread
 {
 public:
     enum IoiConstants {
-        eIoiFailDisplay = 5,
-        eIoiMaxDisplay = 10
+        eIoiFailDisplay = 10,
+        eIoiMaxDisplay = 40
     };
     
     //enum IoiState {
