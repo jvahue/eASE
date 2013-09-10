@@ -64,7 +64,7 @@ CmdRspThread::CmdRspThread()
 
 void CmdRspThread::Process()
 {
-    UINT32 theLine = eFirstDisplayRow;
+    UINT32 theLine = 0;
 
     while (1)
     {

@@ -33,7 +33,6 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-static char ioiOutputLines[26][80];
 
 /*****************************************************************************/
 /* Constant Data                                                             */
@@ -60,6 +59,8 @@ IoiProcess::IoiProcess()
     , m_paramLoopEnd(0)
     , m_paramInfoCount(0)
     , m_displayCount(0)
+    , m_page(0)
+    , m_paramDetails(0)
     , m_scheduled(0)
     , m_updated(0)
     , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
@@ -218,7 +219,24 @@ void IoiProcess::HandlePowerOff()
 //-----------------------------------------------------------------------------
 int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
-    
+    bool nextPage = false;
+
+    if (m_page == 0)
+    {
+        theLine = PageIoiStatus(theLine, nextPage);
+    }
+    else if (m_page == 1)
+    {
+        theLine = PageParams(theLine, nextPage);
+    }
+
+    if (nextPage)
+    {
+        m_page = (m_page + 1) % eMaxPages;
+        theLine = 0;
+    }
+
+    return theLine;
 }
 
 int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
@@ -229,94 +247,110 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     }
     else if (theLine == 1)
     {
-        dbg_string(Ioi, theLine, 0, 
-                   "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
-                   ioiInitStatus[m_initStatus],
-                   m_sgRun ? " On" : "Off",
-                   m_paramCount,
-                   m_paramInfoCount,
-                   m_scheduled, m_updated);
-    }   
+        debug_str(Ioi, theLine, 0,
+                  "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
+                  ioiInitStatus[m_initStatus],
+                  m_sgRun ? " On" : "Off",
+                  m_paramCount,
+                  m_paramInfoCount,
+                  m_scheduled, m_updated);
+    }
     else if (theLine == 2)
     {
-        dbg_string(Ioi, theLine, 0, 
-                   "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
-                   m_ioiOpenFailCount,
-                   m_ioiWriteFailCount,
-                   m_ioiCloseFailCount,
-                   m_totalParamTime,
-                   m_totalIoiTime,
-                   m_avgIoiTime);
+        debug_str(Ioi, theLine, 0,
+                  "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
+                  m_ioiOpenFailCount,
+                  m_ioiWriteFailCount,
+                  m_ioiCloseFailCount,
+                  m_totalParamTime,
+                  m_totalIoiTime,
+                  m_avgIoiTime);
     }
     else
     {
         int tgtLine = theLine - 3;
-        
+
         if (tgtLine < (int)eIoiFailDisplay)
         {
-            dbg_string(Ioi, theLine, 0, "Open %-32s - Close %-32s", 
-                       m_openFailNames[tgtLine], m_closeFailNames[tgtLine]);
+            debug_str(Ioi, theLine, 0, "Open %-32s - Close %-32s",
+                      m_openFailNames[tgtLine], m_closeFailNames[tgtLine]);
         }
         else
         {
             theLine = -1;
-            nextPage = True;
+            nextPage = true;
         }
     }
-    
+
     theLine += 1;
-    
+
     return theLine;
 }
-    
+
 //-------------------------------------------------------------------------------------------------
 // Function: PageParams
 // Description: Manage the display of the parameter values and info
 //-----------------------------------------------------------------------------
 int IoiProcess::PageParams(int theLine, bool& nextPage)
-{    
+{
     UINT32 rowIndex;
     UINT32 baseIndex;
     Parameter* p1;
     Parameter* p2;
     char buf1[80];
     char buf2[80];
-    
+    UINT32 infoStarts = (eIoiMaxDisplay/2) + 2;
+    static UINT32 newInfo = 0;
+
     switch (theLine) {
     case 0:
         CmdRspThread::UpdateDisplay(Params, 0);
-        break;
-            
-    case 1:
-        dbg_string(Params, theLine, 0, "Status: User Select");
-        break;
-            
-    default:
-        if (theLine >= 2 and theLine <= 21)
+
+        // every 2s display info on another 2 params
+        if (newInfo++ == 10)
         {
-            baseIndex = (theLine - 2) * 2; # 2:0, 3:2, 4:4, 5:6 ... 21:38
-            p1 = displayIndex[theBase];
-            p2 = displayIndex[theBase+1];
-            dbg_string(Params, theLine, 0, '%s%s', p1->Display(buf1), p2->Display(buf2));
+            m_paramDetails = (m_paramDetails + 1) % (eIoiMaxDisplay/2);
+            newInfo = 0;
         }
-        else if (theLine == 22 || theLine == 23)
+
+        break;
+
+    case 1:
+        debug_str(Params, theLine, 0, "Status: User Select");
+        break;
+
+    default:
+        if (theLine >= 2 and theLine <= (infoStarts-1))
         {
-            rowIndex = theLine - 22;
+            baseIndex = (theLine - 2) * 2; // 2:0, 3:2, 4:4, 5:6 ... 21:38
+            p1 = &m_parameters[m_displayIndex[baseIndex]];
+            p2 = &m_parameters[m_displayIndex[baseIndex+1]];
+            debug_str(Params, theLine, 0, "%s %s", p1->Display(buf1), p2->Display(buf2));
+        }
+
+        // display details for params
+        else if (theLine == infoStarts || theLine == (infoStarts+1))
+        {
+            rowIndex = m_paramDetails * 2;
+
             // pick mode display
-            p1 = displayIndex[0];
-            p2 = displayIndex[1];
-            dbg_string(Params, theLine, 0, '%s%s', 
-                       p1->ParamInfo(buf1,rowIndex), p2->ParamInfo(buf2,rowIndex));
-                       
-            if (theLine == 23)
+            p1 = &m_parameters[m_displayIndex[rowIndex]];
+            p2 = &m_parameters[m_displayIndex[rowIndex+1]];
+
+            debug_str(Params, theLine, 0, "%-39s %s",
+                      p1->ParamInfo(buf1, theLine-infoStarts),
+                      p2->ParamInfo(buf2, theLine-infoStarts));
+
+            if (theLine == (infoStarts+1))
             {
-                nextPage = true)
+                nextPage = true;
             }
         }
+        break;
     }
-    
+
     theLine += 1;
-    
+
     return theLine;
 }
 
@@ -826,12 +860,66 @@ void IoiProcess::InitIoi()
 
 //-------------------------------------------------------------------------------------------------
 // Function: ScheduleParameters
-// Description: Compute the offsets for the parameters to balance the frame load
+// Description: Compute the offsets for the parameters to balance the frame load - the algorithm
+// simply puts the next param at a specific rate in the next frame for that rate
 //
 void IoiProcess::ScheduleParameters()
 {
-    // TODO: set the parameter offsets
+    UINT32 _01HZ = 0;
+    UINT32 _02HZ = 0;
+    UINT32 _04HZ = 0;
+    UINT32 _05HZ = 0;
+    UINT32 _10HZ = 0;
+    UINT32 _20HZ = 0;
+    UINT32 _25HZ = 0;
+    UINT32 _50HZ = 0;
+    UINT32 _XXHZ = 0;
 
+    for (UINT32 i = 0; i < (UINT32)eAseMaxParams; ++i)
+    {
+        if (m_parameters[i].m_isValid)
+        {
+            switch (m_parameters[i].m_rateHz)
+            {
+            case 1:
+                m_parameters[i].m_nextUpdate = _01HZ;
+                _01HZ = (_01HZ + 1) % 100;
+                break;
+            case 2:
+                m_parameters[i].m_nextUpdate = _02HZ;
+                _02HZ = (_02HZ + 1) % 100;
+                break;
+            case 4:
+                m_parameters[i].m_nextUpdate = _04HZ;
+                _04HZ = (_04HZ + 1) % 100;
+                break;
+            case 5:
+                m_parameters[i].m_nextUpdate = _05HZ;
+                _05HZ = (_05HZ + 1) % 100;
+                break;
+            case 10:
+                m_parameters[i].m_nextUpdate = _10HZ;
+                _10HZ = (_10HZ + 1) % 100;
+                break;
+            case 20:
+                m_parameters[i].m_nextUpdate = _20HZ;
+                _20HZ = (_20HZ + 1) % 100;
+                break;
+            case 25:
+                m_parameters[i].m_nextUpdate = _25HZ;
+                _25HZ = (_25HZ + 1) % 100;
+                break;
+            case 50:
+                m_parameters[i].m_nextUpdate = _50HZ;
+                _50HZ = (_50HZ + 1) % 100;
+                break;
+            default:
+                m_parameters[i].m_nextUpdate = _XXHZ;
+                _XXHZ = (_XXHZ + 1) % 100;
+                break;
+            }
+        }
+    }
 }
 
 

@@ -32,7 +32,6 @@
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
-static char outputLines[25][80];
 
 /*****************************************************************************/
 /* Constant Data                                                             */
@@ -484,82 +483,82 @@ bool CmProcess::GetFile( SecComm& secComm)
 //-----------------------------------------------------------------------------
 int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
+    char buffer[81];
+
     switch (theLine) {
     case 0:
         CmdRspThread::UpdateDisplay(CmProc, 0);
         break;
         
     case 1:
-       dbg_string(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
-                   m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
-                   m_reconfig.GetLastCmd(),
-                   m_reconfig.GetModeName(),
-                   m_reconfig.m_modeTimeout,
-                   m_reconfig.m_lastStatus ? "Err" : "Ok",
-                   m_reconfig.GetCfgStatus());
+       debug_str(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
+                 m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
+                 m_reconfig.GetLastCmd(),
+                 m_reconfig.GetModeName(),
+                 m_reconfig.m_modeTimeout,
+                 m_reconfig.m_lastStatus ? "Err" : "Ok",
+                 m_reconfig.GetCfgStatus());
        break;
     
     case 2:
-        dbg_string(CmProc, theLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
-                   m_fileXfer.m_fileXferRqsts,
-                   m_fileXfer.m_fileXferMsgs,
-                   m_fileXfer.GetModeName(),
-                   m_fileXfer.m_modeTimeout
-                   );
+        debug_str(CmProc, theLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
+                  m_fileXfer.m_fileXferRqsts,
+                  m_fileXfer.m_fileXferMsgs,
+                  m_fileXfer.GetModeName(),
+                  m_fileXfer.m_modeTimeout
+                  );
         break;
         
     case 3:
-        dbg_string(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
+        debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
         break;
 
     case 4:
-        dbg_string(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+        debug_str(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
         break;
 
     case 5:
         // Show put file status
-        dbg_string(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
+        debug_str(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
         break;
         
     case 6:
         // Show get file status
-        dbg_string(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
+        debug_str(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
         break;
         
     case 7:
         // Show Cfg file names
-        dbg_string(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
+        debug_str(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
         break;
         
     case 8:
         // Show Cfg file names
-        dbg_string(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
+        debug_str(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
         break;
 
     case 9:
         // Update Mailbox Status
-        dbg_string(CmProc, theLine, 0, "Gse %s %s",
-                   m_gseInBox.GetStatusStr(),
-                   m_gseOutBox.GetStatusStr());
+        debug_str(CmProc, theLine, 0, "Gse %s %s",
+                  m_gseInBox.GetStatusStr(),
+                  m_gseOutBox.GetStatusStr());
         break;
 
     case 10:
-        dbg_string(CmProc, theLine, 0, "Cfg %s %s",
-                   m_reConfigInBox.GetStatusStr(),
-                   m_reConfigOutBox.GetStatusStr());
+        debug_str(CmProc, theLine, 0, "Cfg %s %s",
+                  m_reConfigInBox.GetStatusStr(),
+                  m_reConfigOutBox.GetStatusStr());
         break;
 
     case 11:
-        dbg_string(CmProc, theLine, 0, "Log %s %s",
-                   m_fileXferInBox.GetStatusStr(),
-                   m_fileXferOutBox.GetStatusStr());
+        debug_str(CmProc, theLine, 0, "Log %s %s",
+                  m_fileXferInBox.GetStatusStr(),
+                  m_fileXferOutBox.GetStatusStr());
         break;
         
     default:
         theLine = -1;
-
-        // terminate the display
-        outputLines[atLine][0] = '\0';
+        break;
     }
 
     // go to the next line or back to 0

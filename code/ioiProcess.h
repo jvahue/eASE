@@ -4,8 +4,6 @@
 #include <ioiapi.h>
 
 #include "CmdRspThread.h"
-//#include "File.h"
-//#include "SecComm.h"
 #include "Parameter.h"
 
 // File: ioiProcess.h
@@ -21,7 +19,8 @@ class IoiProcess : public CmdRspThread
 public:
     enum IoiConstants {
         eIoiFailDisplay = 10,
-        eIoiMaxDisplay = 40
+        eIoiMaxDisplay = 38,  // MUST BE AN EVEN NUMBER 40 or less
+        eMaxPages = 2
     };
     
     //enum IoiState {
@@ -53,6 +52,8 @@ protected:
     void UpdateIoi();
     void UpdateCCDL();
 
+    int PageIoiStatus(int theLine, bool& nextPage);
+    int PageParams(int theLine, bool& nextPage);
 
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
@@ -64,6 +65,8 @@ protected:
 
     UINT32 m_displayCount;
     UINT32 m_displayIndex[eIoiMaxDisplay];
+    UINT32 m_page;
+    UINT32 m_paramDetails;
 
     UINT32 m_scheduled;
     UINT32 m_updated;

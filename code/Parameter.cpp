@@ -103,7 +103,7 @@ char* Parameter::Shrink(char* src, int size)
     // remove vowels from the back until less than 24 chars long
     while (strlen(src) > size && at >= 0)
     {
-        vowel = strpbrk(&src[at], "aeiouyAEIOUY");
+        vowel = strpbrk(&src[at], "aeiouAEIOU");
         if (vowel != NULL)
         {
             to = vowel;
@@ -248,7 +248,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 //
 char* Parameter::Display(char* buffer)
 {
-    sprintf(buffer, "%4d:%-23s:%11.4f", m_index, m_shortName, m_value);
+    sprintf(buffer, "%4d:%-23s:%10.3f", m_index, m_shortName, m_value);
     return buffer;
 }
 
@@ -267,28 +267,30 @@ char* Parameter::ParamInfo(char* buffer, int row)
         if ( row == 0)
         {
             //              Type(Fmt) Rate Child SigGen
-            //               0  6   13      20     28  32
-            //               v  v   v       v      v   v
-            sprintf(buffer, "%s(%s) %2dHz - %3d in %3d %s",
+            //               0   5  11  17      23     30  34
+            //               v   v  v   v       v      v   v
+            sprintf(buffer, "%4d:%s(%s) %2dHz - %3d in %3d %s",
+                m_index,
                 paramType5[m_type],
                 a429Fmt5[m_a429.format],
                 m_rateHz,
-                m_isChild ? "Child" : "",
-                m_childCount+1, m_updateDuration
+                m_childCount+1, m_updateDuration,
+                m_isChild ? "Child" : ""
             );
         }
         else if ( row == 1)
         {
             m_sigGen.GetRepresentation(sgRep);
-            sprintf("%s", sgRep);
+            sprintf(buffer, "     %s", sgRep);
         }
         else
         {
             sprintf(buffer, "Invalid row %d", row);
+        }
     }
     else
     {
-        sprintf(buffer, "%s - oops not supported yet", paramType[m_type]);
+        sprintf(buffer, "%s - oops not supported yet", paramType5[m_type]);
     }
 
     return buffer;
