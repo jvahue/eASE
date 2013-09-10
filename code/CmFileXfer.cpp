@@ -60,8 +60,11 @@ CmFileXfer::CmFileXfer()
     : m_fileXferRequested(false)
     , m_mode(eXferIdle)
     , m_modeTimeout(0)
-    , m_fileXferRqsts(0)
     , m_fileXferMsgs(0)
+
+    , m_fileXferRqsts(0)
+    , m_fileXferServiced(0)
+    , m_fileXferSuccess(0)
 
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
@@ -115,6 +118,7 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
             m_fileCrcAck = request.variableId ? CM_XFR_ACK : CM_XFR_NACK;
             m_mode = eXferFileCheck;
             secComm.m_response.successful = true;
+            m_fileXferServiced += 1;
         }
         else
         {
@@ -148,7 +152,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 
     m_msOnline = msOnline;
 
-    // we can recieve a msg at any time
+    // we can receive a msg at any time
     if (in.Receive(&rcv, sizeof(rcv)))
     {
         m_fileXferMsgs += 1;
@@ -188,7 +192,6 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
         break;
 
     case eXferFileValid:     // wait for ADRF to validate the CRC
-
         break;
 
     default:
@@ -214,8 +217,9 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             // ok we are not in the middle of one accept it
             memcpy(m_xferFileName, pXfrMsg->filename, CM_FILE_NAME_LEN);
 
-            // reset us to idle mode for the call
+            // reset us to idle mode for the call to SendAckCtrl
             m_mode = eXferIdle;
+
             // send ACK or delay
             m_tcAckInfo = m_msOnline ? CM_QUEUED_MS_OK : CM_QUEUED_MS_OFFLINE;
 
@@ -252,6 +256,11 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 
                 m_fileXferRequested = false;
                 memset(m_xferFileName, 0, sizeof(m_xferFileName));
+                m_fileXferSuccess += 1;
+            }
+            else
+            {
+
             }
 
             // return to idle mode

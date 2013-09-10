@@ -64,6 +64,8 @@ class File
         }
 
         char* GetFileStatus(char* buffer);
+        UNSIGNED32 GetFileSize() const {return m_fileSize;}
+
 
     protected:
         enum FileConstants

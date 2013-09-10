@@ -6,7 +6,7 @@
 #include <deos.h>
 
 /**********************************************************************************************
-* Description: Common/Standard definitons for the ASE modules.
+* Description: Common/Standard definitions for the ASE modules.
 *
 *
 */

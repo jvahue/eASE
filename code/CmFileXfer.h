@@ -58,8 +58,10 @@ public:
     bool m_fileXferRequested;
     CmFileXferMode m_mode;
     UINT32 m_modeTimeout;
-    UINT32 m_fileXferRqsts;
     UINT32 m_fileXferMsgs;
+    UINT32 m_fileXferRqsts;
+    UINT32 m_fileXferServiced;
+    UINT32 m_fileXferSuccess;
 
     char m_xferFileName[CM_FILE_NAME_LEN];
 

@@ -417,6 +417,9 @@ bool CmProcess::GetFile( SecComm& secComm)
                 strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
                 secComm.m_response.streamSize = nameLength;
 
+                // return the file size
+                secComm.m_response.value = float(m_getFile.GetFileSize());
+
                 status = true;
             }
             else
@@ -491,66 +494,73 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
         
     case 1:
-       debug_str(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
+       debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
+       break;
+
+    case 2:
+        debug_str(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+        break;
+
+    case 3:
+        debug_str(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
                  m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
                  m_reconfig.GetLastCmd(),
                  m_reconfig.GetModeName(),
                  m_reconfig.m_modeTimeout,
                  m_reconfig.m_lastStatus ? "Err" : "Ok",
                  m_reconfig.GetCfgStatus());
-       break;
-    
-    case 2:
-        debug_str(CmProc, theLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
+        break;
+
+    case 4:
+        debug_str(CmProc, theLine, 0, "Log(%d/%d/%d) Msgs: %d Mode: %s(%d)",
                   m_fileXfer.m_fileXferRqsts,
+                  m_fileXfer.m_fileXferServiced,
+                  m_fileXfer.m_fileXferSuccess,
                   m_fileXfer.m_fileXferMsgs,
                   m_fileXfer.GetModeName(),
                   m_fileXfer.m_modeTimeout
                   );
         break;
-        
-    case 3:
-        debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
-        break;
-
-    case 4:
-        debug_str(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
-        break;
 
     case 5:
+        // Show put file status
+        debug_str(CmProc, theLine, 0, "XFILE: %s", m_fileXfer.m_xferFileName);
+        break;
+
+    case 6:
         // Show put file status
         debug_str(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
         break;
         
-    case 6:
+    case 7:
         // Show get file status
         debug_str(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
         break;
         
-    case 7:
+    case 8:
         // Show Cfg file names
         debug_str(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
         break;
         
-    case 8:
+    case 9:
         // Show Cfg file names
         debug_str(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
         break;
 
-    case 9:
+    case 10:
         // Update Mailbox Status
         debug_str(CmProc, theLine, 0, "Gse %s %s",
                   m_gseInBox.GetStatusStr(),
                   m_gseOutBox.GetStatusStr());
         break;
 
-    case 10:
+    case 11:
         debug_str(CmProc, theLine, 0, "Cfg %s %s",
                   m_reConfigInBox.GetStatusStr(),
                   m_reConfigOutBox.GetStatusStr());
         break;
 
-    case 11:
+    case 12:
         debug_str(CmProc, theLine, 0, "Log %s %s",
                   m_fileXferInBox.GetStatusStr(),
                   m_fileXferOutBox.GetStatusStr());

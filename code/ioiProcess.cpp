@@ -325,7 +325,18 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             baseIndex = (theLine - 2) * 2; // 2:0, 3:2, 4:4, 5:6 ... 21:38
             p1 = &m_parameters[m_displayIndex[baseIndex]];
             p2 = &m_parameters[m_displayIndex[baseIndex+1]];
-            debug_str(Params, theLine, 0, "%s %s", p1->Display(buf1), p2->Display(buf2));
+            if (p1->m_index != eAseMaxParams && p2->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%s %s", p1->Display(buf1), p2->Display(buf2));
+            }
+            else if (p1->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%s", p1->Display(buf1));
+            }
+            else if (p2->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%39s %s", " ", p2->Display(buf2));
+            }
         }
 
         // display details for params
@@ -337,9 +348,20 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             p1 = &m_parameters[m_displayIndex[rowIndex]];
             p2 = &m_parameters[m_displayIndex[rowIndex+1]];
 
-            debug_str(Params, theLine, 0, "%-39s %s",
-                      p1->ParamInfo(buf1, theLine-infoStarts),
-                      p2->ParamInfo(buf2, theLine-infoStarts));
+            if (p1->m_index != eAseMaxParams && p2->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%-39s %s",
+                          p1->ParamInfo(buf1, theLine-infoStarts),
+                          p2->ParamInfo(buf2, theLine-infoStarts));
+            }
+            else if (p1->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%s", p1->ParamInfo(buf1, theLine-infoStarts));
+            }
+            else if (p2->m_index != eAseMaxParams)
+            {
+                debug_str(Params, theLine, 0, "%39s %s", " ", p2->ParamInfo(buf2, theLine-infoStarts));
+            }
 
             if (theLine == (infoStarts+1))
             {
