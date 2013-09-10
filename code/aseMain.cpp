@@ -125,7 +125,8 @@ int main(void)
     td = HsTimeDiff(start);
     td = HsTimeDiff(start);
 
-    debug_str(AseMain, 3, 0, "Last Cmd Id: 0");
+    // see CheckCmds - where this is updated
+    debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
 
     // The main thread goes into an infinite loop.
     while (1)
@@ -133,13 +134,14 @@ int main(void)
         // call the base class to get the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
 
-        // Write the system tick value to video memory.
-        debug_str(AseMain, 1, 0, "SecComm(%s) %d - %d : %s",
-                  secComm.GetSocketInfo(),
-                  frames, td,
-                  version);
+        debug_str(AseMain, 1, 0, "ASE Version: %s",version);
 
-        debug_str(AseMain, 2, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
+        // Write the system tick value to video memory.
+        debug_str(AseMain, 2, 0, "SecComm(%s) %d - %d",
+                  secComm.GetSocketInfo(),
+                  frames, td);
+
+        debug_str(AseMain, 3, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
                   secComm.GetRxCount(),
                   secComm.GetTxCount(),
                   secComm.isRxing ? "Yes" : "No ",
@@ -189,7 +191,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
-        debug_str(AseMain, 3, 0, "Last Cmd Id: %d        ", request.cmdId);
+        debug_str(AseMain, 5, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {
