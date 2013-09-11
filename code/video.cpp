@@ -207,6 +207,9 @@ void debug_str1(VID_DEFS screen, int row, int col, CHAR* str)
             }
         }
     }
+    
+    // make sure the line is not over 80 chars long
+    str[80] = '\0';
 
     if(!m_screens[screen].scroll)
     {

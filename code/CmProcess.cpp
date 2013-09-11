@@ -486,7 +486,8 @@ bool CmProcess::GetFile( SecComm& secComm)
 //-----------------------------------------------------------------------------
 int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
-    char buffer[81];
+    // this needs to be big so that it can handle when file names are put in it
+    char buffer[256];   
 
     switch (theLine) {
     case 0:
