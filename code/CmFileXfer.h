@@ -62,6 +62,8 @@ public:
     UINT32 m_fileXferRqsts;
     UINT32 m_fileXferServiced;
     UINT32 m_fileXferSuccess;
+    UINT32 m_fileXferFailed;
+    UINT32 m_fileXferFailLast;
 
     char m_xferFileName[CM_FILE_NAME_LEN];
 

@@ -65,6 +65,8 @@ CmFileXfer::CmFileXfer()
     , m_fileXferRqsts(0)
     , m_fileXferServiced(0)
     , m_fileXferSuccess(0)
+    , m_fileXferFailed(0)
+    , m_fileXferFailLast(0)
 
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
@@ -194,6 +196,8 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
     case eXferFileValid:     // wait for ADRF to validate the CRC
         break;
 
+    // TODO: could add one more state to delay the COMPLETE response from us back to the ADRF
+
     default:
         break;
     };
@@ -254,16 +258,24 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 
                 out.Send(&m_sendMsgBuffer, sizeof(m_sendMsgBuffer));
 
-                m_fileXferRequested = false;
-                memset(m_xferFileName, 0, sizeof(m_xferFileName));
                 m_fileXferSuccess += 1;
             }
             else
             {
-
+                // keep track of fail msgs
+                if (CM_CRC_NACK == pCrcValMsg->crcValid)
+                {
+                    m_fileXferFailed += 1;
+                }
+                else if (CM_CRC_NACK_LAST == pCrcValMsg->crcValid)
+                {
+                    m_fileXferFailLast += 1;
+                }
             }
 
             // return to idle mode
+            m_fileXferRequested = false;
+            memset(m_xferFileName, 0, sizeof(m_xferFileName));
             m_mode = eXferIdle;
         }
     }

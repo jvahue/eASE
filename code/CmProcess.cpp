@@ -513,10 +513,12 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 4:
-        debug_str(CmProc, theLine, 0, "Log(%d/%d/%d) Msgs: %d Mode: %s(%d)",
+        debug_str(CmProc, theLine, 0, "Log(%d/%d-[%d/%d/%d]) Msgs: %d Mode: %s(%d)",
                   m_fileXfer.m_fileXferRqsts,
                   m_fileXfer.m_fileXferServiced,
                   m_fileXfer.m_fileXferSuccess,
+                  m_fileXfer.m_fileXferFailed,
+                  m_fileXfer.m_fileXferFailLast,
                   m_fileXfer.m_fileXferMsgs,
                   m_fileXfer.GetModeName(),
                   m_fileXfer.m_modeTimeout
