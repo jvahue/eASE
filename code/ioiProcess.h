@@ -19,7 +19,7 @@ class IoiProcess : public CmdRspThread
 public:
     enum IoiConstants {
         eIoiFailDisplay = 10,
-        eIoiMaxDisplay = 38,  // MUST BE AN EVEN NUMBER 40 or less
+        eIoiMaxDisplay = 36,  // MUST BE AN EVEN NUMBER 40 or less
         eMaxPages = 2
     };
     

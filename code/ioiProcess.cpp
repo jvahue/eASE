@@ -325,17 +325,22 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             baseIndex = (theLine - 2) * 2; // 2:0, 3:2, 4:4, 5:6 ... 21:38
             p1 = &m_parameters[m_displayIndex[baseIndex]];
             p2 = &m_parameters[m_displayIndex[baseIndex+1]];
-            if (p1->m_index != eAseMaxParams && p2->m_index != eAseMaxParams)
+            if (m_displayIndex[baseIndex] != eAseMaxParams && m_displayIndex[baseIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%s %s", p1->Display(buf1), p2->Display(buf2));
             }
-            else if (p1->m_index != eAseMaxParams)
+            else if (m_displayIndex[baseIndex] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%s", p1->Display(buf1));
             }
-            else if (p2->m_index != eAseMaxParams)
+            else if (m_displayIndex[baseIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%39s %s", " ", p2->Display(buf2));
+            }
+            else
+            {
+                // jump to the display info - below will increment this
+                theLine = infoStarts - 1;
             }
         }
 
@@ -348,19 +353,23 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             p1 = &m_parameters[m_displayIndex[rowIndex]];
             p2 = &m_parameters[m_displayIndex[rowIndex+1]];
 
-            if (p1->m_index != eAseMaxParams && p2->m_index != eAseMaxParams)
+            if (m_displayIndex[rowIndex] != eAseMaxParams && m_displayIndex[rowIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%-39s %s",
                           p1->ParamInfo(buf1, theLine-infoStarts),
                           p2->ParamInfo(buf2, theLine-infoStarts));
             }
-            else if (p1->m_index != eAseMaxParams)
+            else if (m_displayIndex[rowIndex] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%s", p1->ParamInfo(buf1, theLine-infoStarts));
             }
-            else if (p2->m_index != eAseMaxParams)
+            else if (m_displayIndex[rowIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%39s %s", " ", p2->ParamInfo(buf2, theLine-infoStarts));
+            }
+            else
+            {
+                m_paramDetails = 0;
             }
 
             if (theLine == (infoStarts+1))
@@ -643,12 +652,26 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     //----------------------------------------------------------------------------------------------
     case eDisplayParam:
-        if (m_parameters[request.variableId].m_isValid)
+        if (request.sigGenId < eIoiMaxDisplay)
         {
-            m_displayIndex[request.sigGenId] = request.variableId;
-            m_displayCount = eIoiMaxDisplay;
+            if (m_parameters[request.variableId].m_isValid)
+            {
+                // always pack them in at the top of the display
+                if (request.sigGenId >= m_displayCount && m_displayCount < eIoiMaxDisplay)
+                {
+                    request.sigGenId = m_displayCount;
+                    m_displayCount += 1;
+                }
+                m_displayIndex[request.sigGenId] = request.variableId;
+            }
+            secComm.m_response.successful = true;
         }
-        secComm.m_response.successful = true;
+        else
+        {
+            secComm.ErrorMsg("Slot Index %d exceeds %d, check maxSlot in DisplayParam -> SEC.py",
+                             request.sigGenId, eIoiMaxDisplay);
+            secComm.m_response.successful = false;
+        }
         serviced = TRUE;
         break;
 
@@ -776,8 +799,11 @@ void IoiProcess::InitIoi()
     if (m_initStatus == ioiSuccess)
     {
         // clear the display
-        memset((void*)m_displayIndex, 0, sizeof(m_displayIndex));
         m_displayCount = 0;
+        for (i=0; i < eIoiMaxDisplay; ++i)
+        {
+            m_displayIndex[i] = eAseMaxParams;
+        }
 
         m_ioiOpenFailCount = 0;
         memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
