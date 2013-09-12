@@ -80,6 +80,7 @@ protected:
 
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
+    bool    m_updateDisplay;
     
 };
 

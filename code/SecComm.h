@@ -43,6 +43,7 @@ enum SecCmds {
     ePowerOn        = 5,
     ePowerOff       = 6,
     eMsState        = 7,
+    eDisplayState   = 8,  // this is directed at a specific Process
 
 // Ase Enums 101-199
 

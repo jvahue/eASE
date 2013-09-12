@@ -258,7 +258,7 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     else if (theLine == 2)
     {
         debug_str(Ioi, theLine, 0,
-                  "oErr %d wErr %d cErr %d TotP: %d TotI: %d AvgIoi: %d",
+                  "oErr(%d) wErr(%d) cErr(%d) TotP(%d) TotI(%d) AvgIoi(%d)",
                   m_ioiOpenFailCount,
                   m_ioiWriteFailCount,
                   m_ioiCloseFailCount,
@@ -686,6 +686,16 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    //----------------------------------------------------------------------------------------------
+    case eDisplayState:
+        if (request.variableId == (int)Ioi || request.variableId == (int)Params)
+        {
+            m_updateDisplay = request.sigGenId != 0;
+            secComm.m_response.successful = true;
+            serviced = TRUE;
+        }
+        break;
+
     default:
         // we did not service this command
         serviced = FALSE;
@@ -835,6 +845,7 @@ void IoiProcess::InitIoi()
 
         m_paramCount = 0;
         m_maxParamIndex = 0;
+        m_paramLoopEnd = 0;
 
         for (i=0; i < m_paramInfoCount; ++i)
         {

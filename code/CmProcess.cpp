@@ -299,6 +299,16 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    //----------------------------------------------------------------------------------------------
+    case eDisplayState:
+        if (request.variableId == (int)CmProc)
+        {
+            m_updateDisplay = request.sigGenId != 0;
+            secComm.m_response.successful = true;
+            serviced = TRUE;
+        }
+        break;
+
     default:
         subServiced = m_reconfig.CheckCmd(secComm, m_reConfigOutBox);
         if (!subServiced)

@@ -266,16 +266,16 @@ char* Parameter::ParamInfo(char* buffer, int row)
     {
         if ( row == 0)
         {
-            //              Type(Fmt) Rate Child SigGen
-            //               0   5  11  17      23     30  34
+            //               #   Type(Fmt) Rate Child SigGen
+            //               0   5  11  18      25     31  34
             //               v   v  v   v       v      v   v
-            sprintf(buffer, "%4d:%s(%s) %2dHz - %3d in %3d %s",
+            sprintf(buffer, "%4d:%s(%s) %2dHz - %2d in %2d %s",
                 m_index,
                 paramType5[m_type],
                 a429Fmt5[m_a429.format],
                 m_rateHz,
                 m_childCount+1, m_updateDuration,
-                m_isChild ? "Child" : ""
+                m_isChild ? "Kid" : ""
             );
         }
         else if ( row == 1)
