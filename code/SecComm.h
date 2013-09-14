@@ -86,6 +86,8 @@ enum SecCmds {
     eInitParamData  = 411,
     eDisplayParam   = 412,
     eResetIoi       = 413,
+    eParamState     = 414,
+    eParamIoState   = 415,
 
 
 //-------------------------------- unallocated --------------------------------

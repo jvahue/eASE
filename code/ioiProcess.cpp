@@ -67,7 +67,8 @@ IoiProcess::IoiProcess()
     , m_ioiOpenFailCount(0)
     , m_ioiCloseFailCount(0)
     , m_ioiWriteFailCount(0)
-    , m_sgRun(false)
+    , m_sgRun(false)               // sig gen comes up on hold
+    , m_paramIoRunning(true)       // IO comes up running
     , m_avgIoiTime(0)
     , m_totalParamTime(0)
     , m_totalIoiTime(0)
@@ -140,10 +141,8 @@ void IoiProcess::RunSimulation()
 void IoiProcess::UpdateIoi()
 {
     UINT32 i;
-    UINT32 start;
     UINT32 scheduleZ1 = 3001;
     Parameter* param;
-    ioiStatus writeStatus;
 
     m_scheduled = 0; // need to see how many are really scheduled
     m_updated = 0;   // toggle the lsb
@@ -161,24 +160,21 @@ void IoiProcess::UpdateIoi()
                 m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
 
-                if (m_scheduled != scheduleZ1)
+                if (m_paramIoRunning && m_scheduled != scheduleZ1 && param->IsRunning())
                 {
-                    start = HsTimer();
-                    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
-                    m_totalIoiTime += HsTimeDiff(start);
-
-                    scheduleZ1 = m_scheduled;
-
-                    if (writeStatus == ioiSuccess)
+                    // TODO: if we determine here the signal is a xchan signal put it in the
+                    //       xchan buffer instead of the write ioi
+                    if (param->m_src != PARAM_SRC_CROSS)
                     {
-                        m_updated += 1; // count how many we updated
+                        WriteIoi(param);
                     }
                     else
                     {
-                        // TODO : what else, anything?
-                        m_ioiWriteFailCount += 1;
+                        // move data to xchan ioi slot
                     }
+
                 }
+                scheduleZ1 = m_scheduled;
             }
             ++param;
         }
@@ -692,8 +688,30 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         {
             m_updateDisplay = request.sigGenId != 0;
             secComm.m_response.successful = true;
+            // serviced: goes inside here so other Displays get a chance to see the cmd
             serviced = TRUE;
         }
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eParamState:
+        if (m_parameters[request.variableId].m_isValid)
+        {
+            m_parameters[request.variableId].m_isRunning = request.sigGenId != 0;
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("Parameter[%d] is not valid", request.variableId)
+        }
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eParamState:
+        m_paramIoRunning = m_parameters[request.variableId].m_isValid != 0
+        secComm.m_response.successful = true;
+        serviced = TRUE;
         break;
 
     default:
@@ -978,6 +996,30 @@ void IoiProcess::ScheduleParameters()
                 break;
             }
         }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: WriteIoi
+// Description: Write param to it's ioi thingy
+//
+void IoiProcess::WriteIoi(Parameter* param )
+{
+    UINT32 start;
+    ioiStatus writeStatus;
+
+    start = HsTimer();
+    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+    m_totalIoiTime += HsTimeDiff(start);
+
+    if (writeStatus == ioiSuccess)
+    {
+        m_updated += 1; // count how many we updated
+    }
+    else
+    {
+        // TODO : what else, anything?
+        m_ioiWriteFailCount += 1;
     }
 }
 

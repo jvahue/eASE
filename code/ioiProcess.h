@@ -22,7 +22,7 @@ public:
         eIoiMaxDisplay = 36,  // MUST BE AN EVEN NUMBER 40 or less
         eMaxPages = 2
     };
-    
+
     //enum IoiState {
     //    eIoiStateInit,
     //    eIoiStateInitFail,
@@ -40,16 +40,19 @@ protected:
 
      // Methods
     // override the CmdRspThread::RunSimulation
-    virtual void RunSimulation(); 
+    virtual void RunSimulation();
     virtual void HandlePowerOff();
     // Send the sensor names to ePySte
-    void FillSensorNames(INT32 start, SensorNames& m_snsNames) const;   
+    void FillSensorNames(INT32 start, SensorNames& m_snsNames) const;
     void ScheduleParameters();
 
     bool CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data);
     void InitIoi();
-    
+
     void UpdateIoi();
+
+    void WriteIoi(Parameter* param );
+
     void UpdateCCDL();
 
     int PageIoiStatus(int theLine, bool& nextPage);
@@ -81,6 +84,7 @@ protected:
     ParameterName m_closeFailNames[eIoiFailDisplay];
 
     bool m_sgRun;
+    bool m_paramIoRunning;
 
     // debug timing
     UINT32 m_avgIoiTime;

@@ -26,9 +26,11 @@ enum ParamConstants {eParamShort = 23};
     bool IsChild(Parameter& other);  // indicates if this parameter is a 'child' match for the other parameter
     char* Display(char* buffer);
     char* ParamInfo(char* buffer, int row);
-    char* Shrink(char* src, int size);
+    char* CompressName(char* src, int size);
+    bool IsRunning() {return m_isRunning;}
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
+    bool m_isRunning;
     ParameterName m_name;       // the parameter name
     ParameterName m_shortName;  // the short parameter name for the display
     UINT32  m_index;

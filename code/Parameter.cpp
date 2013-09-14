@@ -72,6 +72,7 @@ Parameter::Parameter()
 void Parameter::Reset()
 {
     m_ioiValid = false;
+    m_isRunning = true;        // parameter comes up running
     m_index = eAseMaxParams;
     m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
@@ -90,10 +91,10 @@ void Parameter::Reset()
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: Shrink
-// Description: remove vowels from the end until strlen <= size
+// Function: CompressName
+// Description: remove vowels from the end until strlen(src) <= size
 //
-char* Parameter::Shrink(char* src, int size)
+char* Parameter::CompressName(char* src, int size)
 {
     char* vowel;
     char* from;
@@ -138,7 +139,7 @@ void Parameter::Init(ParamCfg* paramInfo)
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);
     strncpy(m_shortName, paramInfo->name, eAseParamNameSize);
-    Shrink(m_shortName, eParamShort);
+    CompressName(m_shortName, eParamShort);
 
     m_index = paramInfo->index;
 
