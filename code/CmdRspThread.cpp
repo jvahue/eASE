@@ -59,6 +59,7 @@ CmdRspThread::CmdRspThread()
     : m_systemTick(0)
     , m_frames(0)
     , m_overrunCount(0)
+    , m_updateDisplay(true)
 {
 }
 
@@ -85,7 +86,10 @@ void CmdRspThread::Process()
             m_overrunCount += 1;
         }
 
-        theLine = UpdateDisplay(VID_SYS, theLine);
+        if (m_updateDisplay)
+        {
+            theLine = UpdateDisplay(VID_SYS, theLine);
+        }
 
         waitUntilNextPeriod();
     }
