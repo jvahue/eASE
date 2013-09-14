@@ -191,6 +191,30 @@ void IoiProcess::UpdateIoi()
 }
 
 //-------------------------------------------------------------------------------------------------
+// Function: WriteIoi
+// Description: Write param raw data value to it's ioi thingy
+//
+void IoiProcess::WriteIoi(Parameter* param )
+{
+    UINT32 start;
+    ioiStatus writeStatus;
+
+    start = HsTimer();
+    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+    m_totalIoiTime += HsTimeDiff(start);
+
+    if (writeStatus == ioiSuccess)
+    {
+        m_updated += 1; // count how many we updated
+    }
+    else
+    {
+        // TODO : what else, anything?
+        m_ioiWriteFailCount += 1;
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
 // Function: UpdateCCDL
 // Description: Update the CCDL and send
 //
@@ -998,29 +1022,4 @@ void IoiProcess::ScheduleParameters()
         }
     }
 }
-
-//-------------------------------------------------------------------------------------------------
-// Function: WriteIoi
-// Description: Write param to it's ioi thingy
-//
-void IoiProcess::WriteIoi(Parameter* param )
-{
-    UINT32 start;
-    ioiStatus writeStatus;
-
-    start = HsTimer();
-    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
-    m_totalIoiTime += HsTimeDiff(start);
-
-    if (writeStatus == ioiSuccess)
-    {
-        m_updated += 1; // count how many we updated
-    }
-    else
-    {
-        // TODO : what else, anything?
-        m_ioiWriteFailCount += 1;
-    }
-}
-
 
