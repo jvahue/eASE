@@ -38,20 +38,19 @@ class CmFileXfer
 {
 public:
     enum CmFileXferMode {
-        eXferIdle,          // no activity
-        eXferAckTimeout,    // ready to respond with an (N)ACK after the timeout
-        // ePySTE States
-        eXferFileWait,      // wait for ePySte to request the file
-        eXferFileOffload,   // stream file up to ePySte to verify the CRC
-        eXferFileCheck,     // wait for ePySTe to return the CRC
-        eXferFileValid      // wait for ADRF to validate the CRC
-
-        // ADRF States
+        eXferIdle,        // no activity
+        eXferRqst,        // ADRF has sent us a file name to upload
+        eXferFile,        // ePySte asked for the file, and file is ok
+        eXferFileFail,    // ePySte asked for the file, and file is bad
+        eXferFileCrc,     // send ePySTe CRC to the ADRF to confirm
+        eXferFileValid    // wait for ADRF to confirm the CRC
     };
 
     CmFileXfer();
-    void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
+
     BOOLEAN CheckCmd( SecComm& secComm);
+    void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
+    void FileStatus(char* filename, bool canOpen);
 
     const char* GetModeName() const;
 
@@ -68,21 +67,20 @@ public:
     char m_xferFileName[CM_FILE_NAME_LEN];
 
     // Test Control Items
-    UINT32 m_tcAckDelay;          // CM_tcAckDelayMs(x) - delay before repsonding with a (N)ACK
+    UINT32 m_tcAckDelay;          // CM_tcAckDelayMs(x) - delay before responding with a (N)ACK
     CM_CMD_STATUS m_tcAckStatus;  //
     CM_ACK_INFO m_tcAckInfo;
 
-
 protected:
     void FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out);
-    void SendAckCtrl(MailBox& out);
+    void SendAckTimeout(MailBox& out);
     void SendAck(MailBox& out);
 
     File m_xferFile;
     FILE_RCV_MSG m_sendMsgBuffer;
 
     UINT32 m_fileCrc;
-    UINT8  m_fileCrcAck;
+    //UINT8  m_fileCrcAck;
 
     bool m_msOnline;   // updated on each call to ProcessFileXfer
 

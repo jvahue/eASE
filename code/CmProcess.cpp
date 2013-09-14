@@ -53,7 +53,7 @@ CmProcess::CmProcess()
 
 {
     // TODO: remove after debugging
-    memset( m_readyFile, 0, sizeof(m_readyFile));
+    memset( m_rqstFile, 0, sizeof(m_rqstFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
     memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
     memset( (void*)&m_gseCmd, 0, sizeof(m_gseCmd));
@@ -344,7 +344,7 @@ bool CmProcess::PutFile( SecComm& secComm)
             status = true;
 
             // TODO: remove after debugging is complete
-            strcpy(m_readyFile, secComm.m_request.charData);
+            strcpy(m_rqstFile, secComm.m_request.charData);
         }
         else
         {
@@ -404,14 +404,16 @@ bool CmProcess::GetFile( SecComm& secComm)
     {
         if (!m_getFile.IsOpen())
         {
-            // charData holds the file name
-            memset(m_readyFile, 0, sizeof(m_readyFile));
-            memcpy(m_readyFile, secComm.m_request.charData, secComm.m_request.charDataSize);
+            // charData holds the file name requested by ePySte
+            memset(m_rqstFile, 0, sizeof(m_rqstFile));
+            memcpy(m_rqstFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
-            if (m_getFile.Open(m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+            if (m_getFile.Open(m_rqstFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
             {
+                m_fileXfer.FileStatus(m_rqstFile, false);
+
                 // check to see if we are uploading a FileXfer request from ADRF
-                m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+                m_performAdrfOffload = strcmp( m_rqstFile, m_fileXfer.m_xferFileName) == 0;
 
                 nameLength = strlen(m_getFile.GetFileName());
                 strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
@@ -423,7 +425,8 @@ bool CmProcess::GetFile( SecComm& secComm)
                 status = true;
             }
             else
-            {
+            {   
+                m_fileXfer.FileStatus(m_rqstFile, false);
                 secComm.ErrorMsg("GetFile: File not available");
             }
         }
@@ -437,7 +440,7 @@ bool CmProcess::GetFile( SecComm& secComm)
     else if (m_getFile.IsOpen())
     {
         // if we were offloading an ADRF requested file - see if the adrf wants to continue
-        bool continueAdrf = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+        bool continueAdrf = strcmp( m_rqstFile, m_fileXfer.m_xferFileName) == 0;
 
         if ((m_performAdrfOffload && continueAdrf) || !m_performAdrfOffload)
         {
@@ -446,7 +449,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             if (bytesRead < eSecStreamSize)
             {
                 m_getFile.Close();
-                memset(m_readyFile, 0, sizeof(m_readyFile));
+                memset(m_rqstFile, 0, sizeof(m_rqstFile));
                 m_performAdrfOffload = false;
             }
 
@@ -458,7 +461,7 @@ bool CmProcess::GetFile( SecComm& secComm)
         else
         {
             m_getFile.Close();
-            memset(m_readyFile, 0, sizeof(m_readyFile));
+            memset(m_rqstFile, 0, sizeof(m_rqstFile));
             m_performAdrfOffload = false;
         }
     }

@@ -33,7 +33,7 @@ class CmProcess : public CmdRspThread
         virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
         char m_boxOnTime[32];
-        char m_readyFile[128];
+        char m_rqstFile[128];  // filename requested for upload by ePySte
 
     protected:
         // Properties

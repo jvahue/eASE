@@ -34,11 +34,12 @@
 // Constant Data                                                             -/
 //----------------------------------------------------------------------------/
 static const char* modeNames[] = {
-    "Idle",         //
-    "AckTimeout",   //
-    "FileWait",     //
-    "FileOffload",  //
-    "FileValidate"  //
+    "Idle",   // eXferIdle
+    "Rqst",   // eXferRqst
+    "Xfer",   // eXferFile
+    "Fail",   // eXferFileFail
+    "CRC",    // eXferFileCrc
+    "Valid?"  // eXferFileValid
 };
 
 //----------------------------------------------------------------------------/
@@ -52,13 +53,12 @@ static const char* modeNames[] = {
 //----------------------------------------------------------------------------/
 // Class Definitions                                                         -/
 //----------------------------------------------------------------------------/
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Function: CmFileXfer
 // Description: Implement the file transfer protocol
 //
 CmFileXfer::CmFileXfer()
-    : m_fileXferRequested(false)
-    , m_mode(eXferIdle)
+    : m_mode(eXferIdle)
     , m_modeTimeout(0)
     , m_fileXferMsgs(0)
 
@@ -71,10 +71,10 @@ CmFileXfer::CmFileXfer()
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
     , m_tcAckInfo(CM_FILE_XFR)
-    
+
     , m_fileCrc(0)
-    , m_fileCrcAck(0)
-    
+    //, m_fileCrcAck(0)
+
     , m_msOnline(false)
 
 {
@@ -95,14 +95,10 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
     switch (request.cmdId)
     {
     case eLogFileReady:
-        if (m_mode == eXferFileWait)
+        if (m_mode == eXferRqst)
         {
             strcpy( secComm.m_response.streamData, m_xferFileName);
             secComm.m_response.streamSize = strlen(m_xferFileName);
-            if (secComm.m_response.streamSize > 0)
-            {
-                m_mode = eXferFileOffload;
-            }
             secComm.m_response.successful = true;
         }
         else
@@ -114,11 +110,11 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
         break;
 
     case eLogFileCrc:
-        if (m_mode == eXferFileOffload)
+        if (m_mode == eXferFile)
         {
             m_fileCrc = request.sigGenId;
-            m_fileCrcAck = request.variableId ? CM_XFR_ACK : CM_XFR_NACK;
-            m_mode = eXferFileCheck;
+            //m_fileCrcAck = request.variableId ? CM_XFR_ACK : CM_XFR_NACK;
+            m_mode = eXferFileCrc;
             secComm.m_response.successful = true;
             m_fileXferServiced += 1;
         }
@@ -164,21 +160,31 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
     switch (m_mode)
     {
     case eXferIdle:          // no activity
+        m_xferFileName[0] = '\0';
         break;
 
-    case eXferAckTimeout:    // ready to respond with an (N)ACK after the timeout
-        SendAckCtrl(out);
+    case eXferRqst:
+        // wait for ePySte to ask for the m_xferFile
+        SendAckTimeout(out);
         break;
 
-    case eXferFileWait:      // wait for ePySte to request the file
-        m_tcAckInfo = m_msOnline ? CM_QUEUED_MS_OK : CM_QUEUED_MS_OFFLINE;
-        break;
-
-    case eXferFileOffload:   // stream file up to ePySte to verify the CRC
+    case eXferFile:      // File is being transferred
         m_tcAckInfo = CM_FILE_XFR;
         break;
 
-    case eXferFileCheck:     // ePySTe returned the CRC
+    case eXferFileFail:   // CmProc was unable to open the request file to send to ePySte
+        if (m_modeTimeout > 0)
+        {
+            m_modeTimeout -= 1;
+        }
+        else
+        {
+            m_mode = eXferIdle;
+            m_xferFileName[0] = '\0';
+        }
+        break;
+
+    case eXferFileCrc:     // ePySTe returned the CRC
         pConfirm = (FILE_CONFIRM_MSG*)&m_sendMsgBuffer;
 
         pConfirm->msgId = CM_ID_CONFIRM;
@@ -193,7 +199,8 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 
         break;
 
-    case eXferFileValid:     // wait for ADRF to validate the CRC
+    case eXferFileValid:
+        // wait for ADRF to validate the CRC, see FileXferResponse
         break;
 
     // TODO: could add one more state to delay the COMPLETE response from us back to the ADRF
@@ -207,7 +214,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 // Function: FileXferResponse
 // Description: Handle responding to the client
 //
-// TODO: handle aborted transfer overide=On and filename = NULL
+// TODO: handle aborted transfer override=On and filename = NULL
 //
 void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 {
@@ -221,15 +228,14 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             // ok we are not in the middle of one accept it
             memcpy(m_xferFileName, pXfrMsg->filename, CM_FILE_NAME_LEN);
 
-            // reset us to idle mode for the call to SendAckCtrl
-            m_mode = eXferIdle;
-
-            // send ACK or delay
+            // set ACK Info
             m_tcAckInfo = m_msOnline ? CM_QUEUED_MS_OK : CM_QUEUED_MS_OFFLINE;
 
-            SendAckCtrl(out);
+            // indicate we have a file ready to go
+            m_mode = eXferRqst;
+            m_modeTimeout = m_tcAckDelay;
+            SendAckTimeout(out);
 
-            m_fileXferRequested = true;
             m_fileXferRqsts += 1;
         }
 
@@ -238,6 +244,15 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
         {
             // requesting status on the file transfer
             SendAck(out);
+            if (m_mode == eXferFileFail)
+            {
+                // we just told the ADRF about the bad file go to idle
+                m_mode = eXferIdle;
+            }
+        }
+        else
+        {
+            // TODO: add a counter of bad filename requests
         }
     }
     else if (rcv.msgId == CM_ID_CRC_VAL)
@@ -273,10 +288,14 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
                 }
             }
 
-            // return to idle mode
-            m_fileXferRequested = false;
+            // clear rqst filename and return to idle mode
             memset(m_xferFileName, 0, sizeof(m_xferFileName));
             m_mode = eXferIdle;
+        }
+        else
+        {
+            // unexpected CRC Validation msg
+
         }
     }
 }
@@ -285,33 +304,11 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 // Function: SendAckCtrl
 // Description: Control sending Ack responses to the client
 //
-void CmFileXfer::SendAckCtrl( MailBox& out)
+void CmFileXfer::SendAckTimeout(MailBox& out)
 {
-    if (m_mode == eXferIdle)
+    if (m_modeTimeout > 0)
     {
-        if (m_tcAckDelay > 0)
-        {
-            // init the timeout
-            m_mode = eXferAckTimeout;
-            m_modeTimeout = m_tcAckDelay;
-        }
-        else
-        {
-            SendAck(out);
-            m_mode = eXferFileWait;
-        }
-    }
-    else if (m_mode == eXferAckTimeout)
-    {
-        if (m_modeTimeout > 0)
-        {
-            m_modeTimeout -= 1;
-        }
-        else
-        {
-            SendAck(out);
-            m_mode = eXferFileWait;
-        }
+        m_modeTimeout -= 1;
     }
     else
     {
@@ -321,7 +318,7 @@ void CmFileXfer::SendAckCtrl( MailBox& out)
 
 //-------------------------------------------------------------------------------------------------
 // Function: SendAck
-// Description: Send the Ack
+// Description: Actually send the Ack
 //
 void CmFileXfer::SendAck(MailBox& out)
 {
@@ -333,6 +330,29 @@ void CmFileXfer::SendAck(MailBox& out)
 
     // we can send it
     out.Send(&ack, sizeof(ack));
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: FileStatus
+// Description: Indicate a files status from CmProc - this only cares if the filename passed in
+// matches the xfer filename
+//
+void CmFileXfer::FileStatus(char* filename, bool canOpen)
+{
+    if (strcmp(filename, m_xferFileName) == 0)
+    {
+        if (canOpen)
+        {
+            m_mode = eXferFile;
+        }
+        else
+        {
+            m_mode = eXferFileFail;
+            m_tcAckInfo = CM_INVALID_FILE;   // which one ?
+            m_modeTimeout = 500;             // wait up to 5 seconds for the ADRF to get status
+            //m_tcAckInfo = XFR_INVALID_FILE;
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
