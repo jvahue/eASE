@@ -57,12 +57,15 @@ public:
     bool m_fileXferRequested;
     CmFileXferMode m_mode;
     UINT32 m_modeTimeout;
-    UINT32 m_fileXferMsgs;
+    UINT32 m_fileXferRx;
+    UINT32 m_fileXferTx;
     UINT32 m_fileXferRqsts;
     UINT32 m_fileXferServiced;
     UINT32 m_fileXferSuccess;
     UINT32 m_fileXferFailed;
     UINT32 m_fileXferFailLast;
+    UINT32 m_fileXferError;       // any issue with the file
+    UINT32 m_fileXferValidError;  // got a CM_ID_CRC_VAL when we are not looking for it
 
     char m_xferFileName[CM_FILE_NAME_LEN];
 

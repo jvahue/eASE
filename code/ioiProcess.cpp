@@ -726,14 +726,14 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         }
         else
         {
-            secComm.ErrorMsg("Parameter[%d] is not valid", request.variableId)
+            secComm.ErrorMsg("Parameter[%d] is not valid", request.variableId);
         }
         serviced = TRUE;
         break;
 
     //----------------------------------------------------------------------------------------------
-    case eParamState:
-        m_paramIoRunning = m_parameters[request.variableId].m_isValid != 0
+    case eParamIoState:
+        m_paramIoRunning = m_parameters[request.variableId].m_isValid != 0;
         secComm.m_response.successful = true;
         serviced = TRUE;
         break;

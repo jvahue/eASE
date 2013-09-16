@@ -60,13 +60,16 @@ static const char* modeNames[] = {
 CmFileXfer::CmFileXfer()
     : m_mode(eXferIdle)
     , m_modeTimeout(0)
-    , m_fileXferMsgs(0)
+    , m_fileXferRx(0)
+    , m_fileXferTx(0)
 
     , m_fileXferRqsts(0)
     , m_fileXferServiced(0)
     , m_fileXferSuccess(0)
     , m_fileXferFailed(0)
     , m_fileXferFailLast(0)
+    , m_fileXferError(0)
+    , m_fileXferValidError(0)
 
     , m_tcAckDelay(0)
     , m_tcAckStatus(CM_ACK)
@@ -153,7 +156,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
     // we can receive a msg at any time
     if (in.Receive(&rcv, sizeof(rcv)))
     {
-        m_fileXferMsgs += 1;
+        m_fileXferRx += 1;
         FileXferResponse(rcv, out);
     }
 
@@ -165,7 +168,6 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 
     case eXferRqst:
         // wait for ePySte to ask for the m_xferFile
-        SendAckTimeout(out);
         break;
 
     case eXferFile:      // File is being transferred
@@ -179,8 +181,9 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
         }
         else
         {
+            // we have timeout on the ACK send off the indication to ADRF about the bad file
+            SendAck(out);
             m_mode = eXferIdle;
-            m_xferFileName[0] = '\0';
         }
         break;
 
@@ -192,6 +195,7 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
         pConfirm->xfrResult = CM_XFR_ACK;
         pConfirm->msCrc = m_fileCrc;
 
+        m_fileXferTx += 1;
         if (out.Send(&m_sendMsgBuffer, sizeof(m_sendMsgBuffer)))
         {
             m_mode = eXferFileValid;
@@ -230,11 +234,11 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
 
             // set ACK Info
             m_tcAckInfo = m_msOnline ? CM_QUEUED_MS_OK : CM_QUEUED_MS_OFFLINE;
+            m_tcAckStatus = CM_ACK;
 
             // indicate we have a file ready to go
             m_mode = eXferRqst;
-            m_modeTimeout = m_tcAckDelay;
-            SendAckTimeout(out);
+            SendAck(out);
 
             m_fileXferRqsts += 1;
         }
@@ -271,6 +275,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
                 strncpy(pCompleteMsg->filename, pCrcValMsg->filename, CM_FILE_NAME_LEN);
                 pCompleteMsg->msgId = CM_ID_COMPLETE;
 
+                m_fileXferTx += 1;
                 out.Send(&m_sendMsgBuffer, sizeof(m_sendMsgBuffer));
 
                 m_fileXferSuccess += 1;
@@ -295,7 +300,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
         else
         {
             // unexpected CRC Validation msg
-
+            m_fileXferValidError += 1;
         }
     }
 }
@@ -329,6 +334,7 @@ void CmFileXfer::SendAck(MailBox& out)
     ack.ackInfo = m_tcAckInfo;
 
     // we can send it
+    m_fileXferTx += 1;
     out.Send(&ack, sizeof(ack));
 }
 
@@ -344,13 +350,14 @@ void CmFileXfer::FileStatus(char* filename, bool canOpen)
         if (canOpen)
         {
             m_mode = eXferFile;
+            m_tcAckInfo = CM_FILE_XFR;
         }
         else
         {
             m_mode = eXferFileFail;
-            m_tcAckInfo = CM_INVALID_FILE;   // which one ?
-            m_modeTimeout = 500;             // wait up to 5 seconds for the ADRF to get status
-            //m_tcAckInfo = XFR_INVALID_FILE;
+            m_tcAckStatus = CM_NACK;
+            m_tcAckInfo = CM_INVALID_FILE;
+            m_fileXferError += 1;
         }
     }
 }

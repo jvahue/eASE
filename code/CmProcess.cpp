@@ -266,13 +266,14 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-    case eDeleteCfgFile:
+    case eDeleteFile:
         // see if the file exists
-        secComm.m_response.successful = m_getFile.Delete(ADRF_CFG_FILE, File::ePartAdrf);
+        secComm.m_response.successful = m_getFile.Delete(request.charData,
+                                                         File::PartitionType(request.variableId));
         if (!secComm.m_response.successful)
         {
-            secComm.ErrorMsg("Failed File Delete <%s> errorCode: %d",
-                             ADRF_CFG_FILE, m_getFile.GetFileError());
+            secComm.ErrorMsg("Failed File Delete <%s> Part(%) errorCode: %d",
+                             request.charData, request.variableId, m_getFile.GetFileError());
             secComm.m_response.value = float(m_getFile.GetFileError());
         }
 
@@ -420,7 +421,7 @@ bool CmProcess::GetFile( SecComm& secComm)
 
             if (m_getFile.Open(m_rqstFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
             {
-                m_fileXfer.FileStatus(m_rqstFile, false);
+                m_fileXfer.FileStatus(m_rqstFile, true);
 
                 // check to see if we are uploading a FileXfer request from ADRF
                 m_performAdrfOffload = strcmp( m_rqstFile, m_fileXfer.m_xferFileName) == 0;
@@ -526,13 +527,16 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 4:
-        debug_str(CmProc, theLine, 0, "Log(%d/%d-[%d/%d/%d]) Msgs: %d Mode: %s(%d)",
+        debug_str(CmProc, theLine, 0, "Log(%d/%d-[%d/%d/%d-%d/%d]) Rx/Tx: %d/%d Mode: %s(%d)",
                   m_fileXfer.m_fileXferRqsts,
                   m_fileXfer.m_fileXferServiced,
                   m_fileXfer.m_fileXferSuccess,
                   m_fileXfer.m_fileXferFailed,
                   m_fileXfer.m_fileXferFailLast,
-                  m_fileXfer.m_fileXferMsgs,
+                  m_fileXfer.m_fileXferError,
+                  m_fileXfer.m_fileXferValidError,
+                  m_fileXfer.m_fileXferRx,
+                  m_fileXfer.m_fileXferTx,
                   m_fileXfer.GetModeName(),
                   m_fileXfer.m_modeTimeout
                   );

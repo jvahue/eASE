@@ -64,7 +64,7 @@ enum SecCmds {
     eCmFileNameDelay = 250,
     eCmRecfgAckDelay = 251,
     eGetRcfCount     = 252,
-    eDeleteCfgFile   = 253,
+    eDeleteFile      = 253,
     eCmLatchWait     = 254,
 
 // CmProc Enums 301-399
