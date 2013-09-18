@@ -757,7 +757,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 //-------------------------------------------------------------------------------------------------
 // Function: FillSensorNames
 // Description: Send the parameter names up to ePySte
-// Start at the location defined from PySte t0=0, t1..n=base+125
+// Start at the location defined from PySte t0=0, t1..n=pBaseIndex(n-1)+125
 // Send up to 125 at a time
 // - loop until we find a valid one starting from 'start' the do 125 consecutive
 //
