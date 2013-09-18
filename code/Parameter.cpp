@@ -178,6 +178,12 @@ bool Parameter::IsChild(Parameter& other)
                 m_a429.sdBits  == other.m_a429.sdBits)     // same SDI
             {
                 m_isChild = true;
+            }
+        }
+        // TODO check A664 children?
+
+        if (m_isChild)
+        {
                 // walk down the child list and attach this
                 Parameter* parent = &other;
                 while (parent->m_link != NULL)
@@ -187,8 +193,6 @@ bool Parameter::IsChild(Parameter& other)
                 parent->m_link = this;
             }
         }
-        // TODO check A664 children?
-    }
 
     return m_isChild;
 }
