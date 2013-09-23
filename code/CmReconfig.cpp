@@ -28,18 +28,6 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-typedef struct {
-  SINT32     tm_sec;   // seconds  0..59
-  SINT32     tm_min;   // minutes  0..59
-  SINT32     tm_hour;  // hours    0..23
-  SINT32     tm_mday;  // day of the month  1..31
-  SINT32     tm_mon;   // month    0..11
-  SINT32     tm_year;  // year from 1900
-//SINT32     tm_wday;  // day of the week
-//SINT32     tm_yday;  // day in the year
-//SINT32     tm_isdst; // daylight saving time -1/0/1
-} LINUX_TM_FMT, *LINUX_TM_FMT_PTR;
-
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -48,7 +36,7 @@ typedef struct {
 /* Constant Data                                                             */
 /*****************************************************************************/
 static const char* modeNames[] = {
-    "Idle",           // waiting for reconfig action
+    "Idle",           // waiting for recfg action
     "WaitAck",        // wait before send ACK to ADRF
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
@@ -181,7 +169,6 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         secComm.m_response.successful = TRUE;
         serviced = TRUE;
         break;
-
 
     default:
         break;

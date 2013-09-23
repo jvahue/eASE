@@ -49,6 +49,8 @@ const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl = NULL;
 
+LINUX_TM_FMT nextTime;
+
 /*****************************************************************************/
 /* Global Variables                                                          */
 /*****************************************************************************/
@@ -67,6 +69,7 @@ CmdRspThread* cmdRspThreads[] = {
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
+static void SetTime(SecRequest& request);
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -197,23 +200,28 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         {
         case eRunScript:
             aseCommon.bScriptRunning = TRUE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eScriptDone:
             aseCommon.bScriptRunning = FALSE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eShutdown:
             aseCommon.bScriptRunning = FALSE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case ePing:
+            // ping carries the current time and next time
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -229,6 +237,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 // Update the global-shared data block
                 aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
             }
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -247,6 +256,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             // Update the global-shared data block
             aseCommon.adrfState = eAdrfOff;
 
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -292,3 +302,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 }
 
 //-------------------------------------------------------------------------------------------------
+static void SetTime(SecRequest& request)
+{
+    aseCommon.tm_year = request.variableId;  // year from 1900
+    aseCommon.tm_mon  = request.sigGenId;   // month    0..11
+    aseCommon.tm_mday = request.resetRequest;  // day of the month  1..31
+    aseCommon.tm_hour = request.clearCfgRequest;  // hours    0..23
+    aseCommon.tm_min  = int(request.value);   // minutes  0..59
+    aseCommon.tm_sec  = int(request.param1);   // seconds  0..59
+
+    nextTime.tm_year = int(request.param2);
+    nextTime.tm_mon  = int(request.param3);
+    nextTime.tm_mday = int(request.param4);
+}

@@ -55,6 +55,7 @@ public:
     BOOLEAN CheckCmd( SecComm& secComm);
     void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
     void FileStatus(char* filename, bool canOpen);
+    void ResetCounters();
 
     const char* GetModeName() const;
 
