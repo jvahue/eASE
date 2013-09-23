@@ -127,6 +127,12 @@ void CmProcess::RunSimulation()
             m_lastGseSent = m_frames;
         }
     }
+
+    if (!IS_SCRIPT_ACTIVE)
+    {
+        // reset counters in File Xfer code
+        m_fileXfer.ResetCounters();
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -146,15 +152,6 @@ void CmProcess::ProcessGseMessages()
         int size = strlen(m_gseRsp.rspMsg);
         m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
     }
-}
-
-//-------------------------------------------------------------------------------------------------
-// Function: ProcessLogMessages
-// Description:
-//
-void CmProcess::ProcessLogMessages()
-{
-
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -436,7 +433,7 @@ bool CmProcess::GetFile( SecComm& secComm)
                 status = true;
             }
             else
-            {   
+            {
                 m_fileXfer.FileStatus(m_rqstFile, false);
                 secComm.ErrorMsg("GetFile: File not available");
             }
@@ -501,13 +498,13 @@ bool CmProcess::GetFile( SecComm& secComm)
 int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
     // this needs to be big so that it can handle when file names are put in it
-    char buffer[256];   
+    char buffer[256];
 
     switch (theLine) {
     case 0:
         CmdRspThread::UpdateDisplay(CmProc, 0);
         break;
-        
+
     case 1:
        debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
        break;
@@ -527,65 +524,72 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 4:
-        debug_str(CmProc, theLine, 0, "Log(%d/%d-[%d/%d/%d-%d/%d]) Rx/Tx: %d/%d Mode: %s(%d)",
-                  m_fileXfer.m_fileXferRqsts,
-                  m_fileXfer.m_fileXferServiced,
-                  m_fileXfer.m_fileXferSuccess,
-                  m_fileXfer.m_fileXferFailed,
-                  m_fileXfer.m_fileXferFailLast,
-                  m_fileXfer.m_fileXferError,
-                  m_fileXfer.m_fileXferValidError,
-                  m_fileXfer.m_fileXferRx,
-                  m_fileXfer.m_fileXferTx,
-                  m_fileXfer.GetModeName(),
-                  m_fileXfer.m_modeTimeout
-                  );
+        debug_str(CmProc, theLine, 0, "Log(%d/%d) Rx/Tx: %d/%d Mode: %s(%d)",
+            m_fileXfer.m_fileXferRqsts,
+            m_fileXfer.m_fileXferServiced,
+            m_fileXfer.m_fileXferRx,
+            m_fileXfer.m_fileXferTx,
+            m_fileXfer.GetModeName(),
+            m_fileXfer.m_modeTimeout
+            );
         break;
 
     case 5:
-        // Show put file status
-        debug_str(CmProc, theLine, 0, "XFILE: %s", m_fileXfer.m_xferFileName);
+        debug_str(CmProc, theLine, 0, "Log Stats S/F/FL(%d/%d/%d) Bad/Crc:Snd-Rsp/Fmis(%d/%d-%d/%d)",
+            m_fileXfer.m_fileXferSuccess,
+            m_fileXfer.m_fileXferFailed,
+            m_fileXfer.m_fileXferFailLast,
+            m_fileXfer.m_fileXferError,
+            m_fileXfer.m_failCrcSend,
+            m_fileXfer.m_fileXferValidError,
+            m_fileXfer.m_noMatchFileName
+            );
         break;
 
     case 6:
         // Show put file status
+        debug_str(CmProc, theLine, 0, "XFILE: %s", m_fileXfer.m_xferFileName);
+        break;
+
+    case 7:
+        // Show put file status
         debug_str(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
         break;
-        
-    case 7:
+
+    case 8:
         // Show get file status
         debug_str(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
         break;
-        
-    case 8:
+
+    case 9:
         // Show Cfg file names
         debug_str(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
         break;
-        
-    case 9:
+
+    case 10:
         // Show Cfg file names
         debug_str(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
         break;
 
-    case 10:
+    case 11:
         // Update Mailbox Status
         debug_str(CmProc, theLine, 0, "Gse %s %s",
                   m_gseInBox.GetStatusStr(),
                   m_gseOutBox.GetStatusStr());
         break;
 
-    case 11:
+    case 12:
         debug_str(CmProc, theLine, 0, "Cfg %s %s",
                   m_reConfigInBox.GetStatusStr(),
                   m_reConfigOutBox.GetStatusStr());
         break;
 
-    case 12:
+    case 13:
         debug_str(CmProc, theLine, 0, "Log %s %s",
                   m_fileXferInBox.GetStatusStr(),
                   m_fileXferOutBox.GetStatusStr());
         break;
-        
+
     default:
         theLine = -1;
         break;
