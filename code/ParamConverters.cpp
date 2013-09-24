@@ -244,7 +244,7 @@ void ParamConverter::SetIoiA429Name()
     UINT32 i;
     UINT8 sdiMatch = m_a429.ignoreSDI ? A429_IOI_NAME_SDI_IGNORE_VAL : m_a429.sdBits;
 
-    for (i=0; ioiA429Names[i].name != NULL; ++i)
+    for (i=0; ioiA429Names[i].name[0] != NULL; ++i)
     {
         if (m_a429.label == ioiA429Names[i].octal && sdiMatch == ioiA429Names[i].sdi)
         {
