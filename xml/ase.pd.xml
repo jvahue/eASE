@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "1538038774"
+     validityKey = "849504943"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -12,7 +12,7 @@
      crcAtProcessCreation = "no"
      largestAMOSizeInPages = "1"
      nameQuota = "75"
-     toolVersion = "2.8.5"
+     toolVersion = "3.2.0"
      inDebugSet = "no"
      attachedMemoryObjectQuota = "50"
      eventQuota = "0"
@@ -34,7 +34,7 @@
      pipc_initializeConsumeHandles = "no"
      pipc_codeStyle = "C"
      xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation = "pd.xsd"
+     xsi:noNamespaceSchemaLocation = "ddci:/xsd/pd.xsd"
    >
    <memoryPools>
       <memoryPool
