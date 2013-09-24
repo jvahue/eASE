@@ -50,7 +50,7 @@ public:
         eXferFileValid    // wait for ADRF to confirm the CRC
     };
 
-    CmFileXfer();
+    CmFileXfer(AseCommon* pCommon);
 
     BOOLEAN CheckCmd( SecComm& secComm);
     void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
@@ -85,7 +85,7 @@ protected:
     void FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out);
     void SendAckTimeout(MailBox& out);
     void SendAck(MailBox& out);
-    void CmFileXfer::SendCrc(MailBox& out);
+    void SendCrc(MailBox& out);
 
     File m_xferFile;
     FILE_RCV_MSG m_sendMsgBuffer;
@@ -93,6 +93,7 @@ protected:
     UINT32 m_fileCrc;
 
     bool m_msOnline;   // updated on each call to ProcessFileXfer
+    AseCommon* m_pCommon;
 
 };
 #endif /* CMFILEXFER_H_ */

@@ -10,7 +10,7 @@
 *
 *
 */
-# define version "v0.1.1"  " " __DATE__ " " __TIME__
+# define version "v0.1.2"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 
@@ -81,11 +81,11 @@ typedef struct {
     SINT32     tm_min;   // minutes  0..59
     SINT32     tm_hour;  // hours    0..23
     SINT32     tm_mday;  // day of the month  1..31
-    SINT32     tm_mon;   // month    0..11
-    SINT32     tm_year;  // year from 1900
+    SINT32     tm_mon;   // month    1..12
+    SINT32     tm_year;  //
 } LINUX_TM_FMT;
 
-// Structure of control attribs for managing the UUT
+// Structure of control attributes for managing the UUT
 typedef struct
 {
     AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active

@@ -57,7 +57,7 @@ static const char* modeNames[] = {
 // Function: CmFileXfer
 // Description: Implement the file transfer protocol
 //
-CmFileXfer::CmFileXfer()
+CmFileXfer::CmFileXfer(AseCommon* pCommon)
     : m_mode(eXferIdle)
     , m_modeTimeout(0)
 
@@ -69,7 +69,7 @@ CmFileXfer::CmFileXfer()
     //, m_fileCrcAck(0)
 
     , m_msOnline(false)
-
+    , m_pCommon(pCommon)
 {
   memset(m_xferFileName, 0, sizeof(m_xferFileName));
   memset((void*)&m_sendMsgBuffer, 0, sizeof(m_sendMsgBuffer));
@@ -114,7 +114,7 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
         }
         else
         {
-            secComm.ErrorMsg("")
+            secComm.ErrorMsg("Mode Error <%s> should be <Xfer>", GetModeName());
             secComm.m_response.successful = false;
         }
 
@@ -416,4 +416,6 @@ void CmFileXfer::ResetCounters()
     m_fileXferValidError = 0;
     m_failCrcSend = 0;
     m_noMatchFileName = 0;
+
+    m_mode = eXferIdle;
 }

@@ -50,6 +50,7 @@ processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl = NULL;
 
 LINUX_TM_FMT nextTime;
+UINT32 _10msec;
 
 /*****************************************************************************/
 /* Global Variables                                                          */
@@ -98,8 +99,20 @@ int main(void)
     UINT32 cmdIdle = 0;
     UINT32 lastCmdAt = 0;
 
-    memset( &aseCommon, 0, sizeof(aseCommon));
+    _10msec = 0;
 
+    memset( &aseCommon, 0, sizeof(aseCommon));
+    memset( &nextTime, 0, sizeof(nextTime));
+
+    // default time 
+    aseCommon.time.tm_year = 2013;
+    aseCommon.time.tm_mon  = 7;
+    aseCommon.time.tm_mday = 26;
+
+    nextTime.tm_year = 2013;
+    nextTime.tm_mon  = 7;
+    nextTime.tm_mday = 27;
+    
     // default to MS being online
     aseCommon.bMsOnline = true;
 
@@ -137,7 +150,16 @@ int main(void)
         // call the base class to get the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
 
-        debug_str(AseMain, 1, 0, "ASE Version: %s",version);
+        debug_str(AseMain, 1, 0, "ASE Version: %s Now: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+                  version,
+                  aseCommon.time.tm_year,
+                  aseCommon.time.tm_mon,   // month    0..11
+                  aseCommon.time.tm_mday,  // day of the month  1..31
+                  aseCommon.time.tm_hour,  // hours    0..23
+                  aseCommon.time.tm_min,   // minutes  0..59
+                  aseCommon.time.tm_sec,   // seconds  0..59
+                  _10msec
+                  );
 
         // Write the system tick value to video memory.
         debug_str(AseMain, 2, 0, "SecComm(%s) %d - %d",
@@ -157,6 +179,32 @@ int main(void)
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
+        
+        // keep time
+        _10msec += 10;
+        if (_10msec >= 1000)
+        {
+            _10msec = 0;
+            aseCommon.time.tm_sec += 1;
+            if (aseCommon.time.tm_sec >= 60)
+            {
+                aseCommon.time.tm_sec = 0;
+                aseCommon.time.tm_min += 1;
+                if (aseCommon.time.tm_min >= 60)
+                {
+                    aseCommon.time.tm_min = 0;
+                    aseCommon.time.tm_hour += 1;
+                    if (aseCommon.time.tm_hour >= 24)
+                    {
+                        aseCommon.time.tm_hour = 0;
+                        aseCommon.time.tm_year = nextTime.tm_year;
+                        aseCommon.time.tm_mon = nextTime.tm_mon;
+                        aseCommon.time.tm_mday = nextTime.tm_mday;
+                    }
+                }
+            }
+        }
+
         frames += 1;
 
         // Any new cmds seen
@@ -304,14 +352,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 //-------------------------------------------------------------------------------------------------
 static void SetTime(SecRequest& request)
 {
-    aseCommon.tm_year = request.variableId;  // year from 1900
-    aseCommon.tm_mon  = request.sigGenId;   // month    0..11
-    aseCommon.tm_mday = request.resetRequest;  // day of the month  1..31
-    aseCommon.tm_hour = request.clearCfgRequest;  // hours    0..23
-    aseCommon.tm_min  = int(request.value);   // minutes  0..59
-    aseCommon.tm_sec  = int(request.param1);   // seconds  0..59
+    aseCommon.time.tm_year = request.variableId;  // year from 1900
+    aseCommon.time.tm_mon  = request.sigGenId;   // month    0..11
+    aseCommon.time.tm_mday = request.resetRequest;  // day of the month  1..31
+    aseCommon.time.tm_hour = request.clearCfgRequest;  // hours    0..23
+    aseCommon.time.tm_min  = int(request.value);   // minutes  0..59
+    aseCommon.time.tm_sec  = int(request.param1);   // seconds  0..59
 
     nextTime.tm_year = int(request.param2);
     nextTime.tm_mon  = int(request.param3);
     nextTime.tm_mday = int(request.param4);
+
+    _10msec = 0;
 }

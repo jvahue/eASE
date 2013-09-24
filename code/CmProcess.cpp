@@ -50,7 +50,8 @@ CmProcess::CmProcess()
     : m_requestPing(false)
     , m_lastGseSent(0)
     , m_performAdrfOffload(false)
-
+    , m_reconfig(&aseCommon)
+    , m_fileXfer(&aseCommon)
 {
     // TODO: remove after debugging
     memset( m_rqstFile, 0, sizeof(m_rqstFile));
