@@ -77,7 +77,6 @@ void Parameter::Reset()
     m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
     m_ioiValue = 0;            // current ioi value after Update
-    //m_ioiValueZ1 = 0xffffffff; // the last IOI value
     m_rateHz = 0;              // ADRF update rate for the parameter in Hz
     m_updateMs = 0;
     m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz
@@ -88,6 +87,8 @@ void Parameter::Reset()
     m_isChild = false;
     m_name[0] = '\0';
     m_childCount = 0;
+
+    ParamConverter::Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -150,7 +151,8 @@ void Parameter::Init(ParamCfg* paramInfo)
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
-    ParamConverter::Reset(paramInfo);
+    ParamConverter::Init(paramInfo);
+
     m_isValid = true;
 
     m_ioiValid = false;
@@ -176,6 +178,12 @@ bool Parameter::IsChild(Parameter& other)
                 m_a429.sdBits  == other.m_a429.sdBits)     // same SDI
             {
                 m_isChild = true;
+            }
+        }
+        // TODO check A664 children?
+
+        if (m_isChild)
+        {
                 // walk down the child list and attach this
                 Parameter* parent = &other;
                 while (parent->m_link != NULL)
@@ -185,8 +193,6 @@ bool Parameter::IsChild(Parameter& other)
                 parent->m_link = this;
             }
         }
-        // TODO check A664 children?
-    }
 
     return m_isChild;
 }

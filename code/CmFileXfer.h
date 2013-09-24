@@ -37,6 +37,10 @@
 class CmFileXfer
 {
 public:
+    enum CmFileXferConst {
+        eCrcReSendDelay = 50,
+    };
+
     enum CmFileXferMode {
         eXferIdle,        // no activity
         eXferRqst,        // ADRF has sent us a file name to upload
@@ -46,11 +50,12 @@ public:
         eXferFileValid    // wait for ADRF to confirm the CRC
     };
 
-    CmFileXfer();
+    CmFileXfer(AseCommon* pCommon);
 
     BOOLEAN CheckCmd( SecComm& secComm);
     void ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out);
     void FileStatus(char* filename, bool canOpen);
+    void ResetCounters();
 
     const char* GetModeName() const;
 
@@ -66,6 +71,8 @@ public:
     UINT32 m_fileXferFailLast;
     UINT32 m_fileXferError;       // any issue with the file
     UINT32 m_fileXferValidError;  // got a CM_ID_CRC_VAL when we are not looking for it
+    UINT32 m_failCrcSend;
+    UINT32 m_noMatchFileName;
 
     char m_xferFileName[CM_FILE_NAME_LEN];
 
@@ -78,14 +85,15 @@ protected:
     void FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out);
     void SendAckTimeout(MailBox& out);
     void SendAck(MailBox& out);
+    void SendCrc(MailBox& out);
 
     File m_xferFile;
     FILE_RCV_MSG m_sendMsgBuffer;
 
     UINT32 m_fileCrc;
-    //UINT8  m_fileCrcAck;
 
     bool m_msOnline;   // updated on each call to ProcessFileXfer
+    AseCommon* m_pCommon;
 
 };
 #endif /* CMFILEXFER_H_ */

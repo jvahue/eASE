@@ -68,7 +68,7 @@ enum SecCmds {
     eCmLatchWait     = 254,
 
 // CmProc Enums 301-399
-    eCmPartCfg      = 301,  // the Cfg file partion Id
+    eCmPartCfg      = 301,  // the Cfg file partition Id
     eCmPartLog      = 302,  // the Log file partition Id
 
 //-------------------------------- IOI 400 - 599 ------------------------------

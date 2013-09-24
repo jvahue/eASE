@@ -28,18 +28,6 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-typedef struct {
-  SINT32     tm_sec;   // seconds  0..59
-  SINT32     tm_min;   // minutes  0..59
-  SINT32     tm_hour;  // hours    0..23
-  SINT32     tm_mday;  // day of the month  1..31
-  SINT32     tm_mon;   // month    0..11
-  SINT32     tm_year;  // year from 1900
-//SINT32     tm_wday;  // day of the week
-//SINT32     tm_yday;  // day in the year
-//SINT32     tm_isdst; // daylight saving time -1/0/1
-} LINUX_TM_FMT, *LINUX_TM_FMT_PTR;
-
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -48,7 +36,7 @@ typedef struct {
 /* Constant Data                                                             */
 /*****************************************************************************/
 static const char* modeNames[] = {
-    "Idle",           // waiting for reconfig action
+    "Idle",           // waiting for recfg action
     "WaitAck",        // wait before send ACK to ADRF
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
@@ -73,7 +61,7 @@ static const CHAR* cmdStrings[] = {
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
-CmReconfig::CmReconfig()
+CmReconfig::CmReconfig(AseCommon* pCommon)
     : m_state(eCmRecfgIdle)
     , m_modeTimeout(0)
     , m_lastErrCode(RECFG_ERR_CODE_MAX)
@@ -85,6 +73,7 @@ CmReconfig::CmReconfig()
     , m_tcFileNameDelay(0)
     , m_tcRecfgLatchWait(1000)
     , m_lastCmd(ADRF_TO_CM_CODE_MAX)
+    , m_pCommon(pCommon)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -182,7 +171,6 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         serviced = TRUE;
         break;
 
-
     default:
         break;
     }
@@ -264,21 +252,16 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 
         if (inData.code == MS_DATETIME_REQ)
         {
-            // send a datetime stamp into the ADRF
-            // TBD: where does this come from?
+            LINUX_TM_FMT time;
 
-            // Send MS Date Time
-            LINUX_TM_FMT linuxTime;
+            time.tm_year = m_pCommon->time.tm_year; // year from 1900
+            time.tm_mon  = m_pCommon->time.tm_mon;  // month    0..11
+            time.tm_mday = m_pCommon->time.tm_mday; // day of the month  1..31
+            time.tm_hour = m_pCommon->time.tm_hour; // hours    0..23
+            time.tm_min  = m_pCommon->time.tm_min;  // minutes  0..59
+            time.tm_sec  = m_pCommon->time.tm_sec;  // seconds  0..59
 
-            // linuxTime.tm_year = 110;  // Add this to 1900 to get year
-            linuxTime.tm_year = 2013;  // Straight Year
-            linuxTime.tm_mon = 7;
-            linuxTime.tm_mday = 26;
-            linuxTime.tm_hour = 0;
-            linuxTime.tm_min = 0;
-            linuxTime.tm_sec = 0;
-
-            memcpy ( &outData.buff[0], &linuxTime, sizeof(linuxTime));
+            memcpy ( &outData.buff[0], &time, sizeof(time));
 
             outData.code = MS_DATETIME_RESP;
             out.Send( &outData, sizeof(outData));
@@ -289,7 +272,7 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
         }
     }
 
-    if ( !aseCommon.bScriptRunning)
+    if ( !IS_SCRIPT_ACTIVE)
     {
         ResetControls();
     }

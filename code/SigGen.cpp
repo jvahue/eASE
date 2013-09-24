@@ -26,7 +26,7 @@
 /*****************************************************************************/
 /* Local Data                                                                */
 /*****************************************************************************/
-// Signal Generator Options - make them the same lenght so the display is nice
+// Signal Generator Options - make them the same length so the display is nice
 static char* modeNames[eMaxSensorMode] = {
     "Manual  ",
     "Ramp    ",

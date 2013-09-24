@@ -10,7 +10,7 @@
 *
 *
 */
-# define version "v0.1.1"  " " __DATE__ " " __TIME__
+# define version "v0.1.2"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 
@@ -76,14 +76,24 @@ enum AdrfState {
     eAdrfReady
 };
 
-// Structure of control attribs for managing the UUT
+typedef struct {
+    SINT32     tm_sec;   // seconds  0..59
+    SINT32     tm_min;   // minutes  0..59
+    SINT32     tm_hour;  // hours    0..23
+    SINT32     tm_mday;  // day of the month  1..31
+    SINT32     tm_mon;   // month    1..12
+    SINT32     tm_year;  //
+} LINUX_TM_FMT;
+
+// Structure of control attributes for managing the UUT
 typedef struct
 {
-    AdrfState  adrfState;      // Current state of UUT. off, on, rdy = gse connection active
-    UNSIGNED32 *systemTickPtr; // Pointer to the system tick value.
-    bool       bConnected;     // ePySte Connection
-    bool       bScriptRunning; // Is a script actively running
-    bool       bMsOnline;      // is the MS online
+    AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active
+    UNSIGNED32   *systemTickPtr; // Pointer to the system tick value.
+    bool         bConnected;     // ePySte Connection
+    bool         bScriptRunning; // Is a script actively running
+    bool         bMsOnline;      // is the MS online
+    LINUX_TM_FMT time;         // what time is it
 } AseCommon;
 
 extern AseCommon aseCommon;

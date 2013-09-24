@@ -78,7 +78,6 @@ class CmProcess : public CmdRspThread
         bool GetFile(SecComm& secComm);
 
         void ProcessGseMessages();
-        void ProcessLogMessages();
 };
 
 

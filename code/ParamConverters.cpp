@@ -54,20 +54,8 @@
 /* Class Definitions                                                         */
 /*****************************************************************************/
 ParamConverter::ParamConverter()
-    : m_isValid(false)
-    , m_masterId(0)
-    , m_gpa(0)
-    , m_gpb(0)
-    , m_gpc(0)
-    , m_src(PARAM_SRC_MAX)
-    , m_type(PARAM_FMT_NONE)
-    , m_scale(0)          // the current value for the parameter
-    , m_maxValue(0.0f)
-    , m_scaleLsb(0.0f)    // the current value for the parameter
-    , m_data(0)
 {
-  memset(m_ioiName, 0, sizeof(m_ioiName));
-  memset(&m_a429, 0, sizeof(m_a429));
+    Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -84,6 +72,28 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     }
 
     return rawValue;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: A429Converter
+// Description: Convert the value and pack it into a rawValue
+//
+void ParamConverter::Reset()
+{
+    m_isValid = false;
+    m_masterId = 0;
+    m_gpa = 0;
+    m_gpb = 0;
+    m_gpc = 0;
+    m_src = PARAM_SRC_MAX;
+    m_type = PARAM_FMT_NONE;
+    m_scale = 0;          // the current value for the parameter
+    m_maxValue = 0.0f;
+    m_scaleLsb = 0.0f;    // the current value for the parameter
+    m_data = 0;
+
+    memset(m_ioiName, 0, sizeof(m_ioiName));
+    memset(&m_a429, 0, sizeof(m_a429));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -132,7 +142,7 @@ UINT32 ParamConverter::A429Converter(float value)
 // Function: Reset
 // Description:
 //
-void ParamConverter::Reset(ParamCfg* paramInfo)
+void ParamConverter::Init(ParamCfg* paramInfo)
 {
     UINT32 rawLabel;
 
@@ -144,7 +154,7 @@ void ParamConverter::Reset(ParamCfg* paramInfo)
     m_masterId = paramInfo->masterId;
     m_scale = paramInfo->scale;
     m_maxValue = FLOAT32(paramInfo->scale);
-    
+
     if (m_type == PARAM_FMT_A429)
     {
         A429ParseGps();
@@ -205,15 +215,15 @@ void ParamConverter::Reset(ParamCfg* paramInfo)
     }
     else if (m_type == PARAM_FMT_BIN_A664)
     {
-        
+
     }
     else if (m_type == PARAM_FMT_FLT_A664)
     {
-        
+
     }
 
     SetIoiName();
-}    
+}
 
 //--------------------------------------------------------------------------------------------------
 void ParamConverter::SetIoiName()
@@ -366,12 +376,12 @@ void ParamConverter::SetLabel( INT32 value)
     // we use BCD here as it only packs the SSM bits not the sign bit in BNR words
     m_a429.a429Template = A429_FldPutLabel( m_a429.a429Template, value);
 
-    if (value == m_a429.label0)
-    {
-        m_isValid = true;
-    }
-    else
-    {
-        m_isValid = false;
-    }
+    //if (value == m_a429.label0)
+    //{
+    //    m_isValid = true;
+    //}
+    //else
+    //{
+    //    m_isValid = false;
+    //}
 }

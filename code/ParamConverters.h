@@ -123,7 +123,8 @@ class ParamConverter
 {
 public:
     ParamConverter();
-    void Reset(ParamCfg* paramInfo);
+    void Reset();
+    void Init(ParamCfg* paramInfo);
     virtual UINT32 Convert(FLOAT32 value);
     void SetIoiName();
     

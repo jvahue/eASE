@@ -53,7 +53,7 @@ public:
 
     };
 
-    CmReconfig();
+    CmReconfig(AseCommon* pCommon);
 
     void ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out);
     BOOLEAN CheckCmd( SecComm& secComm, MailBox& out);
@@ -89,6 +89,7 @@ private:
 
     File m_file;
     char m_mbErr[128];
+    AseCommon* m_pCommon;
 };
 
 #endif /* CMRECONFIG_H_ */

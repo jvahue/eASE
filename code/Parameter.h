@@ -39,7 +39,6 @@ enum ParamConstants {eParamShort = 23};
 
     INT32    m_ioiChan;     // deos ioi channel id
     UINT32   m_ioiValue;    // current ioi value after Update
-    //UINT32   m_ioiValueZ1;  // the last IOI value
 
     UINT32  m_rateHz;        // ADRF update rate for the parameter in Hz
     UINT32  m_updateMs;      // ASE update rate for the parameter in Hz = 2x m_rateHz
