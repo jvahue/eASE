@@ -1,14 +1,14 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "1904024465"
-     fileDate = "Tue Sep 17 10:59:44 2013"
-     toolVersion = "3.4.0"
+     validityKey = "2021970670"
+     fileDate = "Fri Sep 06 20:12:19 2013"
+     toolVersion = "3.3.1"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
      mapConfigurationFileTo = "flash"
      xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation = "ddci:/xsd/ioiConfig.xsd"
+     xsi:noNamespaceSchemaLocation = "ioiConfig.xsd"
    >
    <producedItems>
       <producedItem
