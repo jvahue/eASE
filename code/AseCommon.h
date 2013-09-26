@@ -5,6 +5,11 @@
 
 #include <deos.h>
 
+#include "alt_stdtypes.h"
+
+#include "ParamMgr.h"
+#include "Time.h"
+
 /**********************************************************************************************
 * Description: Common/Standard definitions for the ASE modules.
 *
@@ -31,7 +36,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
-    eAseMaxParams = 3000      // a maximum of 3000 parameters in the system
+    eAseMaxParams = 3000,      // a maximum of 3000 parameters in the system
+    eAseCharDataSize = 2048,
+    eAseStreamSize = 3500
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +58,7 @@ enum SigGenEnum {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // FROM ADRF
-enum PARAM_FMT_ENUM {
+/*enum PARAM_FMT_ENUM {
   PARAM_FMT_NONE=0,  // FMT not specified
   PARAM_FMT_BIN_A664,// FMT is IDL binary
   PARAM_FMT_FLT_A664,// FMT is IDL floating-point
@@ -69,15 +76,6 @@ typedef enum {
   PARAM_SRC_MAX
 } PARAM_SRC_ENUM;
 
-
-typedef char ParameterName[eAseParamNameSize];
-
-enum AdrfState {
-    eAdrfOff,
-    eAdrfOn,
-    eAdrfReady
-};
-
 typedef struct {
     SINT32     tm_sec;   // seconds  0..59
     SINT32     tm_min;   // minutes  0..59
@@ -86,6 +84,16 @@ typedef struct {
     SINT32     tm_mon;   // month    1..12
     SINT32     tm_year;  //
 } LINUX_TM_FMT;
+
+*/
+
+typedef char ParameterName[eAseParamNameSize];
+
+enum AdrfState {
+    eAdrfOff,
+    eAdrfOn,
+    eAdrfReady
+};
 
 // Structure of control attributes for managing the UUT
 typedef struct

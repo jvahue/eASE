@@ -21,9 +21,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "Mailbox.h"
 #include "AseCommon.h"
-#include "video.h"
+#include "Mailbox.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -226,8 +225,8 @@ BOOLEAN MailBox::Create(const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth
         result = TRUE;
         m_type = eRecv;
     }
-        return result;
-    }
+    return result;
+}
 
 
 /*****************************************************************************

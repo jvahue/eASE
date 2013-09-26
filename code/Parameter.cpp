@@ -18,6 +18,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #include "Parameter.h"
 
 /*****************************************************************************/
@@ -134,8 +136,8 @@ char* Parameter::CompressName(char* src, int size)
 //
 void Parameter::Init(ParamCfg* paramInfo)
 {
-    UINT32 at;
-    UINT32 dst;
+    //UINT32 at;
+    //UINT32 dst;
     UINT32 extraMs;
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);

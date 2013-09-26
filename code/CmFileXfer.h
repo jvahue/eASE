@@ -23,13 +23,9 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdtypes.h"
-
-#include "AseCommon.h"
 #include "File.h"
 #include "IF_FileXfer.h"
 #include "Mailbox.h"
-#include "SecComm.h"
 
 /*****************************************************************************/
 /* Class Definitions                                                         */

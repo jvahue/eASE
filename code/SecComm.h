@@ -23,8 +23,6 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdtypes.h"
-#include "AseCommon.h"
 #include "AseThread.h"
 
 /*****************************************************************************/
@@ -122,17 +120,17 @@ enum SecCmds {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum SecSystemConstants {
-    eSecNumberOfSensors = 125,        // SEC/IOC number of sensors
-    eSecErrorMsgSize    = 128,        // SEC/IOC max error Message
-    eSecStreamSize      = 3500,       // the size of input stream data
-    eSecCharDataSize    = 2048,       // SEC/IOC max filename size
-    eSecPortNumber      = 51423,      // socket port connection on local host
-    eSecAseH1           = 0x05EC2A5E, // Header marker1 Sec->Ase
-    eSecAseH2           = 0xABCD1234, // Header marker2 Sec->Ase
-    eAseSecH1           = 0x0A5E25EC, // Header marker1 Ase->Sec
-    eAseSecH2           = 0x1234ABCD, // Header marker2 Ase->Sec
-    eHeaderError        = 254,        // The header content was not correct
-    eChecksumError      = 255         // Failed the checksum
+    eSecNumberOfSensors = 125,         // SEC/IOC number of sensors
+    eSecErrorMsgSize    = 128,         // SEC/IOC max error Message
+    eSecStreamSize      = eAseStreamSize,   // the size of input stream data
+    eSecCharDataSize    = eAseCharDataSize, // SEC/IOC max filename size
+    eSecPortNumber      = 51423,       // socket port connection on local host
+    eSecAseH1           = 0x05EC2A5E,  // Header marker1 Sec->Ase
+    eSecAseH2           = 0xABCD1234u, // Header marker2 Sec->Ase
+    eAseSecH1           = 0x0A5E25EC,  // Header marker1 Ase->Sec
+    eAseSecH2           = 0x1234ABCD,  // Header marker2 Ase->Sec
+    eHeaderError        = 254,         // The header content was not correct
+    eChecksumError      = 255          // Failed the checksum
 };
 
 enum ResponseType {

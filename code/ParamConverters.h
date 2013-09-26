@@ -15,9 +15,6 @@
 //----------------------------------------------------------------------------/
 // Software Specific Includes                                                -/
 //----------------------------------------------------------------------------/
-#include "alt_stdtypes.h"
-
-#include "AseCommon.h"
 
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
@@ -38,7 +35,7 @@
 #define ARINC_MSG_VALID_BIT         ARINC_MSG_PARITY_BIT
 
 #define MASK1(s) ((1 << (s)) - 1)
-#define FIELD(m,l) (MASK1((m+1)-l) << l)
+#define FIELD(m,l) (MASK1((m+1)-(l)) << (l))
 
 #define A429_FldPutLabel(d,l) ((d & 0xFFFFFF00) | (l & 0xFF))
 #define A429_BNRPutSign(d,s)  ((d & 0x6FFFFFFF) | ((s & 1) << 28))

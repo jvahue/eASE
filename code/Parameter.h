@@ -3,9 +3,6 @@
 
 // File: Parameter.h
 
-#include "alt_stdtypes.h"
-
-#include "AseCommon.h"
 #include "ParamConverters.h"
 #include "SigGen.h"
 

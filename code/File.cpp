@@ -14,8 +14,9 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "File.h"
+#include "AseCommon.h"
 
+#include "File.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -247,7 +248,7 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
 
 SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 {
-    UNSIGNED16 i;
+    //UNSIGNED16 i;
     //UNSIGNED32 bytesAvailable;// number of bytes in port available for 'reading' to pBuff
     SIGNED32   bytesRead = 0; // count of bytes copied to pBuff
     SIGNED32   debug_readCnt;
@@ -324,8 +325,8 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 
     m_bytesMoved += bytesRead;
     return bytesRead;
-
 }
+
 //------------------------------------------------------------------------------
 // Function: Write
 // Description:
@@ -336,7 +337,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
     UNSIGNED32  bytesToSend;    // number of bytes from 'size' to be written/buffered
     void*       pDestAddr;      // Address in 'port' to buffer next outgoing block.
 
-    static BOOLEAN bFirstTime = TRUE;
+    //static BOOLEAN bFirstTime = TRUE;
 
 
     if ( !m_bOpen || size > MAX_WRITE_SIZE || m_mode != 'w')

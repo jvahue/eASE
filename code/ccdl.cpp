@@ -17,8 +17,11 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "ccdl.h"
+#include "AseCommon.h"
+
+#include "SecComm.h"
 #include "video.h"
+#include "ccdl.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -66,6 +69,8 @@ CCDL::CCDL( AseCommon* pCommon )
     , m_modeDelay(0)
     , m_rxFailCount(0)
     , m_txFailCount(0)
+    , m_parameters(NULL)
+    , m_maxParamIndex(0)
 {
     void *theAreg;
     accessStyle asA;
@@ -100,11 +105,12 @@ CCDL::CCDL( AseCommon* pCommon )
 #ifndef VM_WARE
         status = readPlatformResourceDWord(hA, 0, &myChanID);
 #else
-        myChanID = 0x01;  // force to Ch A
+        myChanID = 0x00;  // force to Ch A
 #endif
     }
 
     // but we are the other channel
+    m_actingChan = EFAST_CHA;
     if (status == resValid)
     {
         if ( (myChanID & 0x03) == 1 )
@@ -117,9 +123,9 @@ CCDL::CCDL( AseCommon* pCommon )
         }
     }
 
-    memset(m_rxMap, 0, sizeof(m_rxMap));
-    memset(m_txSet, 0, sizeof(m_txSet));
-    memset(m_remoteParam, 0, sizeof(m_remoteParam));
+    memset((void*)&m_rxMap, 0, sizeof(m_rxMap));
+    memset((void*)&m_txSet, 0, sizeof(m_txSet));
+    memset((void*)&m_remoteParam, 0, sizeof(m_remoteParam));
     m_packMap[CC_PARAM].slotId = CC_PARAM;
     m_packMap[CC_PARAM].size = sizeof(m_rxMap);
     m_packMap[CC_PARAM].in   = &m_txSet;
@@ -127,19 +133,21 @@ CCDL::CCDL( AseCommon* pCommon )
     m_rxMap.type = PARAM_XCH_TYPE_MAX;
     m_txSet.type = PARAM_XCH_TYPE_MAX;
 
-    memset(m_reportIn, 0, sizeof(m_reportIn));
-    memset(m_reportOut, 0, sizeof(m_reportOut));
+    memset((void*)m_reportIn, 0, sizeof(m_reportIn));
+    memset((void*)m_reportOut, 0, sizeof(m_reportOut));
     m_packMap[CC_REPORT_TRIG].slotId = CC_REPORT_TRIG;
     m_packMap[CC_REPORT_TRIG].size = sizeof(m_reportIn);
     m_packMap[CC_REPORT_TRIG].in   = &m_reportIn;
     m_packMap[CC_REPORT_TRIG].out  = &m_reportOut;
 
-    memset(m_eFastIn, 0, sizeof(m_eFastIn));
-    memset(m_eFastOut, 0, sizeof(m_eFastOut));
+    memset((void*)&m_eFastIn, 0, sizeof(m_eFastIn));
+    memset((void*)&m_eFastOut, 0, sizeof(m_eFastOut));
     m_packMap[CC_EFAST_MGR].slotId = CC_EFAST_MGR;
     m_packMap[CC_EFAST_MGR].size = sizeof(m_eFastIn);
     m_packMap[CC_EFAST_MGR].in   = &m_eFastIn;
     m_packMap[CC_EFAST_MGR].out  = &m_eFastOut;
+    
+    memset((void*)m_ccdlRawParam, 0, sizeof(m_ccdlRawParam));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -178,9 +186,9 @@ void CCDL::Update(MailBox& in, MailBox& out)
         case eCcdlStartRx:
             if (m_remoteParam.type == PARAM_XCH_TYPE_SETUP)
             {
-                GetParamRqst();
+                GetParamRqst(in);
             }
-            m_remoteParam.type == PARAM_XCH_TYPE_MAX;
+            m_remoteParam.type = PARAM_XCH_TYPE_MAX;
             break;
 
         case eCcdlRun:
@@ -189,11 +197,11 @@ void CCDL::Update(MailBox& in, MailBox& out)
                 // scatter the data to the param positions
                 for (int x=0; x < m_rxMap.num_params; ++x)
                 {
-                    pIndex = m_rxMap.data[x].id
+                    pIndex = m_rxMap.data[x].id;
                     m_ccdlRawParam[pIndex] = m_remoteParam.data[x].val;
                 }
             }
-            m_remoteParam.type == PARAM_XCH_TYPE_MAX;
+            m_remoteParam.type = PARAM_XCH_TYPE_MAX;
             break;
 
         default:
@@ -210,7 +218,7 @@ void CCDL::Update(MailBox& in, MailBox& out)
 //
 BOOLEAN CCDL::CheckCmd( SecComm& secComm )
 {
-
+    return FALSE;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -219,7 +227,7 @@ BOOLEAN CCDL::CheckCmd( SecComm& secComm )
 //
 int CCDL::UpdateDisplay( VID_DEFS who, int theLine )
 {
-
+    return theLine;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -236,7 +244,7 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     m_parameters = parameters;
     m_maxParamIndex = maxParamIndex;
 
-    memset(m_rxMap, 0, sizeof(m_rxMap));
+    memset((void*)&m_rxMap, 0, sizeof(m_rxMap));
 
     m_rxMap.type = PARAM_XCH_TYPE_SETUP;
     for (int i=0; i < maxParamIndex && m_rxMap.num_params < PARAM_XCH_BUFF_MAX; ++i)
@@ -254,7 +262,7 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
 // Function: GetParamRqst
 // Description: Receive the ccdl request from the "remote chan" really the same one we are in.
 //
-void CCDL::GetParamRqst()
+void CCDL::GetParamRqst(MailBox& in)
 {
     // nothing to here really just transition chan B to send mode
     ValidateRemoteSetup();
@@ -274,7 +282,6 @@ void CCDL::GetParamRqst()
 //
 void CCDL::SendParamRqst( MailBox& out )
 {
-
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -315,12 +322,12 @@ void CCDL::Transmit(MailBox& out)
 
         if (m_mode == eCcdlStartTx && i == CC_PARAM && m_rxMap.type == PARAM_XCH_TYPE_SETUP)
         {
-            memcpy( dst[2], &m_rxMap, m_packMap[i].size);
+            memcpy( &dst[2], &m_rxMap, m_packMap[i].size);
             m_rxMap.type = PARAM_XCH_TYPE_MAX;
         }
         else
         {
-            memcpy( dst[2], m_packMap[i].out, m_packMap[i].size);
+            memcpy( &dst[2], m_packMap[i].out, m_packMap[i].size);
         }
     }
 

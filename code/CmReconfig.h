@@ -24,14 +24,10 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdtypes.h"
 
-#include "AseCommon.h"
 #include "File.h"
 #include "Interface_CM.h"
 #include "MailBox.h"
-#include "SecComm.h"
-
 
 class CmReconfig
 {

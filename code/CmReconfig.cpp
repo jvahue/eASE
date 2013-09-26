@@ -19,6 +19,9 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
+#include "SecComm.h"
 #include "CmReconfig.h"
 
 /*****************************************************************************/
@@ -102,7 +105,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
 {
     BOOLEAN serviced = FALSE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
+    //int port;  // 0 = gse, 1 = ms
 
     SecRequest request = secComm.m_request;
     switch (request.cmdId)

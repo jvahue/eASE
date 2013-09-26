@@ -3,11 +3,9 @@
 
 #include <stdlib.h>
 #include <cffsapi.h>
-#include "alt_stdtypes.h"
-#include "SecComm.h"      // for stream size matching.
 
-#define MAX_WRITE_SIZE eSecCharDataSize  // max size of PySte command
-#define MAX_READ_SIZE  eSecStreamSize    // max size of
+#define MAX_WRITE_SIZE eAseCharDataSize  // max size of PySte command
+#define MAX_READ_SIZE  eAseStreamSize    // max size of
 
 typedef enum
 {

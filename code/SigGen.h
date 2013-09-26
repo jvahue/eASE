@@ -2,8 +2,6 @@
 #define SigGen_h
 
 // File: SigGen.h
-#include "alt_stdtypes.h"
-#include "AseCommon.h"
 #include "Random.h"
 
 // This is not very object oriented (ok not at all) but it makes life simple right now

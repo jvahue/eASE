@@ -18,14 +18,15 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #include "ioiProcess.h"
-#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define CC_RX_MBOX_NAME     "ADRF_MBOX_TX"  // these look backwards on purpose
-#define CC_TX_MBOX_NAME     "ADRF_MBOX_RX"
+#define CC_RX_MBOX_NAME_ASE     "ADRF_MBOX_TX"  // these look backwards on purpose
+#define CC_TX_MBOX_NAME_ASE     "ADRF_MBOX_RX"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -110,11 +111,11 @@ void IoiProcess::Run()
     // create the CCDL mailboxes
     //--------------------------------------------------------------------------
     // Set up mailboxes for CCDL with ADRF
-    m_ccdlIn.Create(CC_RX_MBOX_NAME, CC_MAX_SIZE, eMaxQueueDepth);
+    m_ccdlIn.Create(CC_RX_MBOX_NAME_ASE, CC_MAX_SIZE, eMaxQueueDepth);
     m_ccdlIn.IssueGrant(adrfProcessName);
 
     // Connect to the the ADRF recv box in the ADRF.
-    m_ccdlOut.Connect(adrfProcessName, CC_TX_MBOX_NAME);
+    m_ccdlOut.Connect(adrfProcessName, CC_TX_MBOX_NAME_ASE);
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -242,8 +243,9 @@ void IoiProcess::UpdateCCDL()
 //
 void IoiProcess::HandlePowerOff()
 {
-    // TODO: reset mailboxes and IOI
-
+    m_ccdlIn.Reset();
+    m_ccdlOut.Reset();
+    m_ccdl.Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -353,7 +355,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
         break;
 
     default:
-        if (theLine >= 2 and theLine <= (infoStarts-1))
+        if (theLine >= 2 && theLine <= (infoStarts-1))
         {
             baseIndex = (theLine - 2) * 2; // 2:0, 3:2, 4:4, 5:6 ... 21:38
             p1 = &m_parameters[m_displayIndex[baseIndex]];

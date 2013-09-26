@@ -15,6 +15,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #include "SigGen.h"
 
 /*****************************************************************************/
@@ -68,7 +70,7 @@ SignalGenerator::SignalGenerator()
 // The user just hit reset so reset the SG
 float SignalGenerator::Reset( float lastValue)
 {
-    float newValue;
+    float newValue = lastValue;
 
     m_counter = 0;
     m_degrees = 0.0f;
@@ -319,7 +321,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             break;
 
         case eSG1Shot:
-            startAt = int(m_param3);
+            //startAt = int(m_param3);
             if ( m_counter == int(m_param3))
             {
                 newValue = m_param2;

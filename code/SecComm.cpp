@@ -27,8 +27,9 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "SecComm.h"
+#include "AseCommon.h"
 
+#include "SecComm.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -161,7 +162,7 @@ void SecComm::Process()
         const int MAX_RX = 4096;
         char buffer[MAX_RX];
         int rxed = 0;
-        int result = -1;
+        //int result = -1;
         int cbBytesRet = 0;
         int size = sizeof(SecRequest);
         int socketAddrLen = sizeof(sockaddr_in);
@@ -330,7 +331,7 @@ void SecComm::SendResponse()
             SendAny( (char*)&m_snsNames, sizeof( m_snsNames));
             memset((void*)&m_snsNames, 0, sizeof(m_snsNames));
         }
-         m_rspType = eRspWait;
+        m_rspType = eRspWait;
     }
 }
 

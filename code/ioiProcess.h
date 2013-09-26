@@ -3,10 +3,10 @@
 
 #include <ioiapi.h>
 
-#include "ccdl.h"
 #include "CmdRspThread.h"
 #include "MailBox.h"
 #include "Parameter.h"
+#include "ccdl.h" // this needs to be after CmdRspThread.h so it get video.h
 
 // File: ioiProcess.h
 

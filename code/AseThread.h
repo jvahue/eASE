@@ -17,9 +17,7 @@
 //
 
 // Includes PWC
-#include "alt_stdtypes.h"
 #include "procapi.h"
-#include "AseCommon.h"
 
 class AseThread
 {

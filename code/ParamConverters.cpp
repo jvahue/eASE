@@ -22,6 +22,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #define ALLOW_A429_NAMES
 #include "ParamA429Names.h"
 #include "ParamConverters.h"
@@ -64,7 +66,7 @@ ParamConverter::ParamConverter()
 //
 UINT32 ParamConverter::Convert(FLOAT32 value)
 {
-    UINT32 rawValue;
+    UINT32 rawValue = 0;
 
     if (m_type == PARAM_FMT_A429)
     {

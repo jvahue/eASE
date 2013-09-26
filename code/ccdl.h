@@ -1,5 +1,5 @@
-#ifndef CmdRspThread_h
-#define CmdRspThread_h
+#ifndef ccdl_h
+#define ccdl_h
 /******************************************************************************
             Copyright (C) 2013 Knowlogic Software Corp.
          All Rights Reserved. Proprietary and Confidential.
@@ -22,23 +22,21 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdTypes.h"
 #include "CrossChannel.h"
 #include "EfastMgr.h"
-#include "ParamMgr.h"  // pull in the CCDL defs from the file
-#include "ReportMgr.h"
+#include "ReportDefs.h"
 
-#include "AseCommon.h"
 #include "MailBox.h"
+#include "Parameter.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define CC_MAX_SIZE 2048    //Maximum size for a message sent over cross channel
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
+// defined in EfastMgrUtil.c
 typedef struct
 {
     DATETIME_STRUCT dateTime; // Current Time in Base Time of local Ch
@@ -90,6 +88,7 @@ public:
     };
 
     CCDL(AseCommon* pCommon);
+    void Reset() {m_mode = eCcdlStart;}
 
     void Update(MailBox& in, MailBox& out);
 

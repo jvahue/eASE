@@ -1,10 +1,6 @@
 #ifndef VIDEO_H_
 #define VIDEO_H_
 
-extern "C" {
-  #include <alt_stdtypes.h>
-}
-
 /*
  * video.h
  *

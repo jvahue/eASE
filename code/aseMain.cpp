@@ -21,12 +21,11 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "video.h"
-#include "SecComm.h"
+#include "AseCommon.h"
+
 #include "CmProcess.h"
 #include "ioiProcess.h"
-#include "AseCommon.h"
-#include "File.h"
+#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -107,11 +106,11 @@ int main(void)
     // default time 
     aseCommon.time.tm_year = 2013;
     aseCommon.time.tm_mon  = 7;
-    aseCommon.time.tm_mday = 26;
+    aseCommon.time.tm_mday = 25;
 
     nextTime.tm_year = 2013;
     nextTime.tm_mon  = 7;
-    nextTime.tm_mday = 27;
+    nextTime.tm_mday = 26;
     
     // default to MS being online
     aseCommon.bMsOnline = true;

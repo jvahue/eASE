@@ -1,8 +1,9 @@
-#include "AseThread.h"
 #include <deos.h>
 #include <mem.h>
 
-#include "video.h"
+#include "AseCommon.h"
+
+#include "AseThread.h"
 
 /****************************************************************************
  public methods
@@ -13,7 +14,6 @@ AseThread::AseThread()
     , m_pCommon(NULL)
 {
 }
-
 
 //-------------------------------------------------------------------------------------------------
 // Function: Launch
@@ -41,4 +41,3 @@ AseThread::AseThreadState AseThread::GetRunState()
 {
     return m_state;
 }
-

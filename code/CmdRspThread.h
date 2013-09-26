@@ -22,8 +22,6 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdTypes.h"
-
 #include "AseThread.h"
 #include "SecComm.h"
 #include "video.h"

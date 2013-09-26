@@ -8,7 +8,6 @@
 #include "File.h"
 #include "Gse_Interface.h"
 #include "MailBox.h"
-#include "SecComm.h"
 
 // File: CmProcess.h
 
