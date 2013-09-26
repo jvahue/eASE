@@ -62,7 +62,7 @@ static const CHAR* cmdStrings[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmReconfig::CmReconfig(AseCommon* pCommon)
-    : m_state(eCmRecfgIdle)
+    : m_mode(eCmRecfgIdle)
     , m_modeTimeout(0)
     , m_lastErrCode(RECFG_ERR_CODE_MAX)
     , m_lastStatus(false)
@@ -205,7 +205,7 @@ void CmReconfig::SetCfgFileName(const char* name, UINT32 size)
 bool CmReconfig::StartReconfig(MailBox& out)
 {
     bool status = false;
-    if ( m_state == eCmRecfgIdle)
+    if ( m_mode == eCmRecfgIdle)
     {
         CM_TO_ADRF_RESP_STRUCT outData;
         memset( &outData, 0, sizeof(outData));
@@ -215,7 +215,7 @@ bool CmReconfig::StartReconfig(MailBox& out)
 
         if (status)
         {
-            m_state = eCmRecfgLatch;
+            m_mode = eCmRecfgLatch;
             m_modeTimeout = m_tcRecfgLatchWait;
         }
         else
@@ -243,7 +243,7 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
     // any envelopes for us?
     BOOLEAN inOk = in.Receive(&inData, sizeof(inData));
 
-    // always run ProcessRecfg
+    // always run ProcessRecfg - to ensure mode timeouts are accurate
     if (!ProcessRecfg(msOnline, inData, out) && inOk && inData.code != 0)
     {
         CM_TO_ADRF_RESP_STRUCT outData;
@@ -282,7 +282,7 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 // Function: ProcessRecfg
 // Description: Handle commands related to reconfiguration
 //
-// TODO: Handle reseting the protocol state when ADRF send the RECFG_REQ_CODE code
+// TODO: Handle resetting the protocol state when ADRF send the RECFG_REQ_CODE code
 //
 bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out)
 {
@@ -313,14 +313,14 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         // TODO: are we responding
         // TODO: are we responding with garbage?
         m_modeTimeout = m_tcRecfgAckDelay;
-        m_state = eCmRecfgWaitAck;
+        m_mode = eCmRecfgWaitAck;
         m_lastErrCode = RECFG_ERR_CODE_MAX;
 
         m_recfgCount += 1;
         cmdHandled = true;
     }
 
-    if (m_state == eCmRecfgWaitAck)
+    if (m_mode == eCmRecfgWaitAck)
     {
         if (m_modeTimeout == 0)
         {
@@ -331,7 +331,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 
             out.Send( &outData, sizeof(outData));
 
-            m_state = eCmRecfgSendFilenames;
+            m_mode = eCmRecfgSendFilenames;
             m_modeTimeout = m_tcFileNameDelay;
             m_lastErrCode = RECFG_ERR_CODE_MAX;
         }
@@ -341,12 +341,12 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgLatch)
+    else if (m_mode == eCmRecfgLatch)
     {
         if (inData.code == MS_RECFG_ACK)
         {
             // recfg request acknowledged wait for the ADRf to start the reconfig
-            m_state = eCmRecfgWaitRequest;
+            m_mode = eCmRecfgWaitRequest;
             cmdHandled = true;
         }
         else
@@ -354,7 +354,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             if (m_modeTimeout == 0)
             {
                 // TBD: should we resend the request if we don't get latch (3 times?)
-                m_state = eCmRecfgIdle;
+                m_mode = eCmRecfgIdle;
                 m_modeTimeout = 0;
             }
             else
@@ -364,12 +364,12 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgWaitRequest)
+    else if (m_mode == eCmRecfgWaitRequest)
     {
         if (m_modeTimeout == 0)
         {
             // TBD: should we resend the request if we don't get latch (3 times?)
-            m_state = eCmRecfgIdle;
+            m_mode = eCmRecfgIdle;
             m_modeTimeout = 0;
         }
         else
@@ -378,7 +378,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgSendFilenames)
+    else if (m_mode == eCmRecfgSendFilenames)
     {
         if (m_modeTimeout == 0)
         {
@@ -388,7 +388,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             memcpy(&outData.buff[128], m_xmlFileName, 128);
             out.Send( &outData, sizeof(outData));
 
-            m_state = eCmRecfgStatus;
+            m_mode = eCmRecfgStatus;
             m_modeTimeout = 0;
         }
         else
@@ -397,13 +397,13 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgStatus)
+    else if (m_mode == eCmRecfgStatus)
     {
         if (inData.code == RECFG_RESULT_CODE)
         {
             m_lastErrCode = inData.errCode;
             m_lastStatus = inData.bOk;
-            m_state = eCmRecfgIdle;
+            m_mode = eCmRecfgIdle;
 
             // delete the files
             m_file.Delete( m_xmlFileName, File::ePartCmProc);
@@ -415,6 +415,9 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
                 // delete the files from the partition & clear the names
                 memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
                 memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+
+                // indicate CCDL needs to restart
+                m_pCommon->recfgSuccess = true;
             }
             else
             {
@@ -441,7 +444,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 //
 const char* CmReconfig::GetModeName() const
 {
-    return modeNames[m_state];
+    return modeNames[m_mode];
 }
 
 //-------------------------------------------------------------------------------------------------

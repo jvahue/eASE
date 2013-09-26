@@ -68,7 +68,7 @@ public:
     char m_cfgFileName[eCmRecfgFileSize];
     UINT32 m_unexpectedCmds[eCmRecfgAdrfCmds];
 
-    CmReconfigState m_state;
+    CmReconfigState m_mode;
     UINT32 m_modeTimeout;
     RECFG_ERR_CODE_ENUM m_lastErrCode;
     BOOLEAN m_lastStatus;

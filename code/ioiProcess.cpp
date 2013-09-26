@@ -24,7 +24,8 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define PARAM_CFG "param.cfg"
+#define CC_RX_MBOX_NAME     "ADRF_MBOX_TX"  // these look backwards on purpose
+#define CC_TX_MBOX_NAME     "ADRF_MBOX_RX"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -37,6 +38,8 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+static const CHAR adrfProcessName[] = "adrf";
+
 static const char* ioiInitStatus[] = {
 //   !  max length    !
     "Ok",
@@ -72,6 +75,7 @@ IoiProcess::IoiProcess()
     , m_avgIoiTime(0)
     , m_totalParamTime(0)
     , m_totalIoiTime(0)
+    , m_ccdl(&aseCommon)
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -99,14 +103,18 @@ void IoiProcess::Run()
     // create alias for this process because some process needs to source the
     // ioi data
     processStatus ps = createProcessAlias( "IO");
-    // TBD: may want this to act as io cross-channel also
-
-    //m_paramCfg.Open(PARAM_CFG, File::ePartCmProc, 'r');
-    //m_paramCfg.Read(m_paramInfo, sizeof(m_paramInfo));
-    //m_paramCfg.Close();
 
     // create all of the IOI items
     InitIoi();
+
+    // create the CCDL mailboxes
+    //--------------------------------------------------------------------------
+    // Set up mailboxes for CCDL with ADRF
+    m_ccdlIn.Create(CC_RX_MBOX_NAME, CC_MAX_SIZE, eMaxQueueDepth);
+    m_ccdlIn.IssueGrant(adrfProcessName);
+
+    // Connect to the the ADRF recv box in the ADRF.
+    m_ccdlOut.Connect(adrfProcessName, CC_TX_MBOX_NAME);
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -129,7 +137,7 @@ void IoiProcess::RunSimulation()
     // at 50 Hz pack the CCDL message and send it out
     if ((m_systemTick & 1) == 1)
     {
-        UpdateCCDL();
+        m_ccdl.Update(m_ccdlIn, m_ccdlOut);
     }
 
 }
@@ -142,6 +150,7 @@ void IoiProcess::UpdateIoi()
 {
     UINT32 i;
     UINT32 scheduleZ1 = 3001;
+    UINT32 remoteX = 0;
     Parameter* param;
 
     m_scheduled = 0; // need to see how many are really scheduled
@@ -162,8 +171,6 @@ void IoiProcess::UpdateIoi()
 
                 if (m_paramIoRunning && m_scheduled != scheduleZ1 && param->IsRunning())
                 {
-                    // TODO: if we determine here the signal is a xchan signal put it in the
-                    //       xchan buffer instead of the write ioi
                     if (param->m_src != PARAM_SRC_CROSS)
                     {
                         WriteIoi(param);
@@ -171,8 +178,10 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
+                        m_ccdl.m_txSet.data[remoteX].id = i;
+                        m_ccdl.m_txSet.data[remoteX].val = param->m_ioiValue;
+                        remoteX += 1;
                     }
-
                 }
                 scheduleZ1 = m_scheduled;
             }
@@ -188,6 +197,10 @@ void IoiProcess::UpdateIoi()
     {
         m_avgIoiTime = 0;
     }
+
+    // complete the contents of the ccdl param data
+    m_ccdl.m_txSet.type = PARAM_XCH_TYPE_DATA;
+    m_ccdl.m_txSet.num_params = remoteX;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -753,7 +766,6 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     return serviced;
 }
 
-
 //-------------------------------------------------------------------------------------------------
 // Function: FillSensorNames
 // Description: Send the parameter names up to ePySte
@@ -946,14 +958,12 @@ void IoiProcess::InitIoi()
             }
         }
 
-        // save the param cfg
-        //m_paramCfg.Open(PARAM_CFG, File::ePartCmProc, 'w');
-        //m_paramCfg.Write(&m_paramInfo, sizeof(m_paramInfo[0])*m_paramInfoCount);
-        //m_paramCfg.Close();
-
         // clear out the paramInfo
         memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
         m_paramInfoCount = 0;
+
+        // prep the CCDL request buffer
+        m_ccdl.PackRequestParams(m_parameters, m_maxParamIndex);
 
         ScheduleParameters();
     }

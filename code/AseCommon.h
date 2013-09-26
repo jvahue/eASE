@@ -13,6 +13,8 @@
 # define version "v0.1.2"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // Handy #defs for accessing fields in AseCommon
 #define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
@@ -93,7 +95,8 @@ typedef struct
     bool         bConnected;     // ePySte Connection
     bool         bScriptRunning; // Is a script actively running
     bool         bMsOnline;      // is the MS online
-    LINUX_TM_FMT time;         // what time is it
+    LINUX_TM_FMT time;           // what time is it
+    bool         recfgSuccess;   // recfg success reset CCDL mode CmReconfig sets, CCDL clears
 } AseCommon;
 
 extern AseCommon aseCommon;

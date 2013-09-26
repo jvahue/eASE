@@ -3,7 +3,9 @@
 
 #include <ioiapi.h>
 
+#include "ccdl.h"
 #include "CmdRspThread.h"
+#include "MailBox.h"
 #include "Parameter.h"
 
 // File: ioiProcess.h
@@ -20,7 +22,8 @@ public:
     enum IoiConstants {
         eIoiFailDisplay = 10,
         eIoiMaxDisplay = 34,  // MUST BE AN EVEN NUMBER 40 or less
-        eMaxPages = 2
+        eMaxPages = 2,
+        eMaxQueueDepth = 2
     };
 
     //enum IoiState {
@@ -91,8 +94,11 @@ protected:
     UINT32 m_totalParamTime;
     UINT32 m_totalIoiTime;
 
+    // CCDL Stuff
+    CCDL    m_ccdl;
+    MailBox m_ccdlIn;   // local to remote ADRF - we own this
+    MailBox m_ccdlOut;  // remote to local ADRF - ADRF owns this
 
-    //File m_paramCfg;
 };
 
 #endif
