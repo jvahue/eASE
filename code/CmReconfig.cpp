@@ -50,8 +50,8 @@ static const char* modeNames[] = {
 static const CHAR* recfgStatus[] = {
     "Ok",
     "Bad File",
-    "No VfyRsp"
-    "No Status",
+    "No VfyRsp",
+    "No Status"
 };
 
 static const CHAR* cmdStrings[] = {

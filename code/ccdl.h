@@ -83,13 +83,16 @@ public:
     void Reset() {m_mode = eCcdlStart;}
 
     void Update(MailBox& in, MailBox& out);
+    void  Write(CC_SLOT_ID id, void* buf, INT32 size);
+    INT32 Read(CC_SLOT_ID id, void* buf, INT32 size);
+    bool CcdlIsRunning() {return m_mode == eCcdlRun;}
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
-    int PageCcdl(int theLine, bool& nextPage);
+    int PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out);
 
     void PackRequestParams(Parameter* parameters, UINT32 maxParamIndex);
-    void SendParamRqst(MailBox& out);
-    void GetParamRqst(MailBox& in);
+    void SendParamRqst();
+    void GetParamData();
 
     void Receive(MailBox& in);
     void Transmit(MailBox& out);
@@ -108,7 +111,7 @@ protected:
 
     // Out msg components
     PARAM_XCH_BUFF m_rqstParamMap;        // what we request we will receive
-    PARAM_XCH_BUFF m_rxParamData;  // this is what we get in
+    PARAM_XCH_BUFF m_rxParamData;         // this is what we get in
     UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
 
     EFAST_CROSS_CH_DATA m_eFastIn;

@@ -165,7 +165,7 @@ void IoiProcess::UpdateIoi()
         param = &m_parameters[0];
         for (i=0; i < m_paramLoopEnd; ++i)
         {
-            if (!param->m_isChild)
+            if (param->m_isValid && !param->m_isChild)
             {
                 m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
@@ -179,8 +179,8 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        m_ccdl.m_txParamData.data[remoteX].id = i;
-                        m_ccdl.m_txParamData.data[remoteX].val = param->m_ioiValue;
+                        m_txParamData.data[remoteX].id = i;
+                        m_txParamData.data[remoteX].val = param->m_ioiValue;
                         remoteX += 1;
                     }
                 }
@@ -202,6 +202,10 @@ void IoiProcess::UpdateIoi()
     // complete the contents of the ccdl param data
     m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
     m_ccdl.m_txParamData.num_params = remoteX;
+    if ( m_ccdl.CcdlIsRunning())
+    {
+        m_ccdl.Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -316,7 +320,7 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
             {
                 nextPage = true;
             }
-            theLine = m_ccdl.PageCcdl(theLine, nextPage);
+            theLine = m_ccdl.PageCcdl(theLine, nextPage, m_ccdlIn, m_ccdlOut);
         }
     }
 
@@ -932,7 +936,7 @@ void IoiProcess::InitIoi()
                 }
             }
 
-            // if not a child open the IOI channel
+            // if not a child or src'd from ccdl - open the IOI channel
             if (!m_parameters[index].m_isChild && m_parameters[index].m_src != PARAM_SRC_CROSS)
             {
                 openStatus = ioi_open(m_parameters[index].m_ioiName,
@@ -952,11 +956,12 @@ void IoiProcess::InitIoi()
                                 m_parameters[index].m_name, (int)eAseParamNameSize);
                     }
                     m_ioiOpenFailCount += 1;
+                    m_parameters[index].m_isValid = false;
                 }
             }
 
             // default the display to the first eIoiMaxDisplay parameters created
-            if (m_displayCount < (int)eIoiMaxDisplay && m_parameters[index].m_ioiValid)
+            if (m_displayCount < (int)eIoiMaxDisplay && m_parameters[index].m_isValid)
             {
                 m_displayIndex[m_displayCount] = index;
                 m_displayCount += 1;

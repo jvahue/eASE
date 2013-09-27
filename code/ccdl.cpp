@@ -186,7 +186,7 @@ void CCDL::Update(MailBox& in, MailBox& out)
 
     if (m_isValid)
     {
-        if (m_pCommon->recfgSuccess)
+        if (m_pCommon->recfgSuccess || !IS_POWER_ON)
         {
             m_mode = eCcdlStart;
             m_pCommon->recfgSuccess = false;
@@ -207,28 +207,15 @@ void CCDL::Update(MailBox& in, MailBox& out)
             break;
 
         case eCcdlStartTx:
+            SendParamRqst();
             break;
 
         case eCcdlStartRx:
-            if (m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
-            {
-                GetParamRqst(in);
-            }
-            m_rxParamData.type = PARAM_XCH_TYPE_MAX;
+            GetParamData();
             break;
 
         case eCcdlRun:
-            if ( m_rxParamData.type == PARAM_XCH_TYPE_DATA)
-            {
-                // scatter the data to the param positions
-                for (int x=0; x < m_rxParamData.num_params; ++x)
-                {
-                    pIndex = m_rqstParamMap.data[x].id;
-                    m_ccdlRawParam[pIndex] = m_rxParamData.data[x].val;
-                }
-                m_setupErrorRx = m_rqstParamMap.num_params == m_rxParamData.num_params;
-            }
-            m_rxParamData.type = PARAM_XCH_TYPE_MAX;
+            GetParamData();
             break;
 
         default:
@@ -245,19 +232,9 @@ void CCDL::Update(MailBox& in, MailBox& out)
 //
 void CCDL::Receive(MailBox& in)
 {
+    m_rxCount += 1;
     // if we get something unpack it into our holder data
-    if (in.Receive(m_inBuffer, sizeof(m_inBuffer)))
-    {
-        m_rxCount += 1;
-
-        // for each item in the CCDL unpack it into our data
-        for (int i = 0; i < CC_MAX_SLOT; ++i)
-        {
-            BYTE* src = (BYTE*)(m_inBuffer + m_slotInfo[i].offset + sizeof(UINT16));
-            memcpy( m_ccdlPackMap[i].in, src, m_ccdlPackMap[i].size);
-        }
-    }
-    else
+    if (!in.Receive(m_inBuffer, sizeof(m_inBuffer)))
     {
         m_rxFailCount += 1;
     }
@@ -269,54 +246,81 @@ void CCDL::Receive(MailBox& in)
 //
 void CCDL::Transmit(MailBox& out)
 {
-    bool sentParamRqst = false;
-    bool setupMode = m_mode == eCcdlStartTx && m_rqstParamMap.type == PARAM_XCH_TYPE_SETUP;
-
-    // for each item in the CCDL pack it into our Tx data
-    for (int i = 0; i < CC_MAX_SLOT; ++i)
-    {
-        BYTE* dst = (BYTE*)(m_outBuffer + m_slotInfo[i].offset);
-        *(UINT16*)dst = m_ccdlPackMap[i].size;
-        
-        if (setupMode && i == CC_PARAM)
-        {
-            memcpy( &dst[2], &m_rqstParamMap, m_ccdlPackMap[i].size);
-            m_rqstParamMap.type = PARAM_XCH_TYPE_MAX;
-            sentParamRqst = true;
-        }
-        else
-        {
-            memcpy( &dst[2], m_ccdlPackMap[i].out, m_ccdlPackMap[i].size);
-        }
-    }
-
     m_txCount += 1;
     if (!out.Send(m_outBuffer, sizeof(m_outBuffer)))
     {
         m_txFailCount += 1;
     }
-    else
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: Write
+// Description: Write Data to a particular slot
+//
+void  CCDL::Write(CC_SLOT_ID id, void* buf, INT32 size)
+{
+    static UINT32 calls, writes;
+
+    //Buffer first location is 2-byte size, followed by data.
+    BYTE* tx_buf = m_outBuffer + m_slotInfo[id].offset + sizeof(CC_MSG_SIZE);
+    UINT16* buf_size = (UINT16*)(m_outBuffer + m_slotInfo[id].offset);
+
+    calls++;
+    //Verify buffer is free (size = 0)
+    if(*buf_size == 0)
     {
-        if (setupMode && sentParamRqst)
-        {
-            if ( m_actingChan == EFAST_CHA)
-            {
-                m_mode = eCcdlStartRx;
-            }
-            else
-            {
-                m_mode = eCcdlRun;
-            }
-        }
+      memcpy(tx_buf, buf, size);
+      //Set size last, used as a semaphore to signal data has been written
+      // 16-bit write s/b atomic?
+      *buf_size = (UINT16)size; //keep lint happy
+      writes++;
     }
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: SendParamRqst
-// Description: Verify the remote channel correctly built their request of us
+// Function: Read
+// Description: Read Data from a particular slot if any new data is there
 //
-void CCDL::SendParamRqst( MailBox& out )
+INT32 CCDL::Read(CC_SLOT_ID id, void* buf, INT32 size)
 {
+    static UINT32 calls, reads;
+    UINT16 retval = 0;
+
+    //Buffer first location is 2-byte size, followed by data.
+    BYTE* rx_buf = m_inBuffer + m_slotInfo[id].offset + sizeof(CC_MSG_SIZE);
+    UINT16* buf_size = (UINT16*)(m_inBuffer + m_slotInfo[id].offset);
+
+    calls++;
+    //Verify buffer has data (size != 0)
+    if(*buf_size != 0)
+    {
+        retval = MIN(size, *buf_size);
+        memcpy(buf, rx_buf, retval);
+        //Set size last, used as a semaphore to signal data has been written
+        // 16-bit write s/b atomic?
+        *buf_size = 0;
+        reads++;
+    }
+
+    return retval;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: SendParamRqst
+// Description: Send our request for param data
+//
+void CCDL::SendParamRqst()
+{
+    Write(CC_PARAM, &m_rqstParamMap, sizeof(m_rqstParamMap));
+
+    if (m_actingChan == EFAST_CHA)
+    {
+        m_mode = eCcdlStartRx;
+    }
+    else
+    {
+        m_mode = eCcdlRun;
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -348,23 +352,43 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     }
 
     m_rqstParamMap.num_params = m_rxParam;
+
+    Write(CC_PARAM, &m_rqstParamMap, sizeof(m_rqstParamMap));
+
+    // we need to get out of run mode so Ioi does not try sending data
+    m_mode = eCcdlStart;
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: GetParamRqst
 // Description: Receive the ccdl request from the "remote chan" really the same one we are in.
 //
-void CCDL::GetParamRqst(MailBox& in)
+void CCDL::GetParamData()
 {
-    // nothing to here really just transition chan B to send mode
-    ValidateRemoteSetup();
-    if (m_actingChan == EFAST_CHB)
+    INT32 pIndex;
+
+    INT32 bytes = Read(CC_PARAM, &m_rxParamData, sizeof(m_rxParamData));
+    if (bytes > 0)
     {
-        m_mode = eCcdlStartTx;
-    }
-    else
-    {
-        m_mode = eCcdlRun;
+        // nothing to here really just transition chan B to send mode
+        if (m_mode == eCcdlStartRx)
+        {
+            ValidateRemoteSetup();
+        }
+        else if ( m_mode == eCcdlRun)
+        {
+            if ( m_rxParamData.type == PARAM_XCH_TYPE_DATA)
+            {
+                // scatter the data to the param positions
+                for (int x=0; x < m_rxParamData.num_params; ++x)
+                {
+                    pIndex = m_rqstParamMap.data[x].id;
+                    m_ccdlRawParam[pIndex] = m_rxParamData.data[x].val;
+                }
+                m_setupErrorRx = m_rqstParamMap.num_params == m_rxParamData.num_params;
+            }
+
+        }
     }
 }
 
@@ -374,33 +398,46 @@ void CCDL::GetParamRqst(MailBox& in)
 //
 void CCDL::ValidateRemoteSetup()
 {
-    UINT32 m_txParam = 0;
-    PARAM_XCH_ITEM* pParam = &m_rxParamData.data[0];
-
-    // verify the right sensor have been sent src = CROSS
-    for (int x = 0; x < m_maxParamIndex; ++x)
+    if ( m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
     {
-        if (m_parameters[x].m_src == PARAM_SRC_CROSS)
+        UINT32 m_txParam = 0;
+        PARAM_XCH_ITEM* pParam = &m_rxParamData.data[0];
+
+        // verify the right sensor have been sent src = CROSS
+        for (int x = 0; x < m_maxParamIndex; ++x)
         {
-            if (m_parameters[x].m_masterId == pParam->val)
+            if (m_parameters[x].m_src == PARAM_SRC_CROSS)
             {
-                if (m_txParam == pParam->id)
+                if (m_parameters[x].m_masterId == pParam->val)
                 {
-                    m_txParam += 1;
+                    if (m_txParam == pParam->id)
+                    {
+                        m_txParam += 1;
+                    }
+                    else
+                    {
+                        m_setupErrorTx = true;
+                    }
                 }
                 else
                 {
                     m_setupErrorTx = true;
                 }
             }
-            else
-            {
-                m_setupErrorTx = true;
-            }
+        }
+
+        m_setupErrorTx = m_txParam != m_rxParamData.num_params;
+
+        // sequence the mode
+        if (m_actingChan == EFAST_CHB)
+        {
+            m_mode = eCcdlStartTx;
+        }
+        else
+        {
+            m_mode = eCcdlRun;
         }
     }
-
-    m_setupErrorTx = m_txParam != m_rxParamData.num_params;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -408,8 +445,9 @@ void CCDL::ValidateRemoteSetup()
 // Description: Update the CCDL display - uses the Ioi page
 // display: acting channel, rx, tx, ParamTx, ParamRx
 //
-int CCDL::PageCcdl(int theLine, bool& nextPage)
+int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
 {
+    CHAR buffer[128];
     static int baseLine = 0;
 
     if (nextPage)
@@ -430,6 +468,12 @@ int CCDL::PageCcdl(int theLine, bool& nextPage)
     {
         debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d)",
                   m_rxParamData.num_params, m_txParamData.num_params);
+    }
+
+    else if (theLine == (baseLine + 2))
+    {
+        debug_str(Ioi, theLine, 0, "MB: %s %s",
+                  in.GetStatusStr(), out.GetStatusStr());
         nextPage = true;
     }
 
