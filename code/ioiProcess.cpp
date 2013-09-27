@@ -165,7 +165,7 @@ void IoiProcess::UpdateIoi()
         param = &m_parameters[0];
         for (i=0; i < m_paramLoopEnd; ++i)
         {
-            if (param->m_ioiValid)
+            if (!param->m_isChild)
             {
                 m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
@@ -179,8 +179,8 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        m_ccdl.m_txSet.data[remoteX].id = i;
-                        m_ccdl.m_txSet.data[remoteX].val = param->m_ioiValue;
+                        m_ccdl.m_txParamData.data[remoteX].id = i;
+                        m_ccdl.m_txParamData.data[remoteX].val = param->m_ioiValue;
                         remoteX += 1;
                     }
                 }
@@ -200,8 +200,8 @@ void IoiProcess::UpdateIoi()
     }
 
     // complete the contents of the ccdl param data
-    m_ccdl.m_txSet.type = PARAM_XCH_TYPE_DATA;
-    m_ccdl.m_txSet.num_params = remoteX;
+    m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
+    m_ccdl.m_txParamData.num_params = remoteX;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -312,8 +312,11 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
         }
         else
         {
-            theLine = -1;
-            nextPage = true;
+            if (tgtLine == (int)eIoiFailDisplay)
+            {
+                nextPage = true;
+            }
+            theLine = m_ccdl.PageCcdl(theLine, nextPage);
         }
     }
 
@@ -930,7 +933,7 @@ void IoiProcess::InitIoi()
             }
 
             // if not a child open the IOI channel
-            if (!m_parameters[index].m_isChild)
+            if (!m_parameters[index].m_isChild && m_parameters[index].m_src != PARAM_SRC_CROSS)
             {
                 openStatus = ioi_open(m_parameters[index].m_ioiName,
                                       ioiWritePermission,

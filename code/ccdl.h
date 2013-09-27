@@ -36,14 +36,6 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-// defined in EfastMgrUtil.c
-typedef struct
-{
-    DATETIME_STRUCT dateTime; // Current Time in Base Time of local Ch
-    EFAST_TIME_SRC srcTime;   // Current Time Source
-    UINT32 sysElapsedTime;    // Local Ch elapsed time, to be used by remote ch
-    //   to adjust dateTime to it's (remote ch) Base Time.
-} EFAST_CROSS_CH_DATA;
 
 typedef struct
 {
@@ -93,7 +85,7 @@ public:
     void Update(MailBox& in, MailBox& out);
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
-    virtual int UpdateDisplay(VID_DEFS who, int theLine);
+    int PageCcdl(int theLine, bool& nextPage);
 
     void PackRequestParams(Parameter* parameters, UINT32 maxParamIndex);
     void SendParamRqst(MailBox& out);
@@ -103,21 +95,21 @@ public:
     void Transmit(MailBox& out);
     void ValidateRemoteSetup();
 
-    bool m_isValid;
-    EFAST_CH_ENUM m_actingChan;
-    PARAM_XCH_BUFF m_txSet;  // this is what we send to the ADRF at run time
+    PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
 
 protected:
     AseCommon* m_pCommon;
-    UINT32 m_rxCount;
-    UINT32 m_txCount;
+    bool m_isValid;
+    EFAST_CH_ENUM m_actingChan;
     CcdlModes m_mode;
     UINT32 m_modeDelay;
-    bool m_ccdlSetupError;
+    bool m_setupErrorRx;
+    bool m_setupErrorTx;
 
     // Out msg components
-    PARAM_XCH_BUFF m_rxMap;  // what we request we will receive
-    PARAM_XCH_BUFF m_remoteParam;  // this is what we get
+    PARAM_XCH_BUFF m_rqstParamMap;        // what we request we will receive
+    PARAM_XCH_BUFF m_rxParamData;  // this is what we get in
+    UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
 
     EFAST_CROSS_CH_DATA m_eFastIn;
     EFAST_CROSS_CH_DATA m_eFastOut;
@@ -125,13 +117,14 @@ protected:
     BOOLEAN m_reportIn[MAX_ADRF_REPORT];
     BOOLEAN m_reportOut[MAX_ADRF_REPORT];
 
-    UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
-                                          // so we can compare it to what we sent/expect
+    PackMap m_ccdlPackMap[CC_MAX_SLOT];
 
-    PackMap m_packMap[CC_MAX_SLOT];
-
-    UINT32 m_rxFailCount;
-    UINT32 m_txFailCount;
+    UINT32 m_rxCount;      // how many input msgs
+    UINT32 m_txCount;      // how many output msg
+    UINT32 m_rxParam;      // how many input params
+    UINT32 m_txParam;      // how many output params
+    UINT32 m_rxFailCount;  // how many missing/failed inputs
+    UINT32 m_txFailCount;  // how many missing/failed outputs
 
     Parameter* m_parameters;
     UINT32 m_maxParamIndex;

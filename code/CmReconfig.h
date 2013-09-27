@@ -49,7 +49,15 @@ public:
 
     };
 
+    enum CmReconfigStatus {
+      eCmRecfgStsOk = 0,     // enums must match RECFG_ERR_CODE_ENUM in Interface_CM.h before
+      eCmRecfgStsBadFile,    // .. eCmRecfgStsNoVfyRsp - this is our status for no response
+      eCmRecfgStsNoVfyRsp,
+      eCmRecfgStsMax
+    };
+
     CmReconfig(AseCommon* pCommon);
+    void Init();
 
     void ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out);
     BOOLEAN CheckCmd( SecComm& secComm, MailBox& out);
@@ -66,8 +74,8 @@ public:
 
     CmReconfigState m_mode;
     UINT32 m_modeTimeout;
-    RECFG_ERR_CODE_ENUM m_lastErrCode;
-    BOOLEAN m_lastStatus;
+    CmReconfigStatus m_lastErrCode;
+    BOOLEAN m_lastReCfgFailed;
     UINT32 m_recfgCount;  // how many recfg rqst have we seen
     UINT32 m_recfgCmds;   // how many recfg rqst have we seen
 
@@ -80,12 +88,12 @@ public:
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
-    void ResetControls();
-
+    void ResetScriptControls();
 
     File m_file;
     char m_mbErr[128];
     AseCommon* m_pCommon;
+    bool m_lastAdrfPowerState;
 };
 
 #endif /* CMRECONFIG_H_ */

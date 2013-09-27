@@ -521,7 +521,7 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
                  m_reconfig.GetLastCmd(),
                  m_reconfig.GetModeName(),
                  m_reconfig.m_modeTimeout,
-                 m_reconfig.m_lastStatus ? "Err" : "Ok",
+                 m_reconfig.m_lastReCfgFailed ? "Err" : "Ok",
                  m_reconfig.GetCfgStatus());
         break;
 

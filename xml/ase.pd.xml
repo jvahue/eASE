@@ -3,12 +3,12 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "1538038774"
-     breakAtStartup = "no"
+     validityKey = "-199658172"
+     breakAtStartup = "yes"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
-     memoryObjectQuota = "5"
+     memoryObjectQuota = "15"
      crcAtProcessCreation = "no"
      largestAMOSizeInPages = "1"
      nameQuota = "75"
@@ -21,7 +21,7 @@
      comment = "This comment block is the one place in the file that users can add comments to the file."
      addlRamPagesForExecuteOutOfRam = "0"
      executableName = "ase.exe"
-     attachedResourceQuota = "7"
+     attachedResourceQuota = "15"
      threadStackVASGap = "yes"
      tlsSpaceInBytes = "0"
      addTLSToStack = "no"
@@ -127,7 +127,35 @@
          >
          <ownedMemoryMappedResources>
             <ownedMemoryMappedResource
+                 name = "ADRF_NVRAM"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x31000"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
                  name = "CM-CAR"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
+                 name = "FPGA_BATT_MSPWR_DAL_C"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
+                 name = "FPGA_CHAN_ID"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
+                 name = "FPGA_HEALTH_MISC"
                  accessRights = "rw"
                  useResourceConstraints = "no"
                  minimumSizeInBytes = "0x0"

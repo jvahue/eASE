@@ -50,7 +50,8 @@ static const char* modeNames[] = {
 static const CHAR* recfgStatus[] = {
     "Ok",
     "Bad File",
-    "No Status"
+    "No VfyRsp"
+    "No Status",
 };
 
 static const CHAR* cmdStrings[] = {
@@ -67,8 +68,8 @@ static const CHAR* cmdStrings[] = {
 CmReconfig::CmReconfig(AseCommon* pCommon)
     : m_mode(eCmRecfgIdle)
     , m_modeTimeout(0)
-    , m_lastErrCode(RECFG_ERR_CODE_MAX)
-    , m_lastStatus(false)
+    , m_lastErrCode(eCmRecfgStsMax)
+    , m_lastReCfgFailed(false)
     , m_recfgCount(0)
     , m_recfgCmds(0)
     // Test Control Items
@@ -77,6 +78,7 @@ CmReconfig::CmReconfig(AseCommon* pCommon)
     , m_tcRecfgLatchWait(1000)
     , m_lastCmd(ADRF_TO_CM_CODE_MAX)
     , m_pCommon(pCommon)
+    , m_lastAdrfPowerState(false)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -84,12 +86,33 @@ CmReconfig::CmReconfig(AseCommon* pCommon)
     memset(m_mbErr, 0, sizeof(m_mbErr));
 }
 
+//-------------------------------------------------------------------------------------------------
+// Function: Init
+// Description: Make sure we are reset when the ADRF powers down
+//
+void CmReconfig::Init()
+{
+    m_mode = eCmRecfgIdle;
+    m_modeTimeout = 0;
+    m_lastErrCode = eCmRecfgStsMax;
+    m_lastReCfgFailed = false;
+    m_recfgCount = 0;
+    m_recfgCmds = 0;
+    m_tcRecfgAckDelay = 0;
+    m_tcFileNameDelay = 0;
+    m_tcRecfgLatchWait = 1000;
+    m_lastCmd = ADRF_TO_CM_CODE_MAX;
+    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+    memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
+    memset(m_mbErr, 0, sizeof(m_mbErr));
+}
 
 //-------------------------------------------------------------------------------------------------
 // Function: ResetControls
 // Description: reset the object controls to their defaults when a script ends
 //
-void CmReconfig::ResetControls()
+void CmReconfig::ResetScriptControls()
 {
     // reset the object controls to their defaults when a script ends
     m_tcRecfgAckDelay = 0;
@@ -120,7 +143,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
     case eStartReconfig:
         if (StartReconfig(out))
         {
-            m_lastErrCode = RECFG_ERR_CODE_MAX;
+            m_lastErrCode = eCmRecfgStsMax;
             secComm.m_response.successful = TRUE;
         }
         else
@@ -277,8 +300,15 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 
     if ( !IS_SCRIPT_ACTIVE)
     {
-        ResetControls();
+        ResetScriptControls();
     }
+
+    if (!IS_POWER_ON && m_lastAdrfPowerState)
+    {
+        Init();
+    }
+
+    m_lastAdrfPowerState = IS_POWER_ON;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -317,7 +347,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         // TODO: are we responding with garbage?
         m_modeTimeout = m_tcRecfgAckDelay;
         m_mode = eCmRecfgWaitAck;
-        m_lastErrCode = RECFG_ERR_CODE_MAX;
+        m_lastErrCode = eCmRecfgStsMax;
 
         m_recfgCount += 1;
         cmdHandled = true;
@@ -336,7 +366,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 
             m_mode = eCmRecfgSendFilenames;
             m_modeTimeout = m_tcFileNameDelay;
-            m_lastErrCode = RECFG_ERR_CODE_MAX;
+            m_lastErrCode = eCmRecfgStsMax;
         }
         else
         {
@@ -392,7 +422,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             out.Send( &outData, sizeof(outData));
 
             m_mode = eCmRecfgStatus;
-            m_modeTimeout = 0;
+            m_modeTimeout = 1500;  // 15s timeout on the status response from the ADRF
         }
         else
         {
@@ -404,16 +434,15 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     {
         if (inData.code == RECFG_RESULT_CODE)
         {
-            m_lastErrCode = inData.errCode;
-            m_lastStatus = inData.bOk;
+            m_lastErrCode = CmReconfigStatus(inData.errCode);
+            m_lastReCfgFailed = inData.bOk;
             m_mode = eCmRecfgIdle;
 
             // delete the files
             m_file.Delete( m_xmlFileName, File::ePartCmProc);
             m_file.Delete( m_cfgFileName, File::ePartCmProc);
 
-            // I know it seems backwards, but then your thinking logically aren't you!
-            if (m_lastStatus == FALSE)
+            if (m_lastReCfgFailed == FALSE)
             {
                 // delete the files from the partition & clear the names
                 memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
@@ -429,6 +458,21 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             }
 
             cmdHandled = true;
+        }
+        else
+        {
+            if (m_modeTimeout == 0)
+            {
+                m_mode = eCmRecfgIdle;
+                sprintf(m_xmlFileName, "Failed Reconfig");
+                sprintf(m_cfgFileName, "Failed Reconfig");
+                m_lastErrCode = eCmRecfgStsNoVfyRsp;
+                m_lastReCfgFailed = TRUE;
+            }
+            else
+            {
+                m_modeTimeout -= 1;
+            }
         }
     }
 
