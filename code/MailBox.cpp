@@ -170,28 +170,28 @@ const char* ps_to_str(processStatus ps)
  *
  ****************************************************************************/
 MailBox::MailBox(void)
-    : m_hProcess(NULL)
+    : m_grantListSize(0)
+    , m_successfulGrantCnt(0)
+    , m_connectAttempts(0)
+    , m_type(eUndefined)
+    , m_hProcess(NULL)
     , m_procStatus(processNotActive)
     , m_hMailBox(NULL)
     , m_ipcStatus(ipcInvalid)
-    , m_type(eUndefined)
-    , m_grantListSize(0)
-    , m_successfulGrantCnt(0)
-    , m_connectAttempts(0)
+{
+    // Init the access grant status list.
+    // this is only used by creators(owners)
+    // to manage grants to processes which will write to my mailbox.
+    for (int i = 0; i < eMaxGrantsAllowed; ++i)
     {
-        // Init the access grant status list.
-        // this is only used by creators(owners)
-        // to manage grants to processes which will write to my mailbox.
-        for (int i = 0; i < eMaxGrantsAllowed; ++i)
-        {
-            m_grantList[i].ProcName[0] = '\0';
-            m_grantList[i].bConnected  = FALSE;
-        }
-
-        memset(m_statusStr, 0, sizeof(m_statusStr));
-        memset(m_procName, 0, sizeof(m_procName));
-        memset(m_mailBoxName, 0, sizeof(m_mailBoxName));
+        m_grantList[i].ProcName[0] = '\0';
+        m_grantList[i].bConnected  = FALSE;
     }
+
+    memset(m_statusStr, 0, sizeof(m_statusStr));
+    memset(m_procName, 0, sizeof(m_procName));
+    memset(m_mailBoxName, 0, sizeof(m_mailBoxName));
+}
 
 /******************************************************************************************
  *  Public methods
