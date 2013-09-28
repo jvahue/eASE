@@ -37,14 +37,6 @@
 /* Local Typedefs                                                            */
 /*****************************************************************************/
 
-typedef struct
-{
-    UINT32 slotId;
-    UINT32 size;
-    void* in;
-    void* out;
-} PackMap;
-
 /*****************************************************************************/
 /* Local Variables                                                           */
 /*****************************************************************************/
@@ -119,8 +111,6 @@ protected:
 
     BOOLEAN m_reportIn[MAX_ADRF_REPORT];
     BOOLEAN m_reportOut[MAX_ADRF_REPORT];
-
-    PackMap m_ccdlPackMap[CC_MAX_SLOT];
 
     UINT32 m_rxCount;      // how many input msgs
     UINT32 m_txCount;      // how many output msg

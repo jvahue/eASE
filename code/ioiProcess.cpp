@@ -105,9 +105,6 @@ void IoiProcess::Run()
     // ioi data
     processStatus ps = createProcessAlias( "IO");
 
-    // create all of the IOI items
-    InitIoi();
-
     // create the CCDL mailboxes
     //--------------------------------------------------------------------------
     // Set up mailboxes for CCDL with ADRF
@@ -116,6 +113,9 @@ void IoiProcess::Run()
 
     // Connect to the the ADRF recv box in the ADRF.
     m_ccdlOut.Connect(adrfProcessName, CC_TX_MBOX_NAME_ASE);
+
+    // create all of the IOI items
+    InitIoi();
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -179,7 +179,7 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        m_txParamData.data[remoteX].id = i;
+                        m_txParamData.data[remoteX].id = remoteX;
                         m_txParamData.data[remoteX].val = param->m_ioiValue;
                         remoteX += 1;
                     }
@@ -200,8 +200,8 @@ void IoiProcess::UpdateIoi()
     }
 
     // complete the contents of the ccdl param data
-    m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
-    m_ccdl.m_txParamData.num_params = remoteX;
+    m_txParamData.type = PARAM_XCH_TYPE_DATA;
+    m_txParamData.num_params = remoteX;
     if ( m_ccdl.CcdlIsRunning())
     {
         m_ccdl.Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
@@ -973,7 +973,7 @@ void IoiProcess::InitIoi()
         m_paramInfoCount = 0;
 
         // prep the CCDL request buffer
-        m_ccdl.PackRequestParams(m_parameters, m_maxParamIndex);
+        m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
 
         ScheduleParameters();
     }

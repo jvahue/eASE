@@ -141,28 +141,14 @@ CCDL::CCDL( AseCommon* pCommon )
     }
 
     memset((void*)&m_rqstParamMap, 0, sizeof(m_rqstParamMap));
-    memset((void*)&m_txParamData, 0, sizeof(m_txParamData));
     memset((void*)&m_rxParamData, 0, sizeof(m_rxParamData));
-    m_ccdlPackMap[CC_PARAM].slotId = CC_PARAM;
-    m_ccdlPackMap[CC_PARAM].size = sizeof(m_rqstParamMap);
-    m_ccdlPackMap[CC_PARAM].in   = &m_txParamData;
-    m_ccdlPackMap[CC_PARAM].out  = &m_rxParamData;
     m_rqstParamMap.type = PARAM_XCH_TYPE_MAX;
-    m_txParamData.type = PARAM_XCH_TYPE_MAX;
 
     memset((void*)m_reportIn, 0, sizeof(m_reportIn));
     memset((void*)m_reportOut, 0, sizeof(m_reportOut));
-    m_ccdlPackMap[CC_REPORT_TRIG].slotId = CC_REPORT_TRIG;
-    m_ccdlPackMap[CC_REPORT_TRIG].size = sizeof(m_reportIn);
-    m_ccdlPackMap[CC_REPORT_TRIG].in   = &m_reportIn;
-    m_ccdlPackMap[CC_REPORT_TRIG].out  = &m_reportOut;
 
     memset((void*)&m_eFastIn, 0, sizeof(m_eFastIn));
     memset((void*)&m_eFastOut, 0, sizeof(m_eFastOut));
-    m_ccdlPackMap[CC_EFAST_MGR].slotId = CC_EFAST_MGR;
-    m_ccdlPackMap[CC_EFAST_MGR].size = sizeof(m_eFastIn);
-    m_ccdlPackMap[CC_EFAST_MGR].in   = &m_eFastIn;
-    m_ccdlPackMap[CC_EFAST_MGR].out  = &m_eFastOut;
     
     memset((void*)m_ccdlRawParam, 0, sizeof(m_ccdlRawParam));
 }
@@ -247,7 +233,17 @@ void CCDL::Receive(MailBox& in)
 void CCDL::Transmit(MailBox& out)
 {
     m_txCount += 1;
-    if (!out.Send(m_outBuffer, sizeof(m_outBuffer)))
+    if (out.Send(m_outBuffer, sizeof(m_outBuffer)))
+    {
+        //If message sent, clear sizes to signal buffer is free
+        //else, try again next frame.
+        for(int i = 0; i < CC_MAX_SLOT; i++)
+        {
+          UINT16* size_ptr = (UINT16*)&m_outBuffer[m_slotInfo[i].offset];
+          *size_ptr = 0;
+        }
+    }
+    else
     {
         m_txFailCount += 1;
     }
@@ -343,12 +339,13 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     m_rqstParamMap.type = PARAM_XCH_TYPE_SETUP;
     for (int i=0; i < maxParamIndex && m_rqstParamMap.num_params < PARAM_XCH_BUFF_MAX; ++i)
     {
-        if (aParam->m_src != PARAM_SRC_CROSS)
+        if (aParam->m_isValid && aParam->m_src != PARAM_SRC_CROSS)
         {
             m_rqstParamMap.data[m_rqstParamMap.num_params].id = i;
             m_rqstParamMap.data[m_rqstParamMap.num_params].val = aParam->m_masterId;
             m_rxParam += 1;
         }
+        ++aParam;
     }
 
     m_rqstParamMap.num_params = m_rxParam;
@@ -387,7 +384,6 @@ void CCDL::GetParamData()
                 }
                 m_setupErrorRx = m_rqstParamMap.num_params == m_rxParamData.num_params;
             }
-
         }
     }
 }
@@ -461,8 +457,8 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
     {
         debug_str(Ioi, theLine, 0, "CCDL: Acting as(%s) Mode(%s) Rx(%d/%d/%s) Tx(%d/%d/%s)",
                   chanStr[m_actingChan], modeStr[m_mode], 
-                  m_rxCount, m_rxFailCount, m_setupErrorRx ? "Ok" : "Err",
-                  m_txCount, m_txFailCount, m_setupErrorTx ? "Ok" : "Err");
+                  m_rxCount, m_rxFailCount, m_setupErrorRx ? "Err" : "Ok",
+                  m_txCount, m_txFailCount, m_setupErrorTx ? "Err" : "Ok");
     }
     else if (theLine == (baseLine + 1))
     {
