@@ -209,7 +209,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             //            m_gseOutBox.GetProcessStatusString());
 
 
-            // temrinate the cmd before the CR
+            // terminate the cmd before the CR
 
             request.charData[request.charDataSize-1] = '\0';
             strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
