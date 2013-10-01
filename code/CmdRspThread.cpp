@@ -73,7 +73,7 @@ void CmdRspThread::Process()
     {
         m_systemTick = GET_SYSTEM_TICK;
         m_frames += 1;
-        if (IS_POWER_ON)
+        if (IS_ADRF_ON)
         {
             RunSimulation();
         }

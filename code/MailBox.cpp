@@ -342,9 +342,9 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 
     // Read the mailbox
     status = receiveMessage(m_hMailBox,
-                                 buff,
-                                 BYTES_TO_DWORDS(sizeBytes),
-                                 bWaitForMessage);
+                            buff,
+                            BYTES_TO_DWORDS(sizeBytes),
+                            bWaitForMessage);
 
     if ( status != ipcNoMessage)
     {
@@ -361,7 +361,7 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  *
  * Parameters: buff            - pointer to memory area containing msg to send
  *             sizeBytes       - the number of bytes of output
- *             bWaitForMessage - flag signalling whether call should block until
+ *             bWaitForMessage - flag signaling whether call should block until
  *                               out-queue has space available to send msg.
  *                                Default is FALSE(i.e. return immediately
  *                                with 'ipcQueueFull'

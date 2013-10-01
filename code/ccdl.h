@@ -63,6 +63,12 @@ public:
         eCcdl = 1, // change this value to take more rows at top
     };
 
+    enum CcdlState {
+        eCcdlStateErr,
+        eCcdlStateOk,
+        eCcdlStateInit
+    };
+
     enum CcdlModes {
         eCcdlStart,
         eCcdlStartTx,
@@ -72,7 +78,7 @@ public:
     };
 
     CCDL(AseCommon* pCommon);
-    void Reset() {m_mode = eCcdlStart;}
+    void Reset();
 
     void Update(MailBox& in, MailBox& out);
     void  Write(CC_SLOT_ID id, void* buf, INT32 size);
@@ -98,8 +104,8 @@ protected:
     EFAST_CH_ENUM m_actingChan;
     CcdlModes m_mode;
     UINT32 m_modeDelay;
-    bool m_setupErrorRx;
-    bool m_setupErrorTx;
+    CcdlState m_rxState;
+    CcdlState m_txState;
 
     // Out msg components
     PARAM_XCH_BUFF m_rqstParamMap;        // what we request we will receive
@@ -112,6 +118,7 @@ protected:
     BOOLEAN m_reportIn[MAX_ADRF_REPORT];
     BOOLEAN m_reportOut[MAX_ADRF_REPORT];
 
+    UINT32 m_ccdlCalls;
     UINT32 m_rxCount;      // how many input msgs
     UINT32 m_txCount;      // how many output msg
     UINT32 m_rxParam;      // how many input params

@@ -179,9 +179,10 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        m_txParamData.data[remoteX].id = remoteX;
-                        m_txParamData.data[remoteX].val = param->m_ioiValue;
+                        m_ccdl.m_txParamData.data[remoteX].id = param->m_ccdlId;
+                        m_ccdl.m_txParamData.data[remoteX].val = param->m_ioiValue;
                         remoteX += 1;
+                        m_ccdl.m_txParamData.num_params = remoteX;
                     }
                 }
                 scheduleZ1 = m_scheduled;
@@ -200,11 +201,10 @@ void IoiProcess::UpdateIoi()
     }
 
     // complete the contents of the ccdl param data
-    m_txParamData.type = PARAM_XCH_TYPE_DATA;
-    m_txParamData.num_params = remoteX;
+    m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
     if ( m_ccdl.CcdlIsRunning())
     {
-        m_ccdl.Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
+        m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
     }
 }
 
@@ -335,6 +335,7 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
 //-----------------------------------------------------------------------------
 int IoiProcess::PageParams(int theLine, bool& nextPage)
 {
+#define DETAIL_ROWS 2 // really three but ...
     UINT32 rowIndex;
     UINT32 baseIndex;
     Parameter* p1;
@@ -387,11 +388,11 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
         }
 
         // display details for params
-        else if (theLine == infoStarts || theLine == (infoStarts+1))
+        else if (theLine == infoStarts || theLine <= (infoStarts+DETAIL_ROWS))
         {
             rowIndex = m_paramDetails * 2;
 
-            // pick mode display
+            // pick params to display
             p1 = &m_parameters[m_displayIndex[rowIndex]];
             p2 = &m_parameters[m_displayIndex[rowIndex+1]];
 
@@ -414,7 +415,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
                 m_paramDetails = 0;
             }
 
-            if (theLine == (infoStarts+1))
+            if (theLine == (infoStarts+DETAIL_ROWS))
             {
                 nextPage = true;
             }

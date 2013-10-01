@@ -98,7 +98,6 @@ protected:
     CCDL    m_ccdl;
     MailBox m_ccdlIn;   // local to remote ADRF - we own this
     MailBox m_ccdlOut;  // remote to local ADRF - ADRF owns this
-    PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
 
 };
 

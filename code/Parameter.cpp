@@ -167,7 +167,8 @@ void Parameter::Init(ParamCfg* paramInfo)
 //
 bool Parameter::IsChild(Parameter& other)
 {
-    if (m_src == other.m_src)
+    // Cross cannot be a child
+    if (m_src == other.m_src && m_src != PARAM_SRC_CROSS)
     {
         if (m_src == PARAM_SRC_A664)
         {
@@ -182,19 +183,18 @@ bool Parameter::IsChild(Parameter& other)
                 m_isChild = true;
             }
         }
-        // TODO check A664 children?
 
         if (m_isChild)
         {
-                // walk down the child list and attach this
-                Parameter* parent = &other;
-                while (parent->m_link != NULL)
-                {
-                    parent = parent->m_link;
-                }
-                parent->m_link = this;
+            // walk down the child list and attach this
+            Parameter* parent = &other;
+            while (parent->m_link != NULL)
+            {
+                parent = parent->m_link;
             }
+            parent->m_link = this;
         }
+    }
 
     return m_isChild;
 }
@@ -288,6 +288,11 @@ char* Parameter::ParamInfo(char* buffer, int row)
             );
         }
         else if ( row == 1)
+        {
+            sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
+            buffer[39] = '\0';
+        }
+        else if ( row == 2)
         {
             m_sigGen.GetRepresentation(sgRep);
             sprintf(buffer, "     %s", sgRep);

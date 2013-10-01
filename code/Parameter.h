@@ -43,6 +43,7 @@ enum ParamConstants {eParamShort = 23};
     UINT32  m_offset;        // frame offset 0-90 step 10
     UINT32  m_nextUpdate;    // sys tick for next param update
     UINT32  m_updateCount;   // how many times has this param been updated
+    UINT16  m_ccdlId;        // the Id used if this param is src=CROSS
 
     // handle child relationships
     Parameter* m_link;       // link to a child of this param

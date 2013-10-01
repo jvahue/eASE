@@ -70,6 +70,7 @@ CmdRspThread* cmdRspThreads[] = {
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
 static void SetTime(SecRequest& request);
+static void UpdateTime();
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -90,6 +91,12 @@ int main(void)
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
     const UINT32 MAX_IDLE_FRAMES = 15 * systemTickTimeInHz;
 
+    void *theAreg;
+    accessStyle asA;
+    UNSIGNED32 myChanID;
+    resourceStatus  status;
+    platformResourceHandle hA;
+
     UINT32 i;
     UINT32 start;
     UINT32 td;
@@ -106,12 +113,32 @@ int main(void)
     // default time 
     aseCommon.time.tm_year = 2013;
     aseCommon.time.tm_mon  = 7;
-    aseCommon.time.tm_mday = 25;
+    aseCommon.time.tm_mday = 26;
 
     nextTime.tm_year = 2013;
     nextTime.tm_mon  = 7;
-    nextTime.tm_mday = 26;
+    nextTime.tm_mday = 27;
+
+    // In VM land we default our selves to Channel B
+    status = attachPlatformResource("", "FPGA_CHAN_ID", &hA, &asA, &theAreg);
+    status = readPlatformResourceDWord(hA, 0, &myChanID);
+
+#ifdef VM_WARE
+    // make this chanB
+    myChanID = (myChanID & ~0x3) | 1;
+    status = writePlatformResourceDWord( hA, 0, myChanID );
+#endif
     
+    // determine which channel we are in
+    if ((myChanID & 0x3) == 0)
+    {
+        aseCommon.isChannelA = true;
+    }
+    else
+    {
+        aseCommon.isChannelA = false;
+    }
+
     // default to MS being online
     aseCommon.bMsOnline = true;
 
@@ -120,12 +147,6 @@ int main(void)
 
     debug_str_init();
     videoRedirect = AseMain;
-
-    // Initially create the adrf to start it running.
-    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
-    debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
-
-    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
 
     secComm.Run();
 
@@ -143,13 +164,19 @@ int main(void)
     // see CheckCmds - where this is updated
     debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
 
+    // Initially create the adrf to start it running.
+    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
+    debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
+
+    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
+
     // The main thread goes into an infinite loop.
     while (1)
     {
         // call the base class to get the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
 
-        debug_str(AseMain, 1, 0, "ASE Version: %s Now: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+        debug_str(AseMain, 1, 0, "ASE: %s %04d/%02d/%02d %02d:%02d:%02d.%0.3d in channel %s",
                   version,
                   aseCommon.time.tm_year,
                   aseCommon.time.tm_mon,   // month    0..11
@@ -157,7 +184,8 @@ int main(void)
                   aseCommon.time.tm_hour,  // hours    0..23
                   aseCommon.time.tm_min,   // minutes  0..59
                   aseCommon.time.tm_sec,   // seconds  0..59
-                  _10msec
+                  _10msec,
+                  aseCommon.isChannelA ? "A" : "B"
                   );
 
         // Write the system tick value to video memory.
@@ -179,30 +207,7 @@ int main(void)
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
         
-        // keep time
-        _10msec += 10;
-        if (_10msec >= 1000)
-        {
-            _10msec = 0;
-            aseCommon.time.tm_sec += 1;
-            if (aseCommon.time.tm_sec >= 60)
-            {
-                aseCommon.time.tm_sec = 0;
-                aseCommon.time.tm_min += 1;
-                if (aseCommon.time.tm_min >= 60)
-                {
-                    aseCommon.time.tm_min = 0;
-                    aseCommon.time.tm_hour += 1;
-                    if (aseCommon.time.tm_hour >= 24)
-                    {
-                        aseCommon.time.tm_hour = 0;
-                        aseCommon.time.tm_year = nextTime.tm_year;
-                        aseCommon.time.tm_mon = nextTime.tm_mon;
-                        aseCommon.time.tm_mday = nextTime.tm_mday;
-                    }
-                }
-            }
-        }
+        UpdateTime();
 
         frames += 1;
 
@@ -213,7 +218,7 @@ int main(void)
         }
         else
         {
-            // no timeout if we are running a script
+            // no connection loss timeout if we are running a script
             cmdIdle = frames - lastCmdAt;
             if (cmdIdle > MAX_IDLE_FRAMES)
             {
@@ -227,8 +232,45 @@ int main(void)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Update the wall clock time - PySte will resend every now and then but wee need to maintain it
+// between those updates.
+static void UpdateTime()
+{
+    // keep time
+    _10msec += 10;
+    if (_10msec >= 1000)
+    {
+        _10msec = 0;
+        aseCommon.time.tm_sec += 1;
+        if (aseCommon.time.tm_sec >= 60)
+        {
+            aseCommon.time.tm_sec = 0;
+            aseCommon.time.tm_min += 1;
+            if (aseCommon.time.tm_min >= 60)
+            {
+                aseCommon.time.tm_min = 0;
+                aseCommon.time.tm_hour += 1;
+                if (aseCommon.time.tm_hour >= 24)
+                {
+                    aseCommon.time.tm_hour = 0;
+                    aseCommon.time.tm_year = nextTime.tm_year;
+                    aseCommon.time.tm_mon = nextTime.tm_mon;
+                    aseCommon.time.tm_mday = nextTime.tm_mday;
+                }
+            }
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
+    void *theAreg;
+    accessStyle asA;
+    UNSIGNED32 myChanID;
+    resourceStatus  status;
+    platformResourceHandle hA;
+
     UINT32 i;
     BOOLEAN cmdSeen = FALSE;
     BOOLEAN serviced = FALSE;
@@ -322,6 +364,32 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             }
             serviced = TRUE;
             break;
+
+#ifdef VM_WARE
+        // when running in VM land we can set the channel to whatever we want
+        case eSetChanId:
+            // In VM land we default our selves to Channel B
+            status = attachPlatformResource("", "FPGA_CHAN_ID", &hA, &asA, &theAreg);
+            status = readPlatformResourceDWord(hA, 0, &myChanID);
+
+            // make this chanB
+            myChanID = (myChanID & ~0x3) | (request.variableId & 0x3);
+            status = writePlatformResourceDWord( hA, 0, myChanID );
+
+            // determine which channel we are now in
+            if ((myChanID & 0x3) == 0)
+            {
+                aseCommon.isChannelA = true;
+            }
+            else
+            {
+                aseCommon.isChannelA = false;
+            }
+
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+            break;
+#endif
 
         default:
             break;

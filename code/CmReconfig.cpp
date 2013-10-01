@@ -303,12 +303,12 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
         ResetScriptControls();
     }
 
-    if (!IS_POWER_ON && m_lastAdrfPowerState)
+    if (!IS_ADRF_ON && m_lastAdrfPowerState)
     {
         Init();
     }
 
-    m_lastAdrfPowerState = IS_POWER_ON;
+    m_lastAdrfPowerState = IS_ADRF_ON;
 }
 
 //-------------------------------------------------------------------------------------------------

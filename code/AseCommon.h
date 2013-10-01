@@ -15,7 +15,7 @@
 *
 *
 */
-# define version "v0.1.2"  " " __DATE__ " " __TIME__
+# define version "v0.2.0"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, max) (((i) >=0 && (i) < (max)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -25,7 +25,7 @@
 #define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))
 #define IS_CONNECTED      (m_pCommon->bConnected)
 #define IS_SCRIPT_ACTIVE  (m_pCommon->bScriptRunning)
-#define IS_POWER_ON       (m_pCommon->adrfState != eAdrfOff)
+#define IS_ADRF_ON        (m_pCommon->adrfState != eAdrfOff)
 #define IS_MS_ONLINE      (m_pCommon->bMsOnline)
 
 // high speed timer
@@ -105,6 +105,7 @@ typedef struct
     bool         bMsOnline;      // is the MS online
     LINUX_TM_FMT time;           // what time is it
     bool         recfgSuccess;   // recfg success reset CCDL mode CmReconfig sets, CCDL clears
+    bool         isChannelA;     // true when we are in channel A
 } AseCommon;
 
 extern AseCommon aseCommon;

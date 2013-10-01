@@ -238,6 +238,10 @@ void ParamConverter::SetIoiName()
     {
         SetIoiA664Name();
     }
+    else if (m_src == PARAM_SRC_CROSS)
+    {
+        sprintf(m_ioiName, "CROSS");
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
