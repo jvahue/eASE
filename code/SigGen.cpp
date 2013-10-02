@@ -22,7 +22,7 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define TimeBase 100.0f  // one hundred frames in a sec
+#define TimeBase 1000.0f  // one hundred frames in a sec
 #define EqFp(x,y) (fabs(x-y) < 0.00001)
 
 /*****************************************************************************/
@@ -126,11 +126,10 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     m_param3 = param3;
     m_param4 = param4;
 
-    // BUG: Validate the parameters i.e., max > min, hi > low etc.
-    //      what about frequencies too high, PWM too small, etc.
-    switch ( m_type)
+    // Validate the parameters i.e., max > min, hi > low etc.
+    // what about frequencies too high, PWM too small, etc.
+    if (m_type == eSGmanual)
     {
-    case eSGmanual:
         //m_orgParam1 = m_param1 = 0.0f;
         m_orgParam2 = 0.0f;
         m_orgParam3 = 0.0f;
@@ -139,10 +138,9 @@ bool SignalGenerator::SetParams( int type, int updateMs,
         m_param2 = 0.0f;
         m_param3 = 0.0f;
         m_param4 = 0.0f;
-        break;
-    case eSGramp:
-    case eSGrampHold:
-    case eSGtriangle:
+    }
+    else if (m_type == eSGramp || m_type == eSGrampHold || m_type == eSGtriangle)
+    {
         // stepSize = ((max-min)/(seconds))/(1000/updateMs)
         //m_param3 = ((m_param2 - m_param1)/param3)/(1000.0f/float(updateMs));
         m_param3 = ((m_param2 - m_param1)/param3)/TimeBase;
@@ -154,8 +152,9 @@ bool SignalGenerator::SetParams( int type, int updateMs,
 
         m_orgParam4 = 0.0;  // Unused
         m_param4 = 0.0;
-        break;
-    case eSGsine:
+    }
+    else if (m_type == eSGsine)
+    {
         // Freq gets turned into m_angleDegrees/sample
         //m_param1 = (param1 * 360.0f)/(1000/updateMs);
         m_param1 = (param1 * 360.0f)/TimeBase;
@@ -165,28 +164,36 @@ bool SignalGenerator::SetParams( int type, int updateMs,
         {
             status = false;
         }
-        break;
-    case eSG1Shot:
+    }
+    else if (m_type == eSG1Shot)
+    {
         m_orgParam4 = 0.0;
         m_param4 = 0.0;
-        break;
-    case eSGnShot:
-        break;
-    case eSGpwm:
+    }
+    else if (m_type == eSGnShot)
+    {
+        // do nothing
+    }
+    else if (m_type == eSGpwm)
+    {
         m_param3 = param3 * (TimeBase/float(updateMs)); // total frames
         m_param4 = m_param3 * param4/100.0f;           // frames high
         if ( m_param3 < 1.0f || m_param4 < 1.0f)
         {
             status = false;
         }
-        break;
-    case eSGrandom:
+    }
+    else if (m_type == eSGrandom)
+    {
         m_orgParam3 = 0.0;
         m_orgParam4 = 0.0;
 
         m_param3 = 0.0;
         m_param4 = 0.0;
-        break;
+    }
+    else
+    {
+        status = false;
     }
 
     // check if params are valid and we can generate the requested signal
@@ -217,31 +224,27 @@ void SignalGenerator::GetParams( int updateMs,
     param3 = m_param3;
     param4 = m_param4;
 
-    switch ( m_type)
+    if( m_type == eSGmanual || m_type == eSG1Shot || 
+        m_type == eSGnShot  || m_type == eSGrandom)
     {
-    case eSGmanual:
-        break;
-    case eSGramp:
-    case eSGrampHold:
-    case eSGtriangle:
+        // do nothing
+    }
+    else if (m_type == eSGramp || m_type == eSGrampHold || m_type == eSGtriangle)
+    {
         // stepSize = ((max-min)/(seconds))/(1000/updateRate) ... solve for seconds
         //param3 = fabs((float(updateMs)/(m_param3*1000.0f))*(m_param2 - m_param1));
         param3 = fabs(1.0f / (m_param3 * TimeBase) * (m_param2 - m_param1));
-        break;
-    case eSGsine:
+    }
+    else if (m_type == eSGsine)
+    {
         // Freq gets turned into m_angleDegrees
         //param1 = ((m_param1 * 1000.0f)/float(updateMs))/360.0f;
         param1 = ((m_param1 * TimeBase))/360.0f;
-        break;
-    case eSG1Shot:
-    case eSGnShot:
-        break;
-    case eSGpwm:
+    }
+    else if (m_type == eSGpwm)
+    {
         param3 = (m_param3)/(TimeBase/float(updateMs));
         param4 = 100.0f * (m_param4/m_param3);
-        break;
-    case eSGrandom:
-        break;
     }
 }
 

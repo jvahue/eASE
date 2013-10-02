@@ -356,7 +356,7 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     memset((void*)&m_rqstParamMap, 0, sizeof(m_rqstParamMap));
 
     m_rqstParamMap.type = PARAM_XCH_TYPE_SETUP;
-    for (int i=0; i < maxParamIndex && m_rqstParamMap.num_params < PARAM_XCH_BUFF_MAX; ++i)
+    for (int i=0; i < maxParamIndex && m_rxParam < PARAM_XCH_BUFF_MAX; ++i)
     {
         if (aParam->m_isValid && aParam->m_src != PARAM_SRC_CROSS)
         {

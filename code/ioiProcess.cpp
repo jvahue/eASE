@@ -359,7 +359,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
         break;
 
     case 1:
-        debug_str(Params, theLine, 0, "Status: User Select");
+        debug_str(Params, theLine, 0, "SigGen(%s)", m_sgRun ? " On" : "Off");
         break;
 
     default:
@@ -477,11 +477,13 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             UINT32 sgType = request.sigGenId;
             if ( ARRAY( sgType, eMaxSensorMode))
             {
+                bool setResult;
                 Parameter& theParam = m_parameters[itemId];
 
-                theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
-                                            request.param1, request.param2,
-                                            request.param3, request.param4);
+                setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
+                                                        request.param1, request.param2,
+                                                        request.param3, request.param4);
+
                 if (sgType == eSGmanual)
                 {
                     theParam.m_value = request.param1;
@@ -489,7 +491,11 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
                 // Init the value
                 theParam.m_value =  theParam.m_sigGen.Reset(theParam.m_value);
-                secComm.m_response.successful = TRUE;
+                secComm.m_response.successful = setResult;
+                if (!setResult)
+                {
+                    secComm.ErrorMsg("Unable to complete parameter setup");
+                }
             }
             else
             {
