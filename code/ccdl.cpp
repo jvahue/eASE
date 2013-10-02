@@ -346,6 +346,7 @@ void CCDL::SendParamRqst()
 //
 void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
 {
+    UINT32 i;
     Parameter* aParam = parameters;
 
     // hold these for verifying Remote in CCDL param request
@@ -356,11 +357,12 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     memset((void*)&m_rqstParamMap, 0, sizeof(m_rqstParamMap));
 
     m_rqstParamMap.type = PARAM_XCH_TYPE_SETUP;
-    for (int i=0; i < maxParamIndex && m_rxParam < PARAM_XCH_BUFF_MAX; ++i)
+    for (i=0; i < maxParamIndex && m_rxParam < PARAM_XCH_BUFF_MAX; ++i)
     {
         if (aParam->m_isValid && aParam->m_src != PARAM_SRC_CROSS)
         {
-            m_rqstParamMap.data[m_rxParam].id = i;
+            m_rqstParamMap.data[m_rxParam].id = m_rxParam;
+            m_rqstParamIdMap[m_rxParam] = i;
             m_rqstParamMap.data[m_rxParam].val = aParam->m_masterId;
             m_rxParam += 1;
         }
