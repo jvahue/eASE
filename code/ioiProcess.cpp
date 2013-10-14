@@ -481,8 +481,8 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
                 Parameter& theParam = m_parameters[itemId];
 
                 setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
-                                                        request.param1, request.param2,
-                                                        request.param3, request.param4);
+                                            request.param1, request.param2,
+                                            request.param3, request.param4);
 
                 if (sgType == eSGmanual)
                 {
@@ -871,6 +871,7 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
 // child link, that can be followed from the first (parent) param.
 void IoiProcess::InitIoi()
 {
+    bool childRelationship;
     UINT32 i;
     UINT32 i1;
     ioiStatus openStatus;
@@ -899,7 +900,7 @@ void IoiProcess::InitIoi()
                 closeStatus = ioi_close(m_parameters[i].m_ioiChan);
                 if (closeStatus != ioiSuccess)
                 {
-                    // copy name for display
+                    // DEBUG: copy name for display
                     if (m_ioiCloseFailCount < (int)eIoiFailDisplay)
                     {
                         strncpy(m_closeFailNames[m_ioiCloseFailCount],
@@ -934,9 +935,10 @@ void IoiProcess::InitIoi()
             for (i1=0; i1 < m_paramLoopEnd; ++i1)
             {
                 // if the param is valid and its not me
-                if (m_parameters[i1].m_isValid && i1 != index)
+                if (m_parameters[i1].m_isValid && !m_parameters[i1].m_isChild && i1 != index)
                 {
-                    if (m_parameters[index].IsChild(m_parameters[i1]))
+                    childRelationship = m_parameters[index].IsChild(m_parameters[i1]);
+                    if (childRelationship)
                     {
                         break;
                     }
@@ -944,7 +946,7 @@ void IoiProcess::InitIoi()
             }
 
             // if not a child or src'd from ccdl - open the IOI channel
-            if (!m_parameters[index].m_isChild && m_parameters[index].m_src != PARAM_SRC_CROSS)
+            if (!childRelationship && m_parameters[index].m_src != PARAM_SRC_CROSS)
             {
                 openStatus = ioi_open(m_parameters[index].m_ioiName,
                                       ioiWritePermission,

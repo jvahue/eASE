@@ -74,6 +74,7 @@ Parameter::Parameter()
 void Parameter::Reset()
 {
     m_ioiValid = false;
+    m_ioiChan = -1;
     m_isRunning = true;        // parameter comes up running
     m_index = eAseMaxParams;
     m_value = 0.0f;            // the current value for the parameter
@@ -167,6 +168,8 @@ void Parameter::Init(ParamCfg* paramInfo)
 //
 bool Parameter::IsChild(Parameter& other)
 {
+    bool childRelationship = false;
+
     // Cross cannot be a child
     if (m_src == other.m_src && m_src != PARAM_SRC_CROSS)
     {
@@ -186,17 +189,40 @@ bool Parameter::IsChild(Parameter& other)
 
         if (m_isChild)
         {
-            // walk down the child list and attach this
-            Parameter* parent = &other;
-            while (parent->m_link != NULL)
+            childRelationship = true;
+
+            // If we run faster than the parent we become the parent
+            if (m_rateHz > other.m_rateHz)
             {
-                parent = parent->m_link;
+                // reset the parent/child indicators
+                other.m_isChild = true;
+                m_isChild = false;
+
+                // relink/move ioi assignments to the new parent
+                m_link = &other;
+                m_ioiChan = other.m_ioiChan;
+                m_ioiValid = other.m_ioiValid;
+                m_isValid = other.m_isValid;
+
+                // clear old parent ioi data
+                other.m_ioiChan = -1;
+                other.m_ioiValid = false;
             }
-            parent->m_link = this;
+
+            // else walk down the child list and attach this
+            else
+            {
+                Parameter* parent = &other;
+                while (parent->m_link != NULL)
+                {
+                    parent = parent->m_link;
+                }
+                parent->m_link = this;
+            }
         }
     }
 
-    return m_isChild;
+    return childRelationship;
 }
 
 //-------------------------------------------------------------------------------------------------
