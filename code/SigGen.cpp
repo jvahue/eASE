@@ -22,7 +22,7 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define TimeBase 1000.0f  // one hundred frames in a sec
+#define TimeBase 1000.0f  // one ms frames in a sec
 #define EqFp(x,y) (fabs(x-y) < 0.00001)
 
 /*****************************************************************************/
@@ -262,7 +262,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
     float newValue = oldValue;
 
     UNSIGNED32 *systemTickPtr = systemTickPointer();
-    UINT32 now = *systemTickPtr;
+    UINT32 now = *systemTickPtr * 10;
 
     if ( sgRun && !m_firstRun)
     {

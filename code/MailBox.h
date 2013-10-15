@@ -45,7 +45,7 @@ class MailBox
 
       // Sender methods
       BOOLEAN Connect(const char* procName, const char* mbName);
-      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = TRUE);
+      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = FALSE);
       BOOLEAN IsConnected()
       {
         // Mailbox init as sender and valid handle obtained
