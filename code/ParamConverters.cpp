@@ -321,6 +321,10 @@ void ParamConverter::A429ParseGps()
 //--------------------------------------------------------------------------------------------------
 UINT32 ParamConverter::ExpectedSSM()
 {
+#define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
+#define BCD_VALID_SSM   0x03 //
+#define DISC_VALID_SSM  0x00 //
+
     unsigned int expected = BNR_VALID_SSM;
 
     // Store the Default Valid SSM

@@ -19,11 +19,6 @@
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
 //----------------------------------------------------------------------------/
-#define BNR_VALID_SSM               0x08
-#define BCD_VALID_SSM               0x09
-#define DISC_VALID_SSM              0x01
-
-
 #define ARINC_MSG_PARITY_BIT        0x80000000UL
 #define ARINC_MSG_SSM_BITS          0x60000000UL
 #define ARINC_MSG_SIGN_BIT          0x10000000UL
