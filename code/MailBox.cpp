@@ -277,43 +277,43 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 
     switch (m_type)
     {
-        case eUndefined:
-            // First time attempting to set up a sender mailbox obj...
-            strncpy(m_procName,    procName, eMaxProcNameLen);
-            strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
-            m_type = eSend;
-            //
-            //Deliberate fallthrough...
-            //
-        case eSend:
-            m_connectAttempts++;
-            // Get Process handle for the mailbox owner
-            m_procStatus = getProcessHandle(m_procName, &m_hProcess);
-            if( m_procStatus == processSuccess)
+    case eUndefined:
+        // First time attempting to set up a sender mailbox obj...
+        strncpy(m_procName,    procName, eMaxProcNameLen);
+        strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
+        m_type = eSend;
+        //
+        //Deliberate fallthrough...
+        //
+    case eSend:
+        m_connectAttempts++;
+        // Get Process handle for the mailbox owner
+        m_procStatus = getProcessHandle(m_procName, &m_hProcess);
+        if( m_procStatus == processSuccess)
+        {
+            //Get mailbox handle/attach as sender.
+            m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
+            if(m_ipcStatus != ipcValid)
             {
-                //Get mailbox handle/attach as sender.
-                m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
-                if(m_ipcStatus != ipcValid)
-                {
-                    m_hMailBox = NULL;
-                }
+                m_hMailBox = NULL;
             }
-		    else
-		    {
-                // getProcessHandle failed, report.
-			    m_hProcess = NULL;
-		    }
+        }
+    else
+    {
+            // getProcessHandle failed, report.
+      m_hProcess = NULL;
+    }
 
-			if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
-			{
-			   result = FALSE;
-			}
-			break;
+    if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
+    {
+       result = FALSE;
+    }
+      break;
 
-		default:
-			break;
-	}// switch on mailbox type
- 	return result;
+    default:
+      break;
+    } // switch on mailbox type
+    return result;
 }
 
 /*****************************************************************************

@@ -68,6 +68,7 @@ IoiProcess::IoiProcess()
     , m_scheduled(0)
     , m_updated(0)
     , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
+    , m_initParams(false)
     , m_ioiOpenFailCount(0)
     , m_ioiCloseFailCount(0)
     , m_ioiWriteFailCount(0)
@@ -163,7 +164,7 @@ void IoiProcess::UpdateIoi()
         m_totalIoiTime = 0;
 
         param = &m_parameters[0];
-        for (i=0; i < m_paramLoopEnd; ++i)
+        for (i=0; i < m_paramLoopEnd && !m_initParams; ++i)
         {
             if (param->m_isValid && !param->m_isChild)
             {
@@ -217,18 +218,21 @@ void IoiProcess::WriteIoi(Parameter* param )
     UINT32 start;
     ioiStatus writeStatus;
 
-    start = HsTimer();
-    writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
-    m_totalIoiTime += HsTimeDiff(start);
+    if (!m_initParams)
+    {
+        start = HsTimer();
+        writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+        m_totalIoiTime += HsTimeDiff(start);
 
-    if (writeStatus == ioiSuccess)
-    {
-        m_updated += 1; // count how many we updated
-    }
-    else
-    {
-        // TODO : what else, anything?
-        m_ioiWriteFailCount += 1;
+        if (writeStatus == ioiSuccess)
+        {
+            m_updated += 1; // count how many we updated
+        }
+        else
+        {
+            // TODO : what else, anything?
+            m_ioiWriteFailCount += 1;
+        }
     }
 }
 
@@ -879,6 +883,8 @@ void IoiProcess::InitIoi()
 
     if (m_initStatus == ioiSuccess)
     {
+        m_initParams = true;
+
         // clear the display
         m_displayCount = 0;
         for (i=0; i < eIoiMaxDisplay; ++i)
@@ -985,6 +991,7 @@ void IoiProcess::InitIoi()
         m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
 
         ScheduleParameters();
+        m_initParams = false;
     }
 }
 

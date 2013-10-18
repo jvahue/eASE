@@ -77,6 +77,7 @@ protected:
     UINT32 m_scheduled;
     UINT32 m_updated;
 
+    bool m_initParams;
     ioiStatus m_initStatus;
 
     UINT32 m_ioiOpenFailCount;
