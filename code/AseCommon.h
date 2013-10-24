@@ -17,7 +17,7 @@
 */
 # define version "v0.2.1"  " " __DATE__ " " __TIME__
 
-#define ARRAY(i, max) (((i) >=0 && (i) < (max)))
+#define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 

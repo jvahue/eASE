@@ -456,7 +456,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eGetSensorValue:
-        if (ARRAY( itemId, m_paramLoopEnd) && m_parameters[itemId].m_isValid)
+        if (m_parameters[itemId].m_isValid)
         {
             secComm.m_response.value = m_parameters[itemId].m_value;
             secComm.m_response.successful = TRUE;
@@ -476,7 +476,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eSetSensorSG:
-        if ( ARRAY( itemId, m_paramLoopEnd) && m_parameters[itemId].m_isValid)
+        if ( m_parameters[itemId].m_isValid)
         {
             UINT32 sgType = request.sigGenId;
             if ( ARRAY( sgType, eMaxSensorMode))
@@ -530,7 +530,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         else
         {
             // if the parameter index is valid reset it
-            if ( ARRAY( itemId, m_maxParamIndex) && m_parameters[itemId].m_isValid)
+            if ( m_parameters[itemId].m_isValid)
             {
                 m_parameters[itemId].m_sigGen.Reset(m_parameters[itemId].m_value);
                 secComm.m_response.successful = TRUE;
@@ -922,7 +922,7 @@ void IoiProcess::InitIoi()
 
         m_paramCount = 0;
         m_maxParamIndex = 0;
-        m_paramLoopEnd = 0;
+        m_paramLoopEnd = 1;   // this must always be 1 more than m_maxParamIndex
 
         for (i=0; i < m_paramInfoCount; ++i)
         {
