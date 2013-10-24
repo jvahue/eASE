@@ -247,11 +247,11 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
             }
             else
             {
-            // requesting status on the file transfer
-            SendAck(out);
-            if (m_mode == eXferFileFail)
-            {
-                // we just told the ADRF about the bad file go to idle
+                // requesting status on the file transfer
+                SendAck(out);
+                if (m_mode == eXferFileFail)
+                {
+                    // we just told the ADRF about the bad file go to idle
                     m_mode = eXferIdle;  // <--------------- State Tx
                 }
             }

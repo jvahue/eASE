@@ -129,12 +129,6 @@ void CmProcess::RunSimulation()
             m_lastGseSent = m_frames;
         }
     }
-
-    if (!IS_SCRIPT_ACTIVE)
-    {
-        // reset counters in File Xfer code
-        m_fileXfer.ResetCounters();
-    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -148,7 +142,7 @@ void CmProcess::ProcessGseMessages()
     memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
 
     // If not expecting a resp msg and time has elapsed to request the
-    // Expecting cmd response... check inbox.
+    // Expecting cmd response ... check inbox.
     if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
     {
         int size = strlen(m_gseRsp.rspMsg);
@@ -174,6 +168,8 @@ void CmProcess::HandlePowerOff()
 
     m_requestPing = false;
     m_lastGseSent = 0;
+
+    m_fileXfer.ResetCounters();
 }
 
 //-------------------------------------------------------------------------------------------------
