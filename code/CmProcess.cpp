@@ -108,6 +108,8 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
+    static bool scriptStateZ = false;
+
     // Handle Reconfig Requests
     m_reconfig.ProcessCfgMailboxes(IS_MS_ONLINE, m_reConfigInBox, m_reConfigOutBox);
 
@@ -129,6 +131,21 @@ void CmProcess::RunSimulation()
             m_lastGseSent = m_frames;
         }
     }
+
+    // if the script is not running - oneshot reset ASE process states
+    if (!IS_SCRIPT_ACTIVE && scriptStateZ)
+    {
+        // Recfg Task
+        m_reconfig.Init();
+        m_getFile.Close();
+        m_putFile.Close();
+
+        // File Xfer - don't do anything here - this is reset on ADRF Power down as the ADRF
+        // .. might have requested a file transfer and we have not done anything with it yet.
+        // .. On Power down ADRf will restart all file transfers - see HandlePowerOff
+    }
+
+    scriptStateZ = IS_SCRIPT_ACTIVE;
 }
 
 //-------------------------------------------------------------------------------------------------
