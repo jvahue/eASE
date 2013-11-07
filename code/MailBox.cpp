@@ -98,7 +98,7 @@ const char* is_to_str(ipcStatus is)
     "ipcInvalidTimeoutSpecifier",
     "ipcInsufficientTime"
     };
-    return is <= processInsufficientMainBudget ? is_strs[is] : "WTF?";
+    return is <= ipcInsufficientTime ? is_strs[is] : "WTF?";
 }
 /*****************************************************************************
  * Function:    ps_to_str
