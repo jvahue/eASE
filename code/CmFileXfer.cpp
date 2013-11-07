@@ -424,4 +424,5 @@ void CmFileXfer::ResetCounters()
     m_noMatchFileName = 0;
 
     m_mode = eXferIdle;
+    memset(m_xferFileName, 0, sizeof(m_xferFileName));
 }

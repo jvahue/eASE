@@ -127,8 +127,7 @@ void CmProcess::RunSimulation()
         // see if the adrf is ready
         if ((m_frames - m_lastGseSent) > 150)
         {
-            m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
-            m_lastGseSent = m_frames;
+            m_requestPing = true;
         }
     }
 
@@ -154,16 +153,23 @@ void CmProcess::RunSimulation()
 //
 void CmProcess::ProcessGseMessages()
 {
-    m_gseCmd.gseSrc = GSE_SOURCE_CM;
-    m_gseCmd.gseVer = 1;
-    memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
-
-    // If not expecting a resp msg and time has elapsed to request the
-    // Expecting cmd response ... check inbox.
-    if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+    if (m_gseInBox.GetIpcStatus() == ipcValid)
     {
-        int size = strlen(m_gseRsp.rspMsg);
-        m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+        m_gseCmd.gseSrc = GSE_SOURCE_CM;
+        m_gseCmd.gseVer = 1;
+        memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+
+        // If not expecting a resp msg and time has elapsed to request the
+        // Expecting cmd response ... check inbox.
+        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+        {
+            int size = strlen(m_gseRsp.rspMsg);
+            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+        }
+    }
+    else
+    {
+        m_gseInBox.Reset();
     }
 }
 
@@ -173,7 +179,7 @@ void CmProcess::ProcessGseMessages()
 //
 void CmProcess::HandlePowerOff()
 {
-    // reset mailboxes due to power off ( adrf process gone)
+    // reset mailboxes due to power off (adrf process gone)
     m_gseInBox.Reset();
     m_gseOutBox.Reset();
 
@@ -184,7 +190,7 @@ void CmProcess::HandlePowerOff()
     m_fileXferOutBox.Reset();
 
     m_requestPing = false;
-    m_lastGseSent = 0;
+    m_lastGseSent = m_frames;  // when power comes back give the give ePySte time to send cmd
 
     m_fileXfer.ResetCounters();
 }
@@ -329,6 +335,23 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             subServiced = m_fileXfer.CheckCmd(secComm);
         }
         break;
+    }
+
+    if ( m_requestPing && m_frames != m_lastGseSent)
+    {
+        // check if we lost the MB and reset if we did
+        if (m_gseOutBox.GetIpcStatus() != ipcValid)
+        {
+            m_gseOutBox.Reset();
+        }
+        else
+        {
+            m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
+        }
+
+        // back off detecting a valid MB
+        m_lastGseSent = m_frames;
+        m_requestPing = false;
     }
 
     if (serviced)
