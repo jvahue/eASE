@@ -121,13 +121,31 @@ void CmProcess::RunSimulation()
     if (m_gseOutBox.GetIpcStatus() == ipcValid)
     {
         m_pCommon->adrfState = eAdrfReady;
+        m_requestPing = false;
     }
-    else if (m_pCommon->adrfState == eAdrfOn)
+    // if the ADRF is on and we are not running a script see if the adrf is ready
+    else if (m_pCommon->adrfState == eAdrfOn && !IS_SCRIPT_ACTIVE)
     {
-        // see if the adrf is ready
-        if ((m_frames - m_lastGseSent) > 150)
+        // at 1Hz see if the adrf is ready
+        if ((m_frames - m_lastGseSent) > 100)
         {
-            m_requestPing = true;
+            // if we are invalid 
+            if (m_gseOutBox.GetIpcStatus() != ipcValid)
+            {
+                // after 60 sec reset the MB
+                if (m_gseOutBox.m_connectAttempts < 60)
+                {
+                    m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
+
+                    // back off detecting a valid MB
+                    m_lastGseSent = m_frames;
+                    m_requestPing = false;
+                }
+                else
+                {
+                    m_gseOutBox.Reset();
+                }
+            }
         }
     }
 
@@ -232,7 +250,6 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
             request.charData[request.charDataSize-1] = '\0';
             strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
-
         }
         else
         {
@@ -335,23 +352,6 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             subServiced = m_fileXfer.CheckCmd(secComm);
         }
         break;
-    }
-
-    if ( m_requestPing && m_frames != m_lastGseSent)
-    {
-        // check if we lost the MB and reset if we did
-        if (m_gseOutBox.GetIpcStatus() != ipcValid)
-        {
-            m_gseOutBox.Reset();
-        }
-        else
-        {
-            m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
-        }
-
-        // back off detecting a valid MB
-        m_lastGseSent = m_frames;
-        m_requestPing = false;
     }
 
     if (serviced)
