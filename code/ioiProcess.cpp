@@ -494,7 +494,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
                 }
 
                 // Init the value
-                theParam.m_value =  theParam.m_sigGen.Reset(theParam.m_value);
+                theParam.m_value = theParam.m_sigGen.Reset(theParam.m_value);
                 secComm.m_response.successful = setResult;
                 if (!setResult)
                 {
@@ -522,7 +522,8 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             {
                 if (m_parameters[i].m_isValid)
                 {
-                    m_parameters[i].m_sigGen.Reset(m_parameters[i].m_value);
+                    m_parameters[i].m_value = 
+                        m_parameters[i].m_sigGen.Reset(m_parameters[i].m_value);
                 }
             }
             secComm.m_response.successful = TRUE;
@@ -532,7 +533,8 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             // if the parameter index is valid reset it
             if ( m_parameters[itemId].m_isValid)
             {
-                m_parameters[itemId].m_sigGen.Reset(m_parameters[itemId].m_value);
+                m_parameters[itemId].m_value = 
+                    m_parameters[itemId].m_sigGen.Reset(m_parameters[itemId].m_value);
                 secComm.m_response.successful = TRUE;
             }
             else
