@@ -87,13 +87,8 @@ CCDL::CCDL( AseCommon* pCommon )
     , m_modeDelay(0)
     , m_rxState(eCcdlStateInit)
     , m_txState(eCcdlStateInit)
-    , m_ccdlCalls(0)
-    , m_rxCount(0)
-    , m_txCount(0)
     , m_rxParam(0)
     , m_txParam(0)
-    , m_rxFailCount(0)
-    , m_txFailCount(0)
     , m_parameters(NULL)
     , m_maxParamIndex(0)
 {
@@ -134,6 +129,12 @@ void CCDL::Reset()
     {
         m_actingChan = EFAST_CHA;
     }
+
+    m_ccdlCalls = 0;
+    m_rxCount = 0;
+    m_rxFailCount = 0;
+    m_txCount = 0;
+    m_txFailCount = 0;
 
     m_mode = eCcdlStart;
 

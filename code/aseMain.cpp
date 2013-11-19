@@ -119,18 +119,11 @@ int main(void)
     nextTime.tm_mon  = 7;
     nextTime.tm_mday = 27;
 
-    // In VM land we default our selves to Channel B
     status = attachPlatformResource("", "FPGA_CHAN_ID", &hA, &asA, &theAreg);
     status = readPlatformResourceDWord(hA, 0, &myChanID);
 
-#ifdef VM_WARE
-    // make this chanB
-    myChanID = (myChanID & ~0x3) | 1;
-    status = writePlatformResourceDWord( hA, 0, myChanID );
-#endif
-    
     // determine which channel we are in
-    if ((myChanID & 0x3) == 0)
+    if ((myChanID & 0x3) == 1)
     {
         aseCommon.isChannelA = true;
     }
