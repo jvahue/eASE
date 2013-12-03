@@ -358,15 +358,22 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         if (m_modeTimeout == 0)
         {
             outData.code = RECFG_REQ_ACK;
-            outData.buff[0] = msOnline ?
-                              RECFG_ACK_CM_OK :
-                              RECFG_ACK_CM_NOT_OK; // TODO: 8/5/13: this is opposite the doc
+            if (strstr(m_cfgFileName, "Failed Reconfig") == NULL && strlen(m_cfgFileName) > 0)
+            {
+                // do you want to base this on msOnline ? it sort of used to be ??
+                outData.buff[0] = RECFG_ACK_CM_OK;
+                m_mode = eCmRecfgSendFilenames;
+                m_modeTimeout = m_tcFileNameDelay;
+                m_lastErrCode = eCmRecfgStsMax;
+            }
+            else
+            {
+                outData.buff[0] = RECFG_ACK_CM_NOT_OK;
+                m_mode = eCmRecfgIdle;
+            }
 
+            // send a response yea or nay
             out.Send( &outData, sizeof(outData));
-
-            m_mode = eCmRecfgSendFilenames;
-            m_modeTimeout = m_tcFileNameDelay;
-            m_lastErrCode = eCmRecfgStsMax;
         }
         else
         {
