@@ -416,8 +416,6 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         {
             // TODO: ADRF wait up to 2 minutes for files
             outData.code = RECFG_FILE_READY;
-
-            // Only send real reconfig file names
             memcpy(&outData.buff[0],   m_cfgFileName, 128);
             memcpy(&outData.buff[128], m_xmlFileName, 128);
             out.Send( &outData, sizeof(outData));
