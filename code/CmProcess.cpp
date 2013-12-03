@@ -133,7 +133,7 @@ void CmProcess::RunSimulation()
             if (m_gseOutBox.GetIpcStatus() != ipcValid)
             {
                 // after 120 sec reset the MB
-                if (m_gseOutBox.m_connectAttempts < 130)
+                if (m_gseOutBox.m_connectAttempts < CmReconfig::eCmAdrfFactoryRestart)
                 {
                     m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
 
@@ -203,7 +203,10 @@ void CmProcess::HandlePowerOff()
 
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
-    m_reconfig.Init();
+    if (!IS_SCRIPT_ACTIVE)
+    {
+        m_reconfig.Init();
+    }
 
     m_fileXferInBox.Reset();
     m_fileXferOutBox.Reset();

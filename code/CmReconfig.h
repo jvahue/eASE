@@ -33,7 +33,7 @@ class CmReconfig
 {
 public:
     enum CmReconfigState {
-        eCmRecfgIdle,           // waiting for reconfig action
+        eCmRecfgIdle,           // waiting for recfg action
         eCmRecfgWaitAck,        // wait before send ACK
         eCmRecfgLatch,          // MS recfg rqst sent and latch, don't send rqst again
         eCmRecfgWaitRequest,    // MS is now waiting for the recfg rqst from ADRF - no timeout
@@ -46,6 +46,7 @@ public:
         eCmRecfgCfg,
         eCmRecfgFileSize = 128,
         eCmRecfgAdrfCmds = 4,
+        eCmAdrfFactoryRestart = 150,
 
     };
 
