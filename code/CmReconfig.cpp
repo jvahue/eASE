@@ -78,7 +78,6 @@ CmReconfig::CmReconfig(AseCommon* pCommon)
     , m_tcRecfgLatchWait(1000)
     , m_lastCmd(ADRF_TO_CM_CODE_MAX)
     , m_pCommon(pCommon)
-    , m_lastAdrfPowerState(false)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -302,13 +301,6 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
     {
         ResetScriptControls();
     }
-
-    if (!IS_ADRF_ON && m_lastAdrfPowerState)
-    {
-        Init();
-    }
-
-    m_lastAdrfPowerState = IS_ADRF_ON;
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -203,6 +203,7 @@ void CmProcess::HandlePowerOff()
 
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
+    m_reconfig.Init();
 
     m_fileXferInBox.Reset();
     m_fileXferOutBox.Reset();

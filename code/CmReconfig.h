@@ -93,7 +93,6 @@ private:
     File m_file;
     char m_mbErr[128];
     AseCommon* m_pCommon;
-    bool m_lastAdrfPowerState;
 };
 
 #endif /* CMRECONFIG_H_ */
