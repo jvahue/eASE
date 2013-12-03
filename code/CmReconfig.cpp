@@ -418,20 +418,12 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             outData.code = RECFG_FILE_READY;
 
             // Only send real reconfig file names
-            if (strstr(m_cfgFileName, "Failed Reconfig") == NULL && strlen(m_cfgFileName) > 0)
-            {
-                memcpy(&outData.buff[0],   m_cfgFileName, 128);
-                memcpy(&outData.buff[128], m_xmlFileName, 128);
-                out.Send( &outData, sizeof(outData));
+            memcpy(&outData.buff[0],   m_cfgFileName, 128);
+            memcpy(&outData.buff[128], m_xmlFileName, 128);
+            out.Send( &outData, sizeof(outData));
 
-                m_mode = eCmRecfgStatus;
-                m_modeTimeout = 5500;  // 55s timeout on the status response from the ADRF
-            }
-            else
-            {
-                // ADRF is asking for files we do not have - don't respond
-                m_mode = eCmRecfgIdle;
-            }
+            m_mode = eCmRecfgStatus;
+            m_modeTimeout = 5500;  // 55s timeout on the status response from the ADRF
         }
         else
         {
