@@ -132,8 +132,8 @@ void CmProcess::RunSimulation()
             // if we are invalid 
             if (m_gseOutBox.GetIpcStatus() != ipcValid)
             {
-                // after 60 sec reset the MB
-                if (m_gseOutBox.m_connectAttempts < 60)
+                // after 120 sec reset the MB
+                if (m_gseOutBox.m_connectAttempts < 130)
                 {
                     m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
 
