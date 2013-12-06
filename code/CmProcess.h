@@ -72,6 +72,7 @@ class CmProcess : public CmdRspThread
         File m_getFile;
 
         bool m_performAdrfOffload;
+        bool m_lastPowerState;
 
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);

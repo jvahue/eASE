@@ -53,6 +53,7 @@ CmProcess::CmProcess()
     , m_performAdrfOffload(false)
     , m_reconfig(&aseCommon)
     , m_fileXfer(&aseCommon)
+    , m_lastPowerState(true)
 {
     // TODO: remove after debugging
     memset( m_rqstFile, 0, sizeof(m_rqstFile));
@@ -109,6 +110,8 @@ void CmProcess::Run()
 void CmProcess::RunSimulation()
 {
     static bool scriptStateZ = false;
+
+    m_lastPowerState = true;
 
     // Handle Reconfig Requests
     m_reconfig.ProcessCfgMailboxes(IS_MS_ONLINE, m_reConfigInBox, m_reConfigOutBox);
@@ -203,7 +206,7 @@ void CmProcess::HandlePowerOff()
 
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
-    if (!IS_SCRIPT_ACTIVE)
+    if (!IS_SCRIPT_ACTIVE && m_lastPowerState)
     {
         m_reconfig.Init();
     }
@@ -212,9 +215,11 @@ void CmProcess::HandlePowerOff()
     m_fileXferOutBox.Reset();
 
     m_requestPing = false;
-    m_lastGseSent = m_frames;  // when power comes back give the give ePySte time to send cmd
+    m_lastGseSent = m_frames;  // when power comes back give ePySte time to send cmd
 
     m_fileXfer.ResetCounters();
+
+    m_lastPowerState = false;
 }
 
 //-------------------------------------------------------------------------------------------------
