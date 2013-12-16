@@ -38,16 +38,14 @@ class CmProcess : public CmdRspThread
         // Properties
         char m_lastGseCmd[eGseCmdSize];
 
-        GSE_COMMAND  m_gseCmd;
-        GSE_RESPONSE m_gseRsp;
+        GSE_COMMAND  m_gseCmd[GSE_SOURCE_MAX];
+        FIFO m_gseRxFifo[GSE_SOURCE_MAX]; // holds any data received from the GSE MB
 
         // mailboxes
         MailBox m_gseInBox;   // GSE -> CMProcess message
         MailBox m_gseOutBox;  // CMProcess -> GSE messages
         UINT32 m_lastGseSent; // when was the last gse cmd sent?
         bool m_requestPing;   // request adrf status
-
-        FIFO m_gseRxFifo;  // holds any data received from the GSE MB
 
         /* To be activated
         MailBox m_gseMfdInBox;
@@ -73,6 +71,7 @@ class CmProcess : public CmdRspThread
 
         bool m_performAdrfOffload;
         bool m_lastPowerState;
+        UINT32 m_invalidSrc;
 
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);

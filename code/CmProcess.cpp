@@ -44,6 +44,13 @@ static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
 static const CHAR pingCmd[] = "efast";
 
+static const char* gsePortNames[] = {
+    "GSE",
+    "MFD",
+    "ACARS",
+    "Unknown"
+};
+
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
@@ -54,13 +61,21 @@ CmProcess::CmProcess()
     , m_reconfig(&aseCommon)
     , m_fileXfer(&aseCommon)
     , m_lastPowerState(true)
+    , m_invalidSrc(0)
 {
+
     // TODO: remove after debugging
     memset( m_rqstFile, 0, sizeof(m_rqstFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
     memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
     memset( (void*)&m_gseCmd, 0, sizeof(m_gseCmd));
-    memset( (void*)&m_gseRsp, 0, sizeof(m_gseRsp));
+
+    m_gseCmd[GSE_SOURCE_CM].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_CM].gseSrc = GSE_SOURCE_CM;
+    m_gseCmd[GSE_SOURCE_MFD].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_MFD].gseSrc = GSE_SOURCE_MFD;
+    m_gseCmd[GSE_SOURCE_ACARS].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_ACARS].gseSrc = GSE_SOURCE_ACARS;
 }
 
 /****************************************************************************
@@ -76,7 +91,7 @@ void CmProcess::Run()
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for GSE commands with ADRF
-    m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
+    m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(GSE_RESPONSE), eMaxQueueDepth);
     m_gseInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
@@ -176,16 +191,21 @@ void CmProcess::ProcessGseMessages()
 {
     if (m_gseInBox.GetIpcStatus() == ipcValid)
     {
-        m_gseCmd.gseSrc = GSE_SOURCE_CM;
-        m_gseCmd.gseVer = 1;
-        memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
+        GSE_RESPONSE rsp;
 
         // If not expecting a resp msg and time has elapsed to request the
         // Expecting cmd response ... check inbox.
-        if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+        if( m_gseInBox.Receive(&rsp, sizeof(rsp)) )
         {
-            int size = strlen(m_gseRsp.rspMsg);
-            m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+            int size = strlen(rsp.rspMsg);
+            if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)  
+            {
+                m_gseRxFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
+            }
+            else
+            {
+                m_invalidSrc += 1;
+            }
         }
     }
     else
@@ -231,39 +251,44 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     BOOLEAN serviced = FALSE;
     BOOLEAN subServiced = FALSE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
+    int port;  // 0 = gse, 1 = mfd, 2 = acars
 
     SecRequest request = secComm.m_request;
     switch (request.cmdId)
     {
     case eWriteStream:
-        if ( request.charDataSize < GSE_MAX_LINE_SIZE)
+        port = request.variableId;  // 0 = gse, 1 = mfd, 2 = acars
+        if ( port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
         {
-            //GSE_COMMAND* mb;
-            port = request.variableId;  // 0 = gse, 1 = ms
+            if ( request.charDataSize < GSE_MAX_LINE_SIZE)
+            {
+                memcpy((void*)m_gseCmd[port].commandLine, 
+                       (void*)request.charData, 
+                       request.charDataSize);
+                m_gseCmd[port].commandLine[request.charDataSize] = '\0';
 
-            memcpy((void*)m_gseCmd.commandLine, (void*)request.charData, request.charDataSize);
-            m_gseCmd.commandLine[request.charDataSize] = '\0';
+                m_gseOutBox.Send(&m_gseCmd[port], sizeof(m_gseCmd[0]));
+                secComm.m_response.successful = TRUE;
 
-            m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd));
-            secComm.m_response.successful = TRUE;
-            m_lastGseSent = m_frames;
-
-            //sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
-            //            m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
-            //            m_gseOutBox.GetIpcStatusString(),
-            //            m_gseOutBox.GetProcessStatusString());
-
-
-            // terminate the cmd before the CR
-
-            request.charData[request.charDataSize-1] = '\0';
-            strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
+                // GSE Special
+                if ( port == GSE_SOURCE_CM)
+                {
+                    // save the last cmd
+                    strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
+                    m_lastGseCmd[request.charDataSize-1] = '\0';
+                    m_lastGseSent = m_frames;
+                }
+            }
+            else
+            {
+                secComm.ErrorMsg("%s Command Length (%d) exceeds (%d)",
+                                 gsePortNames[port], request.charDataSize, GSE_MAX_LINE_SIZE);
+                secComm.m_response.successful = FALSE;
+            }
         }
         else
         {
-            secComm.ErrorMsg("GSE Command Length (%d) exceeds (%d)",
-                             request.charDataSize, GSE_MAX_LINE_SIZE);
+            secComm.ErrorMsg("WriteStream: Unknown Port Id(%d)", port);
             secComm.m_response.successful = FALSE;
         }
         serviced = TRUE;
@@ -271,21 +296,38 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
     case eReadStream:
         port = request.variableId;  // 0 = gse, 1 = ms
+        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        {
+            secComm.m_response.streamSize = 
+                m_gseRxFifo[port].Pop(secComm.m_response.streamData, eSecStreamSize);
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("ReadStream: Unknown Port Id(%d)", port);
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+        }
 
-        secComm.m_response.streamSize = m_gseRxFifo.Pop(secComm.m_response.streamData,
-                                                        eSecStreamSize);
-        secComm.m_response.successful = TRUE;
-        serviced = TRUE;
         break;
 
     case eClearStream:
         // TODO: maybe - this should set a flag to the main thread,
         //       read stream above would need to monitor the flag then
         port = request.variableId;  // 0 = gse, 1 = ms
-
-        m_gseRxFifo.Reset();
-        secComm.m_response.successful = TRUE;
-        serviced = TRUE;
+        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        {
+            m_gseRxFifo[port].Reset();
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("ClearStream: Unknown Port Id(%d)", port);
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+        }
         break;
 
     case ePutFile:
@@ -557,7 +599,9 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
        break;
 
     case 2:
-        debug_str(CmProc, theLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
+        debug_str(CmProc, theLine, 0, "RxFifo - Gse:%d Mfd:%d ACARS:%d Invalid:%d", 
+            m_gseRxFifo[0].Used(), m_gseRxFifo[1].Used(), m_gseRxFifo[2].Used(),
+            m_invalidSrc);
         break;
 
     case 3:
