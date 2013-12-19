@@ -226,7 +226,7 @@ void CmProcess::HandlePowerOff()
 
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
-    if (!IS_SCRIPT_ACTIVE && m_lastPowerState)
+    if (m_lastPowerState)
     {
         m_reconfig.Init();
     }

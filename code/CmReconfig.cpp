@@ -87,20 +87,25 @@ CmReconfig::CmReconfig(AseCommon* pCommon)
 
 //-------------------------------------------------------------------------------------------------
 // Function: Init
-// Description: Make sure we are reset when the ADRF powers down
+// Description: Make sure we are reset when the ADRF powers down, if we are in a script keep
+// counts.
 //
 void CmReconfig::Init()
 {
+    if (!IS_SCRIPT_ACTIVE)
+    {
+        m_recfgCount = 0;
+        m_recfgCmds = 0;
+        m_tcRecfgAckDelay = 0;
+        m_tcFileNameDelay = 0;
+        m_tcRecfgLatchWait = 1000;
+        m_lastCmd = ADRF_TO_CM_CODE_MAX;
+    }
+
     m_mode = eCmRecfgIdle;
     m_modeTimeout = 0;
     m_lastErrCode = eCmRecfgStsMax;
     m_lastReCfgFailed = false;
-    m_recfgCount = 0;
-    m_recfgCmds = 0;
-    m_tcRecfgAckDelay = 0;
-    m_tcFileNameDelay = 0;
-    m_tcRecfgLatchWait = 1000;
-    m_lastCmd = ADRF_TO_CM_CODE_MAX;
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
     memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
