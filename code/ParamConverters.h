@@ -107,7 +107,7 @@ struct ParamCfg {
     UINT32 gpa;
     UINT32 gpb;
     UINT32 gpc;
-    UINT32 scale;
+    FLOAT32 scale;
 };
 
 //==================================================================================================
@@ -127,7 +127,7 @@ public:
     UINT32  m_gpc;
     PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
-    UINT32  m_scale;       // the current value for the parameter
+    FLOAT32 m_scale;       // the current value for the parameter
     FLOAT32 m_maxValue;
     FLOAT32 m_scaleLsb;    // the current value for the parameter
     UINT32  m_data;        // the current value for the parameter

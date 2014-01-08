@@ -89,9 +89,9 @@ void ParamConverter::Reset()
     m_gpc = 0;
     m_src = PARAM_SRC_MAX;
     m_type = PARAM_FMT_NONE;
-    m_scale = 0;          // the current value for the parameter
+    m_scale = 0.0f;       
     m_maxValue = 0.0f;
-    m_scaleLsb = 0.0f;    // the current value for the parameter
+    m_scaleLsb = 0.0f;    
     m_data = 0;
 
     memset(m_ioiName, 0, sizeof(m_ioiName));
@@ -155,7 +155,7 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     m_type = paramInfo->fmt;
     m_masterId = paramInfo->masterId;
     m_scale = paramInfo->scale;
-    m_maxValue = FLOAT32(paramInfo->scale);
+    m_maxValue = paramInfo->scale;
 
     if (m_type == PARAM_FMT_A429)
     {

@@ -954,7 +954,11 @@ void IoiProcess::InitIoi()
             }
 
             // if not a child or src'd from ccdl - open the IOI channel
-            if (!childRelationship && m_parameters[index].m_src != PARAM_SRC_CROSS)
+            if (!childRelationship && 
+                m_parameters[index].m_src != PARAM_SRC_CROSS &&
+                m_parameters[index].m_src != PARAM_SRC_CALC &&
+                m_parameters[index].m_src != PARAM_SRC_HMU  // TODO: Remove this later
+                )
             {
                 openStatus = ioi_open(m_parameters[index].m_ioiName,
                                       ioiWritePermission,
