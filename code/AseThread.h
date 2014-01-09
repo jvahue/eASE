@@ -17,21 +17,16 @@
 //
 
 // Includes PWC
-#include "alt_stdtypes.h"
 #include "procapi.h"
-#include "AseCommon.h"
-
-// Fwd decls
-class CmdObj;
 
 class AseThread
 {
 public:
     enum AseThreadState {
         eNotCreated,
-        eStop,
+        //eStop,
         eRun,
-        eSusp,
+        //eSusp,
         eComplete,
         eError};
 
@@ -54,7 +49,6 @@ protected:
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     AseCommon*      m_pCommon;
-    UINT32          m_overrunCount;
 
     void Launch(const CHAR* name, const CHAR* tName);
 

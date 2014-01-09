@@ -1,20 +1,19 @@
-#include "AseThread.h"
 #include <deos.h>
 #include <mem.h>
 
-#include "video.h"
+#include "AseCommon.h"
+
+#include "AseThread.h"
 
 /****************************************************************************
  public methods
  ****************************************************************************/
 AseThread::AseThread()
     : m_hThread(0)
-    , m_pCommon(NULL)
     , m_state(eNotCreated)
-    , m_overrunCount(0)
+    , m_pCommon(NULL)
 {
 }
-
 
 //-------------------------------------------------------------------------------------------------
 // Function: Launch
@@ -42,4 +41,3 @@ AseThread::AseThreadState AseThread::GetRunState()
 {
     return m_state;
 }
-

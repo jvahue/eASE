@@ -19,6 +19,9 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
+#include "SecComm.h"
 #include "CmReconfig.h"
 
 /*****************************************************************************/
@@ -28,18 +31,6 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-typedef struct {
-  SINT32     tm_sec;   // seconds  0..59
-  SINT32     tm_min;   // minutes  0..59
-  SINT32     tm_hour;  // hours    0..23
-  SINT32     tm_mday;  // day of the month  1..31
-  SINT32     tm_mon;   // month    0..11
-  SINT32     tm_year;  // year from 1900
-//SINT32     tm_wday;  // day of the week
-//SINT32     tm_yday;  // day in the year
-//SINT32     tm_isdst; // daylight saving time -1/0/1
-} LINUX_TM_FMT, *LINUX_TM_FMT_PTR;
-
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -48,7 +39,8 @@ typedef struct {
 /* Constant Data                                                             */
 /*****************************************************************************/
 static const char* modeNames[] = {
-    "Idle",           // waiting for reconfig action
+    "Idle",           // waiting for recfg action
+    "WaitAck",        // wait before send ACK to ADRF
     "RecfgLatch",     // MS recfg rqst sent and latch, don't send rqst again
     "WaitRequest",    // MS is now waiting for the recfg rqst from ADRF - no timeout
     "SendFilenames",  // locally we are 'delaying' for file fetch from the MS
@@ -58,24 +50,78 @@ static const char* modeNames[] = {
 static const CHAR* recfgStatus[] = {
     "Ok",
     "Bad File",
+    "No VfyRsp",
     "No Status"
+};
+
+static const CHAR* cmdStrings[] = {
+    "RecfgRqst",  // RECFG_REQ_CODE = 0x100,   // Request Cfg File from CM
+    "RecfgRslt",  // RECFG_RESULT_CODE = 0x101,
+    "MsRecfgAck", // MS_RECFG_ACK = 0x102,
+    "MsDtRqst",   // MS_DATETIME_REQ = 0x103,
+    "None"        // = 104
 };
 
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
-CmReconfig::CmReconfig()
-    : m_state(eCmRecfgIdle)
+CmReconfig::CmReconfig(AseCommon* pCommon)
+    : m_mode(eCmRecfgIdle)
     , m_modeTimeout(0)
-    , m_lastErrCode(RECFG_ERR_CODE_MAX)
-    , m_lastStatus(false)
+    , m_lastErrCode(eCmRecfgStsMax)
+    , m_lastReCfgFailed(false)
     , m_recfgCount(0)
+    , m_recfgCmds(0)
     // Test Control Items
-    , m_tcFileNameDelay(500)
+    , m_tcRecfgAckDelay(0)
+    , m_tcFileNameDelay(0)
+    , m_tcRecfgLatchWait(1000)
+    , m_lastCmd(ADRF_TO_CM_CODE_MAX)
+    , m_pCommon(pCommon)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
     memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
+    memset(m_mbErr, 0, sizeof(m_mbErr));
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: Init
+// Description: Make sure we are reset when the ADRF powers down, if we are in a script keep
+// counts.
+//
+void CmReconfig::Init()
+{
+    if (!IS_SCRIPT_ACTIVE)
+    {
+        m_recfgCount = 0;
+        m_recfgCmds = 0;
+        m_tcRecfgAckDelay = 0;
+        m_tcFileNameDelay = 0;
+        m_tcRecfgLatchWait = 1000;
+        m_lastCmd = ADRF_TO_CM_CODE_MAX;
+    }
+
+    m_mode = eCmRecfgIdle;
+    m_modeTimeout = 0;
+    m_lastErrCode = eCmRecfgStsMax;
+    m_lastReCfgFailed = false;
+    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+    memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
+    memset(m_mbErr, 0, sizeof(m_mbErr));
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: ResetControls
+// Description: reset the object controls to their defaults when a script ends
+//
+void CmReconfig::ResetScriptControls()
+{
+    // reset the object controls to their defaults when a script ends
+    m_tcRecfgAckDelay = 0;
+    m_tcFileNameDelay = 0;
+    m_tcRecfgLatchWait = 1000;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -86,7 +132,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
 {
     BOOLEAN serviced = FALSE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
+    //int port;  // 0 = gse, 1 = ms
 
     SecRequest request = secComm.m_request;
     switch (request.cmdId)
@@ -101,14 +147,12 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
     case eStartReconfig:
         if (StartReconfig(out))
         {
-            m_lastErrCode = RECFG_ERR_CODE_MAX;
+            m_lastErrCode = eCmRecfgStsMax;
             secComm.m_response.successful = TRUE;
         }
         else
         {
-            secComm.ErrorMsg("MS Recfg Request Fail Mode: %s MB: <%s>",
-                             GetModeName(),
-                             m_mbErr);
+            secComm.ErrorMsg("MS Recfg Rqst Fail: <%s>", m_mbErr);
             secComm.m_response.successful = FALSE;
         }
 
@@ -120,6 +164,40 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
         secComm.m_response.successful = TRUE;
 
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------
+    // Test Controls
+    case eCmRecfgAckDelay:
+        // send the old one back and set the new value
+        secComm.m_response.value = float(m_tcRecfgAckDelay);
+        m_tcRecfgAckDelay = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eCmFileNameDelay:
+        // send the old one back and set the new value
+        secComm.m_response.value = float(m_tcFileNameDelay);
+        m_tcFileNameDelay = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    case eCmLatchWait:
+        // set the mode timeout for waiting in the request recfg latch state
+        secComm.m_response.value = float(m_tcRecfgLatchWait);
+        m_tcRecfgLatchWait = request.variableId;
+        secComm.m_response.successful = TRUE;
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------
+    // Test Status
+    case eGetRcfCount:
+        secComm.m_response.value = float(m_recfgCount);
+        secComm.m_response.successful = TRUE;
         serviced = TRUE;
         break;
 
@@ -157,7 +235,7 @@ void CmReconfig::SetCfgFileName(const char* name, UINT32 size)
 bool CmReconfig::StartReconfig(MailBox& out)
 {
     bool status = false;
-    if ( m_state == eCmRecfgIdle)
+    if ( m_mode == eCmRecfgIdle)
     {
         CM_TO_ADRF_RESP_STRUCT outData;
         memset( &outData, 0, sizeof(outData));
@@ -167,13 +245,17 @@ bool CmReconfig::StartReconfig(MailBox& out)
 
         if (status)
         {
-            m_state = eCmRecfgLatch;
-            m_modeTimeout = 100;
+            m_mode = eCmRecfgLatch;
+            m_modeTimeout = m_tcRecfgLatchWait;
         }
         else
         {
-            sprintf(m_mbErr, "%s", out.GetIpcStatusString());
+            sprintf(m_mbErr, "Mailbox Send IPC: %s", out.GetIpcStatusString());
         }
+    }
+    else
+    {
+        sprintf(m_mbErr, "Invalid Mode <%s> s/b <Idle>", GetModeName());
     }
 
     return status;
@@ -191,7 +273,7 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
     // any envelopes for us?
     BOOLEAN inOk = in.Receive(&inData, sizeof(inData));
 
-    // always run ProcessRecfg
+    // always run ProcessRecfg - to ensure mode timeouts are accurate
     if (!ProcessRecfg(msOnline, inData, out) && inOk && inData.code != 0)
     {
         CM_TO_ADRF_RESP_STRUCT outData;
@@ -200,21 +282,16 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 
         if (inData.code == MS_DATETIME_REQ)
         {
-            // send a datetime stamp into the ADRF
-            // TBD: where does this come from?
+            LINUX_TM_FMT time;
 
-            // Send MS Date Time
-            LINUX_TM_FMT linuxTime;
+            time.tm_year = m_pCommon->time.tm_year; // year from 1900
+            time.tm_mon  = m_pCommon->time.tm_mon;  // month    0..11
+            time.tm_mday = m_pCommon->time.tm_mday; // day of the month  1..31
+            time.tm_hour = m_pCommon->time.tm_hour; // hours    0..23
+            time.tm_min  = m_pCommon->time.tm_min;  // minutes  0..59
+            time.tm_sec  = m_pCommon->time.tm_sec;  // seconds  0..59
 
-            // linuxTime.tm_year = 110;  // Add this to 1900 to get year
-            linuxTime.tm_year = 2013;  // Straight Year
-            linuxTime.tm_mon = 7;
-            linuxTime.tm_mday = 26;
-            linuxTime.tm_hour = 0;
-            linuxTime.tm_min = 0;
-            linuxTime.tm_sec = 0;
-
-            memcpy ( &outData.buff[0], &linuxTime, sizeof(linuxTime));
+            memcpy ( &outData.buff[0], &time, sizeof(time));
 
             outData.code = MS_DATETIME_RESP;
             out.Send( &outData, sizeof(outData));
@@ -224,13 +301,18 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
             // here we have an unknown command
         }
     }
+
+    if ( !IS_SCRIPT_ACTIVE)
+    {
+        ResetScriptControls();
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: ProcessRecfg
 // Description: Handle commands related to reconfiguration
 //
-// TODO: Handle reseting the protocol state when ADRF send the RECFG_REQ_CODE code
+// TODO: Handle resetting the protocol state when ADRF send the RECFG_REQ_CODE code
 //
 bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out)
 {
@@ -245,6 +327,8 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     if ( cmd == RECFG_REQ_CODE || cmd == MS_RECFG_ACK || cmd == RECFG_RESULT_CODE)
     {
         status = true;
+        m_lastCmd = cmd;
+        m_recfgCmds += 1;
     }
     else
     {
@@ -258,27 +342,48 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         // The ADRF is requesting we start a reconfig
         // TODO: are we responding
         // TODO: are we responding with garbage?
-        outData.code = RECFG_REQ_ACK;
-        outData.buff[0] = msOnline ?
-                          RECFG_ACK_CM_OK :
-                          RECFG_ACK_CM_NOT_OK; // TODO: 8/5/13: this is opposite the doc
-
-        out.Send( &outData, sizeof(outData));
-
-        m_state = eCmRecfgSendFilenames;
-        m_modeTimeout = m_tcFileNameDelay;
-        m_lastErrCode = RECFG_ERR_CODE_MAX;
+        m_modeTimeout = m_tcRecfgAckDelay;
+        m_mode = eCmRecfgWaitAck;
+        m_lastErrCode = eCmRecfgStsMax;
 
         m_recfgCount += 1;
         cmdHandled = true;
     }
 
-    if (m_state == eCmRecfgLatch)
+    if (m_mode == eCmRecfgWaitAck)
+    {
+        if (m_modeTimeout == 0)
+        {
+            outData.code = RECFG_REQ_ACK;
+            if (strstr(m_cfgFileName, "Failed Reconfig") == NULL && strlen(m_cfgFileName) > 0)
+            {
+                // do you want to base this on msOnline ? it sort of used to be ??
+                outData.buff[0] = RECFG_ACK_CM_OK;
+                m_mode = eCmRecfgSendFilenames;
+                m_modeTimeout = m_tcFileNameDelay;
+                m_lastErrCode = eCmRecfgStsMax;
+            }
+            else
+            {
+                outData.buff[0] = RECFG_ACK_CM_NOT_OK;
+                m_mode = eCmRecfgIdle;
+            }
+
+            // send a response yea or nay
+            out.Send( &outData, sizeof(outData));
+        }
+        else
+        {
+            m_modeTimeout -= 1;
+        }
+    }
+
+    else if (m_mode == eCmRecfgLatch)
     {
         if (inData.code == MS_RECFG_ACK)
         {
             // recfg request acknowledged wait for the ADRf to start the reconfig
-            m_state = eCmRecfgWaitRequest;
+            m_mode = eCmRecfgWaitRequest;
             cmdHandled = true;
         }
         else
@@ -286,7 +391,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             if (m_modeTimeout == 0)
             {
                 // TBD: should we resend the request if we don't get latch (3 times?)
-                m_state = eCmRecfgIdle;
+                m_mode = eCmRecfgIdle;
                 m_modeTimeout = 0;
             }
             else
@@ -296,7 +401,21 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgSendFilenames)
+    else if (m_mode == eCmRecfgWaitRequest)
+    {
+        if (m_modeTimeout == 0)
+        {
+            // TBD: should we resend the request if we don't get latch (3 times?)
+            m_mode = eCmRecfgIdle;
+            m_modeTimeout = 0;
+        }
+        else
+        {
+            m_modeTimeout -= 1;
+        }
+    }
+
+    else if (m_mode == eCmRecfgSendFilenames)
     {
         if (m_modeTimeout == 0)
         {
@@ -306,8 +425,8 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             memcpy(&outData.buff[128], m_xmlFileName, 128);
             out.Send( &outData, sizeof(outData));
 
-            m_state = eCmRecfgStatus;
-            m_modeTimeout = 0;
+            m_mode = eCmRecfgStatus;
+            m_modeTimeout = 5500;  // 55s timeout on the status response from the ADRF
         }
         else
         {
@@ -315,31 +434,49 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
         }
     }
 
-    else if (m_state == eCmRecfgStatus)
+    else if (m_mode == eCmRecfgStatus)
     {
         if (inData.code == RECFG_RESULT_CODE)
         {
-            m_lastErrCode = inData.errCode;
-            m_lastStatus = inData.bOk;
-            m_state = eCmRecfgIdle;
-            // I know it seems backwards, but then your thinking logically aren't you!
-            if (m_lastStatus == FALSE)
+            m_lastErrCode = CmReconfigStatus(inData.errCode);
+            m_lastReCfgFailed = inData.bOk;
+            m_mode = eCmRecfgIdle;
+
+            // delete the files
+            m_file.Delete( m_xmlFileName, File::ePartCmProc);
+            m_file.Delete( m_cfgFileName, File::ePartCmProc);
+
+            if (m_lastReCfgFailed == FALSE)
             {
                 // delete the files from the partition & clear the names
-                if (strlen(m_xmlFileName) > 0)
-                {
-                    m_file.Delete( m_xmlFileName, File::ePartCmProc);
-                    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
-                }
+                memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+                memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
 
-                if (strlen(m_cfgFileName) > 0)
-                {
-                    m_file.Delete( m_cfgFileName, File::ePartCmProc);
-                    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
-                }
+                // indicate CCDL needs to restart
+                m_pCommon->recfgSuccess = true;
+            }
+            else
+            {
+                sprintf(m_xmlFileName, "Failed Reconfig - Cfg File Err");
+                sprintf(m_cfgFileName, "Failed Reconfig - Cfg File Err");
             }
 
             cmdHandled = true;
+        }
+        else
+        {
+            if (m_modeTimeout == 0)
+            {
+                m_mode = eCmRecfgIdle;
+                sprintf(m_xmlFileName, "Failed Reconfig - Timeout");
+                sprintf(m_cfgFileName, "Failed Reconfig - Timeout");
+                m_lastErrCode = eCmRecfgStsNoVfyRsp;
+                m_lastReCfgFailed = TRUE;
+            }
+            else
+            {
+                m_modeTimeout -= 1;
+            }
         }
     }
 
@@ -358,7 +495,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
 //
 const char* CmReconfig::GetModeName() const
 {
-    return modeNames[m_state];
+    return modeNames[m_mode];
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -368,4 +505,9 @@ const char* CmReconfig::GetModeName() const
 const char* CmReconfig::GetCfgStatus() const
 {
     return recfgStatus[m_lastErrCode];
+}
+
+const char* CmReconfig::GetLastCmd() const
+{
+    return cmdStrings[m_lastCmd-RECFG_REQ_CODE];
 }

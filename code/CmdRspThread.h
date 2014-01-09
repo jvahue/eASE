@@ -22,8 +22,6 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdTypes.h"
-
 #include "AseThread.h"
 #include "SecComm.h"
 #include "video.h"
@@ -67,20 +65,21 @@ public:
     //virtual void Create();
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
+    virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
+    UINT32  m_frames;
 protected:
     virtual void Process();
     // Normally does not need to be overridden
     virtual void RunSimulation();
     // This is the real work horse
     virtual void HandlePowerOff() {}
-    virtual void UpdateDisplay(VID_DEFS who=AseMain);
+
 
     UINT32  m_systemTick;
-    UINT32  m_frames;
-
-    char m_blankLine[81]; // blanks the video line
-
+    UINT32  m_overrunCount;
+    bool    m_updateDisplay;
+    
 };
 
 #endif

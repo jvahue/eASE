@@ -21,9 +21,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "Mailbox.h"
 #include "AseCommon.h"
-#include "video.h"
+#include "Mailbox.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -99,7 +98,7 @@ const char* is_to_str(ipcStatus is)
     "ipcInvalidTimeoutSpecifier",
     "ipcInsufficientTime"
     };
-    return is <= processInsufficientMainBudget ? is_strs[is] : "WTF?";
+    return is <= ipcInsufficientTime ? is_strs[is] : "WTF?";
 }
 /*****************************************************************************
  * Function:    ps_to_str
@@ -171,26 +170,28 @@ const char* ps_to_str(processStatus ps)
  *
  ****************************************************************************/
 MailBox::MailBox(void)
-    : m_hProcess(NULL)
+    : m_grantListSize(0)
+    , m_successfulGrantCnt(0)
+    , m_connectAttempts(0)
+    , m_type(eUndefined)
+    , m_hProcess(NULL)
     , m_procStatus(processNotActive)
     , m_hMailBox(NULL)
     , m_ipcStatus(ipcInvalid)
-    , m_type(eUndefined)
-    , m_grantListSize(0)
-    , m_successfulGrantCnt(0)
-    , m_connectAttempts(0)
+{
+    // Init the access grant status list.
+    // this is only used by creators(owners)
+    // to manage grants to processes which will write to my mailbox.
+    for (int i = 0; i < eMaxGrantsAllowed; ++i)
     {
-        // Init the access grant status list.
-        // this is only used by creators(owners)
-        // to manage grants to processes which will write to my mailbox.
-        for (int i = 0; i < eMaxGrantsAllowed; ++i)
-        {
-            m_grantList[i].ProcName[0] = '\0';
-            m_grantList[i].bConnected  = FALSE;
-        }
-
-        memset(m_statusStr, 0, sizeof(m_statusStr));
+        m_grantList[i].ProcName[0] = '\0';
+        m_grantList[i].bConnected  = FALSE;
     }
+
+    memset(m_statusStr, 0, sizeof(m_statusStr));
+    memset(m_procName, 0, sizeof(m_procName));
+    memset(m_mailBoxName, 0, sizeof(m_mailBoxName));
+}
 
 /******************************************************************************************
  *  Public methods
@@ -224,8 +225,8 @@ BOOLEAN MailBox::Create(const char* mbName, UINT32 maxMsgSize,UINT32 maxQueDepth
         result = TRUE;
         m_type = eRecv;
     }
-        return result;
-    }
+    return result;
+}
 
 
 /*****************************************************************************
@@ -276,43 +277,43 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 
     switch (m_type)
     {
-        case eUndefined:
-            // First time attempting to set up a sender mailbox obj...
-            strncpy(m_procName,    procName, eMaxProcNameLen);
-            strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
-            m_type = eSend;
-            //
-            //Deliberate fallthrough...
-            //
-        case eSend:
-            m_connectAttempts++;
-            // Get Process handle for the mailbox owner
-            m_procStatus = getProcessHandle(m_procName, &m_hProcess);
-            if( m_procStatus == processSuccess)
+    case eUndefined:
+        // First time attempting to set up a sender mailbox obj...
+        strncpy(m_procName,    procName, eMaxProcNameLen);
+        strncpy(m_mailBoxName, mbName,   eMaxMailboxNameLen);
+        m_type = eSend;
+        //
+        //Deliberate fallthrough...
+        //
+    case eSend:
+        m_connectAttempts++;
+        // Get Process handle for the mailbox owner
+        m_procStatus = getProcessHandle(m_procName, &m_hProcess);
+        if( m_procStatus == processSuccess)
+        {
+            //Get mailbox handle/attach as sender.
+            m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
+            if(m_ipcStatus != ipcValid)
             {
-                //Get mailbox handle/attach as sender.
-                m_ipcStatus = getMailboxHandle(m_mailBoxName, m_hProcess, &m_hMailBox);
-                if(m_ipcStatus != ipcValid)
-                {
-                    m_hMailBox = NULL;
-                }
+                m_hMailBox = NULL;
             }
-		    else
-		    {
-                // getProcessHandle failed, report.
-			    m_hProcess = NULL;
-		    }
+        }
+    else
+    {
+            // getProcessHandle failed, report.
+      m_hProcess = NULL;
+    }
 
-			if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
-			{
-			   result = FALSE;
-			}
-			break;
+    if((m_ipcStatus != ipcValid) || (m_procStatus != processSuccess))
+    {
+       result = FALSE;
+    }
+      break;
 
-		default:
-			break;
-	}// switch on mailbox type
- 	return result;
+    default:
+      break;
+    } // switch on mailbox type
+    return result;
 }
 
 /*****************************************************************************
@@ -341,9 +342,9 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 
     // Read the mailbox
     status = receiveMessage(m_hMailBox,
-                                 buff,
-                                 BYTES_TO_DWORDS(sizeBytes),
-                                 bWaitForMessage);
+                            buff,
+                            BYTES_TO_DWORDS(sizeBytes),
+                            bWaitForMessage);
 
     if ( status != ipcNoMessage)
     {
@@ -360,7 +361,7 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  *
  * Parameters: buff            - pointer to memory area containing msg to send
  *             sizeBytes       - the number of bytes of output
- *             bWaitForMessage - flag signalling whether call should block until
+ *             bWaitForMessage - flag signaling whether call should block until
  *                               out-queue has space available to send msg.
  *                                Default is FALSE(i.e. return immediately
  *                                with 'ipcQueueFull'
@@ -371,8 +372,6 @@ BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
  ****************************************************************************/
 BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
 {
-    BOOLEAN result = TRUE;
-
     // try to (re-)connect as necessary
     if ( !IsConnected() )
     {
@@ -382,13 +381,12 @@ BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
     if (IsConnected())
     {
         m_ipcStatus = sendMessage(m_hMailBox,
-                                         buff,
-                                         BYTES_TO_DWORDS(sizeBytes),
-                                         bBlockOnQueueFull);
+                                  buff,
+                                  BYTES_TO_DWORDS(sizeBytes),
+                                  bBlockOnQueueFull);
     }
     return (m_ipcStatus == ipcValid);
 }
-
 
 const char* MailBox::GetProcessStatusString()
 {
@@ -452,12 +450,9 @@ void MailBox::Reset()
     }
 }
 
-
-
 /***********************************************************************************
  *  Protected methods
  **********************************************************************************/
-
 
 /*****************************************************************************
  * Function:    AddSender
@@ -502,7 +497,7 @@ void MailBox::AddSender(const char* procName)
 void MailBox::OpenSenders(void)
 {
   process_handle_t procHandle;
-  ipcMailboxHandle mailBoxHndl;
+  //ipcMailboxHandle mailBoxHndl;
   ipcStatus        ipcStat;
   INT32 i;
 

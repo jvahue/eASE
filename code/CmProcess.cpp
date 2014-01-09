@@ -17,12 +17,14 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #include "CmProcess.h"
-#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define ADRF_CFG_FILE "config.bin"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -40,15 +42,40 @@ static const CHAR adrfProcessName[] = "adrf";
 static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
 static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
+static const CHAR pingCmd[] = "efast";
+
+static const char* gsePortNames[] = {
+    "GSE",
+    "MFD",
+    "ACARS",
+    "Unknown"
+};
+
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmProcess::CmProcess()
-    : m_bRspPending(FALSE)
+    : m_requestPing(false)
+    , m_lastGseSent(0)
+    , m_performAdrfOffload(false)
+    , m_reconfig(&aseCommon)
+    , m_fileXfer(&aseCommon)
+    , m_lastPowerState(true)
+    , m_invalidSrc(0)
 {
+
     // TODO: remove after debugging
-    memset( m_readyFile, 0, sizeof(m_readyFile));
+    memset( m_rqstFile, 0, sizeof(m_rqstFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
+    memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
+    memset( (void*)&m_gseCmd, 0, sizeof(m_gseCmd));
+
+    m_gseCmd[GSE_SOURCE_CM].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_CM].gseSrc = GSE_SOURCE_CM;
+    m_gseCmd[GSE_SOURCE_MFD].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_MFD].gseSrc = GSE_SOURCE_MFD;
+    m_gseCmd[GSE_SOURCE_ACARS].gseVer = 1;
+    m_gseCmd[GSE_SOURCE_ACARS].gseSrc = GSE_SOURCE_ACARS;
 }
 
 /****************************************************************************
@@ -64,7 +91,7 @@ void CmProcess::Run()
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for GSE commands with ADRF
-    m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(m_gseRsp), eMaxQueueDepth);
+    m_gseInBox.Create(CM_GSE_ADRF_MAILBOX, sizeof(GSE_RESPONSE), eMaxQueueDepth);
     m_gseInBox.IssueGrant(adrfProcessName);
 
     // Connect to the the GSE recv box in the ADRF.
@@ -97,6 +124,10 @@ void CmProcess::Run()
 //
 void CmProcess::RunSimulation()
 {
+    static bool scriptStateZ = false;
+
+    m_lastPowerState = true;
+
     // Handle Reconfig Requests
     m_reconfig.ProcessCfgMailboxes(IS_MS_ONLINE, m_reConfigInBox, m_reConfigOutBox);
 
@@ -104,6 +135,52 @@ void CmProcess::RunSimulation()
     m_fileXfer.ProcessFileXfer(IS_MS_ONLINE, m_fileXferInBox, m_fileXferOutBox);
 
     ProcessGseMessages();
+
+    if (m_gseOutBox.GetIpcStatus() == ipcValid)
+    {
+        m_pCommon->adrfState = eAdrfReady;
+        m_requestPing = false;
+    }
+    // if the ADRF is on and we are not running a script see if the adrf is ready
+    else if (m_pCommon->adrfState == eAdrfOn && !IS_SCRIPT_ACTIVE)
+    {
+        // at 1Hz see if the adrf is ready
+        if ((m_frames - m_lastGseSent) > 100)
+        {
+            // if we are invalid 
+            if (m_gseOutBox.GetIpcStatus() != ipcValid)
+            {
+                // after 120 sec reset the MB
+                if (m_gseOutBox.m_connectAttempts < CmReconfig::eCmAdrfFactoryRestart)
+                {
+                    m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
+
+                    // back off detecting a valid MB
+                    m_lastGseSent = m_frames;
+                    m_requestPing = false;
+                }
+                else
+                {
+                    m_gseOutBox.Reset();
+                }
+            }
+        }
+    }
+
+    // if the script is not running - oneshot reset ASE process states
+    if (!IS_SCRIPT_ACTIVE && scriptStateZ)
+    {
+        // Recfg Task
+        m_reconfig.Init();
+        m_getFile.Close();
+        m_putFile.Close();
+
+        // File Xfer - don't do anything here - this is reset on ADRF Power down as the ADRF
+        // .. might have requested a file transfer and we have not done anything with it yet.
+        // .. On Power down ADRf will restart all file transfers - see HandlePowerOff
+    }
+
+    scriptStateZ = IS_SCRIPT_ACTIVE;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -112,26 +189,29 @@ void CmProcess::RunSimulation()
 //
 void CmProcess::ProcessGseMessages()
 {
-    m_gseCmd.gseSrc = GSE_SOURCE_CM;
-    m_gseCmd.gseVer = 1;
-    memset(m_gseRsp.rspMsg, 0, sizeof(m_gseRsp.rspMsg) );
-
-    // If not expecting a resp msg and time has elapsed to request the
-    // Expecting cmd response... check inbox.
-    if( m_gseInBox.Receive(&m_gseRsp, sizeof(m_gseRsp)) )
+    if (m_gseInBox.GetIpcStatus() == ipcValid)
     {
-        int size = strlen(m_gseRsp.rspMsg);
-        m_gseRxFifo.Push(m_gseRsp.rspMsg, size);
+        GSE_RESPONSE rsp;
+
+        // If not expecting a resp msg and time has elapsed to request the
+        // Expecting cmd response ... check inbox.
+        if( m_gseInBox.Receive(&rsp, sizeof(rsp)) )
+        {
+            int size = strlen(rsp.rspMsg);
+            if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)  
+            {
+                m_gseRxFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
+            }
+            else
+            {
+                m_invalidSrc += 1;
+            }
+        }
     }
-}
-
-//-------------------------------------------------------------------------------------------------
-// Function: ProcessLogMessages
-// Description:
-//
-void CmProcess::ProcessLogMessages()
-{
-
+    else
+    {
+        m_gseInBox.Reset();
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -140,15 +220,26 @@ void CmProcess::ProcessLogMessages()
 //
 void CmProcess::HandlePowerOff()
 {
-    // reset mailboxes due to power off ( adrf process gone)
+    // reset mailboxes due to power off (adrf process gone)
     m_gseInBox.Reset();
     m_gseOutBox.Reset();
 
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
+    if (m_lastPowerState)
+    {
+        m_reconfig.Init();
+    }
 
     m_fileXferInBox.Reset();
     m_fileXferOutBox.Reset();
+
+    m_requestPing = false;
+    m_lastGseSent = m_frames;  // when power comes back give ePySte time to send cmd
+
+    m_fileXfer.ResetCounters();
+
+    m_lastPowerState = false;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -160,39 +251,44 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     BOOLEAN serviced = FALSE;
     BOOLEAN subServiced = FALSE;
     ResponseType rType = eRspNormal;
-    int port;  // 0 = gse, 1 = ms
+    int port;  // 0 = gse, 1 = mfd, 2 = acars
 
     SecRequest request = secComm.m_request;
     switch (request.cmdId)
     {
     case eWriteStream:
-        if ( request.charDataSize < GSE_MAX_LINE_SIZE)
+        port = request.variableId;  // 0 = gse, 1 = mfd, 2 = acars
+        if ( port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
         {
-            GSE_COMMAND* mb;
-            port = request.variableId;  // 0 = gse, 1 = ms
+            if ( request.charDataSize < GSE_MAX_LINE_SIZE)
+            {
+                memcpy((void*)m_gseCmd[port].commandLine, 
+                       (void*)request.charData, 
+                       request.charDataSize);
+                m_gseCmd[port].commandLine[request.charDataSize] = '\0';
 
-            memcpy((void*)m_gseCmd.commandLine, (void*)request.charData, request.charDataSize);
-            m_gseCmd.commandLine[request.charDataSize] = '\0';
+                m_gseOutBox.Send(&m_gseCmd[port], sizeof(m_gseCmd[0]));
+                secComm.m_response.successful = TRUE;
 
-            m_gseOutBox.Send(&m_gseCmd, sizeof(m_gseCmd));
-            secComm.m_response.successful = TRUE;
-
-            //sprintf(secComm.m_response.errorMsg, "CmProcess(%s): Unable to send command %s <%s>",
-            //            m_gseOutBox.IsConnected() ? "Conn" : "NoConn",
-            //            m_gseOutBox.GetIpcStatusString(),
-            //            m_gseOutBox.GetProcessStatusString());
-
-
-            // temrinate the cmd before the CR
-
-            request.charData[request.charDataSize-1] = '\0';
-            strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
-
+                // GSE Special
+                if ( port == GSE_SOURCE_CM)
+                {
+                    // save the last cmd
+                    strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
+                    m_lastGseCmd[request.charDataSize-1] = '\0';
+                    m_lastGseSent = m_frames;
+                }
+            }
+            else
+            {
+                secComm.ErrorMsg("%s Command Length (%d) exceeds (%d)",
+                                 gsePortNames[port], request.charDataSize, GSE_MAX_LINE_SIZE);
+                secComm.m_response.successful = FALSE;
+            }
         }
         else
         {
-            secComm.ErrorMsg("GSE Command Length (%d) exceeds (%d)",
-                             request.charDataSize, GSE_MAX_LINE_SIZE);
+            secComm.ErrorMsg("WriteStream: Unknown Port Id(%d)", port);
             secComm.m_response.successful = FALSE;
         }
         serviced = TRUE;
@@ -200,21 +296,38 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
     case eReadStream:
         port = request.variableId;  // 0 = gse, 1 = ms
+        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        {
+            secComm.m_response.streamSize = 
+                m_gseRxFifo[port].Pop(secComm.m_response.streamData, eSecStreamSize);
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("ReadStream: Unknown Port Id(%d)", port);
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+        }
 
-        secComm.m_response.streamSize = m_gseRxFifo.Pop(secComm.m_response.streamData,
-                                                        eSecStreamSize);
-        secComm.m_response.successful = TRUE;
-        serviced = TRUE;
         break;
 
     case eClearStream:
         // TODO: maybe - this should set a flag to the main thread,
         //       read stream above would need to monitor the flag then
         port = request.variableId;  // 0 = gse, 1 = ms
-
-        m_gseRxFifo.Reset();
-        secComm.m_response.successful = TRUE;
-        serviced = TRUE;
+        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        {
+            m_gseRxFifo[port].Reset();
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("ClearStream: Unknown Port Id(%d)", port);
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+        }
         break;
 
     case ePutFile:
@@ -237,7 +350,50 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         }
 
         serviced = TRUE;
+        break;
 
+    case eDeleteFile:
+        // see if the file exists
+        secComm.m_response.successful = m_getFile.Delete(request.charData,
+                                                         File::PartitionType(request.variableId));
+        if (!secComm.m_response.successful)
+        {
+            secComm.ErrorMsg("Failed File Delete <%s> Part(%) errorCode: %d",
+                             request.charData, request.variableId, m_getFile.GetFileError());
+            secComm.m_response.value = float(m_getFile.GetFileError());
+        }
+
+        serviced = TRUE;
+        break;
+
+    case eFileExists:
+        // see if a file exists on target
+        if ( m_getFile.Open(secComm.m_request.charData,
+                            File::PartitionType(secComm.m_request.sigGenId), 'r'))
+        {
+            secComm.m_response.successful = TRUE;
+        }
+        else
+        {
+            if (m_getFile.GetFileError() != eFileNotFound)
+            {
+               secComm.ErrorMsg("Failed File Exists Check Error(%d)", m_getFile.GetFileError());
+            }
+            secComm.m_response.successful = FALSE;
+        }
+        m_getFile.Close();
+
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eDisplayState:
+        if (request.variableId == (int)CmProc)
+        {
+            m_updateDisplay = request.sigGenId != 0;
+            secComm.m_response.successful = true;
+            serviced = TRUE;
+        }
         break;
 
     default:
@@ -285,7 +441,7 @@ bool CmProcess::PutFile( SecComm& secComm)
             status = true;
 
             // TODO: remove after debugging is complete
-            strcpy(m_readyFile, secComm.m_request.charData);
+            strcpy(m_rqstFile, secComm.m_request.charData);
         }
         else
         {
@@ -345,23 +501,29 @@ bool CmProcess::GetFile( SecComm& secComm)
     {
         if (!m_getFile.IsOpen())
         {
-            // charData holds the file name
-            memset(m_readyFile, 0, sizeof(m_readyFile));
-            memcpy(m_readyFile, secComm.m_request.charData, secComm.m_request.charDataSize);
+            // charData holds the file name requested by ePySte
+            memset(m_rqstFile, 0, sizeof(m_rqstFile));
+            memcpy(m_rqstFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
-            if (m_getFile.Open(m_readyFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+            if (m_getFile.Open(m_rqstFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
             {
+                m_fileXfer.FileStatus(m_rqstFile, true);
+
                 // check to see if we are uploading a FileXfer request from ADRF
-                m_performAdrfOffload = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+                m_performAdrfOffload = strcmp( m_rqstFile, m_fileXfer.m_xferFileName) == 0;
 
                 nameLength = strlen(m_getFile.GetFileName());
                 strncpy( secComm.m_response.streamData, m_getFile.GetFileName(), nameLength);
                 secComm.m_response.streamSize = nameLength;
 
+                // return the file size
+                secComm.m_response.value = float(m_getFile.GetFileSize());
+
                 status = true;
             }
             else
             {
+                m_fileXfer.FileStatus(m_rqstFile, false);
                 secComm.ErrorMsg("GetFile: File not available");
             }
         }
@@ -375,7 +537,7 @@ bool CmProcess::GetFile( SecComm& secComm)
     else if (m_getFile.IsOpen())
     {
         // if we were offloading an ADRF requested file - see if the adrf wants to continue
-        bool continueAdrf = strcmp( m_readyFile, m_fileXfer.m_xferFileName) == 0;
+        bool continueAdrf = strcmp( m_rqstFile, m_fileXfer.m_xferFileName) == 0;
 
         if ((m_performAdrfOffload && continueAdrf) || !m_performAdrfOffload)
         {
@@ -384,7 +546,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             if (bytesRead < eSecStreamSize)
             {
                 m_getFile.Close();
-                memset(m_readyFile, 0, sizeof(m_readyFile));
+                memset(m_rqstFile, 0, sizeof(m_rqstFile));
                 m_performAdrfOffload = false;
             }
 
@@ -396,7 +558,7 @@ bool CmProcess::GetFile( SecComm& secComm)
         else
         {
             m_getFile.Close();
-            memset(m_readyFile, 0, sizeof(m_readyFile));
+            memset(m_rqstFile, 0, sizeof(m_rqstFile));
             m_performAdrfOffload = false;
         }
     }
@@ -422,78 +584,112 @@ bool CmProcess::GetFile( SecComm& secComm)
 // 7: Log In: <proc>(%d)/<ipc> Out: <proc>/<ipc>
 // ...
 //-----------------------------------------------------------------------------
-void CmProcess::UpdateDisplay(VID_DEFS who)
+int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 {
+    // this needs to be big so that it can handle when file names are put in it
     char buffer[256];
-    UINT32 atLine = eFirstDisplayRow;
 
-    CmdRspThread::UpdateDisplay(CmProc);
+    switch (theLine) {
+    case 0:
+        CmdRspThread::UpdateDisplay(CmProc, 0);
+        break;
 
-    // Status Display
-    //debug_str(CmProc, atLine, 0,"%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg(%d) Mode/Status: %s(%d)/%s(%s)",
-              m_reconfig.m_recfgCount,
-              m_reconfig.GetModeName(),
-              m_reconfig.m_modeTimeout,
-              m_reconfig.m_lastStatus ? "Err" : "Ok",
-              m_reconfig.GetCfgStatus());
-    atLine += 1;
+    case 1:
+       debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
+       break;
 
-    debug_str(CmProc, atLine, 0, "Log(%d) Msgs: %d Mode: %s(%d)",
-              m_fileXfer.m_fileXferRqsts,
-              m_fileXfer.m_fileXferMsgs,
-              m_fileXfer.GetModeName(),
-              m_fileXfer.m_modeTimeout
-              );
-    atLine += 1;
+    case 2:
+        debug_str(CmProc, theLine, 0, "RxFifo - Gse:%d Mfd:%d ACARS:%d Invalid:%d", 
+            m_gseRxFifo[0].Used(), m_gseRxFifo[1].Used(), m_gseRxFifo[2].Used(),
+            m_invalidSrc);
+        break;
 
-    //debug_str(CmProc, atLine, 0,"%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "GseCmd: %s", m_lastGseCmd);
-    atLine += 1;
+    case 3:
+        debug_str(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
+                 m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
+                 m_reconfig.GetLastCmd(),
+                 m_reconfig.GetModeName(),
+                 m_reconfig.m_modeTimeout,
+                 m_reconfig.m_lastReCfgFailed ? "Err" : "Ok",
+                 m_reconfig.GetCfgStatus());
+        break;
 
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Gse RxFifo: %d", m_gseRxFifo.Used());
-    atLine += 1;
+    case 4:
+        debug_str(CmProc, theLine, 0, "Log(%d/%d) Rx/Tx: %d/%d Mode: %s(%d)",
+            m_fileXfer.m_fileXferRqsts,
+            m_fileXfer.m_fileXferServiced,
+            m_fileXfer.m_fileXferRx,
+            m_fileXfer.m_fileXferTx,
+            m_fileXfer.GetModeName(),
+            m_fileXfer.m_modeTimeout
+            );
+        break;
 
-    // Show put file status
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
-    atLine += 1;
+    case 5:
+        debug_str(CmProc, theLine, 0, "Log Stats S/F/FL(%d/%d/%d) Bad/Crc:Snd-Rsp/Fmis(%d/%d-%d/%d)",
+            m_fileXfer.m_fileXferSuccess,
+            m_fileXfer.m_fileXferFailed,
+            m_fileXfer.m_fileXferFailLast,
+            m_fileXfer.m_fileXferError,
+            m_fileXfer.m_failCrcSend,
+            m_fileXfer.m_fileXferValidError,
+            m_fileXfer.m_noMatchFileName
+            );
+        break;
 
-    // Show get file status
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
-    atLine += 1;
+    case 6:
+        // Show put file status
+        debug_str(CmProc, theLine, 0, "XFILE: %s", m_fileXfer.m_xferFileName);
+        break;
 
-    // Show Cfg file names
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
-    atLine += 1;
+    case 7:
+        // Show put file status
+        debug_str(CmProc, theLine, 0, "PUT: %s", m_putFile.GetFileStatus(buffer));
+        break;
 
-    // Show Cfg file names
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
-    atLine += 1;
+    case 8:
+        // Show get file status
+        debug_str(CmProc, theLine, 0, "GET: %s", m_getFile.GetFileStatus(buffer));
+        break;
 
-    // Update Mailbox Status
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Gse %s %s",
-              m_gseInBox.GetStatusStr(),
-              m_gseOutBox.GetStatusStr());
-    atLine += 1;
+    case 9:
+        // Show Cfg file names
+        debug_str(CmProc, theLine, 0, "XML: %s", m_reconfig.m_xmlFileName);
+        break;
 
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Cfg %s %s",
-              m_reConfigInBox.GetStatusStr(),
-              m_reConfigOutBox.GetStatusStr());
-    atLine += 1;
+    case 10:
+        // Show Cfg file names
+        debug_str(CmProc, theLine, 0, "CFG: %s", m_reconfig.m_cfgFileName);
+        break;
 
-    //debug_str(CmProc, atLine, 0, "%s", m_blankLine);
-    debug_str(CmProc, atLine, 0, "Log %s %s",
-              m_fileXferInBox.GetStatusStr(),
-              m_fileXferOutBox.GetStatusStr());
+    case 11:
+        // Update Mailbox Status
+        debug_str(CmProc, theLine, 0, "Gse %s %s",
+                  m_gseInBox.GetStatusStr(),
+                  m_gseOutBox.GetStatusStr());
+        break;
 
-    atLine += 1;
+    case 12:
+        debug_str(CmProc, theLine, 0, "Cfg %s %s",
+                  m_reConfigInBox.GetStatusStr(),
+                  m_reConfigOutBox.GetStatusStr());
+        break;
+
+    case 13:
+        debug_str(CmProc, theLine, 0, "Log %s %s",
+                  m_fileXferInBox.GetStatusStr(),
+                  m_fileXferOutBox.GetStatusStr());
+        break;
+
+    default:
+        theLine = -1;
+        break;
+    }
+
+    // go to the next line or back to 0
+    theLine += 1;
+
+    return theLine;
 }
 
 

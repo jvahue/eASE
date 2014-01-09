@@ -14,8 +14,9 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "File.h"
+#include "AseCommon.h"
 
+#include "File.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -85,6 +86,7 @@ File::File()
     : m_sAdr(NULL)
     , m_cAdr(NULL)
     , m_bInit(FALSE)
+    , m_fileError(eNoFileError)
 {
     Reset();
     UNSIGNED32  i;
@@ -191,7 +193,7 @@ void File::Reset()
 
     m_cffsStatus = cffsNoStatus;  // make call to IsOpen == FALSE
     m_resStatus  = resInvalidHandle;
-    m_fileError  = eNoFileError;
+    //m_fileError  = eNoFileError;
 
     memset(m_clientAccessRes, 0, sizeof(m_clientAccessRes));
     memset(m_partitionName,   0, sizeof(m_partitionName));
@@ -203,6 +205,7 @@ void File::Reset()
 
 BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode)
 {
+
     if ( 0 == strlen(fileName) )
     {
         m_fileError = eFileNameInvalid;
@@ -210,7 +213,9 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
     }
     else if (m_bInit)
     {
+        m_fileError  = eNoFileError;
         Reset();
+
         // convert partition enum to string
         strncpy(m_partitionName, partName[partType - eBasePart], eMaxResName );
 
@@ -221,6 +226,7 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
         if(m_mode == '\0')
         {
             m_bOpen = FALSE;
+            m_fileError = eInvalidAccesMode;
         }
         else if (m_mode == 'r')
         {
@@ -242,7 +248,7 @@ BOOLEAN File::Open(const char* fileName, File::PartitionType partType, char mode
 
 SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 {
-    UNSIGNED16 i;
+    //UNSIGNED16 i;
     //UNSIGNED32 bytesAvailable;// number of bytes in port available for 'reading' to pBuff
     SIGNED32   bytesRead = 0; // count of bytes copied to pBuff
     SIGNED32   debug_readCnt;
@@ -319,8 +325,8 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
 
     m_bytesMoved += bytesRead;
     return bytesRead;
-
 }
+
 //------------------------------------------------------------------------------
 // Function: Write
 // Description:
@@ -331,7 +337,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
     UNSIGNED32  bytesToSend;    // number of bytes from 'size' to be written/buffered
     void*       pDestAddr;      // Address in 'port' to buffer next outgoing block.
 
-    static BOOLEAN bFirstTime = TRUE;
+    //static BOOLEAN bFirstTime = TRUE;
 
 
     if ( !m_bOpen || size > MAX_WRITE_SIZE || m_mode != 'w')
@@ -374,7 +380,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
             Flush();
         }
     }
-    while(bytesToSend > (0 && m_cffsStatus == cffsSuccess));
+    while((bytesToSend > 0) && (m_cffsStatus == cffsSuccess));
 
     return (m_cffsStatus == cffsSuccess);
 }
@@ -385,31 +391,33 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
 
 BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
-    if ( 0 == strlen(fileName) )
+    BOOLEAN status;
+
+    // always open as it really doesn't matter in cffs
+    if ( Open(fileName, partType, 'r'))
     {
-        m_fileError = eFileNameInvalid;
-        return FALSE;
+        // Delete the file
+        m_dataReq.sizeofStruct = sizeof(m_dataReq);
+        cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
+        m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
+                                   m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
+
+        if (m_cffsStatus != cffsSuccess)
+        {
+            m_fileError = eDeleteFailed;
+        }
+
+        status = (m_cffsStatus == cffsSuccess);
+    }
+    else
+    {
+        status = m_fileError == eFileNotFound;
     }
 
-    // If file not open, do it now to set up filename and partition name
-    if (!IsOpen())
-    {
-        Open(fileName, partType , m_mode);
-    }
-
-    // Delete the file
-    m_dataReq.sizeofStruct = sizeof(m_dataReq);
-    cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
-    m_cffsStatus = cffsDelete( m_sAdr, m_cAdr, ePortIndex, m_partitionName,
-                               m_fileName, CFFS_BLOCKING, CFFS_FLUSH );
-
-    if (m_cffsStatus != cffsSuccess)
-    {
-        m_fileError = eDeleteFailed;
-    }
     // Reset this file so no other ops allowed without an 'Open' call
     Reset();
-    return (m_cffsStatus == cffsSuccess || m_cffsStatus == cffsFileNotFound );
+
+    return status;
 }
 
 //------------------------------------------------------------------------------
@@ -442,20 +450,20 @@ BOOLEAN File::Flush(void)
                                    CFFS_NO_FLUSH,
                                    &m_dataReq );
 
-         if(m_cffsStatus == cffsSuccess)
-         {
-             // m_bytesInUse will either be a full port size or some
-             // portion on the final flush.
-             m_physOffset += m_portBytesInUse;
-             m_portBytesInUse = 0;
-             status = TRUE;
-         }
-         else
-         {
-             m_fileError = eWriteFailed;
-         }
-     }
-     return status;
+        if(m_cffsStatus == cffsSuccess)
+        {
+            // m_bytesInUse will either be a full port size or some
+            // portion on the final flush.
+            m_physOffset += m_portBytesInUse;
+            m_portBytesInUse = 0;
+            status = TRUE;
+        }
+        else
+        {
+            m_fileError = eWriteFailed;
+        }
+    }
+    return status;
 }
 
 //------------------------------------------------------------------------------
@@ -479,8 +487,9 @@ BOOLEAN File::Close(void)
 
 char* File::GetFileStatus(char* buffer)
 {
-    sprintf(buffer, "Open: %s I/O: %d sAdr: %s cAdr: %s Name: <%s>",
+    sprintf(buffer, "Open: %s Err: %d I/O: %d sAdr: %s cAdr: %s Name: <%s>",
             IsOpen() ? "Yes" : "No",
+            m_fileError,
             m_bytesMoved,
             m_sAdr != NULL ? "Ok" : "Err",
             m_cAdr != NULL ? "Ok" : "Err",

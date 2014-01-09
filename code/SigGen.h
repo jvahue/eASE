@@ -2,8 +2,7 @@
 #define SigGen_h
 
 // File: SigGen.h
-#include "alt_stdtypes.h"
-#include "AseCommon.h"
+#include "Random.h"
 
 // This is not very object oriented (ok not at all) but it makes life simple right now
 class SignalGenerator
@@ -14,11 +13,11 @@ public:
 
     float Reset( float lastValue);
     float Update( float oldValue, bool sgRun);
-    
-    bool SetParams( int type, int updateMs, 
+
+    bool SetParams( int type, int updateMs,
                     float param1, float param2, float param3=0.0f, float param4=0.0f);
-    
-    void GetParams( int updateMs, 
+
+    void GetParams( int updateMs,
                     float& p1, float& p2, float& p3, float& p4) const;
 
     void GetRepresentation(char* buffer) const;
@@ -41,6 +40,8 @@ public:
 
     bool  m_firstRun;
     UINT32 m_last;
+
+    RandGen m_random;
 };
 
 #endif

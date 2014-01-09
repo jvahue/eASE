@@ -1,10 +1,6 @@
 #ifndef VIDEO_H_
 #define VIDEO_H_
 
-extern "C" {
-  #include <alt_stdtypes.h>
-}
-
 /*
  * video.h
  *
@@ -39,6 +35,7 @@ VID_DEF(VID_SYS,       ""            ,FALSE),\
 VID_DEF(AseMain,       "AseMain", FALSE),\
 VID_DEF(CmProc,        "CmProc",  FALSE),\
 VID_DEF(Ioi,           "Ioi",     FALSE),\
+VID_DEF(Params,        "Params",  FALSE),\
 // ----- If the list changes update eFAST.py in the ePySte -----
 
 #undef  VID_DEF
@@ -53,6 +50,7 @@ typedef enum {
 extern "C" {
 
 void debug_str (VID_DEFS screen, int row, int col, const CHAR* str, ... );
+void debug_str1 (VID_DEFS screen, int row, int col, CHAR* str);
 void debug_str_init(void);
 void clearRow(VID_DEFS screen,  int row);
 

@@ -22,6 +22,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #define ALLOW_A429_NAMES
 #include "ParamA429Names.h"
 #include "ParamConverters.h"
@@ -54,16 +56,8 @@
 /* Class Definitions                                                         */
 /*****************************************************************************/
 ParamConverter::ParamConverter()
-    : m_isValid(false)
-    , m_gpa(0)
-    , m_gpb(0)
-    , m_gpc(0)
-    , m_type(PARAM_FMT_NONE)
-    , m_scale(0)          // the current value for the parameter
-    , m_maxValue(0.0f)
-    , m_scaleLsb(0.0f)    // the current value for the parameter
-    , m_data(0)
 {
+    Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -72,7 +66,7 @@ ParamConverter::ParamConverter()
 //
 UINT32 ParamConverter::Convert(FLOAT32 value)
 {
-    UINT32 rawValue;
+    UINT32 rawValue = 0;
 
     if (m_type == PARAM_FMT_A429)
     {
@@ -80,6 +74,28 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     }
 
     return rawValue;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: A429Converter
+// Description: Convert the value and pack it into a rawValue
+//
+void ParamConverter::Reset()
+{
+    m_isValid = false;
+    m_masterId = 0;
+    m_gpa = 0;
+    m_gpb = 0;
+    m_gpc = 0;
+    m_src = PARAM_SRC_MAX;
+    m_type = PARAM_FMT_NONE;
+    m_scale = 0.0f;       
+    m_maxValue = 0.0f;
+    m_scaleLsb = 0.0f;    
+    m_data = 0;
+
+    memset(m_ioiName, 0, sizeof(m_ioiName));
+    memset(&m_a429, 0, sizeof(m_a429));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -103,7 +119,7 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            m_data = UINT32(value / m_scaleLsb);
+            m_data = UINT32( (value / m_scaleLsb) + 0.5f);
 
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
             if (value < 0.0f)
@@ -128,26 +144,26 @@ UINT32 ParamConverter::A429Converter(float value)
 // Function: Reset
 // Description:
 //
-void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
-                           UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale)
+void ParamConverter::Init(ParamCfg* paramInfo)
 {
     UINT32 rawLabel;
 
-    m_gpa = gpa;
-    m_gpb = gpb;
-    m_gpc = gpc;
-    m_type = fmt;
-    m_masterId = masterId;
-    m_scale = scale;
-    m_maxValue = FLOAT32(scale);
-    
+    m_gpa = paramInfo->gpa;
+    m_gpb = paramInfo->gpb;
+    m_gpc = paramInfo->gpc;
+    m_src = paramInfo->src;
+    m_type = paramInfo->fmt;
+    m_masterId = paramInfo->masterId;
+    m_scale = paramInfo->scale;
+    m_maxValue = paramInfo->scale;
+
     if (m_type == PARAM_FMT_A429)
     {
         A429ParseGps();
 
         if (m_a429.format == eBNR)
         {
-            m_scaleLsb = float(scale) / pow(2.0f, float(m_a429.wordSize));
+            m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
         }
         // TODO: other formats
 
@@ -201,26 +217,30 @@ void ParamConverter::Reset(UINT32 masterId, PARAM_FMT_ENUM fmt,
     }
     else if (m_type == PARAM_FMT_BIN_A664)
     {
-        
+
     }
     else if (m_type == PARAM_FMT_FLT_A664)
     {
-        
+
     }
 
     SetIoiName();
-}    
+}
 
 //--------------------------------------------------------------------------------------------------
 void ParamConverter::SetIoiName()
 {
-    if (m_type == PARAM_FMT_A429)
+    if (m_src == PARAM_SRC_A429)
     {
         SetIoiA429Name();
     }
-    else
+    else if (m_src == PARAM_SRC_A664)
     {
         SetIoiA664Name();
+    }
+    else if (m_src == PARAM_SRC_CROSS)
+    {
+        sprintf(m_ioiName, "CROSS");
     }
 }
 
@@ -230,7 +250,7 @@ void ParamConverter::SetIoiA429Name()
     UINT32 i;
     UINT8 sdiMatch = m_a429.ignoreSDI ? A429_IOI_NAME_SDI_IGNORE_VAL : m_a429.sdBits;
 
-    for (i=0; ioiA429Names[i].name != NULL; ++i)
+    for (i=0; ioiA429Names[i].name[0] != NULL; ++i)
     {
         if (m_a429.label == ioiA429Names[i].octal && sdiMatch == ioiA429Names[i].sdi)
         {
@@ -284,6 +304,10 @@ void ParamConverter::A429ParseGps()
     else if ( m_a429.format == eDisc)
     {
         m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
+        if (m_a429.wordSize == 1)
+        {
+            m_a429.msb += 1;
+        }
     }
     else // eBNR
     {
@@ -297,6 +321,10 @@ void ParamConverter::A429ParseGps()
 //--------------------------------------------------------------------------------------------------
 UINT32 ParamConverter::ExpectedSSM()
 {
+#define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
+#define BCD_VALID_SSM   0x03 //
+#define DISC_VALID_SSM  0x00 //
+
     unsigned int expected = BNR_VALID_SSM;
 
     // Store the Default Valid SSM
@@ -358,12 +386,12 @@ void ParamConverter::SetLabel( INT32 value)
     // we use BCD here as it only packs the SSM bits not the sign bit in BNR words
     m_a429.a429Template = A429_FldPutLabel( m_a429.a429Template, value);
 
-    if (value == m_a429.label0)
-    {
-        m_isValid = true;
-    }
-    else
-    {
-        m_isValid = false;
-    }
+    //if (value == m_a429.label0)
+    //{
+    //    m_isValid = true;
+    //}
+    //else
+    //{
+    //    m_isValid = false;
+    //}
 }

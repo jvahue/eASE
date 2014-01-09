@@ -8,8 +8,6 @@
 #ifndef PARAMA429NAMES_H_
 #define PARAMA429NAMES_H_
 
-#include "alt_stdtypes.h"
-
 #ifndef ALLOW_A429_NAMES
     #error "Only allowed in ParamConverters.cpp"
 #endif

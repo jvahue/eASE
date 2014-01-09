@@ -14,7 +14,6 @@
 ******************************************************************************/
 
 #include <deos.h>
-#include "alt_stdtypes.h"
 
 class MailBox
 {
@@ -46,7 +45,7 @@ class MailBox
 
       // Sender methods
       BOOLEAN Connect(const char* procName, const char* mbName);
-      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = TRUE);
+      BOOLEAN Send   (void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull = FALSE);
       BOOLEAN IsConnected()
       {
         // Mailbox init as sender and valid handle obtained
@@ -92,8 +91,7 @@ class MailBox
       void AddSender(const char* procName);
       void OpenSenders(void);
 
-    private:
-        char m_statusStr[80];
+      char m_statusStr[80];
 
 };
 #endif // CMAILBOX_H

@@ -3,16 +3,16 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "-1744720544"
+     validityKey = "-1008202625"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
      envelopeQuota = "30"
-     memoryObjectQuota = "5"
+     memoryObjectQuota = "15"
      crcAtProcessCreation = "no"
      largestAMOSizeInPages = "1"
      nameQuota = "75"
-     toolVersion = "2.8.5"
+     toolVersion = "3.2.0"
      inDebugSet = "no"
      attachedMemoryObjectQuota = "50"
      eventQuota = "0"
@@ -21,7 +21,7 @@
      comment = "This comment block is the one place in the file that users can add comments to the file."
      addlRamPagesForExecuteOutOfRam = "0"
      executableName = "ase.exe"
-     attachedResourceQuota = "7"
+     attachedResourceQuota = "15"
      threadStackVASGap = "yes"
      tlsSpaceInBytes = "0"
      addTLSToStack = "no"
@@ -34,12 +34,12 @@
      pipc_initializeConsumeHandles = "no"
      pipc_codeStyle = "C"
      xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation = "pd.xsd"
+     xsi:noNamespaceSchemaLocation = "ddci:/xsd/pd.xsd"
    >
    <memoryPools>
       <memoryPool
            platformPoolID = "0"
-           sizeInPages = "360"
+           sizeInPages = "1200"
            defaultPool = "yes"
       ></memoryPool>
    </memoryPools>
@@ -127,7 +127,28 @@
          >
          <ownedMemoryMappedResources>
             <ownedMemoryMappedResource
+                 name = "ADRF_NVRAM"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x31000"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
                  name = "CM-CAR"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
+                 name = "FPGA_BATT_MSPWR_DAL_C"
+                 accessRights = "rw"
+                 useResourceConstraints = "no"
+                 minimumSizeInBytes = "0x0"
+                 maximumSizeInBytes = "0x0"
+            ></ownedMemoryMappedResource>
+            <ownedMemoryMappedResource
+                 name = "FPGA_HEALTH_MISC"
                  accessRights = "rw"
                  useResourceConstraints = "no"
                  minimumSizeInBytes = "0x0"
@@ -140,7 +161,7 @@
       <threadTemplate
            name = "StdThreadTemplate"
            budget = "500"
-           instanceCount = "7"
+           instanceCount = "3"
            slackEnabled = "no"
            stackSizeInPages = "5"
            period = "fastest"

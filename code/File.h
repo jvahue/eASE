@@ -3,11 +3,9 @@
 
 #include <stdlib.h>
 #include <cffsapi.h>
-#include "alt_stdtypes.h"
-#include "SecComm.h"      // for stream size matching.
 
-#define MAX_WRITE_SIZE eSecCharDataSize  // max size of PySte command
-#define MAX_READ_SIZE  eSecStreamSize    // max size of
+#define MAX_WRITE_SIZE eAseCharDataSize  // max size of PySte command
+#define MAX_READ_SIZE  eAseStreamSize    // max size of
 
 typedef enum
 {
@@ -20,7 +18,8 @@ typedef enum
     eReadFailed            = -7,
     eDeleteFailed          = -8,
     eFileNameInvalid       = -9,
-    eInvalidOperation      = -10
+    eInvalidOperation      = -10,
+    eInvalidAccesMode      = -11
 
 }FileErrorType;
 
@@ -63,6 +62,8 @@ class File
         }
 
         char* GetFileStatus(char* buffer);
+        UNSIGNED32 GetFileSize() const {return m_fileSize;}
+
 
     protected:
         enum FileConstants

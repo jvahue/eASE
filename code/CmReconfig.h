@@ -24,20 +24,17 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdtypes.h"
 
-#include "AseCommon.h"
 #include "File.h"
 #include "Interface_CM.h"
 #include "MailBox.h"
-#include "SecComm.h"
-
 
 class CmReconfig
 {
 public:
     enum CmReconfigState {
-        eCmRecfgIdle,           // waiting for reconfig action
+        eCmRecfgIdle,           // waiting for recfg action
+        eCmRecfgWaitAck,        // wait before send ACK
         eCmRecfgLatch,          // MS recfg rqst sent and latch, don't send rqst again
         eCmRecfgWaitRequest,    // MS is now waiting for the recfg rqst from ADRF - no timeout
         eCmRecfgSendFilenames,  // locally we are 'delaying' for file fetch from the MS
@@ -49,10 +46,19 @@ public:
         eCmRecfgCfg,
         eCmRecfgFileSize = 128,
         eCmRecfgAdrfCmds = 4,
+        eCmAdrfFactoryRestart = 150,
 
     };
 
-    CmReconfig();
+    enum CmReconfigStatus {
+      eCmRecfgStsOk = 0,     // enums must match RECFG_ERR_CODE_ENUM in Interface_CM.h before
+      eCmRecfgStsBadFile,    // .. eCmRecfgStsNoVfyRsp - this is our status for no response
+      eCmRecfgStsNoVfyRsp,
+      eCmRecfgStsMax
+    };
+
+    CmReconfig(AseCommon* pCommon);
+    void Init();
 
     void ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out);
     BOOLEAN CheckCmd( SecComm& secComm, MailBox& out);
@@ -61,26 +67,33 @@ public:
     bool StartReconfig(MailBox& out);
     const char* GetModeName() const;
     const char* GetCfgStatus() const;
+    const char* GetLastCmd() const;
 
     char m_xmlFileName[eCmRecfgFileSize];
     char m_cfgFileName[eCmRecfgFileSize];
     UINT32 m_unexpectedCmds[eCmRecfgAdrfCmds];
 
-    CmReconfigState m_state;
+    CmReconfigState m_mode;
     UINT32 m_modeTimeout;
-    RECFG_ERR_CODE_ENUM m_lastErrCode;
-    BOOLEAN m_lastStatus;
-    UINT32 m_recfgCount;
+    CmReconfigStatus m_lastErrCode;
+    BOOLEAN m_lastReCfgFailed;
+    UINT32 m_recfgCount;  // how many recfg rqst have we seen
+    UINT32 m_recfgCmds;   // how many recfg rqst have we seen
 
     // script test control items
-    UINT32 m_tcFileNameDelay;  // CM_tcFileNameDelay(x)
     UINT32 m_tcRecfgAckDelay;  // CM_tcRecfgAckDelay(x)
+    UINT32 m_tcFileNameDelay;  // CM_tcFileNameDelay(x)
+    UINT32 m_tcRecfgLatchWait; // CM_tcRecfgLatchWait(x)
+
+    ADRF_TO_CM_CODE m_lastCmd; // what was the last cmd
 
 private:
     bool ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, MailBox& out);
+    void ResetScriptControls();
 
     File m_file;
     char m_mbErr[128];
+    AseCommon* m_pCommon;
 };
 
 #endif /* CMRECONFIG_H_ */

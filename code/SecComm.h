@@ -23,8 +23,6 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "alt_stdtypes.h"
-#include "AseCommon.h"
 #include "AseThread.h"
 
 /*****************************************************************************/
@@ -43,7 +41,8 @@ enum SecCmds {
     ePowerOn        = 5,
     ePowerOff       = 6,
     eMsState        = 7,
-    eVideoRedirect  = 8,
+    eDisplayState   = 8,  // this is directed at a specific Process
+    eSetChanId      = 9,
 
 // Ase Enums 101-199
 
@@ -58,13 +57,17 @@ enum SecCmds {
     eGetReconfigSts = 207,
     eLogFileReady   = 208,
     eLogFileCrc     = 209,
+    eFileExists     = 210,
 
-// CmPRoc Reconfig Controls
+// CmProc Reconfig Controls
     eCmFileNameDelay = 250,
     eCmRecfgAckDelay = 251,
+    eGetRcfCount     = 252,
+    eDeleteFile      = 253,
+    eCmLatchWait     = 254,
 
 // CmProc Enums 301-399
-    eCmPartCfg      = 301,  // the Cfg file partion Id
+    eCmPartCfg      = 301,  // the Cfg file partition Id
     eCmPartLog      = 302,  // the Log file partition Id
 
 //-------------------------------- IOI 400 - 599 ------------------------------
@@ -81,7 +84,9 @@ enum SecCmds {
     eSendParamData  = 410,
     eInitParamData  = 411,
     eDisplayParam   = 412,
-
+    eResetIoi       = 413,
+    eParamState     = 414,
+    eParamIoState   = 415,
 
 //-------------------------------- unallocated --------------------------------
     eStartLogging   = 55560,
@@ -115,17 +120,17 @@ enum SecCmds {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum SecSystemConstants {
-    eSecNumberOfSensors = 125,        // SEC/IOC number of sensors
-    eSecErrorMsgSize    = 128,        // SEC/IOC max error Message
-    eSecStreamSize      = 3500,       // the size of input stream data
-    eSecCharDataSize    = 2048,       // SEC/IOC max filename size
-    eSecPortNumber      = 51423,      // socket port connection on local host
-    eSecAseH1           = 0x05EC2A5E, // Header marker1 Sec->Ase
-    eSecAseH2           = 0xABCD1234, // Header marker2 Sec->Ase
-    eAseSecH1           = 0x0A5E25EC, // Header marker1 Ase->Sec
-    eAseSecH2           = 0x1234ABCD, // Header marker2 Ase->Sec
-    eHeaderError        = 1,          // The header content was not correct
-    eChecksumError      = 2           // Failed the checksum
+    eSecNumberOfSensors = 125,         // SEC/IOC number of sensors
+    eSecErrorMsgSize    = 128,         // SEC/IOC max error Message
+    eSecStreamSize      = eAseStreamSize,   // the size of input stream data
+    eSecCharDataSize    = eAseCharDataSize, // SEC/IOC max filename size
+    eSecPortNumber      = 51423,       // socket port connection on local host
+    eSecAseH1           = 0x05EC2A5E,  // Header marker1 Sec->Ase
+    eSecAseH2           = 0xABCD1234u, // Header marker2 Sec->Ase
+    eAseSecH1           = 0x0A5E25EC,  // Header marker1 Ase->Sec
+    eAseSecH2           = 0x1234ABCD,  // Header marker2 Ase->Sec
+    eHeaderError        = 254,         // The header content was not correct
+    eChecksumError      = 255          // Failed the checksum
 };
 
 enum ResponseType {
@@ -151,6 +156,7 @@ struct SecRequest
     UINT32  sigGenId;
     UINT32  resetRequest;
     UINT32  clearCfgRequest;
+    UINT32  videoDisplay;
 
     FLOAT32 value;
     FLOAT32 param1;
@@ -303,6 +309,7 @@ public:
     UINT16 m_port;          // what port are we on - default = 54321
     UINT32 m_lastSequence;  // the last command sequence number
     BOOLEAN forceConnectionClosed;  // connection has been idle too long close and reopen
+    BOOLEAN isRxing;
 
     SecRequest  m_request;  // the current or last cmd received
     SecRequest  m_bufRqst;  // a buffer for the in coming cmd

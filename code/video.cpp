@@ -91,18 +91,23 @@ void debug_str_init(void)
     for(i = 0; i < VID_MAX; i++)
     {
       //if not default screen, create a new screen
-
       if(strcmp(m_screens[i].smo_name,"") != 0)
       {
-        if((is= createMemoryObject(m_screens[i].smo_name,4096,FALSE,
-                               &m_screens[i].mo))!=ipcValid){}
-        else if((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(), TRUE,
-                                           readWriteDeleteAccess)) !=ipcValid){}
+          if ((is = getMemoryObjectHandle(m_screens[i].smo_name, &m_screens[i].mo)) == ipcValid)
+          {
+          }
+          else if ((is = createMemoryObject(m_screens[i].smo_name,
+                                            4096,FALSE, &m_screens[i].mo)) != ipcValid)
+          {
+          }
+          else if ((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(),
+                                                 TRUE, readWriteDeleteAccess)) != ipcValid)
+          {
+          }
 
-        else if((is = attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo, readWriteAccess,
-                                           &m_screens[i].smo, 0x1000, 0,
-                                           &m_screens[i].amo)) !=ipcValid){}
-        else
+          if (is == ipcValid && attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo,
+                                                   readWriteAccess, &m_screens[i].smo,
+                                                   0x1000, 0, &m_screens[i].amo) == ipcValid)
         {
           initializeVideoMemory(m_screens[i].smo);
           m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
@@ -139,45 +144,80 @@ static VID_DEFS redirectZ1 = VID_SYS;
 
     memset(buf, ' ', sizeof(buf));
 
-	va_list args;
-	va_start(args, str);
-	vsprintf( buf, str, args);
-	va_end(args);
+    va_list args;
+    va_start(args, str);
+    vsprintf( buf, str, args);
+    va_end(args);
 
     // always blank out the rest of the line
-	length = strlen(buf);
-	if (length < 80)
-	{
-	    buf[length] = ' ';
-	}
-
-	buf[80] = '\0';
-
-	if (screen == videoRedirect)
-	{
-	    // redirect to VID_SYS
-	    screen = VID_SYS;
-
-	    if (redirectZ1 != videoRedirect)
-	    {
-	        redirectZ1 = videoRedirect;
-
-	        // clear VID_SYS if we just changed
-	        for (UINT32 i=0; i < CGA_NUM_ROWS; ++i)
-	        {
-	            clearRow(screen, i);
-	        }
-	    }
-	}
-
-	if(!m_screens[screen].scroll)
-	{
-        //clearRow(screen, row);
-		m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
+    length = strlen(buf);
+    if (length < 80)
+    {
+        buf[length] = ' ';
     }
 
-	m_screens[screen].vid_stream << buf;
+    buf[80] = '\0';
 
+    if (screen == videoRedirect)
+    {
+        // redirect to VID_SYS
+        screen = VID_SYS;
+
+        if (redirectZ1 != videoRedirect)
+        {
+            redirectZ1 = videoRedirect;
+
+            // clear VID_SYS if we just changed
+            for (UINT32 i=0; i < CGA_NUM_ROWS; ++i)
+            {
+                clearRow(screen, i);
+            }
+        }
+    }
+
+    if(!m_screens[screen].scroll)
+    {
+        //clearRow(screen, row);
+        m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
+    }
+
+    m_screens[screen].vid_stream << buf;
+
+}
+
+//-------------------------------------------------------------------------------------------------
+// The output string is all set to go
+void debug_str1(VID_DEFS screen, int row, int col, CHAR* str)
+{
+    static VID_DEFS redirectZ1 = VID_SYS;
+
+    if (screen == videoRedirect)
+    {
+        // redirect to VID_SYS
+        screen = VID_SYS;
+
+        if (redirectZ1 != videoRedirect)
+        {
+            redirectZ1 = videoRedirect;
+
+            // clear VID_SYS if we just changed
+            for (UINT32 i=0; i < CGA_NUM_ROWS; ++i)
+            {
+                clearRow(screen, i);
+            }
+        }
+    }
+    
+    // make sure the line is not over 80 chars long
+    str[80] = '\0';
+
+    if(!m_screens[screen].scroll)
+    {
+        //clearRow(screen, row);
+        m_screens[screen].vid_stream.getViewPort().cursor().put(row,col);
+    }
+
+    m_screens[screen].vid_stream << str;
 }
 
 /******************************************************************************

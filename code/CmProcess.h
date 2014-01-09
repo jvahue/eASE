@@ -8,7 +8,6 @@
 #include "File.h"
 #include "Gse_Interface.h"
 #include "MailBox.h"
-#include "SecComm.h"
 
 // File: CmProcess.h
 
@@ -18,7 +17,6 @@
 *
 *
 */
-
 class CmProcess : public CmdRspThread
 {
     public:
@@ -31,23 +29,23 @@ class CmProcess : public CmdRspThread
 	    CmProcess();
         virtual void Run();  // override the AseThread::Create
         virtual BOOLEAN CheckCmd( SecComm& secComm);
+        virtual int UpdateDisplay(VID_DEFS who, int theLine);
 
         char m_boxOnTime[32];
-        char m_readyFile[128];
+        char m_rqstFile[128];  // filename requested for upload by ePySte
 
     protected:
         // Properties
-        BOOLEAN m_bRspPending;
         char m_lastGseCmd[eGseCmdSize];
 
-        GSE_COMMAND  m_gseCmd;
-        GSE_RESPONSE m_gseRsp;
+        GSE_COMMAND  m_gseCmd[GSE_SOURCE_MAX];
+        FIFO m_gseRxFifo[GSE_SOURCE_MAX]; // holds any data received from the GSE MB
 
         // mailboxes
-        MailBox m_gseInBox;  // GSE -> CMProcess message
-        MailBox m_gseOutBox; // CMProcess -> GSE messages
-
-        FIFO m_gseRxFifo;  // holds any data received from the GSE MB
+        MailBox m_gseInBox;   // GSE -> CMProcess message
+        MailBox m_gseOutBox;  // CMProcess -> GSE messages
+        UINT32 m_lastGseSent; // when was the last gse cmd sent?
+        bool m_requestPing;   // request adrf status
 
         /* To be activated
         MailBox m_gseMfdInBox;
@@ -63,7 +61,6 @@ class CmProcess : public CmdRspThread
         // Methods
         virtual void RunSimulation(); // override the CmdRspThread::Simulation
         virtual void HandlePowerOff();// override the CmdRspThread::HandlePowerOff
-        virtual void UpdateDisplay(VID_DEFS who);
 
     private:
         CmReconfig m_reconfig;
@@ -73,12 +70,13 @@ class CmProcess : public CmdRspThread
         File m_getFile;
 
         bool m_performAdrfOffload;
+        bool m_lastPowerState;
+        UINT32 m_invalidSrc;
 
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);
 
         void ProcessGseMessages();
-        void ProcessLogMessages();
 };
 
 

@@ -21,12 +21,11 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "video.h"
-#include "SecComm.h"
+#include "AseCommon.h"
+
 #include "CmProcess.h"
 #include "ioiProcess.h"
-#include "AseCommon.h"
-#include "File.h"
+#include "video.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -49,6 +48,9 @@ const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl = NULL;
 
+LINUX_TM_FMT nextTime;
+UINT32 _10msec;
+
 /*****************************************************************************/
 /* Global Variables                                                          */
 /*****************************************************************************/
@@ -57,19 +59,18 @@ AseCommon aseCommon;
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
-CmdRspThread* cmdRspThreads[MAX_CMD_RSP] = {
+CmdRspThread* cmdRspThreads[] = {
   &cmProc,
-  &ioiProc
+  &ioiProc,
+  NULL
 };
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 static BOOLEAN CheckCmds(SecComm& secComm);
-processStatus CreateAdrfProcess();
-
-void FileSystemTestSmall();
-void FileSystemTestBig();
+static void SetTime(SecRequest& request);
+static void UpdateTime();
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -88,15 +89,35 @@ int main(void)
 {
     // These variables are used to hold values we want to output to video memory.
     const UNSIGNED32 systemTickTimeInHz = 1000000 / systemTickInMicroseconds();
-    const UINT32 MAX_IDLE_FRAMES = (5 * 60) * systemTickTimeInHz;
+    const UINT32 MAX_IDLE_FRAMES = 15 * systemTickTimeInHz;
+
+    void *theAreg;
+    accessStyle asA;
+    UNSIGNED32 myChanID;
+    resourceStatus  status;
+    platformResourceHandle hA;
 
     UINT32 i;
-
+    UINT32 start;
+    UINT32 td;
     SecComm secComm;
     UINT32 frames = 0;
+    UINT32 cmdIdle = 0;
     UINT32 lastCmdAt = 0;
 
+    _10msec = 0;
+
     memset( &aseCommon, 0, sizeof(aseCommon));
+    memset( &nextTime, 0, sizeof(nextTime));
+
+    // default time 
+    aseCommon.time.tm_year = 2013;
+    aseCommon.time.tm_mon  = 7;
+    aseCommon.time.tm_mday = 26;
+
+    nextTime.tm_year = 2013;
+    nextTime.tm_mon  = 7;
+    nextTime.tm_mday = 27;
 
     // default to MS being online
     aseCommon.bMsOnline = true;
@@ -105,43 +126,72 @@ int main(void)
     aseCommon.systemTickPtr = systemTickPointer();
 
     debug_str_init();
-
-    // Initially create the adrf to start it running.
-    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
-    debug_str(AseMain, 5, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
-
-    aseCommon.bPowerOnState = (processSuccess == adrfProcStatus);
+    videoRedirect = AseMain;
 
     secComm.Run();
 
     // Run all of the cmd response threads
-    for (i=0; i < MAX_CMD_RSP; ++i)
+    for (i=0; cmdRspThreads[i] != NULL; ++i)
     {
         cmdRspThreads[i]->Run(&aseCommon);
     }
 
-    //FileSystemTestBig();
+    // default to Channel A
+    aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
-    debug_str(AseMain, 2, 0, "Last Cmd Id: 0");
+    // overhead of timing
+    start = HsTimer();
+    td = HsTimeDiff(start);
+    td = HsTimeDiff(start);
 
+    // see CheckCmds - where this is updated
+    debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
+
+    // Initially create the adrf to start it running.
+    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
+    debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
+
+    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
 
     // The main thread goes into an infinite loop.
     while (1)
     {
-        // Write the system tick value to video memory.
-        debug_str(AseMain, 0, 0, "SecComm(%s) %d",
-                  secComm.GetSocketInfo(),
-                  frames);
+        // call the base class to get the first row
+        cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
 
-        debug_str(AseMain, 1, 0, "Rx(%d) Tx(%d)",
-                  secComm.GetRxCount(),
-                  secComm.GetTxCount()
+        debug_str(AseMain, 1, 0, "ASE: %s %04d/%02d/%02d %02d:%02d:%02d.%0.3d in channel %s",
+                  version,
+                  aseCommon.time.tm_year,
+                  aseCommon.time.tm_mon,   // month    0..11
+                  aseCommon.time.tm_mday,  // day of the month  1..31
+                  aseCommon.time.tm_hour,  // hours    0..23
+                  aseCommon.time.tm_min,   // minutes  0..59
+                  aseCommon.time.tm_sec,   // seconds  0..59
+                  _10msec,
+                  aseCommon.isChannelA ? "A" : "B"
                   );
 
-        debug_str(AseMain, 3, 0, "%s", secComm.GetErrorMsg());
+        // Write the system tick value to video memory.
+        debug_str(AseMain, 2, 0, "SecComm(%s) %d - %d",
+                  secComm.GetSocketInfo(),
+                  frames, td);
+
+        debug_str(AseMain, 3, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
+                  secComm.GetRxCount(),
+                  secComm.GetTxCount(),
+                  secComm.isRxing ? "Yes" : "No ",
+                  secComm.forceConnectionClosed ? "Yes" : "No",
+                  cmdIdle+1,
+                  MAX_IDLE_FRAMES
+                  );
+
+        debug_str(AseMain, 4, 0, "%s", secComm.GetErrorMsg());
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
+        
+        UpdateTime();
+
         frames += 1;
 
         // Any new cmds seen
@@ -149,10 +199,15 @@ int main(void)
         {
             lastCmdAt = frames;
         }
-        else if ((frames - lastCmdAt) > MAX_IDLE_FRAMES)
+        else
         {
-            secComm.forceConnectionClosed = TRUE;
-            lastCmdAt = frames;
+            // no connection loss timeout if we are running a script
+            cmdIdle = frames - lastCmdAt;
+            if (cmdIdle > MAX_IDLE_FRAMES)
+            {
+                secComm.forceConnectionClosed = TRUE;
+                lastCmdAt = frames;
+            }
         }
 
         aseCommon.bConnected = secComm.IsConnected();
@@ -160,8 +215,45 @@ int main(void)
 }
 
 //-------------------------------------------------------------------------------------------------
+// Update the wall clock time - PySte will resend every now and then but wee need to maintain it
+// between those updates.
+static void UpdateTime()
+{
+    // keep time
+    _10msec += 10;
+    if (_10msec >= 1000)
+    {
+        _10msec = 0;
+        aseCommon.time.tm_sec += 1;
+        if (aseCommon.time.tm_sec >= 60)
+        {
+            aseCommon.time.tm_sec = 0;
+            aseCommon.time.tm_min += 1;
+            if (aseCommon.time.tm_min >= 60)
+            {
+                aseCommon.time.tm_min = 0;
+                aseCommon.time.tm_hour += 1;
+                if (aseCommon.time.tm_hour >= 24)
+                {
+                    aseCommon.time.tm_hour = 0;
+                    aseCommon.time.tm_year = nextTime.tm_year;
+                    aseCommon.time.tm_mon = nextTime.tm_mon;
+                    aseCommon.time.tm_mday = nextTime.tm_mday;
+                }
+            }
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
+    void *theAreg;
+    accessStyle asA;
+    UNSIGNED32 myChanID;
+    resourceStatus  status;
+    platformResourceHandle hA;
+
     UINT32 i;
     BOOLEAN cmdSeen = FALSE;
     BOOLEAN serviced = FALSE;
@@ -172,29 +264,36 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         cmdSeen = TRUE;
         SecRequest request = secComm.m_request;
 
-        debug_str(AseMain, 2, 0, "Last Cmd Id: %d        ", request.cmdId);
+        videoRedirect = (VID_DEFS)request.videoDisplay;
+
+        debug_str(AseMain, 5, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {
         case eRunScript:
             aseCommon.bScriptRunning = TRUE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eScriptDone:
             aseCommon.bScriptRunning = FALSE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eShutdown:
             aseCommon.bScriptRunning = FALSE;
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case ePing:
+            // ping carries the current time and next time
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -208,8 +307,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                                                                  adrfName,
                                                                  adrfProcStatus);
                 // Update the global-shared data block
-                aseCommon.bPowerOnState = TRUE;
+                aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
             }
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -226,8 +326,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 adrfProcHndl   = NULL;
             }
             // Update the global-shared data block
-            aseCommon.bPowerOnState = FALSE;
+            aseCommon.adrfState = eAdrfOff;
 
+            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -247,22 +348,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        case eVideoRedirect:
-            // Kill the ADRF process to simulate behavior during power off
-            if (request.variableId >= VID_SYS || request.variableId < VID_MAX)
-            {
-                videoRedirect = (VID_DEFS)request.variableId;
-                secComm.m_response.successful = TRUE;
-            }
-            else
-            {
-                secComm.ErrorMsg("Invalid Video Screen ID: Accept 0..%d, got %d", VID_MAX-1, request.variableId);
-                secComm.m_response.successful = FALSE;
-            }
+        //---------------
+        case eSetChanId:
+            ioiProc.SetChanId(request.variableId);
+
+            // default to Channel A
+            aseCommon.isChannelA = ioiProc.GetChanId() == 1;
+
+            secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
-
-
 
         default:
             break;
@@ -289,188 +384,19 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     return cmdSeen;
 }
 
-processStatus CreateAdrfProcess()
+//-------------------------------------------------------------------------------------------------
+static void SetTime(SecRequest& request)
 {
-    return createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+    aseCommon.time.tm_year = request.variableId;  // year from 1900
+    aseCommon.time.tm_mon  = request.sigGenId;   // month    0..11
+    aseCommon.time.tm_mday = request.resetRequest;  // day of the month  1..31
+    aseCommon.time.tm_hour = request.clearCfgRequest;  // hours    0..23
+    aseCommon.time.tm_min  = int(request.value);   // minutes  0..59
+    aseCommon.time.tm_sec  = int(request.param1);   // seconds  0..59
+
+    nextTime.tm_year = int(request.param2);
+    nextTime.tm_mon  = int(request.param3);
+    nextTime.tm_mday = int(request.param4);
+
+    _10msec = 0;
 }
-
-void FileSystemTestSmall()
-{
-    char writeTest[] =
-    {   "[01 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[02 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[03 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[04 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[05 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[06 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[07 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[08 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[09 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[10 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[11 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[12 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[13 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[14 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[15 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[16 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[17 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[18 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[19 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[20 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[21 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[22 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[23 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[24 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[25 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[26 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[27 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[28 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[29 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[30 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[31 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[32 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[33 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[34 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[35 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[36 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[37 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[38 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[39 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[40 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[41 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[42 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[43 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[44 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[45 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[46 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[47 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-        "[48 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ]"
-   };
-    SIGNED16   i, recSize = 41;
-    char readTest[50*41];
-    UNSIGNED32 offset  = 0;
-    BOOLEAN ok = TRUE;
-    File      fileObj;
-
-    fileObj.Delete("TestFile.cfg", File::ePartCmProc);
-
-    // PERFORM WRITE
-    if (1)
-    {
-        fileObj.Open("TestFile.cfg", File::ePartCmProc, 'w');
-        do
-        {
-            if (!fileObj.Write(&writeTest[offset], recSize))
-            {
-                ok = FALSE;
-            }
-            offset += recSize;
-        }
-        while( ok && offset < strlen(writeTest) );
-        fileObj.Close();
-    }
-
-    // PERFORM READ
-    fileObj.Open("TestFile.cfg", File::ePartCmProc, 'r');
-    offset  = 0;
-    SIGNED32 bytesRead = 0;
-    memset(readTest, 0x20, sizeof(readTest) );
-    do
-    {
-        bytesRead = fileObj.Read(&readTest[offset], recSize);
-        if (bytesRead == 0)
-        {
-            ok = FALSE;
-        }
-        offset += bytesRead;
-    }
-    while(ok && offset < strlen(writeTest));
-    fileObj.Close();
-
-    // COMPARE
-    UNSIGNED32 size = strlen(writeTest);
-    if ( 0 == strncmp(writeTest, readTest, size) )
-    {
-        i = 42;
-    }
-    else
-    {
-        i = 42;
-    }
-}
-
-// write and read back/verify 8K integer numbers
-void FileSystemTestBig()
-{
-    UNSIGNED32 limit = 8192;
-    SIGNED16   i, recSize;
-    SIGNED32   len;
-
-    BOOLEAN ok = TRUE;
-    #define SIZE 13
-    UNSIGNED32 writeBuff[SIZE];
-    UNSIGNED32 expectBuff[SIZE];
-    UNSIGNED32 readBuff[SIZE];
-    File      fileObj;
-    void* ptr;
-
-    recSize = sizeof(writeBuff);
-    len     = SIZE;
-
-    fileObj.Delete("TestFile.cfg", File::ePartCmProc);
-
-    // PERFORM WRITE
-    if (1)
-    {
-        fileObj.Open("TestFile.cfg", File::ePartCmProc, 'w');
-        ptr = (void*)&writeBuff;
-        for (i = 0; i < limit; ++i)
-        {
-            // Fill a buffer with incrementing numbers
-            writeBuff[i%SIZE] = i;
-
-            // When the buffer is full, write it out
-            if ((i%SIZE) == (SIZE -1))
-            {
-                if (!fileObj.Write( ptr, recSize ))
-                {
-                    ok = FALSE;
-                }
-            }
-        }
-        fileObj.Close();
-    }
-
-    // PERFORM READ
-    fileObj.Open("TestFile.cfg", File::ePartCmProc, 'r');
-    ok = TRUE;
-    SIGNED32 bytesRead = 0;
-    BOOLEAN result = TRUE;
-
-    ptr = (void*)&readBuff;
-    void* ptrE = (void*)&expectBuff;
-
-    for (i = 0; (i < limit + 2) && ok; ++i)
-    {
-
-        // Fill a buffer with incrementing numbers
-        expectBuff[i%SIZE] = i;
-
-        // When the buffer is full read the next rec and compare to expect
-        if ((i%SIZE) == (SIZE -1))
-        {
-            bytesRead = fileObj.Read(ptr, recSize);
-            if (bytesRead == 0)
-            {
-                ok = FALSE;
-            }
-
-            if (memcmp(readBuff,expectBuff,recSize) != 0)
-            {
-                result = FALSE;
-            }
-        }
-    }
-    fileObj.Close();
-}
-

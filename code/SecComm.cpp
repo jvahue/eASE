@@ -27,8 +27,9 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
-#include "SecComm.h"
+#include "AseCommon.h"
 
+#include "SecComm.h"
 
 /*****************************************************************************/
 /* Local Defines                                                             */
@@ -46,10 +47,10 @@ $Revision: $  $Date: $
 /* Constant Data                                                             */
 /*****************************************************************************/
 static const CHAR* conSts[] = {
-    "No Socket      ",
-    "Wait Connection",
-    "No Connection  ",
-    "Connected      ",
+    "No Socket",
+    "Wait Conn",
+    "No Conn",
+    "Connected",
 };
 
 /*****************************************************************************/
@@ -69,6 +70,7 @@ SecComm::SecComm()
     , m_port(eSecPortNumber)
     , m_lastSequence(0)
     , forceConnectionClosed(FALSE)
+    , isRxing(false)
     , m_rspType(eRspWait)
     , m_cmdRequest(0)
     , m_cmdServiced(0)
@@ -88,7 +90,8 @@ SecComm::SecComm()
 
     memset((void*)m_errMsg, 0, sizeof(m_errMsg));
     memset((void*)m_ipPort, 0, sizeof(m_ipPort));
-
+    memset((void*)&m_socketAddr, 0, sizeof(m_socketAddr));
+    memset((void*)&m_pysteHandle, 0, sizeof(m_pysteHandle));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +162,7 @@ void SecComm::Process()
         const int MAX_RX = 4096;
         char buffer[MAX_RX];
         int rxed = 0;
-        int result = -1;
+        //int result = -1;
         int cbBytesRet = 0;
         int size = sizeof(SecRequest);
         int socketAddrLen = sizeof(sockaddr_in);
@@ -172,8 +175,9 @@ void SecComm::Process()
         {
             if (forceConnectionClosed)
             {
-                ResetConn();
                 forceConnectionClosed = FALSE;
+                ResetConn();
+                waitUntilNextPeriod();
             }
 
             // if we don't have a client try and get one
@@ -186,6 +190,7 @@ void SecComm::Process()
                 if (m_clientSocket != SOCKET_ERROR)
                 {
                     m_connState = eConnConnected;
+                    forceConnectionClosed = false;
                 }
                 else
                 {
@@ -200,14 +205,18 @@ void SecComm::Process()
             }
 
             rxed = 0;
-            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size)
+            cbBytesRet = 0;
+            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size && !forceConnectionClosed)
             {
+                isRxing = true;
                 cbBytesRet = recv(m_clientSocket, &buffer[rxed], MAX_RX-rxed, 0);
+                isRxing = false;
 
                 if (cbBytesRet != SOCKET_ERROR && cbBytesRet != 0)
                 {
                     rxed += cbBytesRet;
                     m_rxCount += cbBytesRet;
+                    forceConnectionClosed = false;
                 }
                 else if (cbBytesRet == 0)
                 {
@@ -217,9 +226,12 @@ void SecComm::Process()
 
             if (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR)
             {
-                CheckCmd( buffer, size);
+                if (cbBytesRet > 0)
+                {
+                    CheckCmd( buffer, size);
+                }
             }
-            else
+            else if (!forceConnectionClosed)
             {
                 socketErrorType* lastErr;
                 lastErr = socketTransportLastError();
@@ -318,8 +330,7 @@ void SecComm::SendResponse()
             m_snsNames.checksum = Checksum( &m_snsNames, sizeof( m_snsNames));
             SendAny( (char*)&m_snsNames, sizeof( m_snsNames));
             memset((void*)&m_snsNames, 0, sizeof(m_snsNames));
-       }
-
+        }
         m_rspType = eRspWait;
     }
 }
@@ -374,7 +385,8 @@ INT32 SecComm::SetupTransport(clientConnectionHandleType &connectionHandle, CHAR
     }
     else
     {
-        setupStatus = socketTransportClientInitialize((DWORD)waitIndefinitely, &setupError);
+        setupStatus = socketTransportClientInitialize((DWORD)waitIndefinitely,
+                                                      &setupError);
         if (setupStatus != transportSuccess)
         {
             sprintf(m_errMsg,
@@ -449,7 +461,7 @@ const CHAR* SecComm::GetSocketInfo()
 //--------------------------------------------------------------------------------------------------
 void SecComm::ErrorMsg( char* format, ...)
 {
-    char buffer[1024];
+    char buffer[512];
 
     va_list args;
     va_start( args, format);

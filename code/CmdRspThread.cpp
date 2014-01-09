@@ -20,6 +20,8 @@
 /*****************************************************************************/
 /* Software Specific Includes                                                */
 /*****************************************************************************/
+#include "AseCommon.h"
+
 #include "CmdRspThread.h"
 
 /*****************************************************************************/
@@ -37,6 +39,12 @@
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
+static const char* adrfState[] = {
+    "Off",
+    "On",
+    "Ready",
+};
+
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -52,20 +60,20 @@
 CmdRspThread::CmdRspThread()
     : m_systemTick(0)
     , m_frames(0)
-
+    , m_overrunCount(0)
+    , m_updateDisplay(true)
 {
-    memset(m_blankLine, 0x20, sizeof(m_blankLine));
-    m_blankLine[80] = '\0';
-
 }
 
 void CmdRspThread::Process()
 {
+    UINT32 theLine = 0;
+
     while (1)
     {
         m_systemTick = GET_SYSTEM_TICK;
         m_frames += 1;
-        if (IS_POWER_ON)
+        if (IS_ADRF_ON)
         {
             RunSimulation();
         }
@@ -75,12 +83,15 @@ void CmdRspThread::Process()
         }
 
         // check if we overran
-        if (m_systemTick < GET_SYSTEM_TICK)
+        if (m_systemTick != GET_SYSTEM_TICK)
         {
             m_overrunCount += 1;
         }
 
-        UpdateDisplay();
+        if (m_updateDisplay)
+        {
+            theLine = UpdateDisplay(VID_SYS, theLine);
+        }
 
         waitUntilNextPeriod();
     }
@@ -94,16 +105,19 @@ void CmdRspThread::RunSimulation()
 // Function: UpdateDisplay
 // Description: Display the common proc state info at the top of the screen
 //
-void CmdRspThread::UpdateDisplay(VID_DEFS who)
+int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
-    debug_str(who, 0, 0, "ePySte: %s ADRF: %s MS: %s Script: %s Frame: %d",
-              IS_CONNECTED ? "Conn  " : "NoConn",
-              IS_POWER_ON ? "On" : "Off",
+    debug_str(who, theLine, 0,
+              "ePySte(%s) ADRF(%s) MS(%s) Script(%s) Frame(%d/%d)",
+              IS_CONNECTED ? "Conn" : "NoConn",
+              adrfState[m_pCommon->adrfState],
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",
-              m_frames
+              m_frames, m_overrunCount
               );
+
+    return theLine;
 }
 
 //-------------------------------------------------------------------------------------------------

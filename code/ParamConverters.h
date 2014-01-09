@@ -15,18 +15,10 @@
 //----------------------------------------------------------------------------/
 // Software Specific Includes                                                -/
 //----------------------------------------------------------------------------/
-#include "alt_stdtypes.h"
-
-#include "AseCommon.h"
 
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
 //----------------------------------------------------------------------------/
-#define BNR_VALID_SSM               0x08
-#define BCD_VALID_SSM               0x09
-#define DISC_VALID_SSM              0x01
-
-
 #define ARINC_MSG_PARITY_BIT        0x80000000UL
 #define ARINC_MSG_SSM_BITS          0x60000000UL
 #define ARINC_MSG_SIGN_BIT          0x10000000UL
@@ -38,7 +30,7 @@
 #define ARINC_MSG_VALID_BIT         ARINC_MSG_PARITY_BIT
 
 #define MASK1(s) ((1 << (s)) - 1)
-#define FIELD(m,l) (MASK1((m+1)-l) << l)
+#define FIELD(m,l) (MASK1((m+1)-(l)) << (l))
 
 #define A429_FldPutLabel(d,l) ((d & 0xFFFFFF00) | (l & 0xFF))
 #define A429_BNRPutSign(d,s)  ((d & 0x6FFFFFFF) | ((s & 1) << 28))
@@ -104,12 +96,27 @@ struct ARINC429_WORD_INFO
 
 };
 
+// Parameter Configuration info
+struct ParamCfg {
+    UINT32 index;
+    UINT32 masterId;
+    ParameterName name;
+    UINT32 rateHz;
+    PARAM_SRC_ENUM src;
+    PARAM_FMT_ENUM fmt;
+    UINT32 gpa;
+    UINT32 gpb;
+    UINT32 gpc;
+    FLOAT32 scale;
+};
+
 //==================================================================================================
 class ParamConverter
 {
 public:
     ParamConverter();
-    void Reset(UINT32 masterId, PARAM_FMT_ENUM fmt, UINT32 gpa, UINT32 gpb, UINT32 gpc, UINT32 scale);
+    void Reset();
+    void Init(ParamCfg* paramInfo);
     virtual UINT32 Convert(FLOAT32 value);
     void SetIoiName();
     
@@ -118,8 +125,9 @@ public:
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
+    PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
-    UINT32  m_scale;       // the current value for the parameter
+    FLOAT32 m_scale;       // the current value for the parameter
     FLOAT32 m_maxValue;
     FLOAT32 m_scaleLsb;    // the current value for the parameter
     UINT32  m_data;        // the current value for the parameter
