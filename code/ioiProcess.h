@@ -4,6 +4,7 @@
 #include <ioiapi.h>
 
 #include "CmdRspThread.h"
+#include "File.h"
 #include "MailBox.h"
 #include "Parameter.h"
 #include "ccdl.h" // this needs to be after CmdRspThread.h so it get video.h
@@ -60,6 +61,9 @@ protected:
 
     int PageIoiStatus(int theLine, bool& nextPage);
     int PageParams(int theLine, bool& nextPage);
+    
+    int GetChanId(void) const; // 0=B, 1=A
+    bool SetChanId(int chanId);
 
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
@@ -100,6 +104,9 @@ protected:
     MailBox m_ccdlIn;   // local to remote ADRF - we own this
     MailBox m_ccdlOut;  // remote to local ADRF - ADRF owns this
 
+    INT32 m_chanId;       // 0=B, 1=A
+    File  m_chanIdFile;
+    INT32 m_ioiChanId; 
 };
 
 #endif
