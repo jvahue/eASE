@@ -100,7 +100,7 @@ IoiProcess::IoiProcess()
 // Function: GetChanId
 // Description: Try to read the chanId if it has not been initialized
 //
-int IoiProcess::GetChanId(void) const
+int IoiProcess::GetChanId(void)
 {
 #define CHAN_A 1
     if (m_chanId == -1 || !(m_chanId == 0 || m_chanId == 1))

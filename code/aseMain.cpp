@@ -351,6 +351,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         //---------------
         case eSetChanId:
             ioiProc.SetChanId(request.variableId);
+
+            // default to Channel A
+            aseCommon.isChannelA = ioiProc.GetChanId() == 1;
+
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
