@@ -119,19 +119,6 @@ int main(void)
     nextTime.tm_mon  = 7;
     nextTime.tm_mday = 27;
 
-    status = attachPlatformResource("", "FPGA_CHAN_ID", &hA, &asA, &theAreg);
-    status = readPlatformResourceDWord(hA, 0, &myChanID);
-
-    // determine which channel we are in
-    if ((myChanID & 0x3) == 1)
-    {
-        aseCommon.isChannelA = true;
-    }
-    else
-    {
-        aseCommon.isChannelA = false;
-    }
-
     // default to MS being online
     aseCommon.bMsOnline = true;
 
@@ -148,6 +135,9 @@ int main(void)
     {
         cmdRspThreads[i]->Run(&aseCommon);
     }
+
+    // default to Channel A
+    aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
     // overhead of timing
     start = HsTimer();
@@ -358,31 +348,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-#ifdef VM_WARE
-        // when running in VM land we can set the channel to whatever we want
+        //---------------
         case eSetChanId:
-            // In VM land we default our selves to Channel B
-            status = attachPlatformResource("", "FPGA_CHAN_ID", &hA, &asA, &theAreg);
-            status = readPlatformResourceDWord(hA, 0, &myChanID);
+            ioiProc.SetChanId(request.variableId);
 
-            // make this chanB
-            myChanID = (myChanID & ~0x3) | (request.variableId & 0x3);
-            status = writePlatformResourceDWord( hA, 0, myChanID );
-
-            // determine which channel we are now in
-            if ((myChanID & 0x3) == 0)
-            {
-                aseCommon.isChannelA = true;
-            }
-            else
-            {
-                aseCommon.isChannelA = false;
-            }
+            // default to Channel A
+            aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
-#endif
 
         default:
             break;

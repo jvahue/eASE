@@ -54,6 +54,8 @@ static const char* ioiInitStatus[] = {
     "CannotAttachToSMO"
 };
 
+static const CHAR chanIdFileName[] = "chanId";
+
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
@@ -78,6 +80,7 @@ IoiProcess::IoiProcess()
     , m_totalParamTime(0)
     , m_totalIoiTime(0)
     , m_ccdl(&aseCommon)
+    , m_chanId(-1)
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -87,11 +90,59 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
+
 }
 
 /****************************************************************************
  public methods for IoIProcess
 ****************************************************************************/
+//-------------------------------------------------------------------------------------------------
+// Function: GetChanId
+// Description: Try to read the chanId if it has not been initialized
+//
+int IoiProcess::GetChanId(void)
+{
+#define CHAN_A 1
+    if (m_chanId == -1 || !(m_chanId == 0 || m_chanId == 1))
+    {
+        if (m_chanIdFile.Open(chanIdFileName, File::ePartCmProc, 'r'))
+        {
+            if (m_chanIdFile.Read(&m_chanId, 4) != 4)
+            {
+                m_chanId = -1;
+            }
+        }
+
+        m_chanIdFile.Close();
+
+        if (m_chanId == -1)
+        {
+            // we were not able to read the file, default to A and save it.
+            SetChanId(CHAN_A);
+        }
+    }
+
+    return m_chanId;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: SetChanId
+// Description: Set the channel Id and save i to the file and write it to the ioi
+//
+bool IoiProcess::SetChanId(int chanId)
+{
+    if (m_chanIdFile.Open(chanIdFileName, File::ePartCmProc, 'w'))
+    {
+        m_chanIdFile.Write(&m_chanId, 4);
+    }
+
+    m_chanIdFile.Close();
+
+    m_chanId = chanId;
+
+    // No status check - what would we do on failure
+    ioi_write(m_ioiChanId, &m_chanId);
+}
 
 //-------------------------------------------------------------------------------------------------
 // Function: Run
@@ -106,7 +157,10 @@ void IoiProcess::Run()
     // ioi data
     processStatus ps = createProcessAlias( "IO");
 
-    // create the CCDL mailboxes
+    // send out the channel ID - look no return status checks
+    ioi_open("chn_id", ioiWritePermission, (int*)&m_ioiChanId);
+    m_chanId = GetChanId();    // create the CCDL mailboxes
+
     //--------------------------------------------------------------------------
     // Set up mailboxes for CCDL with ADRF
     m_ccdlIn.Create(CC_RX_MBOX_NAME_ASE, CC_MAX_SIZE, eMaxQueueDepth);
