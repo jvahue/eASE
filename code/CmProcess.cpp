@@ -48,6 +48,7 @@ static const char* gsePortNames[] = {
     "GSE",
     "MFD",
     "ACARS",
+    "LiveData",
     "Unknown"
 };
 
@@ -68,14 +69,14 @@ CmProcess::CmProcess()
     memset( m_rqstFile, 0, sizeof(m_rqstFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
     memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
-    memset( (void*)&m_gseCmd, 0, sizeof(m_gseCmd));
+    memset( (void*)&m_txStreamCmd, 0, sizeof(m_txStreamCmd));
 
-    m_gseCmd[GSE_SOURCE_CM].gseVer = 1;
-    m_gseCmd[GSE_SOURCE_CM].gseSrc = GSE_SOURCE_CM;
-    m_gseCmd[GSE_SOURCE_MFD].gseVer = 1;
-    m_gseCmd[GSE_SOURCE_MFD].gseSrc = GSE_SOURCE_MFD;
-    m_gseCmd[GSE_SOURCE_ACARS].gseVer = 1;
-    m_gseCmd[GSE_SOURCE_ACARS].gseSrc = GSE_SOURCE_ACARS;
+    m_txStreamCmd[GSE_SOURCE_CM].gseVer = 1;
+    m_txStreamCmd[GSE_SOURCE_CM].gseSrc = GSE_SOURCE_CM;
+    m_txStreamCmd[GSE_SOURCE_MFD].gseVer = 1;
+    m_txStreamCmd[GSE_SOURCE_MFD].gseSrc = GSE_SOURCE_MFD;
+    m_txStreamCmd[GSE_SOURCE_ACARS].gseVer = 1;
+    m_txStreamCmd[GSE_SOURCE_ACARS].gseSrc = GSE_SOURCE_ACARS;
 }
 
 /****************************************************************************
@@ -96,6 +97,10 @@ void CmProcess::Run()
 
     // Connect to the the GSE recv box in the ADRF.
     m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
+
+    // Set up  the Live Data (Stream) Mailbox
+    m_liveInBox.Create(CM_STREAM_MAILBOX, sizeof(GSE_RESPONSE), eMaxQueueDepth);
+    m_liveInBox.IssueGrant(adrfProcessName);
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for processing reconfig msg from ADRF
@@ -135,6 +140,7 @@ void CmProcess::RunSimulation()
     m_fileXfer.ProcessFileXfer(IS_MS_ONLINE, m_fileXferInBox, m_fileXferOutBox);
 
     ProcessGseMessages();
+    ProcessLiveData();
 
     if (m_gseOutBox.GetIpcStatus() == ipcValid)
     {
@@ -200,7 +206,7 @@ void CmProcess::ProcessGseMessages()
             int size = strlen(rsp.rspMsg);
             if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)  
             {
-                m_gseRxFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
+                m_rxStreamFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
             }
             else
             {
@@ -211,6 +217,30 @@ void CmProcess::ProcessGseMessages()
     else
     {
         m_gseInBox.Reset();
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function: ProcessLiveData
+// Description: receive and buffer live data stream
+//
+void CmProcess::ProcessLiveData()
+{
+    if (m_liveInBox.GetIpcStatus() == ipcValid)
+    {
+        CHAR rspBuffer[3000];
+
+        // If not expecting a resp msg and time has elapsed to request the
+        // Expecting cmd response ... check inbox.
+        if( m_liveInBox.Receive(&rspBuffer, sizeof(rspBuffer)) )
+        {
+            int size = strlen(rspBuffer);
+            m_rxStreamFifo[GSE_SOURCE_MAX].Push(rspBuffer, size);
+        }
+    }
+    else
+    {
+        m_liveInBox.Reset();
     }
 }
 
@@ -262,12 +292,12 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             if ( request.charDataSize < GSE_MAX_LINE_SIZE)
             {
-                memcpy((void*)m_gseCmd[port].commandLine, 
+                memcpy((void*)m_txStreamCmd[port].commandLine, 
                        (void*)request.charData, 
                        request.charDataSize);
-                m_gseCmd[port].commandLine[request.charDataSize] = '\0';
+                m_txStreamCmd[port].commandLine[request.charDataSize] = '\0';
 
-                m_gseOutBox.Send(&m_gseCmd[port], sizeof(m_gseCmd[0]));
+                m_gseOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
                 secComm.m_response.successful = TRUE;
 
                 // GSE Special
@@ -296,10 +326,10 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
     case eReadStream:
         port = request.variableId;  // 0 = gse, 1 = ms
-        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        if (port >= GSE_SOURCE_CM && port < (GSE_SOURCE_MAX+1))
         {
             secComm.m_response.streamSize = 
-                m_gseRxFifo[port].Pop(secComm.m_response.streamData, eSecStreamSize);
+                m_rxStreamFifo[port].Pop(secComm.m_response.streamData, eSecStreamSize);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
         }
@@ -316,9 +346,9 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         // TODO: maybe - this should set a flag to the main thread,
         //       read stream above would need to monitor the flag then
         port = request.variableId;  // 0 = gse, 1 = ms
-        if (port >= GSE_SOURCE_CM && port < GSE_SOURCE_MAX)
+        if (port >= GSE_SOURCE_CM && port < (GSE_SOURCE_MAX+1))
         {
-            m_gseRxFifo[port].Reset();
+            m_rxStreamFifo[port].Reset();
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
         }
@@ -599,8 +629,9 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
        break;
 
     case 2:
-        debug_str(CmProc, theLine, 0, "RxFifo - Gse:%d Mfd:%d ACARS:%d Invalid:%d", 
-            m_gseRxFifo[0].Used(), m_gseRxFifo[1].Used(), m_gseRxFifo[2].Used(),
+        debug_str(CmProc, theLine, 0, "RxFifo - Gse:%d Mfd:%d ACARS:%d LiveData:%d Invalid:%d",
+            m_rxStreamFifo[0].Used(), m_rxStreamFifo[1].Used(),
+            m_rxStreamFifo[2].Used(), m_rxStreamFifo[3].Used(),
             m_invalidSrc);
         break;
 

@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-1470800035"
-     fileDate = "Thu Jan 09 16:45:12 2014"
+     validityKey = "-2124561001"
+     fileDate = "Tue Jan 14 18:14:54 2014"
      toolVersion = "3.4.0"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -60735,6 +60735,132 @@
            comment = "FR_EICAS1_HMU, R_ENG_FUEL_FLOW_BNR"
       ></producedItem>
       <producedItem
+           name = "BatInputVdc"
+           productionRate = "100000"
+           messageForm = "f"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Aircraft Battery Input Supply Volts DC at 1sec"
+      ></producedItem>
+      <producedItem
+           name = "BatSwOutVdc"
+           productionRate = "100000"
+           messageForm = "f"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Aircraft Battery Switch Output Volts DC at 1sec"
+      ></producedItem>
+      <producedItem
+           name = "BrdTempDegC"
+           productionRate = "10000"
+           messageForm = "f"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Board Temp"
+      ></producedItem>
+      <producedItem
+           name = "BrdTempFail"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Board Temp Fail"
+      ></producedItem>
+      <producedItem
+           name = "BrdTempInitFail"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Board Temp Init Fail"
+      ></producedItem>
+      <producedItem
+           name = "BrdTempOpFail"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Board Temp Op Fail"
+      ></producedItem>
+      <producedItem
+           name = "BrdTempRngFail"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Board Temp Rng Fail"
+      ></producedItem>
+      <producedItem
+           name = "HLEIFFaultInd2"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "A429 - production rate of 1 sec"
+      ></producedItem>
+      <producedItem
+           name = "HLEIFFaultIndication"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "A429 - production rate of 1 sec"
+      ></producedItem>
+      <producedItem
+           name = "HLEIFStatusWord1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "A429 - production rate of 1 sec"
+      ></producedItem>
+      <producedItem
+           name = "HMUPartNumber"
+           productionRate = "aperiodic"
+           messageForm = "16B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Part Number send out during init"
+      ></producedItem>
+      <producedItem
+           name = "HMUSerialNumber"
+           productionRate = "aperiodic"
+           messageForm = "16B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "Serial Number send out during init"
+      ></producedItem>
+      <producedItem
+           name = "PWSwDwgNumber"
+           productionRate = "aperiodic"
+           messageForm = "BBBBBBBBBBBBBBBBB"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "PW SW Dwd Number send out during init"
+      ></producedItem>
+      <producedItem
+           name = "UTASSwDwgNumber"
+           productionRate = "aperiodic"
+           messageForm = "BBBBBBBBBBBBBBBBB"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "UTAS SW Dwd Number send out during init"
+      ></producedItem>
+      <producedItem
            name = "ac_aoa1_raw"
            productionRate = "50000"
            messageForm = "I"
@@ -60778,6 +60904,33 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:10"
            comment = "5: 1 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_tail_num_high_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "89: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_tail_num_low_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "87: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ac_tail_num_mid_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "88: 100 Hz"
       ></producedItem>
       <producedItem
            name = "ac_type_raw"
@@ -60915,6 +61068,60 @@
            comment = "20: 20 Hz"
       ></producedItem>
       <producedItem
+           name = "aircraft_id_1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "aircraft_id_2"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "aircraft_id_3"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "aircraft_id_4"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "aircraft_id_5"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "aircraft_id_par"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
            name = "airspeed1_raw"
            productionRate = "250000"
            messageForm = "I"
@@ -60960,6 +61167,33 @@
            comment = "processDiscreteInputs will write once after initialization"
       ></producedItem>
       <producedItem
+           name = "disc_spare_1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "disc_spare_2"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "disc_spare_3"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
            name = "flap_pos1_raw"
            productionRate = "200000"
            messageForm = "I"
@@ -60976,6 +61210,33 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:10"
            comment = "26: 5 Hz"
+      ></producedItem>
+      <producedItem
+           name = "flight_leg_raw"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "90: 100 Hz"
+      ></producedItem>
+      <producedItem
+           name = "ground_service_mode"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "hmu_option_data_raw"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "HMU Option data label 051"
       ></producedItem>
       <producedItem
            name = "lat_accel1_raw"
@@ -61147,6 +61408,42 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:10"
            comment = "45: 4 Hz"
+      ></producedItem>
+      <producedItem
+           name = "micro_server_health_ind1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "MS Fault word1 label 340"
+      ></producedItem>
+      <producedItem
+           name = "micro_server_health_ind2"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "MS Fault word1 label 341"
+      ></producedItem>
+      <producedItem
+           name = "micro_server_internal_status"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "microserver status for HMU internal use"
+      ></producedItem>
+      <producedItem
+           name = "micro_server_status_word1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "microserver status for HMU internal use"
       ></producedItem>
       <producedItem
            name = "norm_accel1_raw"
@@ -61383,6 +61680,69 @@
            comment = "71: 100 Hz"
       ></producedItem>
       <producedItem
+           name = "rtc_io_rd_date"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_date"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_day"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_day"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_hour"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_hour"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_minutes"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_minutes"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_month"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_month"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_seconds"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_seconds"
+      ></producedItem>
+      <producedItem
+           name = "rtc_io_rd_year"
+           productionRate = "1000000"
+           messageForm = "B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "rtc_io_rd_year"
+      ></producedItem>
+      <producedItem
            name = "ships_date_raw"
            productionRate = "1000000"
            messageForm = "I"
@@ -61455,6 +61815,42 @@
            comment = "81: 20 Hz"
       ></producedItem>
       <producedItem
+           name = "ubmf_health_ind"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "A429 low Rate Parameter Group B - production rate of 50 msec"
+      ></producedItem>
+      <producedItem
+           name = "umbf_status_word1"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "A429 low Rate Parameter Group B - production rate of 50 msec"
+      ></producedItem>
+      <producedItem
+           name = "weight_on_wheels"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "wifi_override"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:10"
+           comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
            name = "woffw_pos1_raw"
            productionRate = "100000"
            messageForm = "I"
@@ -61502,13 +61898,103 @@
    </producedItems>
    <consumedItems>
       <consumedItem
+           name = "ADRF_FAULT_DATA"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "13I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "ADRF Fault Data to NVM Manager "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_apm_wrap"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "adrf status word1 label 244"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_cumflt_time"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "hmu cummulative flight time"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_flt_time_current"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "hmu current flight time"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_operator"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "32B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "ac operator from xml"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_owner"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "32B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "ac owner from xml"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_power_on_cnt"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "hmu power on counts"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_data_power_on_time"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "hmu power on time"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
            name = "adrf_health_ind"
            consumptionRate = "100000"
            minimumDataRate = "100000"
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "1 Hz Produced"
+           comment = "adrf health ind label 352"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "adrf_rtc_source"
+           consumptionRate = "100000"
+           minimumDataRate = "100000"
+           messageForm = "2B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "adrf rtc source"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -61518,7 +62004,7 @@
            messageForm = "IH"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "1 Hz Produced"
+           comment = "HMU Real Time Clock"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -61528,7 +62014,7 @@
            messageForm = "IH"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "1 Hz Produced"
+           comment = "Ships Time from either A429/A664"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -61538,7 +62024,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "1 Hz Produced"
+           comment = "adrf status word1 label 257"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -61548,7 +62034,77 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "1 Hz Produced"
+           comment = "adrf status word1 label 240"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_date"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr date "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_day"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr day "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_hour"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr hour "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_minutes"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr minutes "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_month"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr month "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_seconds"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr seconds "
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "rtc_io_wr_year"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "100000"
+           messageForm = "B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "rtc io wr year "
            consumptionOptions = "lastProduced"
       ></consumedItem>
    </consumedItems>
