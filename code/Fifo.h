@@ -51,7 +51,7 @@
 /*****************************************************************************/
 struct FIFO
 {
-    enum FifoConstants {eFifoSize = 2048}; //1024->2048
+    enum FifoConstants {eFifoSize = 4096}; // 1024->2048
     char buffer[eFifoSize];
     int writeCount;
     int readCount;
