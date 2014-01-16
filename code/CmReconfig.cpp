@@ -426,7 +426,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             out.Send( &outData, sizeof(outData));
 
             m_mode = eCmRecfgStatus;
-            m_modeTimeout = 5500;  // 55s timeout on the status response from the ADRF
+            m_modeTimeout = 30000;  // 5min timeout on the status response from the ADRF
         }
         else
         {

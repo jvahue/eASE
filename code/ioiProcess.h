@@ -5,6 +5,7 @@
 
 #include "CmdRspThread.h"
 #include "File.h"
+#include "ioiStatic.h"
 #include "MailBox.h"
 #include "Parameter.h"
 #include "ccdl.h" // this needs to be after CmdRspThread.h so it get video.h
@@ -23,15 +24,10 @@ public:
     enum IoiConstants {
         eIoiFailDisplay = 10,
         eIoiMaxDisplay = 34,  // MUST BE AN EVEN NUMBER 40 or less
-        eMaxPages = 2,
+        eMaxPages = 3,
         eMaxQueueDepth = 2
     };
 
-    //enum IoiState {
-    //    eIoiStateInit,
-    //    eIoiStateInitFail,
-    //    eIoiState
-    //};
 
     IoiProcess();
 
@@ -42,6 +38,7 @@ public:
 
     int GetChanId(void); // 0=B, 1=A
     bool SetChanId(int chanId);
+    void WriteChanId();
 
 protected:
 
@@ -64,6 +61,7 @@ protected:
 
     int PageIoiStatus(int theLine, bool& nextPage);
     int PageParams(int theLine, bool& nextPage);
+    int PageStatic(int theLine, bool& nextPage);
     
     UINT32 m_paramCount;
     UINT32 m_maxParamIndex;
@@ -107,6 +105,10 @@ protected:
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;
     INT32 m_ioiChanId; 
+
+    //------------------------------------------
+    // Static IOI Data
+    StaticIoiContainer m_ioiStatic;
 };
 
 #endif

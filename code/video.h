@@ -36,6 +36,7 @@ VID_DEF(AseMain,       "AseMain", FALSE),\
 VID_DEF(CmProc,        "CmProc",  FALSE),\
 VID_DEF(Ioi,           "Ioi",     FALSE),\
 VID_DEF(Params,        "Params",  FALSE),\
+VID_DEF(Static,        "Static",  FALSE),\
 // ----- If the list changes update eFAST.py in the ePySte -----
 
 #undef  VID_DEF

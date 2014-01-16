@@ -4,7 +4,8 @@
 //
 //    File: ioiProcess.cpp
 //
-//    Description: The file implements the Parameter object processing
+//    Description: The file implements the Parameter object processing.  It 
+//    handles all IOI processing
 //
 //-----------------------------------------------------------------------------
 /*****************************************************************************/
@@ -25,8 +26,8 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
-#define CC_RX_MBOX_NAME_ASE     "ADRF_MBOX_TX"  // these look backwards on purpose
-#define CC_TX_MBOX_NAME_ASE     "ADRF_MBOX_RX"
+#define CC_RX_MBOX_NAME_ASE "ADRF_MBOX_TX"  // these look backwards on purpose
+#define CC_TX_MBOX_NAME_ASE "ADRF_MBOX_RX"
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -90,7 +91,6 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
-
 }
 
 /****************************************************************************
@@ -139,7 +139,11 @@ bool IoiProcess::SetChanId(int chanId)
     m_chanIdFile.Close();
 
     m_chanId = chanId;
+    WriteChanId();
+}
 
+void IoiProcess::WriteChanId()
+{   
     // No status check - what would we do on failure
     ioi_write(m_ioiChanId, &m_chanId);
 }
@@ -171,6 +175,7 @@ void IoiProcess::Run()
 
     // create all of the IOI items
     InitIoi();
+    m_ioiStatic.OpenIoi();
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -189,6 +194,7 @@ void IoiProcess::RunSimulation()
     }
 
     UpdateIoi();
+    m_ioiStatic.UpdateStaticIoi();
 
     // at 50 Hz pack the CCDL message and send it out
     if ((m_systemTick & 1) == 1)
@@ -196,6 +202,11 @@ void IoiProcess::RunSimulation()
         m_ccdl.Update(m_ccdlIn, m_ccdlOut);
     }
 
+    // at 1 Hz send the channel ID
+    if ((m_systemTick % 100) == 0)
+    {
+        WriteChanId();
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -263,7 +274,7 @@ void IoiProcess::UpdateIoi()
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: WriteIoi
 // Description: Write param raw data value to it's ioi thingy
 //
@@ -290,7 +301,7 @@ void IoiProcess::WriteIoi(Parameter* param )
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: UpdateCCDL
 // Description: Update the CCDL and send
 //
@@ -299,7 +310,7 @@ void IoiProcess::UpdateCCDL()
 
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: HandlePowerOff
 // Description: Processing done to simulate the ioi process
 //
@@ -310,7 +321,7 @@ void IoiProcess::HandlePowerOff()
     m_ccdl.Reset();
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: UpdateDisplay
 // Description: Manage the display of the IOI Status page and the Param data page
 //-----------------------------------------------------------------------------
@@ -326,6 +337,10 @@ int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
     {
         theLine = PageParams(theLine, nextPage);
     }
+    else if (m_page == 2)
+    {
+        theLine = PageStatic(theLine, nextPage);
+    }
 
     if (nextPage)
     {
@@ -336,6 +351,7 @@ int IoiProcess::UpdateDisplay(VID_DEFS who, int theLine)
     return theLine;
 }
 
+//---------------------------------------------------------------------------------------------
 int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
 {
     if (theLine == 0)
@@ -387,7 +403,7 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     return theLine;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: PageParams
 // Description: Manage the display of the parameter values and info
 //-----------------------------------------------------------------------------
@@ -480,6 +496,75 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
         }
         break;
     }
+
+    theLine += 1;
+
+    return theLine;
+}
+
+int IoiProcess::PageStatic( int theLine, bool& nextPage )
+{
+#define DELAY_CNT 50
+    char buf1[80];
+    char buf2[80];
+    static UINT32 dix = 0;
+    static UINT32 dLine = 2;
+    static UINT32 updateDelay = 0;
+
+    switch (theLine) {
+    case 0:
+        CmdRspThread::UpdateDisplay(Static, 0);
+        break;
+
+    case 1:
+        debug_str(Static, 1, 0, "Valid(%d/%d) Write Errors(%d) Valid Update: %d", 
+            m_ioiStatic.m_validIoi, 
+            m_ioiStatic.m_ioiStaticCount,
+            m_ioiStatic.m_writeError,
+            m_ioiStatic.m_updateIndex);
+        break;
+
+    default:
+        if (updateDelay == 0)
+        {
+            updateDelay = DELAY_CNT;
+            if ((dix+1) < m_ioiStatic.m_ioiStaticCount)
+            {
+                debug_str(Static, dLine, 0, "%-39s %s",
+                    m_ioiStatic.m_staticIoi[dix]->Display(buf1, dix), 
+                    m_ioiStatic.m_staticIoi[dix+1]->Display(buf2, dix+1));
+                dix += 2;            
+            }
+            else
+            {
+                debug_str(Static, dLine, 0, "%s",
+                    m_ioiStatic.m_staticIoi[dix]->Display(buf1, dix));
+                dix += 1;            
+            }
+
+            if (dix >= m_ioiStatic.m_ioiStaticCount)
+            {
+                dix = 0;
+            }
+
+            dLine += 1;
+            if (dLine >= 20)
+            {
+                dLine = 2;
+            }
+        }
+        else
+        {
+            updateDelay -= 1;
+        }
+        break;
+    }
+
+    if (theLine >= 20)
+    {
+        // display the next page we are done ...
+        nextPage = true;
+    }        
 
     theLine += 1;
 
@@ -824,6 +909,20 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     case eParamIoState:
         m_paramIoRunning = m_parameters[request.variableId].m_isValid != 0;
         secComm.m_response.successful = true;
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eSetStaticIoi:
+        if (m_ioiStatic.SetStaticIoiData(request))
+        {
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("SetIoi: Invalid signal Id(%d)", request.variableId);
+            secComm.m_response.successful = false;
+        }
         serviced = TRUE;
         break;
 
