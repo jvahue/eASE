@@ -52,6 +52,7 @@ StaticIoiInt   si06("disc_spare_1", 0);                        // 06
 StaticIoiInt   si07("disc_spare_2", 0);                        // 07
 StaticIoiInt   si08("disc_spare_3", 0);                        // 08
 StaticIoiInt   si09("ground_service_mode", 0);                 // 09
+
 StaticIoiInt   si10("weight_on_wheels", 0);                    // 10
 StaticIoiInt   si11("wifi_override", 0);                       // 11
 StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
@@ -59,11 +60,12 @@ StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
 StaticIoiByte  si14("rtc_io_rd_hour", 0);                      // 14
 StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
 StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
-StaticIoiByte  si17("rtc_io_rd_year", 0);                      // 17
-StaticIoiInt   si18("ubmf_health_ind", 0);                     // 18
-StaticIoiInt   si19("umbf_status_word1", 0);                   // 19
-StaticIoiInt   si20("flight_leg_raw", 1);                      // 20
-StaticIoiInt   si21("umbf_status_word1", 0);                   // 21
+StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
+StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
+StaticIoiInt   si19("ubmf_health_ind", 0);                     // 19
+
+StaticIoiInt   si20("umbf_status_word1", 0);                   // 20
+StaticIoiInt   si21("flight_leg_raw", 1);                      // 21
 StaticIoiInt   si22("BrdTempFail", 0);                         // 22
 StaticIoiInt   si23("BrdTempInitFail", 0);                     // 23
 StaticIoiInt   si24("BrdTempOpFail", 0);                       // 24
@@ -72,6 +74,7 @@ StaticIoiInt   si26("HLEIFFaultInd2", 0);                      // 26
 StaticIoiInt   si27("HLEIFFaultIndication", 0);                // 27
 StaticIoiInt   si28("HLEIFStatusWord1", 0);                    // 28
 StaticIoiInt   si29("hmu_option_data_raw", 0);                 // 29
+
 StaticIoiInt   si30("micro_server_health_ind1", 0);            // 30
 StaticIoiInt   si31("micro_server_health_ind2", 0);            // 31
 StaticIoiInt   si32("micro_server_internal_status", 0);        // 32
@@ -82,6 +85,7 @@ StaticIoiInt   si36("ac_tail_num_mid_raw", 0);                 // 36
 StaticIoiFloat si37("BatInputVdc", 27.9f);                     // 37
 StaticIoiFloat si38("BatSwOutVdc", 28.2f);                     // 38
 StaticIoiFloat si39("BrdTempDegC", 10.0f);                     // 39
+
 StaticIoiStr   si40("HMUPartNumber", HMUpartNumber);           // 40
 StaticIoiStr   si41("HMUSerialNumber", HMUSerialNumber);       // 41
 StaticIoiStr   si42("PWSwDwgNumber", PWSwDwgNumber);           // 42
@@ -251,12 +255,10 @@ char* StaticIoiStr::Display( char* dest, UINT32 dix )
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
 {
-
     strcpy(HMUpartNumber, "HmuPart");
     strcpy(HMUSerialNumber, "HmuSerial");
     strcpy(PWSwDwgNumber, "PwSwDwg");
     strcpy(UTASSwDwgNumber, "UtasSwDwg");
-
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
     m_staticIoi[ 0] = &si00;  // 00
@@ -269,6 +271,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoi[ 7] = &si07;  // 07
     m_staticIoi[ 8] = &si08;  // 08
     m_staticIoi[ 9] = &si09;  // 09
+
     m_staticIoi[10] = &si10;  // 10
     m_staticIoi[11] = &si11;  // 11
     m_staticIoi[12] = &si12;  // 12
@@ -279,6 +282,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoi[17] = &si17;  // 17
     m_staticIoi[18] = &si18;  // 18
     m_staticIoi[19] = &si19;  // 19
+
     m_staticIoi[20] = &si20;  // 20
     m_staticIoi[21] = &si21;  // 21
     m_staticIoi[22] = &si22;  // 22
@@ -289,6 +293,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoi[27] = &si27;  // 27
     m_staticIoi[28] = &si28;  // 28
     m_staticIoi[29] = &si29;  // 29
+
     m_staticIoi[30] = &si30;  // 30
     m_staticIoi[31] = &si31;  // 31
     m_staticIoi[32] = &si32;  // 32
@@ -299,6 +304,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoi[37] = &si37;  // 37
     m_staticIoi[38] = &si38;  // 38
     m_staticIoi[39] = &si39;  // 39
+
     m_staticIoi[40] = &si40;  // 40
     m_staticIoi[41] = &si41;  // 41
     m_staticIoi[42] = &si42;  // 42
@@ -349,13 +355,15 @@ void StaticIoiContainer::UpdateStaticIoi()
     // StaticIoiByte  si14("rtc_io_rd_hour", 0);                      // 14
     // StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
     // StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
-    // StaticIoiByte  si17("rtc_io_rd_year", 0);                      // 17
+    // StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
+    // StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
     si12.data = aseCommon.time.tm_mday;
     si13.data = aseCommon.time.tm_mday;
     si14.data = aseCommon.time.tm_hour;
     si15.data = aseCommon.time.tm_min;
     si16.data = aseCommon.time.tm_mon;
-    si17.data = aseCommon.time.tm_year - 2000;
+    si17.data = aseCommon.time.tm_sec;
+    si18.data = aseCommon.time.tm_year - 2000;
 
     m_staticIoi[m_updateIndex]->Update();
     m_updateIndex += 1;
