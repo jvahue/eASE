@@ -43,6 +43,8 @@ enum SecCmds {
     eMsState        = 7,
     eDisplayState   = 8,  // this is directed at a specific Process
     eSetChanId      = 9,
+    eNvmRead        = 10,
+    eNvmWrite       = 11,
 
 // Ase Enums 101-199
 

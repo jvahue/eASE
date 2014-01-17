@@ -349,6 +349,8 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
+    static UINT32 _2Hz = 0;
+
     // copy the current time into the rtc_ IOI
     // StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
     // StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
@@ -364,6 +366,17 @@ void StaticIoiContainer::UpdateStaticIoi()
     si16.data = aseCommon.time.tm_mon;
     si17.data = aseCommon.time.tm_sec;
     si18.data = aseCommon.time.tm_year - 2000;
+
+    // update the seconds IOI at 2Hz
+    if (_2Hz >= 50)
+    {
+        si17.Update();
+        _2Hz = 0;
+    }
+    else
+    {
+        _2Hz += 1;
+    }
 
     m_staticIoi[m_updateIndex]->Update();
     m_updateIndex += 1;

@@ -51,6 +51,10 @@ process_handle_t adrfProcHndl = NULL;
 LINUX_TM_FMT nextTime;
 UINT32 _10msec;
 
+static platformResourceHandle nvmHandle;
+static BYTE* nvmBaseAddr;
+static const UINT32 NvmSize = 0x31000;
+
 /*****************************************************************************/
 /* Global Variables                                                          */
 /*****************************************************************************/
@@ -71,6 +75,10 @@ CmdRspThread* cmdRspThreads[] = {
 static BOOLEAN CheckCmds(SecComm& secComm);
 static void SetTime(SecRequest& request);
 static void UpdateTime();
+
+static BOOLEAN NvmRead(SecComm& secComm);
+static BOOLEAN NvmWrite(SecComm& secComm);
+static void NV_WriteAligned(void* dest, const void* src, UINT32 size);
 
 /*****************************************************************************/
 /* Public Functions                                                          */
@@ -96,6 +104,7 @@ int main(void)
     UNSIGNED32 myChanID;
     resourceStatus  status;
     platformResourceHandle hA;
+    accessStyle access_style;
 
     UINT32 i;
     UINT32 start;
@@ -138,6 +147,9 @@ int main(void)
 
     // default to Channel A
     aseCommon.isChannelA = ioiProc.GetChanId() == 1;
+
+    status = attachPlatformResource("","ADRF_NVRAM",&nvmHandle,
+             &access_style,(void**)&nvmBaseAddr);
 
     // overhead of timing
     start = HsTimer();
@@ -359,6 +371,35 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
+         //---------------
+        case eNvmRead:
+            if (nvmBaseAddr != NULL)
+            {
+                secComm.m_response.successful = NvmRead(secComm);
+            }
+            else
+            {
+                secComm.ErrorMsg("NVM Memory Handle Error");
+                secComm.m_response.successful = FALSE;
+            }
+            serviced = TRUE;
+            break;
+
+         //---------------
+        case eNvmWrite:
+            if (nvmBaseAddr != NULL)
+            {
+                secComm.m_response.successful = NvmWrite(secComm);
+            }
+            else
+            {
+                secComm.ErrorMsg("NVM Memory Handle Error");
+                secComm.m_response.successful = FALSE;
+            }
+
+            serviced = TRUE;
+            break;
+
         default:
             break;
         }
@@ -400,3 +441,106 @@ static void SetTime(SecRequest& request)
 
     _10msec = 0;
 }
+
+//-------------------------------------------------------------------------------------------------
+// Read from n bytes <sigGenId> NVM memory at the offset address specified <variableId>.  The
+// offset address is from the base of NVM memory.  This assumes all addresses are inside our 
+// NVM [0..NvmSize-1] bytes.
+//
+static BOOLEAN NvmRead(SecComm& secComm)
+{
+    UINT32 offset = secComm.m_request.variableId;
+    UINT32 bytes = secComm.m_request.sigGenId;
+
+    if ((offset + bytes) < NvmSize)
+    {
+        if (bytes <= eSecStreamSize)
+        {
+            memcpy(secComm.m_response.streamData, (void*)(nvmBaseAddr + offset), bytes);
+            secComm.m_response.streamSize = bytes;
+            return TRUE;
+        }
+        else
+        {
+            secComm.ErrorMsg("NvmRead: Requested bytes (%d) exceeds max (%d)", 
+                bytes, eSecStreamSize);
+            return FALSE;
+        }
+    }
+    else
+    {
+        secComm.ErrorMsg("NvmRead: Requested read outside of NVM by %d bytes", 
+            (NvmSize - (offset + bytes)));
+        return FALSE;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+static BOOLEAN NvmWrite(SecComm& secComm)
+{
+    UINT32 offset = secComm.m_request.variableId;
+    UINT32 size = secComm.m_request.charDataSize;
+    UINT16* data;
+
+    if ((offset + size) < NvmSize)
+    {
+        NV_WriteAligned((void*)(nvmBaseAddr+offset),
+                        (void*)secComm.m_request.charData,
+                        size);
+    }
+
+   return TRUE;
+}
+
+static
+void NV_WriteAligned(void* dest, const void* src, UINT32 size)
+{
+    UINT16 aligner;
+    UINT16         *dest_ptr16 = (UINT16*)dest;
+    const UINT16   *src_ptr16 = (UINT16*)src;
+    UINT8*         ptr8;
+
+    if(size > 0)
+    {
+        if((1 & (UINT32)dest) == 1)
+        {
+            //Set destination to 1 previous byte address to make it even.
+            ptr8 = (UINT8*)dest_ptr16;
+            ptr8--;
+            dest_ptr16 = (UINT16*)ptr8;
+            aligner = *dest_ptr16;
+            //Mask unaligned byte (big endian, mask least significant dest (higher address)
+            //and swap for most significant (lower address) source)
+            aligner &= 0xFF00;
+            aligner |= (*src_ptr16 & 0xFF00)  >> 8;
+            //Write aligned word to destination
+            *dest_ptr16 = aligner;
+            //Increment to next even address.  Increment source for the
+            //1 byte masked to the odd address
+            dest_ptr16++;
+            ptr8 = (UINT8*)src_ptr16;
+            ptr8++;
+            src_ptr16 = (UINT16*)ptr8;
+            size--;
+        }
+
+        //Copy bytes 2 at a time until zero or 1 bytes remain.
+        for(;size >= 2;size-=2)
+        {
+            *dest_ptr16++ = *src_ptr16++;
+        }
+
+        if(size != 0)
+        {
+            //Read destination aligned
+            aligner = *dest_ptr16;
+            //Mask unaligned byte (big endian, mask and write most significant dest byte)
+            aligner &= 0xFF;
+            aligner |= (*src_ptr16 & 0xFF00);
+            //Write aligned word to destination
+            *dest_ptr16 = aligner;
+        }
+    }
+}
+
+
