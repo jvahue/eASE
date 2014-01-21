@@ -191,6 +191,7 @@ void IoiProcess::RunSimulation()
     if (!m_pCommon->bScriptRunning)
     {
         m_sgRun = false;
+        m_ioiStatic.Reset();
     }
 
     UpdateIoi();
@@ -319,6 +320,7 @@ void IoiProcess::HandlePowerOff()
     m_ccdlIn.Reset();
     m_ccdlOut.Reset();
     m_ccdl.Reset();
+    m_ioiStatic.Reset();
 }
 
 //---------------------------------------------------------------------------------------------

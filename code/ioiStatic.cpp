@@ -256,7 +256,14 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 char* StaticIoiStr::Display( char* dest, UINT32 dix )
 {
-    sprintf(dest, "%2d:%s: %s", dix, m_shortName, data);
+    if (ioiRunning)
+    {
+        sprintf(dest, "%2d:%s: %s", dix, m_shortName, data);
+    }
+    else
+    {
+        sprintf(dest, "xx:%s: %s", dix, m_shortName, data);
+    }
     return dest;
 }
 
@@ -399,5 +406,13 @@ void StaticIoiContainer::SetNewState( SecRequest& request)
     if (request.variableId < m_ioiStaticCount)
     {
         return m_staticIoi[request.variableId]->SetRunState(request.sigGenId);
+    }
+}
+
+void StaticIoiContainer::Reset()
+{
+    for (int i = 0; i < m_ioiStaticCount; ++i)
+    {
+        m_staticIoi[i]->SetRunState(true);
     }
 }

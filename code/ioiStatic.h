@@ -105,6 +105,7 @@ public:
     //IocResponse GetStaticIoiData(SecRequest& request);
     bool SetStaticIoiData(SecRequest& request);
     void SetNewState(SecRequest& request);
+    void Reset();
     void UpdateStaticIoi();
 
     StaticIoiObj* m_staticIoi[100];
