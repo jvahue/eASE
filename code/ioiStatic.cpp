@@ -42,6 +42,7 @@ char HMUSerialNumber[20];
 char PWSwDwgNumber[20];
 char UTASSwDwgNumber[20];
 
+// --------- The Order MUST match AseIoiInfo in eFastCmds.py ---------
 StaticIoiInt   si00("aircraft_id_1", 0);                       // 00
 StaticIoiInt   si01("aircraft_id_2", 0);                       // 01
 StaticIoiInt   si02("aircraft_id_3", 0);                       // 02
@@ -65,31 +66,26 @@ StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
 StaticIoiInt   si19("ubmf_health_ind", 0);                     // 19
 
 StaticIoiInt   si20("umbf_status_word1", 0);                   // 20
-StaticIoiInt   si21("flight_leg_raw", 1);                      // 21
-StaticIoiInt   si22("BrdTempFail", 0);                         // 22
-StaticIoiInt   si23("BrdTempInitFail", 0);                     // 23
-StaticIoiInt   si24("BrdTempOpFail", 0);                       // 24
-StaticIoiInt   si25("BrdTempRngFail", 0);                      // 25
-StaticIoiInt   si26("HLEIFFaultInd2", 0);                      // 26
-StaticIoiInt   si27("HLEIFFaultIndication", 0);                // 27
-StaticIoiInt   si28("HLEIFStatusWord1", 0);                    // 28
-StaticIoiInt   si29("hmu_option_data_raw", 0);                 // 29
+StaticIoiInt   si21("BrdTempFail", 0);                         // 21
+StaticIoiInt   si22("BrdTempInitFail", 0);                     // 22
+StaticIoiInt   si23("BrdTempOpFail", 0);                       // 23
+StaticIoiInt   si24("BrdTempRngFail", 0);                      // 24
+StaticIoiInt   si25("HLEIFFaultInd2", 0);                      // 25
+StaticIoiInt   si26("HLEIFFaultIndication", 0);                // 26
+StaticIoiInt   si27("HLEIFStatusWord1", 0);                    // 27
+StaticIoiInt   si28("hmu_option_data_raw", 0);                 // 28
+StaticIoiInt   si29("micro_server_health_ind1", 0);            // 29
 
-StaticIoiInt   si30("micro_server_health_ind1", 0);            // 30
-StaticIoiInt   si31("micro_server_health_ind2", 0);            // 31
-StaticIoiInt   si32("micro_server_internal_status", 0);        // 32
-StaticIoiInt   si33("micro_server_status_word1", 0);           // 33
-StaticIoiInt   si34("ac_tail_num_high_raw", 0);                // 34
-StaticIoiInt   si35("ac_tail_num_low_raw", 0);                 // 35
-StaticIoiInt   si36("ac_tail_num_mid_raw", 0);                 // 36
-StaticIoiFloat si37("BatInputVdc", 27.9f);                     // 37
-StaticIoiFloat si38("BatSwOutVdc", 28.2f);                     // 38
-StaticIoiFloat si39("BrdTempDegC", 10.0f);                     // 39
-
-StaticIoiStr   si40("HMUPartNumber", HMUpartNumber);           // 40
-StaticIoiStr   si41("HMUSerialNumber", HMUSerialNumber);       // 41
-StaticIoiStr   si42("PWSwDwgNumber", PWSwDwgNumber);           // 42
-StaticIoiStr   si43("UTASSwDwgNumber", UTASSwDwgNumber);       // 43
+StaticIoiInt   si30("micro_server_health_ind2", 0);            // 30
+StaticIoiInt   si31("micro_server_internal_status", 0);        // 31
+StaticIoiInt   si32("micro_server_status_word1", 0);           // 32
+StaticIoiFloat si33("BatInputVdc", 27.9f);                     // 33
+StaticIoiFloat si34("BatSwOutVdc", 28.2f);                     // 34
+StaticIoiFloat si35("BrdTempDegC", 10.0f);                     // 35
+StaticIoiStr   si36("HMUPartNumber", HMUpartNumber);           // 36
+StaticIoiStr   si37("HMUSerialNumber", HMUSerialNumber);       // 37
+StaticIoiStr   si38("PWSwDwgNumber", PWSwDwgNumber);           // 38
+StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber);       // 39
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -255,62 +251,58 @@ char* StaticIoiStr::Display( char* dest, UINT32 dix )
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
 {
+    UINT32 x = 0;
     strcpy(HMUpartNumber, "HmuPart");
     strcpy(HMUSerialNumber, "HmuSerial");
     strcpy(PWSwDwgNumber, "PwSwDwg");
     strcpy(UTASSwDwgNumber, "UtasSwDwg");
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
-    m_staticIoi[ 0] = &si00;  // 00
-    m_staticIoi[ 1] = &si01;  // 01
-    m_staticIoi[ 2] = &si02;  // 02
-    m_staticIoi[ 3] = &si03;  // 03
-    m_staticIoi[ 4] = &si04;  // 04
-    m_staticIoi[ 5] = &si05;  // 05
-    m_staticIoi[ 6] = &si06;  // 06
-    m_staticIoi[ 7] = &si07;  // 07
-    m_staticIoi[ 8] = &si08;  // 08
-    m_staticIoi[ 9] = &si09;  // 09
+    m_staticIoi[x++] = &si00;  // 00
+    m_staticIoi[x++] = &si01;  // 01
+    m_staticIoi[x++] = &si02;  // 02
+    m_staticIoi[x++] = &si03;  // 03
+    m_staticIoi[x++] = &si04;  // 04
+    m_staticIoi[x++] = &si05;  // 05
+    m_staticIoi[x++] = &si06;  // 06
+    m_staticIoi[x++] = &si07;  // 07
+    m_staticIoi[x++] = &si08;  // 08
+    m_staticIoi[x++] = &si09;  // 09
 
-    m_staticIoi[10] = &si10;  // 10
-    m_staticIoi[11] = &si11;  // 11
-    m_staticIoi[12] = &si12;  // 12
-    m_staticIoi[13] = &si13;  // 13
-    m_staticIoi[14] = &si14;  // 14
-    m_staticIoi[15] = &si15;  // 15
-    m_staticIoi[16] = &si16;  // 16
-    m_staticIoi[17] = &si17;  // 17
-    m_staticIoi[18] = &si18;  // 18
-    m_staticIoi[19] = &si19;  // 19
+    m_staticIoi[x++] = &si10;  // 10
+    m_staticIoi[x++] = &si11;  // 11
+    m_staticIoi[x++] = &si12;  // 12
+    m_staticIoi[x++] = &si13;  // 13
+    m_staticIoi[x++] = &si14;  // 14
+    m_staticIoi[x++] = &si15;  // 15
+    m_staticIoi[x++] = &si16;  // 16
+    m_staticIoi[x++] = &si17;  // 17
+    m_staticIoi[x++] = &si18;  // 18
+    m_staticIoi[x++] = &si19;  // 19
 
-    m_staticIoi[20] = &si20;  // 20
-    m_staticIoi[21] = &si21;  // 21
-    m_staticIoi[22] = &si22;  // 22
-    m_staticIoi[23] = &si23;  // 23
-    m_staticIoi[24] = &si24;  // 24
-    m_staticIoi[25] = &si25;  // 25
-    m_staticIoi[26] = &si26;  // 26
-    m_staticIoi[27] = &si27;  // 27
-    m_staticIoi[28] = &si28;  // 28
-    m_staticIoi[29] = &si29;  // 29
+    m_staticIoi[x++] = &si20;  // 20
+    m_staticIoi[x++] = &si21;  // 21
+    m_staticIoi[x++] = &si22;  // 22
+    m_staticIoi[x++] = &si23;  // 23
+    m_staticIoi[x++] = &si24;  // 24
+    m_staticIoi[x++] = &si25;  // 25
+    m_staticIoi[x++] = &si26;  // 26
+    m_staticIoi[x++] = &si27;  // 27
+    m_staticIoi[x++] = &si28;  // 28
+    m_staticIoi[x++] = &si29;  // 29
 
-    m_staticIoi[30] = &si30;  // 30
-    m_staticIoi[31] = &si31;  // 31
-    m_staticIoi[32] = &si32;  // 32
-    m_staticIoi[33] = &si33;  // 33
-    m_staticIoi[34] = &si34;  // 34
-    m_staticIoi[35] = &si35;  // 35
-    m_staticIoi[36] = &si36;  // 36
-    m_staticIoi[37] = &si37;  // 37
-    m_staticIoi[38] = &si38;  // 38
-    m_staticIoi[39] = &si39;  // 39
+    m_staticIoi[x++] = &si30;  // 30
+    m_staticIoi[x++] = &si31;  // 31
+    m_staticIoi[x++] = &si32;  // 32
+    m_staticIoi[x++] = &si33;  // 33
+    m_staticIoi[x++] = &si34;  // 34
+    m_staticIoi[x++] = &si35;  // 35
+    m_staticIoi[x++] = &si36;  // 36
+    m_staticIoi[x++] = &si37;  // 37
+    m_staticIoi[x++] = &si38;  // 38
+    m_staticIoi[x++] = &si39;  // 39
 
-    m_staticIoi[40] = &si40;  // 40
-    m_staticIoi[41] = &si41;  // 41
-    m_staticIoi[42] = &si42;  // 42
-    m_staticIoi[43] = &si43;  // 43
-
-    m_ioiStaticCount = 44;
+    m_ioiStaticCount = x;
     m_updateIndex = 0;
     m_validIoi = 0;
 }
