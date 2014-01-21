@@ -49,12 +49,12 @@ StaticIoiInt   si02("aircraft_id_3", 0);                       // 02
 StaticIoiInt   si03("aircraft_id_4", 0);                       // 03
 StaticIoiInt   si04("aircraft_id_5", 0);                       // 04
 StaticIoiInt   si05("aircraft_id_par", 0);                     // 05
-StaticIoiInt   si06("disc_spare_1", 0);                        // 06
-StaticIoiInt   si07("disc_spare_2", 0);                        // 07
-StaticIoiInt   si08("disc_spare_3", 0);                        // 08
+StaticIoiInt   si06("103_disc_spare_1", 0);                        // 06
+StaticIoiInt   si07("104_disc_spare_2", 0);                        // 07
+StaticIoiInt   si08("105_disc_spare_3", 0);                        // 08
 StaticIoiInt   si09("ground_service_mode", 0);                 // 09
 
-StaticIoiInt   si10("weight_on_wheels", 0);                    // 10
+StaticIoiInt   si10("102_weight_on_wheels", 0);                    // 10
 StaticIoiInt   si11("wifi_override", 0);                       // 11
 StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
 StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
@@ -63,25 +63,25 @@ StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
 StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
 StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
 StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
-StaticIoiInt   si19("ubmf_health_ind", 0);                     // 19
+StaticIoiInt   si19("701_ubmf_health_ind", 0);                     // 19
 
-StaticIoiInt   si20("umbf_status_word1", 0);                   // 20
+StaticIoiInt   si20("700_umbf_status_word1", 0);                   // 20
 StaticIoiInt   si21("BrdTempFail", 0);                         // 21
 StaticIoiInt   si22("BrdTempInitFail", 0);                     // 22
 StaticIoiInt   si23("BrdTempOpFail", 0);                       // 23
 StaticIoiInt   si24("BrdTempRngFail", 0);                      // 24
-StaticIoiInt   si25("HLEIFFaultInd2", 0);                      // 25
-StaticIoiInt   si26("HLEIFFaultIndication", 0);                // 26
-StaticIoiInt   si27("HLEIFStatusWord1", 0);                    // 27
+StaticIoiInt   si25("501_HLEIFFaultInd2", 0);                      // 25
+StaticIoiInt   si26("500_HLEIFFaultIndication", 0);                // 26
+StaticIoiInt   si27("502_HLEIFStatusWord1", 0);                    // 27
 StaticIoiInt   si28("hmu_option_data_raw", 0);                 // 28
-StaticIoiInt   si29("micro_server_health_ind1", 0);            // 29
+StaticIoiInt   si29("600_micro_server_health_ind1", 0);            // 29
 
-StaticIoiInt   si30("micro_server_health_ind2", 0);            // 30
-StaticIoiInt   si31("micro_server_internal_status", 0);        // 31
-StaticIoiInt   si32("micro_server_status_word1", 0);           // 32
-StaticIoiFloat si33("BatInputVdc", 27.9f);                     // 33
+StaticIoiInt   si30("601_micro_server_health_ind2", 0);            // 30
+StaticIoiInt   si31("602_micro_server_internal_status", 0);        // 31
+StaticIoiInt   si32("603_micro_server_status_word1", 0);           // 32
+StaticIoiFloat si33("100_BatInputVdc", 27.9f);                     // 33
 StaticIoiFloat si34("BatSwOutVdc", 28.2f);                     // 34
-StaticIoiFloat si35("BrdTempDegC", 10.0f);                     // 35
+StaticIoiFloat si35("101_BrdTempDegC", 10.0f);                     // 35
 StaticIoiStr   si36("HMUPartNumber", HMUpartNumber);           // 36
 StaticIoiStr   si37("HMUSerialNumber", HMUSerialNumber);       // 37
 StaticIoiStr   si38("PWSwDwgNumber", PWSwDwgNumber);           // 38
