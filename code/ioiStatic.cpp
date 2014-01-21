@@ -99,6 +99,9 @@ StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber);       // 39
 // Class Definitions                                                         -/
 //----------------------------------------------------------------------------/
 StaticIoiObj::StaticIoiObj(char* name)
+    : ioiChan(0)
+    , ioiValid(false)
+    , ioiRunning(true)
 {
     strcpy(ioiName, name);
     strcpy(m_shortName, name);
@@ -165,6 +168,11 @@ char* StaticIoiObj::CompressName(char* src, int size)
     return src;
 }
 
+//---------------------------------------------------------------------------------------------
+void StaticIoiObj::SetRunState(bool newState)
+{
+    ioiRunning = newState;
+}
 
 //=============================================================================================
 //IocResponse StaticIoiByte::GetStaticIoiData()
@@ -176,6 +184,7 @@ char* StaticIoiObj::CompressName(char* src, int size)
 bool StaticIoiByte::SetStaticIoiData( SecRequest& request )
 {
     data = (unsigned char)request.resetRequest;
+    ioiRunning = true;
     Update();
     return true;
 }
@@ -196,6 +205,7 @@ char* StaticIoiByte::Display( char* dest, UINT32 dix )
 bool StaticIoiInt::SetStaticIoiData( SecRequest& request )
 {
     data = request.resetRequest;
+    ioiRunning = true;
     Update();
     return true;
 }
@@ -216,6 +226,7 @@ char* StaticIoiInt::Display( char* dest, UINT32 dix )
 bool StaticIoiFloat::SetStaticIoiData( SecRequest& request )
 {
     data = request.value;
+    ioiRunning = true;
     Update();
     return true;
 }
@@ -237,6 +248,7 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 {
     strncpy(data, request.charData, request.charDataSize);
     data[request.charDataSize] = '\0';
+    ioiRunning = true;
     Update();
     return true;
 }
@@ -370,7 +382,11 @@ void StaticIoiContainer::UpdateStaticIoi()
         _2Hz += 1;
     }
 
-    m_staticIoi[m_updateIndex]->Update();
+    if (m_staticIoi[m_updateIndex]->ioiRunning)
+    {
+        m_staticIoi[m_updateIndex]->Update();
+    }
+
     m_updateIndex += 1;
     if (m_updateIndex >= m_ioiStaticCount)
     {
@@ -378,3 +394,10 @@ void StaticIoiContainer::UpdateStaticIoi()
     }
 }
 
+void StaticIoiContainer::SetNewState( SecRequest& request)
+{
+    if (request.variableId < m_ioiStaticCount)
+    {
+        return m_staticIoi[request.variableId]->SetRunState(request.sigGenId);
+    }
+}

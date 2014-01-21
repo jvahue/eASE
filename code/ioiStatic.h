@@ -22,15 +22,15 @@ public:
     char  m_shortName[64];  // IOI binder producer name
     INT32 ioiChan;          // deos ioi channel id
     bool ioiValid;          // is the ioi opened
-    IoiStaticTypes type;    // what type of IOI is it
-    UINT32 stringSize;      // for strings holds the string size
+    bool ioiRunning;        // is the ioi being output on a regular basis
 
     StaticIoiObj(char* name);
     bool OpenIoi();
+    void SetRunState(bool newState);
 
     // virtual functions
     //virtual IocResponse GetStaticIoiData() {;}
-    virtual bool SetStaticIoiData(SecRequest& request) {}
+    virtual bool SetStaticIoiData(SecRequest& request) {ioiRunning = true;}
     virtual bool Update() {}
     virtual bool WriteStaticIoi(void* data);
     virtual char* Display(char* dest, UINT32 dix);
@@ -104,6 +104,7 @@ public:
 
     //IocResponse GetStaticIoiData(SecRequest& request);
     bool SetStaticIoiData(SecRequest& request);
+    void SetNewState(SecRequest& request);
     void UpdateStaticIoi();
 
     StaticIoiObj* m_staticIoi[100];

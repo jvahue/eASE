@@ -914,14 +914,21 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     //----------------------------------------------------------------------------------------------
     case eSetStaticIoi:
-        if (m_ioiStatic.SetStaticIoiData(request))
+        if (request.sigGenId == 1)
         {
-            secComm.m_response.successful = true;
+            if (m_ioiStatic.SetStaticIoiData(request))
+            {
+                secComm.m_response.successful = true;
+            }
+            else
+            {
+                secComm.ErrorMsg("SetIoi: Invalid signal Id(%d)", request.variableId);
+                secComm.m_response.successful = false;
+            }
         }
         else
         {
-            secComm.ErrorMsg("SetIoi: Invalid signal Id(%d)", request.variableId);
-            secComm.m_response.successful = false;
+            m_ioiStatic.SetNewState(request);
         }
         serviced = TRUE;
         break;
