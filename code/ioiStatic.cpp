@@ -430,7 +430,7 @@ void StaticIoiContainer::SetNewState( SecRequest& request)
     if (request.variableId < m_ioiStaticCount)
     {
         // if not valid leave the running state at disabled
-        bool newState = (bool)request.sigGenId && m_staticIoi[request.variableId]->ioiValid
+        bool newState = (bool)request.sigGenId && m_staticIoi[request.variableId]->ioiValid;
         m_staticIoi[request.variableId]->SetRunState(newState);
     }
 }
