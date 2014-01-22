@@ -506,7 +506,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
 
 int IoiProcess::PageStatic( int theLine, bool& nextPage )
 {
-#define DELAY_CNT 50
+#define DELAY_CNT 25
     char buf1[80];
     char buf2[80];
     static UINT32 dix = 0;
@@ -550,7 +550,7 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
             }
 
             dLine += 1;
-            if (dLine >= 20)
+            if (dLine >= 21)
             {
                 dLine = 2;
             }

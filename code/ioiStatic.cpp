@@ -118,11 +118,12 @@ bool StaticIoiObj::OpenIoi()
 }
 
 //---------------------------------------------------------------------------------------------
+// Return the status of an actual IOI write.  For params we skip just return success
 bool StaticIoiObj::WriteStaticIoi(void* data)
 {
-    ioiStatus writeStatus = (ioiStatus)42;
+    ioiStatus writeStatus = ioiSuccess;
 
-    if (ioiValid)
+    if (ioiValid && ioiRunning)
     {
         writeStatus = ioi_write(ioiChan, data);
     }
@@ -186,7 +187,7 @@ void StaticIoiObj::SetRunState(bool newState)
 bool StaticIoiByte::SetStaticIoiData( SecRequest& request )
 {
     data = (unsigned char)request.resetRequest;
-    ioiRunning = true;
+    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -214,7 +215,7 @@ char* StaticIoiByte::Display( char* dest, UINT32 dix )
 bool StaticIoiInt::SetStaticIoiData( SecRequest& request )
 {
     data = request.resetRequest;
-    ioiRunning = true;
+    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -243,7 +244,7 @@ char* StaticIoiInt::Display( char* dest, UINT32 dix )
 bool StaticIoiFloat::SetStaticIoiData( SecRequest& request )
 {
     data = request.value;
-    ioiRunning = true;
+    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -272,7 +273,7 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 {
     strncpy(data, request.charData, request.charDataSize);
     data[request.charDataSize] = '\0';
-    ioiRunning = true;
+    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -293,8 +294,13 @@ char* StaticIoiStr::Display( char* dest, UINT32 dix )
 
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
+    : m_ioiStaticCount(0)
+    , m_updateIndex(0)
+    , m_validIoi(0)
+    , m_writeError(0)
 {
     UINT32 x = 0;
+
     strcpy(HMUpartNumber, "HmuPart");
     strcpy(HMUSerialNumber, "HmuSerial");
     strcpy(PWSwDwgNumber, "PwSwDwg");
@@ -384,7 +390,8 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
-    static UINT32 _2Hz = 0;
+    // compute max count to provide a 2 Hz update rate 500ms/100ms => 5 frames
+    const int kMaxCount = (m_ioiStaticCount/5) + 1;
 
     // copy the current time into the rtc_ IOI
     // StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
@@ -402,26 +409,18 @@ void StaticIoiContainer::UpdateStaticIoi()
     si17.data = aseCommon.time.tm_sec;
     si18.data = aseCommon.time.tm_year - 2000;
 
-    // update the seconds IOI at 2Hz
-    if (_2Hz >= 50)
+    for (int i = 0; i < kMaxCount; ++i)
     {
-        si17.Update();
-        _2Hz = 0;
-    }
-    else
-    {
-        _2Hz += 1;
-    }
+        if (!m_staticIoi[m_updateIndex]->Update())
+        {
+            m_writeError += 1;
+        }
 
-    if (m_staticIoi[m_updateIndex]->ioiRunning)
-    {
-        m_staticIoi[m_updateIndex]->Update();
-    }
-
-    m_updateIndex += 1;
-    if (m_updateIndex >= m_ioiStaticCount)
-    {
-        m_updateIndex = 0;
+        m_updateIndex += 1;
+        if (m_updateIndex >= m_ioiStaticCount)
+        {
+            m_updateIndex = 0;
+        }
     }
 }
 
@@ -430,10 +429,9 @@ void StaticIoiContainer::SetNewState( SecRequest& request)
 {
     if (request.variableId < m_ioiStaticCount)
     {
-        if (m_staticIoi[request.variableId]->ioiValid)
-        {
-            m_staticIoi[request.variableId]->SetRunState(request.sigGenId);
-        }
+        // if not valid leave the running state at disabled
+        bool newState = (bool)request.sigGenId && m_staticIoi[request.variableId]->ioiValid
+        m_staticIoi[request.variableId]->SetRunState(newState);
     }
 }
 
@@ -442,9 +440,7 @@ void StaticIoiContainer::Reset()
 {
     for (int i = 0; i < m_ioiStaticCount; ++i)
     {
-        if (m_staticIoi[i]->ioiValid)
-        {
-            m_staticIoi[i]->SetRunState(true);
-        }
+        // do not reset the running state if it is invalid
+        m_staticIoi[i]->SetRunState(m_staticIoi[i]->ioiValid);
     }
 }
