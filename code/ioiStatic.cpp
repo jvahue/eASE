@@ -388,26 +388,85 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 }
 
 //---------------------------------------------------------------------------------------------
+// si13 => rtc_io_rd_day  1 - 7 
+// si18 => rtc_io_rd_year
+// si16 => rtc_io_rd_month
+// si12 => rtc_io_rd_date
+// si14 => rtc_io_rd_hour
+// si15 => rtc_io_rd_minutes
+// si17 => rtc_io_rd_seconds
 void StaticIoiContainer::UpdateStaticIoi()
 {
     // compute max count to provide a 2 Hz update rate 500ms/100ms => 5 frames
     const int kMaxCount = (m_ioiStaticCount/5) + 1;
 
-    // copy the current time into the rtc_ IOI
-    // StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
-    // StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
-    // StaticIoiByte  si14("rtc_io_rd_hour", 0);                      // 14
-    // StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
-    // StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
-    // StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
-    // StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
-    si12.data = aseCommon.time.tm_mday;
-    si13.data = aseCommon.time.tm_mday;
-    si14.data = aseCommon.time.tm_hour;
-    si15.data = aseCommon.time.tm_min;
-    si16.data = aseCommon.time.tm_mon;
-    si17.data = aseCommon.time.tm_sec;
-    si18.data = aseCommon.time.tm_year - 2000;
+    static unsigned char lastMin = 0;
+    static unsigned char lastHr  = 0;
+    static unsigned char lastDay = 0;
+    static unsigned char lastMo  = 0;
+    static unsigned char lastYr  = 0;
+
+    // byte
+    unsigned char ones;
+    unsigned char tens;
+    unsigned char data;
+
+    // copy the current time into the rtc_IOI when things change
+    // seconds updated
+    ones = aseCommon.time.tm_sec % 10;
+    tens = aseCommon.time.tm_sec / 10;
+    data = tens << 4 | ones;
+    si17.data = data;
+        
+    // minutes updated
+    if ( lastMin != aseCommon.time.tm_min)
+    {
+        ones = aseCommon.time.tm_min % 10;
+        tens = aseCommon.time.tm_min / 10;
+        data = tens << 4 | ones;
+        si15.data = data;
+        lastMin = aseCommon.time.tm_min;
+    }
+
+    // hours updated
+    if ( lastHr != aseCommon.time.tm_hour)
+    {
+        ones = aseCommon.time.tm_hour % 10;
+        tens = aseCommon.time.tm_hour / 10;
+        data = tens << 4 | ones;  
+        si14.data = data;
+        lastHr = aseCommon.time.tm_hour;
+    }
+
+    // day updated
+    if ( lastDay != aseCommon.time.tm_mday)
+    {
+        ones = aseCommon.time.tm_mday % 10;
+        tens = aseCommon.time.tm_mday / 10;
+        data = tens << 4 | ones;  
+        si12.data = data;
+        lastDay = aseCommon.time.tm_mday;
+    }
+
+    // month updated
+    if ( lastMo != aseCommon.time.tm_mon)
+    {
+        ones = aseCommon.time.tm_mon % 10;
+        tens = aseCommon.time.tm_mon / 10;
+        data = tens << 4 | ones;  
+        si16.data = data;
+        lastMo != aseCommon.time.tm_mon;
+    }
+
+    // year updated
+    if ( lastYr != aseCommon.time.tm_year)
+    {
+        ones = (aseCommon.time.tm_year - 2000) % 10;
+        tens = (aseCommon.time.tm_year - 2000) / 10;
+        data = tens << 4 | ones;  
+        si18.data = data;
+        lastYr = aseCommon.time.tm_year;
+    }
 
     for (int i = 0; i < kMaxCount; ++i)
     {

@@ -89,6 +89,7 @@ void CmProcess::Run()
     // create alias for this process because adrf will be granting write access
     // to CMProcess, not ASE
     processStatus ps = createProcessAlias( "CMProcess");
+    ps = createProcessAlias( "MFDProcess");
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for GSE commands with ADRF
@@ -97,6 +98,12 @@ void CmProcess::Run()
 
     // Connect to the the GSE recv box in the ADRF.
     m_gseOutBox.Connect(adrfProcessName, ADRF_GSE_CM_MAILBOX);
+
+    // MFD/ACARS Mailbox
+    m_mfdInBox.Create(MFD_GSE_ADRF_MAILBOX, sizeof(GSE_RESPONSE), eMaxQueueDepth);
+    m_mfdInBox.IssueGrant(adrfProcessName);
+
+    m_mfdOutBox.Connect(adrfProcessName, ADRF_GSE_MFD_MAILBOX);
 
     // Set up  the Live Data (Stream) Mailbox
     m_liveInBox.Create(CM_STREAM_MAILBOX, sizeof(GSE_RESPONSE), eMaxQueueDepth);
@@ -139,7 +146,8 @@ void CmProcess::RunSimulation()
     // Handle File Xfer Request
     m_fileXfer.ProcessFileXfer(IS_MS_ONLINE, m_fileXferInBox, m_fileXferOutBox);
 
-    ProcessGseMessages();
+    ProcessGseMessages(m_gseInBox);
+    ProcessGseMessages(m_mfdInBox);
     ProcessLiveData();
 
     if (m_gseOutBox.GetIpcStatus() == ipcValid)
@@ -191,19 +199,20 @@ void CmProcess::RunSimulation()
 
 //-------------------------------------------------------------------------------------------------
 // Function: ProcessGseMessages
-// Description:
+// Description: Process either the GSE mailbox or the MFD mailbox
 //
-void CmProcess::ProcessGseMessages()
+void CmProcess::ProcessGseMessages(MailBox& mb)
 {
-    if (m_gseInBox.GetIpcStatus() == ipcValid)
+    if (mb.GetIpcStatus() == ipcValid)
     {
         GSE_RESPONSE rsp;
 
         // If not expecting a resp msg and time has elapsed to request the
         // Expecting cmd response ... check inbox.
-        if( m_gseInBox.Receive(&rsp, sizeof(rsp)) )
+        if( mb.Receive(&rsp, sizeof(rsp)) )
         {
-            int size = strlen(rsp.rspMsg);
+            //int size = strlen(rsp.rspMsg);
+            int size = rsp.rspHdr.rspLen;
             if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)  
             {
                 m_rxStreamFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
@@ -216,25 +225,33 @@ void CmProcess::ProcessGseMessages()
     }
     else
     {
-        m_gseInBox.Reset();
+        mb.Reset();
     }
 }
 
 //-------------------------------------------------------------------------------------------------
 // Function: ProcessLiveData
 // Description: receive and buffer live data stream
-//
+// Two modes (binary and ascii) are supported.
+// Binary Stream description 13 byte header, N params 6 bytes each, checksum32
+//   "#77" 
+//   Timestamp 6 bytes
+//   ReportId 2 bytes
+//   Number of Params 2 bytes
+//   Param 0 6 bytes
+//   .. Param N bytes 7-x
+//   Checksum 4 bytes
+
 void CmProcess::ProcessLiveData()
 {
     if (m_liveInBox.GetIpcStatus() == ipcValid)
     {
         CHAR rspBuffer[3000];
+        GSE_RESPONSE* rsp = (GSE_RESPONSE*)rspBuffer;
 
-        // If not expecting a resp msg and time has elapsed to request the
-        // Expecting cmd response ... check inbox.
         if( m_liveInBox.Receive(&rspBuffer, sizeof(rspBuffer)) )
         {
-            int size = strlen(rspBuffer);
+            int size = rsp->rspHdr.rspLen;
             m_rxStreamFifo[GSE_SOURCE_MAX].Push(rspBuffer, size);
         }
     }
@@ -297,7 +314,15 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
                        request.charDataSize);
                 m_txStreamCmd[port].commandLine[request.charDataSize] = '\0';
 
-                m_gseOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
+                if (port == GSE_SOURCE_CM)
+                {
+                    m_gseOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
+                }
+                else
+                {
+                    m_mfdOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
+                }
+
                 secComm.m_response.successful = TRUE;
 
                 // GSE Special

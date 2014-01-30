@@ -239,7 +239,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     UINT32 children = 0;
 
     // see if it is time for an update
-    if (m_nextUpdate < sysTick)
+    if (m_nextUpdate <= sysTick)
     {
         start = HsTimer();
 

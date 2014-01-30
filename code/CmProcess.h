@@ -45,6 +45,10 @@ class CmProcess : public CmdRspThread
         // mailboxes
         MailBox m_gseInBox;   // GSE -> CMProcess message
         MailBox m_gseOutBox;  // CMProcess -> GSE messages
+
+        MailBox m_mfdInBox;   // MFD -> CMProcess message
+        MailBox m_mfdOutBox;  // CMProcess -> MFD messages
+
         MailBox m_liveInBox;  // LiveData -> CMPRocess messages stream
 
         UINT32 m_lastGseSent; // when was the last gse cmd sent?
@@ -74,7 +78,7 @@ class CmProcess : public CmdRspThread
         bool PutFile(SecComm& secComm);
         bool GetFile(SecComm& secComm);
 
-        void ProcessGseMessages();
+        void ProcessGseMessages(MailBox& mb);
         void ProcessLiveData();
 
 };

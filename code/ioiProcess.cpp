@@ -562,7 +562,7 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
         break;
     }
 
-    if (theLine >= 20)
+    if (theLine >= 21)
     {
         // display the next page we are done ...
         nextPage = true;
