@@ -234,10 +234,10 @@ void CmProcess::ProcessGseMessages(MailBox& mb)
 // Description: receive and buffer live data stream
 // Two modes (binary and ascii) are supported.
 // Binary Stream description 13 byte header, N params 6 bytes each, checksum32
-//   "#77" 
-//   Timestamp 6 bytes
-//   ReportId 2 bytes
-//   Number of Params 2 bytes
+//   "#77"                       3
+//   Timestamp 6 bytes           6 9 
+//   ReportId 2 bytes            2 11
+//   Number of Params 2 bytes    
 //   Param 0 6 bytes
 //   .. Param N bytes 7-x
 //   Checksum 4 bytes
@@ -246,12 +246,21 @@ void CmProcess::ProcessLiveData()
 {
     if (m_liveInBox.GetIpcStatus() == ipcValid)
     {
-        CHAR rspBuffer[3000];
-        GSE_RESPONSE* rsp = (GSE_RESPONSE*)rspBuffer;
-
         if( m_liveInBox.Receive(&rspBuffer, sizeof(rspBuffer)) )
         {
-            int size = rsp->rspHdr.rspLen;
+            int size;
+            CHAR rspBuffer[3000];
+
+            if (rspBuffer[0] == '#' && rspBuffer[1] == '7' && rspBuffer[2] == '7')
+            {
+                UINT16* pCount = (UINT16*)rspBuffer[11];
+                size = 13 + (pCount * 6) + 4;
+            }
+            else if (rspBuffer[0] == '#')
+            {
+                size = strlen(rspBuffer);
+            }
+
             m_rxStreamFifo[GSE_SOURCE_MAX].Push(rspBuffer, size);
         }
     }
