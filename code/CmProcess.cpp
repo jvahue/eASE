@@ -726,15 +726,26 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 12:
-        debug_str(CmProc, theLine, 0, "Cfg %s %s",
-                  m_reConfigInBox.GetStatusStr(),
-                  m_reConfigOutBox.GetStatusStr());
+        debug_str(CmProc, theLine, 0, "MFD %s %s",
+                  m_mfdInBox.GetStatusStr(),
+                  m_mfdOutBox.GetStatusStr());
         break;
 
     case 13:
+        debug_str(CmProc, theLine, 0, "Cfg %s %s",
+            m_reConfigInBox.GetStatusStr(),
+            m_reConfigOutBox.GetStatusStr());
+        break;
+
+    case 14:
         debug_str(CmProc, theLine, 0, "Log %s %s",
-                  m_fileXferInBox.GetStatusStr(),
-                  m_fileXferOutBox.GetStatusStr());
+            m_fileXferInBox.GetStatusStr(),
+            m_fileXferOutBox.GetStatusStr());
+        break;
+
+    case 15:
+        debug_str(CmProc, theLine, 0, "Live %s",
+            m_liveInBox.GetStatusStr());
         break;
 
     default:
