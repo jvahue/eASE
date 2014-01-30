@@ -246,15 +246,15 @@ void CmProcess::ProcessLiveData()
 {
     if (m_liveInBox.GetIpcStatus() == ipcValid)
     {
+        CHAR rspBuffer[3000];
         if( m_liveInBox.Receive(&rspBuffer, sizeof(rspBuffer)) )
         {
             int size;
-            CHAR rspBuffer[3000];
 
             if (rspBuffer[0] == '#' && rspBuffer[1] == '7' && rspBuffer[2] == '7')
             {
                 UINT16* pCount = (UINT16*)rspBuffer[11];
-                size = 13 + (pCount * 6) + 4;
+                size = 13 + (*pCount * 6) + 4;
             }
             else if (rspBuffer[0] == '#')
             {
