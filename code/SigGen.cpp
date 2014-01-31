@@ -92,7 +92,7 @@ float SignalGenerator::Reset( float lastValue)
         newValue = m_param3;  // set to the bias value
         break;
     case eSGpwm:
-        newValue = m_param2;  // set to the low value
+        newValue = m_param2;  // set to the initial value
         break;
     case eSG1Shot:
     case eSGnShot:
