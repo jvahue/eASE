@@ -280,6 +280,11 @@ void CmProcess::HandlePowerOff()
     m_gseInBox.Reset();
     m_gseOutBox.Reset();
 
+    m_mfdInBox.Reset();
+    m_mfdOutBox.Reset();
+
+    m_liveInBox.Reset();
+
     m_reConfigInBox.Reset();
     m_reConfigOutBox.Reset();
     if (m_lastPowerState)
