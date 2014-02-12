@@ -5,6 +5,11 @@
 
 #include "SecComm.h"
 
+//?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|
+// NOTE: 
+//   This should be done with templates and that is left as an exercise for the reader
+//?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|
+
 // File: ioiProcess.h
 enum IoiStaticTypes {
     eStaticNone = 0,
@@ -23,16 +28,24 @@ public:
     INT32 ioiChan;          // deos ioi channel id
     bool ioiValid;          // is the ioi opened
     bool ioiRunning;        // is the ioi being output on a regular basis
+    bool ioiIsInput;
 
-    StaticIoiObj(char* name);
+    StaticIoiObj(char* name, bool isInput=false);
     bool OpenIoi();
     void SetRunState(bool newState);
+    void SetIO(bool isInput) {ioiIsInput = isInput;}
 
     // virtual functions
     //virtual IocResponse GetStaticIoiData() {;}
     virtual bool SetStaticIoiData(SecRequest& request) {ioiRunning = true;}
+
+    // streamSize: Byte, Integer
+    // streamData: String, IntegerPtr
+    virtual bool GetStaticIoiData(IocResponse& m_response) {}
+
     virtual bool Update() {}
     virtual bool WriteStaticIoi(void* data);
+    virtual bool ReadStaticIoi(void* data);
     virtual char* Display(char* dest, UINT32 dix);
 
     char* CompressName(char* src, int size);
@@ -42,12 +55,12 @@ public:
 class StaticIoiByte : public StaticIoiObj
 {
 public:
-    StaticIoiByte(char* name, unsigned char value) 
-        : StaticIoiObj(name)
+    StaticIoiByte(char* name, unsigned char value, bool isInput=false)
+        : StaticIoiObj(name, isInput)
         , data(value)
     {}
-    //virtual IocResponse GetStaticIoiData();
     virtual bool SetStaticIoiData(SecRequest& request);
+    virtual bool GetStaticIoiData(IocResponse& m_response);
     virtual bool Update() {return WriteStaticIoi(&data);}
     virtual char*  Display(char* dest, UINT32 dix);
     unsigned char data;
@@ -56,13 +69,13 @@ public:
 class StaticIoiInt : public StaticIoiObj
 {
 public:
-    StaticIoiInt(char* name, int value) 
-        : StaticIoiObj(name) 
+    StaticIoiInt(char* name, int value, bool isInput=false)
+        : StaticIoiObj(name, isInput) 
         , data(value)
     {}
-    //virtual IocResponse GetStaticIoiData();
     virtual bool SetStaticIoiData(SecRequest& request);
-    virtual bool Update() {return WriteStaticIoi(&data);}
+    virtual bool GetStaticIoiData(IocResponse& m_response);
+    virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     int data;
 };
@@ -70,13 +83,13 @@ public:
 class StaticIoiFloat : public StaticIoiObj
 {
 public:
-    StaticIoiFloat(char* name, float value) 
-        : StaticIoiObj(name)
+    StaticIoiFloat(char* name, float value, bool isInput=false)
+        : StaticIoiObj(name, isInput)
         , data(value)
     {}
-    //virtual IocResponse GetStaticIoiData();
-    virtual bool SetStaticIoiData(SecRequest& request);
-    virtual bool Update() {return WriteStaticIoi(&data);}
+     virtual bool SetStaticIoiData(SecRequest& request);
+    virtual bool GetStaticIoiData(IocResponse& m_response);
+    virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     float data;
 };
@@ -84,15 +97,29 @@ public:
 class StaticIoiStr : public StaticIoiObj
 {
 public:
-    StaticIoiStr(char* name, char* value) 
-        : StaticIoiObj(name)
-        ,data(value)
+    StaticIoiStr(char* name, char* value, int size, bool isInput=false)
+        : StaticIoiObj(name, isInput)
+        , data(value)
+        , bytes(size)
     {}
-    //virtual IocResponse GetStaticIoiData();
     virtual bool SetStaticIoiData(SecRequest& request);
-    virtual bool Update() {return WriteStaticIoi(data);}
+    virtual bool GetStaticIoiData(IocResponse& m_response);
+    virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     char* data;
+    int bytes;
+};
+
+class StaticIoiIntPtr : public StaticIoiObj
+{
+public:
+    StaticIoiIntPtr(char* name, int* value, int size, bool isInput=false);
+    //virtual bool SetStaticIoiData(SecRequest& request);
+    virtual bool GetStaticIoiData(IocResponse& m_response);
+    virtual bool Update();
+    virtual char*  Display(char* dest, UINT32 dix);
+    int* data;
+    int bytes;
 };
 
 //================================================================================================
@@ -104,15 +131,20 @@ public:
 
     //IocResponse GetStaticIoiData(SecRequest& request);
     bool SetStaticIoiData(SecRequest& request);
+    bool GetStaticIoiData(SecComm& secComm);    
     void SetNewState(SecRequest& request);
     void Reset();
     void UpdateStaticIoi();
 
-    StaticIoiObj* m_staticIoi[100];
-    UINT32 m_ioiStaticCount;
+    StaticIoiObj* m_staticIoiOut[100];
+    UINT32 m_ioiStaticOutCount;
+    StaticIoiObj* m_staticIoiIn[100];
+    UINT32 m_ioiStaticInCount;
     UINT32 m_updateIndex;
-    UINT32 m_validIoi;
+    UINT32 m_validIoiOut;
+    UINT32 m_validIoiIn;
     UINT32 m_writeError;
+    UINT32 m_readError;
 };
 
 #endif

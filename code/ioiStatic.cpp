@@ -82,10 +82,40 @@ StaticIoiInt   si32("micro_server_status_word1", 0);           // 32
 StaticIoiFloat si33("BatInputVdc", 27.9f);                     // 33
 StaticIoiFloat si34("BatSwOutVdc", 28.2f);                     // 34
 StaticIoiFloat si35("BrdTempDegC", 10.0f);                     // 35
-StaticIoiStr   si36("HMUPartNumber", HMUpartNumber);           // 36
-StaticIoiStr   si37("HMUSerialNumber", HMUSerialNumber);       // 37
-StaticIoiStr   si38("PWSwDwgNumber", PWSwDwgNumber);           // 38
-StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber);       // 39
+StaticIoiStr   si36("HMUPartNumber", HMUpartNumber, 20);       // 36
+StaticIoiStr   si37("HMUSerialNumber", HMUSerialNumber, 20);   // 37
+StaticIoiStr   si38("PWSwDwgNumber", PWSwDwgNumber, 20);       // 38
+StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber, 20);   // 39
+
+// --------- The Order MUST match adrfOutMap in eFastCmds.py ---------
+int adrfFault[13];
+int adrfTime[2];
+int shipTime[2];
+char operatorName[64];
+char ownerName[64];
+char rtcSource[5];
+
+StaticIoiIntPtr so00("ADRF_FAULT_DATA", adrfFault, 13, true);       // 00
+StaticIoiInt    so01("adrf_apm_wrap", 0, true);                     // 01
+StaticIoiInt    so02("adrf_data_cumflt_time", 0, true);             // 02
+StaticIoiInt    so03("adrf_data_flt_time_current", 0, true);        // 03
+StaticIoiStr    so04("adrf_data_operator", operatorName, 64, true); // 04
+StaticIoiStr    so05("adrf_data_owner", ownerName, 64, true);       // 05
+StaticIoiInt    so06("adrf_data_power_on_cnt", 0, true);            // 06
+StaticIoiInt    so07("adrf_data_power_on_time", 0, true);           // 07
+StaticIoiInt    so08("adrf_health_ind", 0, true);                   // 08
+StaticIoiStr    so09("adrf_rtc_source", rtcSource, true);           // 09
+StaticIoiIntPtr so10("adrf_rtc_time", adrfTime, 2, true);           // 10
+StaticIoiIntPtr so11("adrf_ships_time", shipTime, 2, true);         // 11
+StaticIoiInt    so12("adrf_status_word1", 0, true);                 // 12
+StaticIoiInt    so13("adrf_status_word2", 0, true);                 // 13
+StaticIoiByte   so14("rtc_io_wr_date", 0, true);                    // 14
+StaticIoiByte   so15("rtc_io_wr_day", 0, true);                     // 15
+StaticIoiByte   so16("rtc_io_wr_hour", 0, true);                    // 16
+StaticIoiByte   so17("rtc_io_wr_minutes", 0, true);                 // 17
+StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
+StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
+StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -98,10 +128,11 @@ StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber);       // 39
 //----------------------------------------------------------------------------/
 // Class Definitions                                                         -/
 //----------------------------------------------------------------------------/
-StaticIoiObj::StaticIoiObj(char* name)
+StaticIoiObj::StaticIoiObj(char* name, bool isInput)
     : ioiChan(0)
     , ioiValid(false)
     , ioiRunning(true)
+    , ioiIsInput(isInput)
 {
     strcpy(ioiName, name);
     strcpy(m_shortName, name);
@@ -129,6 +160,20 @@ bool StaticIoiObj::WriteStaticIoi(void* data)
     }
 
     return writeStatus == ioiSuccess;
+}
+
+//---------------------------------------------------------------------------------------------
+// Return the status of an actual IOI write.  For params we skip just return success
+bool StaticIoiObj::ReadStaticIoi(void* data)
+{
+    ioiStatus readStatus = ioiSuccess;
+
+    if (ioiValid && ioiRunning)
+    {
+        readStatus = ioi_read(ioiChan, data);
+    }
+
+    return readStatus == ioiSuccess;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -205,6 +250,14 @@ char* StaticIoiByte::Display( char* dest, UINT32 dix )
     }
     return dest;
 }
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiByte::GetStaticIoiData(IocResponse& m_response)
+{
+    m_response.streamSize = data;
+    return true;
+}
+
 //=============================================================================================
 //IocResponse StaticIoiInt::GetStaticIoiData()
 //{
@@ -234,6 +287,27 @@ char* StaticIoiInt::Display( char* dest, UINT32 dix )
     }
     return dest;
 }
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiInt::Update()
+{
+    if (ioiIsInput)
+    {
+        return ReadStaticIoi(&data);
+    }
+    else
+    {
+        return WriteStaticIoi(&data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiInt::GetStaticIoiData(IocResponse& m_response)
+{
+    m_response.streamSize = data;
+    return true;
+}
+
 //=============================================================================================
 //IocResponse StaticIoiFloat::GetStaticIoiData()
 //{
@@ -262,6 +336,26 @@ char* StaticIoiFloat::Display( char* dest, UINT32 dix )
     }
     return dest;
 }
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiFloat::Update()
+{
+    if (ioiIsInput)
+    {
+        return ReadStaticIoi(&data);
+    }
+    else
+    {
+        return WriteStaticIoi(&data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
+{
+    return false;
+}
+
 //=============================================================================================
 //IocResponse StaticIoiStr::GetStaticIoiData()
 //{
@@ -292,11 +386,67 @@ char* StaticIoiStr::Display( char* dest, UINT32 dix )
     return dest;
 }
 
+//---------------------------------------------------------------------------------------------
+bool StaticIoiStr::Update()
+{
+    if (ioiIsInput)
+    {
+        return ReadStaticIoi(data);
+    }
+    else
+    {
+        return WriteStaticIoi(data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiStr::GetStaticIoiData( IocResponse& m_response)
+{
+    strncpy(m_response.streamData, data, bytes);
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiIntPtr::Update()
+{
+    if (ioiIsInput)
+    {
+        return ReadStaticIoi(data);
+    }
+    else
+    {
+        return WriteStaticIoi(data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiIntPtr::Display( char* dest, UINT32 dix )
+{
+    sprintf(dest, "%2d:?? Integers", dix);
+    return dest;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiIntPtr::GetStaticIoiData(IocResponse& m_response)
+{
+    memcpy(m_response.streamData, data, bytes);
+    return true;
+}
+
+StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput)
+    : StaticIoiObj(name, isInput)
+{
+    data = value;
+    bytes = size * sizeof(int);
+}
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
-    : m_ioiStaticCount(0)
+    : m_ioiStaticOutCount(0)
+    , m_ioiStaticInCount(0)
     , m_updateIndex(0)
-    , m_validIoi(0)
+    , m_validIoiOut(0)
+    , m_validIoiIn(0)
+    , m_readError(0)
     , m_writeError(0)
 {
     UINT32 x = 0;
@@ -307,63 +457,105 @@ StaticIoiContainer::StaticIoiContainer()
     strcpy(UTASSwDwgNumber, "UtasSwDwg");
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
-    m_staticIoi[x++] = &si00;  // 00
-    m_staticIoi[x++] = &si01;  // 01
-    m_staticIoi[x++] = &si02;  // 02
-    m_staticIoi[x++] = &si03;  // 03
-    m_staticIoi[x++] = &si04;  // 04
-    m_staticIoi[x++] = &si05;  // 05
-    m_staticIoi[x++] = &si06;  // 06
-    m_staticIoi[x++] = &si07;  // 07
-    m_staticIoi[x++] = &si08;  // 08
-    m_staticIoi[x++] = &si09;  // 09
+    m_staticIoiOut[x++] = &si00;  // 00
+    m_staticIoiOut[x++] = &si01;  // 01
+    m_staticIoiOut[x++] = &si02;  // 02
+    m_staticIoiOut[x++] = &si03;  // 03
+    m_staticIoiOut[x++] = &si04;  // 04
+    m_staticIoiOut[x++] = &si05;  // 05
+    m_staticIoiOut[x++] = &si06;  // 06
+    m_staticIoiOut[x++] = &si07;  // 07
+    m_staticIoiOut[x++] = &si08;  // 08
+    m_staticIoiOut[x++] = &si09;  // 09
 
-    m_staticIoi[x++] = &si10;  // 10
-    m_staticIoi[x++] = &si11;  // 11
-    m_staticIoi[x++] = &si12;  // 12
-    m_staticIoi[x++] = &si13;  // 13
-    m_staticIoi[x++] = &si14;  // 14
-    m_staticIoi[x++] = &si15;  // 15
-    m_staticIoi[x++] = &si16;  // 16
-    m_staticIoi[x++] = &si17;  // 17
-    m_staticIoi[x++] = &si18;  // 18
-    m_staticIoi[x++] = &si19;  // 19
+    m_staticIoiOut[x++] = &si10;  // 10
+    m_staticIoiOut[x++] = &si11;  // 11
+    m_staticIoiOut[x++] = &si12;  // 12
+    m_staticIoiOut[x++] = &si13;  // 13
+    m_staticIoiOut[x++] = &si14;  // 14
+    m_staticIoiOut[x++] = &si15;  // 15
+    m_staticIoiOut[x++] = &si16;  // 16
+    m_staticIoiOut[x++] = &si17;  // 17
+    m_staticIoiOut[x++] = &si18;  // 18
+    m_staticIoiOut[x++] = &si19;  // 19
 
-    m_staticIoi[x++] = &si20;  // 20
-    m_staticIoi[x++] = &si21;  // 21
-    m_staticIoi[x++] = &si22;  // 22
-    m_staticIoi[x++] = &si23;  // 23
-    m_staticIoi[x++] = &si24;  // 24
-    m_staticIoi[x++] = &si25;  // 25
-    m_staticIoi[x++] = &si26;  // 26
-    m_staticIoi[x++] = &si27;  // 27
-    m_staticIoi[x++] = &si28;  // 28
-    m_staticIoi[x++] = &si29;  // 29
+    m_staticIoiOut[x++] = &si20;  // 20
+    m_staticIoiOut[x++] = &si21;  // 21
+    m_staticIoiOut[x++] = &si22;  // 22
+    m_staticIoiOut[x++] = &si23;  // 23
+    m_staticIoiOut[x++] = &si24;  // 24
+    m_staticIoiOut[x++] = &si25;  // 25
+    m_staticIoiOut[x++] = &si26;  // 26
+    m_staticIoiOut[x++] = &si27;  // 27
+    m_staticIoiOut[x++] = &si28;  // 28
+    m_staticIoiOut[x++] = &si29;  // 29
 
-    m_staticIoi[x++] = &si30;  // 30
-    m_staticIoi[x++] = &si31;  // 31
-    m_staticIoi[x++] = &si32;  // 32
-    m_staticIoi[x++] = &si33;  // 33
-    m_staticIoi[x++] = &si34;  // 34
-    m_staticIoi[x++] = &si35;  // 35
-    m_staticIoi[x++] = &si36;  // 36
-    m_staticIoi[x++] = &si37;  // 37
-    m_staticIoi[x++] = &si38;  // 38
-    m_staticIoi[x++] = &si39;  // 39
+    m_staticIoiOut[x++] = &si30;  // 30
+    m_staticIoiOut[x++] = &si31;  // 31
+    m_staticIoiOut[x++] = &si32;  // 32
+    m_staticIoiOut[x++] = &si33;  // 33
+    m_staticIoiOut[x++] = &si34;  // 34
+    m_staticIoiOut[x++] = &si35;  // 35
+    m_staticIoiOut[x++] = &si36;  // 36
+    m_staticIoiOut[x++] = &si37;  // 37
+    m_staticIoiOut[x++] = &si38;  // 38
+    m_staticIoiOut[x++] = &si39;  // 39
 
-    m_ioiStaticCount = x;
+    m_ioiStaticOutCount = x;
     m_updateIndex = 0;
-    m_validIoi = 0;
+    m_validIoiOut = 0;
+
+    memset(&adrfFault, 0, sizeof(adrfFault));
+    memset(&adrfTime, 0, sizeof(adrfTime));
+    memset(&shipTime, 0, sizeof(shipTime));
+    memset(&operatorName, 0, sizeof(operatorName));
+    memset(&ownerName, 0, sizeof(ownerName));
+    memset(&rtcSource, 0, sizeof(rtcSource));
+
+    x = 0;
+    m_staticIoiIn[x++] = &so00;
+    m_staticIoiIn[x++] = &so01;
+    m_staticIoiIn[x++] = &so02;
+    m_staticIoiIn[x++] = &so03;
+    m_staticIoiIn[x++] = &so04;
+    m_staticIoiIn[x++] = &so05;
+    m_staticIoiIn[x++] = &so06;
+    m_staticIoiIn[x++] = &so07;
+    m_staticIoiIn[x++] = &so08;
+    m_staticIoiIn[x++] = &so09;
+    m_staticIoiIn[x++] = &so10;
+    m_staticIoiIn[x++] = &so11;
+    m_staticIoiIn[x++] = &so12;
+    m_staticIoiIn[x++] = &so13;
+    m_staticIoiIn[x++] = &so14;
+    m_staticIoiIn[x++] = &so15;
+    m_staticIoiIn[x++] = &so16;
+    m_staticIoiIn[x++] = &so17;
+    m_staticIoiIn[x++] = &so18;
+    m_staticIoiIn[x++] = &so19;
+    m_staticIoiIn[x++] = &so20;
+
+    m_ioiStaticInCount = x;
+    m_validIoiIn = 0;
+
 }
 
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::OpenIoi()
 {
-    for (int i = 0; i < m_ioiStaticCount; ++i)
+    for (int i = 0; i < m_ioiStaticOutCount; ++i)
     {
-        if (m_staticIoi[i]->OpenIoi())
+        if (m_staticIoiOut[i]->OpenIoi())
         {
-            m_validIoi += 1;
+            m_validIoiOut += 1;
+        }
+    }
+
+    for (int i = 0; i < m_ioiStaticInCount; ++i)
+    {
+        if (m_staticIoiIn[i]->OpenIoi())
+        {
+            m_validIoiIn += 1;
         }
     }
 }
@@ -377,9 +569,9 @@ void StaticIoiContainer::OpenIoi()
 //---------------------------------------------------------------------------------------------
 bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 {
-    if (request.variableId < m_ioiStaticCount)
+    if (request.variableId < m_ioiStaticOutCount)
     {
-        return m_staticIoi[request.variableId]->SetStaticIoiData(request);
+        return m_staticIoiOut[request.variableId]->SetStaticIoiData(request);
     }
     else
     {
@@ -388,7 +580,7 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 }
 
 //---------------------------------------------------------------------------------------------
-// si13 => rtc_io_rd_day  1 - 7 
+// si13 => rtc_io_rd_day  1 - 7
 // si18 => rtc_io_rd_year
 // si16 => rtc_io_rd_month
 // si12 => rtc_io_rd_date
@@ -398,7 +590,7 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 void StaticIoiContainer::UpdateStaticIoi()
 {
     // compute max count to provide a 2 Hz update rate 500ms/100ms => 5 frames
-    const int kMaxCount = (m_ioiStaticCount/5) + 1;
+    const int kMaxCount = (m_ioiStaticOutCount/5) + 1;
 
     static unsigned char lastMin = 0;
     static unsigned char lastHr  = 0;
@@ -417,7 +609,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     tens = aseCommon.time.tm_sec / 10;
     data = tens << 4 | ones;
     si17.data = data;
-        
+
     // minutes updated
     if ( lastMin != aseCommon.time.tm_min)
     {
@@ -433,7 +625,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         ones = aseCommon.time.tm_hour % 10;
         tens = aseCommon.time.tm_hour / 10;
-        data = tens << 4 | ones;  
+        data = tens << 4 | ones;
         si14.data = data;
         lastHr = aseCommon.time.tm_hour;
     }
@@ -443,7 +635,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         ones = aseCommon.time.tm_mday % 10;
         tens = aseCommon.time.tm_mday / 10;
-        data = tens << 4 | ones;  
+        data = tens << 4 | ones;
         si12.data = data;
         lastDay = aseCommon.time.tm_mday;
     }
@@ -453,7 +645,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         ones = aseCommon.time.tm_mon % 10;
         tens = aseCommon.time.tm_mon / 10;
-        data = tens << 4 | ones;  
+        data = tens << 4 | ones;
         si16.data = data;
         lastMo != aseCommon.time.tm_mon;
     }
@@ -463,22 +655,31 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         ones = (aseCommon.time.tm_year - 2000) % 10;
         tens = (aseCommon.time.tm_year - 2000) / 10;
-        data = tens << 4 | ones;  
+        data = tens << 4 | ones;
         si18.data = data;
         lastYr = aseCommon.time.tm_year;
     }
 
     for (int i = 0; i < kMaxCount; ++i)
     {
-        if (!m_staticIoi[m_updateIndex]->Update())
+        if (!m_staticIoiOut[m_updateIndex]->Update())
         {
             m_writeError += 1;
         }
 
         m_updateIndex += 1;
-        if (m_updateIndex >= m_ioiStaticCount)
+        if (m_updateIndex >= m_ioiStaticOutCount)
         {
             m_updateIndex = 0;
+        }
+    }
+
+    // read all of the ADRF outputs
+    for (int i = 0; i < m_ioiStaticInCount; ++i)
+    {
+        if (!m_staticIoiIn[i]->Update())
+        {
+            m_readError += 1;
         }
     }
 }
@@ -486,20 +687,34 @@ void StaticIoiContainer::UpdateStaticIoi()
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::SetNewState( SecRequest& request)
 {
-    if (request.variableId < m_ioiStaticCount)
+    if (request.variableId < m_ioiStaticOutCount)
     {
         // if not valid leave the running state at disabled
-        bool newState = (bool)request.sigGenId && m_staticIoi[request.variableId]->ioiValid;
-        m_staticIoi[request.variableId]->SetRunState(newState);
+        bool newState = (bool)request.sigGenId && m_staticIoiOut[request.variableId]->ioiValid;
+        m_staticIoiOut[request.variableId]->SetRunState(newState);
     }
 }
 
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::Reset()
 {
-    for (int i = 0; i < m_ioiStaticCount; ++i)
+    for (int i = 0; i < m_ioiStaticOutCount; ++i)
     {
         // do not reset the running state if it is invalid
-        m_staticIoi[i]->SetRunState(m_staticIoi[i]->ioiValid);
+        m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
+    }
+}
+
+bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
+{
+    if (secComm.m_request.variableId < m_ioiStaticInCount)
+    {
+        // get the value and return true
+        m_staticIoiIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }

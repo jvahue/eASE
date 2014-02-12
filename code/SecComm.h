@@ -90,6 +90,7 @@ enum SecCmds {
     eParamState     = 414,
     eParamIoState   = 415,
     eSetStaticIoi   = 416,
+    eGetStaticIoi   = 417,
 
 //-------------------------------- unallocated --------------------------------
     eStartLogging   = 55560,

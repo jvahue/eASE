@@ -520,8 +520,8 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
 
     case 1:
         debug_str(Static, 1, 0, "Valid(%d/%d) Write Errors(%d) Valid Update: %d", 
-            m_ioiStatic.m_validIoi, 
-            m_ioiStatic.m_ioiStaticCount,
+            m_ioiStatic.m_validIoiOut, 
+            m_ioiStatic.m_ioiStaticOutCount,
             m_ioiStatic.m_writeError,
             m_ioiStatic.m_updateIndex);
         break;
@@ -530,21 +530,21 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
         if (updateDelay == 0)
         {
             updateDelay = DELAY_CNT;
-            if ((dix+1) < m_ioiStatic.m_ioiStaticCount)
+            if ((dix+1) < m_ioiStatic.m_ioiStaticOutCount)
             {
                 debug_str(Static, dLine, 0, "%-39s %s",
-                    m_ioiStatic.m_staticIoi[dix]->Display(buf1, dix), 
-                    m_ioiStatic.m_staticIoi[dix+1]->Display(buf2, dix+1));
+                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix), 
+                    m_ioiStatic.m_staticIoiOut[dix+1]->Display(buf2, dix+1));
                 dix += 2;            
             }
             else
             {
                 debug_str(Static, dLine, 0, "%s",
-                    m_ioiStatic.m_staticIoi[dix]->Display(buf1, dix));
+                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix));
                 dix += 1;            
             }
 
-            if (dix >= m_ioiStatic.m_ioiStaticCount)
+            if (dix >= m_ioiStatic.m_ioiStaticOutCount)
             {
                 dix = 0;
             }
@@ -931,6 +931,21 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         else
         {
             m_ioiStatic.SetNewState(request);
+        }
+        serviced = TRUE;
+        break;
+
+    //----------------------------------------------------------------------------------------------
+    case eGetStaticIoi:
+
+        if (m_ioiStatic.GetStaticIoiData(secComm))
+        {
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("GetIoi: Invalid signal Id(%d)", request.variableId);
+            secComm.m_response.successful = false;
         }
         serviced = TRUE;
         break;
