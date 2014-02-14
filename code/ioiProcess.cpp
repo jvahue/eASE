@@ -519,9 +519,12 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
         break;
 
     case 1:
-        debug_str(Static, 1, 0, "Valid(%d/%d) Write Errors(%d) Valid Update: %d", 
+        debug_str(Static, 1, 0, "Valid R/W(%d/%d)/(%d/%d) Error R/W(%d/%d) Valid Update: %d", 
+            m_ioiStatic.m_validIoiIn, 
+            m_ioiStatic.m_ioiStaticInCount,
             m_ioiStatic.m_validIoiOut, 
             m_ioiStatic.m_ioiStaticOutCount,
+            m_ioiStatic.m_readError,
             m_ioiStatic.m_writeError,
             m_ioiStatic.m_updateIndex);
         break;

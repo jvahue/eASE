@@ -104,7 +104,7 @@ StaticIoiStr    so05("adrf_data_owner", ownerName, 64, true);       // 05
 StaticIoiInt    so06("adrf_data_power_on_cnt", 0, true);            // 06
 StaticIoiInt    so07("adrf_data_power_on_time", 0, true);           // 07
 StaticIoiInt    so08("adrf_health_ind", 0, true);                   // 08
-StaticIoiStr    so09("adrf_rtc_source", rtcSource, true);           // 09
+StaticIoiStr    so09("adrf_rtc_source", rtcSource, 2, true);        // 09
 StaticIoiIntPtr so10("adrf_rtc_time", adrfTime, 2, true);           // 10
 StaticIoiIntPtr so11("adrf_ships_time", shipTime, 2, true);         // 11
 StaticIoiInt    so12("adrf_status_word1", 0, true);                 // 12
@@ -142,7 +142,16 @@ StaticIoiObj::StaticIoiObj(char* name, bool isInput)
 //---------------------------------------------------------------------------------------------
 bool StaticIoiObj::OpenIoi()
 {
-    ioiStatus openStatus = ioi_open(ioiName, ioiWritePermission, (int*)&ioiChan);
+    ioiStatus openStatus;
+
+    if (ioiIsInput)
+    {
+        openStatus = ioi_open(ioiName, ioiReadPermission, (int*)&ioiChan);
+    }
+    else
+    {
+        openStatus = ioi_open(ioiName, ioiWritePermission, (int*)&ioiChan);
+    }
     ioiValid = openStatus == ioiSuccess;
     ioiRunning = ioiValid;
     return ioiValid;
