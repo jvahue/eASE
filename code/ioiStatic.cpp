@@ -412,6 +412,7 @@ bool StaticIoiStr::Update()
 bool StaticIoiStr::GetStaticIoiData( IocResponse& m_response)
 {
     strncpy(m_response.streamData, data, bytes);
+    m_response.streamSize = bytes;
     return true;
 }
 
@@ -439,6 +440,7 @@ char* StaticIoiIntPtr::Display( char* dest, UINT32 dix )
 bool StaticIoiIntPtr::GetStaticIoiData(IocResponse& m_response)
 {
     memcpy(m_response.streamData, data, bytes);
+    m_response.streamSize = bytes;
     return true;
 }
 
@@ -460,9 +462,9 @@ StaticIoiContainer::StaticIoiContainer()
 {
     UINT32 x = 0;
 
-    strcpy(HMUpartNumber, "HmuPart");
-    strcpy(HMUSerialNumber, "HmuSerial");
-    strcpy(PWSwDwgNumber, "PwSwDwg");
+    strcpy(HMUpartNumber, "-5318410-12SK01-");
+    strcpy(HMUSerialNumber, "0000999999");
+    strcpy(PWSwDwgNumber, "PY1022429-016");
     strcpy(UTASSwDwgNumber, "UtasSwDwg");
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
