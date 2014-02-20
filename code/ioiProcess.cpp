@@ -320,6 +320,7 @@ void IoiProcess::HandlePowerOff()
     m_ccdlIn.Reset();
     m_ccdlOut.Reset();
     m_ccdl.Reset();
+    m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
     m_ioiStatic.Reset();
 }
 

@@ -59,10 +59,6 @@
 class CCDL
 {
 public:
-    enum CcdlConstants {
-        eCcdl = 1, // change this value to take more rows at top
-    };
-
     enum CcdlState {
         eCcdlStateErr,
         eCcdlStateOk,
@@ -74,7 +70,7 @@ public:
         eCcdlStartTx,
         eCcdlStartRx,
         eCcdlRun,
-        eCcdlHold
+        //eCcdlHold
     };
 
     CCDL(AseCommon* pCommon);
@@ -93,7 +89,7 @@ public:
     void GetParamData();
 
     void Receive(MailBox& in);
-    void Transmit(MailBox& out);
+    bool Transmit(MailBox& out);
     void ValidateRemoteSetup();
 
     PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
@@ -129,6 +125,14 @@ protected:
 
     Parameter* m_parameters;
     UINT32 m_maxParamIndex;
+
+    UINT32 m_wrCalls;
+    UINT32 m_wrWrites;
+
+    UINT32 m_rdCalls;
+    UINT32 m_rdReads;
+
+
 };
 
 #endif

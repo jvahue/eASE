@@ -46,8 +46,8 @@ static CC_SLOT_INFO m_slotInfo[] = {CC_SLOT_LIST};
 static const CHAR adrfProcessName[] = "adrf";
 
 // CCDL Mailbox Names
-static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
-static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
+static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";  // Comm Manager Mailbox
+static const CHAR adrfReCfgMailboxName[] = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
 static BYTE m_inBuffer[CC_MAX_SIZE];
 static BYTE m_outBuffer[CC_MAX_SIZE];
@@ -75,7 +75,7 @@ static CHAR* stateStr[] = {
 /*****************************************************************************/
 /* Class Definitions                                                         */
 /*****************************************************************************/
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Constructor
 // Description: Create an initialize the CCDL object
 //
@@ -91,13 +91,17 @@ CCDL::CCDL( AseCommon* pCommon )
     , m_txParam(0)
     , m_parameters(NULL)
     , m_maxParamIndex(0)
+    , m_wrCalls(0)
+    , m_wrWrites(0)
+    , m_rdCalls(0)
+    , m_rdReads(0)
 {
     UINT32 current_offset = 0;
 
-    //For each slot defined in the list, loop through and allocate the location
-    //of the slots.  This sets up the pointers used to insert and remove messages
-    //from the message buffer. If the size happens to exceed the size of the cross
-    //channel message (2k) then flag an error.
+    // For each slot defined in the list, loop through and allocate the location
+    // of the slots.  This sets up the pointers used to insert and remove messages
+    // from the message buffer. If the size happens to exceed the size of the cross
+    // channel message (2k) then flag an error.
     for(UINT32 i = 0; i < CC_MAX_SLOT; i++)
     {
         m_slotInfo[i].offset = current_offset;
@@ -131,22 +135,27 @@ void CCDL::Reset()
     }
 
     m_ccdlCalls = 0;
+
+    m_rxState = eCcdlStateInit;
     m_rxCount = 0;
     m_rxFailCount = 0;
+    m_rdCalls = 0;
+    m_rdReads = 0;
+
+    m_txState = eCcdlStateInit;
     m_txCount = 0;
     m_txFailCount = 0;
+    m_wrCalls = 0;
+    m_wrWrites = 0;
 
     m_mode = eCcdlStart;
 
-    m_rxState = eCcdlStateInit;
-    m_txState = eCcdlStateInit;
-
     memset((void*)&m_rqstParamMap, 0, sizeof(m_rqstParamMap));
     memset((void*)&m_rxParamData, 0, sizeof(m_rxParamData));
-    m_rqstParamMap.type = PARAM_XCH_TYPE_MAX;
+    m_rqstParamMap.type = PARAM_XCH_TYPE_SETUP;
 
     memset((void*)&m_txParamData, 0, sizeof(m_rxParamData));
-    m_txParamData.type = PARAM_XCH_TYPE_MAX;
+    m_txParamData.type = PARAM_XCH_TYPE_DATA;
 
     memset((void*)m_reportIn, 0, sizeof(m_reportIn));
     memset((void*)m_reportOut, 0, sizeof(m_reportOut));
@@ -155,6 +164,9 @@ void CCDL::Reset()
     memset((void*)&m_eFastOut, 0, sizeof(m_eFastOut));
     
     memset((void*)m_ccdlRawParam, 0, sizeof(m_ccdlRawParam));
+
+    memset((void*)m_inBuffer, 0, sizeof(m_inBuffer));
+    memset((void*)m_outBuffer, 0, sizeof(m_outBuffer));
 }
 
 //---------------------------------------------------------------------------------------------
@@ -173,21 +185,57 @@ BOOLEAN CCDL::CheckCmd( SecComm& secComm )
 void CCDL::Update(MailBox& in, MailBox& out)
 {
     UINT32 pIndex;
+    static UINT32 rxTimer = 0;
 
     if (m_isValid)
     {
         m_ccdlCalls += 1;
 
-        if (m_pCommon->recfgSuccess || !IS_ADRF_ON)
-        {
-            m_mode = eCcdlStart;
-            m_pCommon->recfgSuccess = false;
-        }
+        //if (m_pCommon->recfgSuccess || !IS_ADRF_ON)
+        //{
+        //    m_mode = eCcdlStart;
+        //    m_pCommon->recfgSuccess = false;
+        //}
 
         Receive(in);
 
+        // we only use this timer if we are acting as channel A (see eCcdlStartTx)
+        if (rxTimer > 0)
+        {
+            if (m_mode == eCcdlStartRx)
+            {
+                // when waiting for Chan B setup resend our setup after 1s
+                if (++rxTimer > 100)
+                {
+                    // go back and transmit our request packet again
+                    m_mode = eCcdlStartTx;
+                    rxTimer = 0;
+                }
+            }
+            else
+            {
+                rxTimer = 0;
+            }
+        }
+
         switch (m_mode) {
         case eCcdlStart:
+            memset((void*)m_inBuffer, 0, sizeof(m_inBuffer));
+            memset((void*)m_outBuffer, 0, sizeof(m_outBuffer));
+
+            m_rxState = eCcdlStateInit;
+            m_txState = eCcdlStateInit;
+
+            m_rxCount = 0;
+            m_rxFailCount = 0;
+            m_rdCalls = 0;
+            m_rdReads = 0;
+
+            m_txCount = 0;
+            m_txFailCount = 0;
+            m_wrCalls = 0;
+            m_wrWrites = 0;
+
             if (m_actingChan == EFAST_CHA)
             {
                 m_mode = eCcdlStartTx;
@@ -200,6 +248,19 @@ void CCDL::Update(MailBox& in, MailBox& out)
 
         case eCcdlStartTx:
             SendParamRqst();
+            // on failure to Tx we will go back to start mode
+            if (Transmit(out))
+            {
+                if (m_actingChan == EFAST_CHA)
+                {
+                    m_mode = eCcdlStartRx;
+                    rxTimer = 1;
+                }
+                else
+                {
+                    m_mode = eCcdlRun;
+                }
+            }
             break;
 
         case eCcdlStartRx:
@@ -208,19 +269,18 @@ void CCDL::Update(MailBox& in, MailBox& out)
 
         case eCcdlRun:
             GetParamData();
+            Transmit(out);
             break;
 
-        case eCcdlHold:
-            memset(m_inBuffer, 0, sizeof(m_inBuffer));
-            memset(m_outBuffer, 0, sizeof(m_outBuffer));
-            break;
+        //case eCcdlHold:
+        //    memset(m_inBuffer, 0, sizeof(m_inBuffer));
+        //    memset(m_outBuffer, 0, sizeof(m_outBuffer));
+        //    break;
 
         default:
             break;
         }
 
-        // on failure to Tx we will go back to start mode
-        Transmit(out);
     }
 }
 
@@ -245,41 +305,40 @@ void CCDL::Receive(MailBox& in)
 // Function: Transmit
 // Description: Pack up the msg components and send it.
 //
-void CCDL::Transmit(MailBox& out)
+bool CCDL::Transmit(MailBox& out)
 {
-    if (out.Send(m_outBuffer, sizeof(m_outBuffer)))
+    bool result = out.Send(m_outBuffer, sizeof(m_outBuffer)) == TRUE;
+
+    if (result)
     {
-        m_txCount += 1;
-        //If message sent, clear sizes to signal buffer is free
-        //else, try again next frame.
+        // clear sizes to signal buffer is free
         for(int i = 0; i < CC_MAX_SLOT; i++)
         {
           UINT16* size_ptr = (UINT16*)&m_outBuffer[m_slotInfo[i].offset];
           *size_ptr = 0;
         }
+        m_txCount += 1;
     }
     else
     {
         m_txFailCount += 1;
-
-        // ADRF mailbox is lost - when it comes back we will need to start over
-        Reset();
+        // maybe we want to go to start mode if we cannot talk to the ADRF
     }
+
+    return result;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Write
 // Description: Write Data to a particular slot
 //
 void  CCDL::Write(CC_SLOT_ID id, void* buf, INT32 size)
 {
-    static UINT32 calls, writes;
-
     //Buffer first location is 2-byte size, followed by data.
     BYTE* tx_buf = m_outBuffer + m_slotInfo[id].offset + sizeof(CC_MSG_SIZE);
     UINT16* buf_size = (UINT16*)(m_outBuffer + m_slotInfo[id].offset);
 
-    calls++;
+    m_wrCalls++;
     //Verify buffer is free (size = 0)
     if(*buf_size == 0)
     {
@@ -287,24 +346,23 @@ void  CCDL::Write(CC_SLOT_ID id, void* buf, INT32 size)
       //Set size last, used as a semaphore to signal data has been written
       // 16-bit write s/b atomic?
       *buf_size = (UINT16)size; //keep lint happy
-      writes++;
+      m_wrWrites++;
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Read
 // Description: Read Data from a particular slot if any new data is there
 //
 INT32 CCDL::Read(CC_SLOT_ID id, void* buf, INT32 size)
 {
-    static UINT32 calls, reads;
     UINT16 retval = 0;
 
     //Buffer first location is 2-byte size, followed by data.
     BYTE* rx_buf = m_inBuffer + m_slotInfo[id].offset + sizeof(CC_MSG_SIZE);
     UINT16* buf_size = (UINT16*)(m_inBuffer + m_slotInfo[id].offset);
 
-    calls++;
+    m_rdCalls++;
     //Verify buffer has data (size != 0)
     if(*buf_size != 0)
     {
@@ -313,37 +371,30 @@ INT32 CCDL::Read(CC_SLOT_ID id, void* buf, INT32 size)
         //Set size last, used as a semaphore to signal data has been written
         // 16-bit write s/b atomic?
         *buf_size = 0;
-        reads++;
+        m_rdReads++;
     }
 
     return retval;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SendParamRqst
 // Description: Send our request for param data
 //
 void CCDL::SendParamRqst()
 {
     Write(CC_PARAM, &m_rqstParamMap, sizeof(m_rqstParamMap));
-
-    if (m_actingChan == EFAST_CHA)
-    {
-        m_mode = eCcdlStartRx;
-    }
-    else
-    {
-        m_mode = eCcdlRun;
-    }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: PackRequestParams
 // Description: Pack our request for parameters, ask for all non xch data.  If param count is
 // greater than the ccdl take the first PARAM_XCH_BUFF_MAX.  The tester is responsible for
-// spreading the params out to ensure the ADRF code can send parameter of its 3000 parameters
+// spreading the params out to ensure the ADRF code can send any parameter of its 3000 
+// parameters
 //
-// NOTE: this is called from InitIoi when we know we are doing a Reconfig
+// NOTE: this is called from InitIoi when we know we are doing a Reconfig - if ASE is restarted
+// you must Reconfig the target so ASE has some Param setup.
 //
 void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
 {
@@ -373,7 +424,7 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     m_rqstParamMap.num_params = m_rxParam;
 
     // reset us to start mode as we have a "new" request set
-    m_mode = eCcdlHold;
+    m_mode = eCcdlStart;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -467,7 +518,7 @@ void CCDL::ValidateRemoteSetup()
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: PageCcdl
 // Description: Update the CCDL display - uses the Ioi page
 // display: acting channel, rx, tx, ParamTx, ParamRx
@@ -493,8 +544,14 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
     }
     else if (theLine == (baseLine + 1))
     {
-        debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d)",
-                  m_rxParamData.num_params, m_txParamData.num_params);
+        debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d) ParamRqst(%d) Rd(%d/%d) Wr(%d/%d)",
+                  m_rxParamData.num_params, 
+                  m_txParamData.num_params,
+                  m_rqstParamMap.num_params,
+                  m_rdReads,
+                  m_rdCalls,
+                  m_wrWrites,
+                  m_wrCalls);
     }
 
     else if (theLine == (baseLine + 2))
