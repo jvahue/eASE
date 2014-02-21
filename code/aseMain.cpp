@@ -400,6 +400,12 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
+        case eGetAseVersion:
+            strcpy(secComm.m_response.streamData, version);
+            secComm.m_response.streamSize = strlen(version);
+            secComm.m_response.successful = TRUE;
+            serviced = TRUE;
+
         default:
             break;
         }

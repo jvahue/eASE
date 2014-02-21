@@ -92,9 +92,7 @@ CCDL::CCDL( AseCommon* pCommon )
     , m_parameters(NULL)
     , m_maxParamIndex(0)
     , m_wrCalls(0)
-    , m_wrWrites(0)
     , m_rdCalls(0)
-    , m_rdReads(0)
 {
     UINT32 current_offset = 0;
 
@@ -140,13 +138,13 @@ void CCDL::Reset()
     m_rxCount = 0;
     m_rxFailCount = 0;
     m_rdCalls = 0;
-    m_rdReads = 0;
+    memset((void*)m_rdReads, 0, sizeof(m_rdReads));
 
     m_txState = eCcdlStateInit;
     m_txCount = 0;
     m_txFailCount = 0;
     m_wrCalls = 0;
-    m_wrWrites = 0;
+    memset((void*)m_wrWrites, 0, sizeof(m_wrWrites));
 
     m_mode = eCcdlStart;
 
@@ -186,6 +184,7 @@ void CCDL::Update(MailBox& in, MailBox& out)
 {
     UINT32 pIndex;
     static UINT32 rxTimer = 0;
+    static UINT32 lastTx = 0;
 
     if (m_isValid)
     {
@@ -224,17 +223,16 @@ void CCDL::Update(MailBox& in, MailBox& out)
             memset((void*)m_outBuffer, 0, sizeof(m_outBuffer));
 
             m_rxState = eCcdlStateInit;
-            m_txState = eCcdlStateInit;
-
             m_rxCount = 0;
             m_rxFailCount = 0;
             m_rdCalls = 0;
-            m_rdReads = 0;
+            memset((void*)m_rdReads, 0, sizeof(m_rdReads));
 
+            m_txState = eCcdlStateInit;
             m_txCount = 0;
             m_txFailCount = 0;
             m_wrCalls = 0;
-            m_wrWrites = 0;
+            memset((void*)m_wrWrites, 0, sizeof(m_wrWrites));
 
             if (m_actingChan == EFAST_CHA)
             {
@@ -247,18 +245,24 @@ void CCDL::Update(MailBox& in, MailBox& out)
             break;
 
         case eCcdlStartTx:
-            SendParamRqst();
-            // on failure to Tx we will go back to start mode
-            if (Transmit(out))
+            // limit Tx to 900 ms interval so we don't overflow the buffer
+            if ((lastTx + 90) < GET_SYSTEM_TICK)
             {
-                if (m_actingChan == EFAST_CHA)
+                lastTx = GET_SYSTEM_TICK;
+
+                SendParamRqst();
+                // on failure to Tx we will go back to start mode
+                if (Transmit(out))
                 {
-                    m_mode = eCcdlStartRx;
-                    rxTimer = 1;
-                }
-                else
-                {
-                    m_mode = eCcdlRun;
+                    if (m_actingChan == EFAST_CHA)
+                    {
+                        m_mode = eCcdlStartRx;
+                        rxTimer = 1;
+                    }
+                    else
+                    {
+                        m_mode = eCcdlRun;
+                    }
                 }
             }
             break;
@@ -346,7 +350,7 @@ void  CCDL::Write(CC_SLOT_ID id, void* buf, INT32 size)
       //Set size last, used as a semaphore to signal data has been written
       // 16-bit write s/b atomic?
       *buf_size = (UINT16)size; //keep lint happy
-      m_wrWrites++;
+      m_wrWrites[id]++;
     }
 }
 
@@ -371,7 +375,7 @@ INT32 CCDL::Read(CC_SLOT_ID id, void* buf, INT32 size)
         //Set size last, used as a semaphore to signal data has been written
         // 16-bit write s/b atomic?
         *buf_size = 0;
-        m_rdReads++;
+        m_rdReads[id]++;
     }
 
     return retval;
@@ -544,20 +548,29 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
     }
     else if (theLine == (baseLine + 1))
     {
-        debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d) ParamRqst(%d) Rd(%d/%d) Wr(%d/%d)",
+        debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d) ParamRqst(%d)",
                   m_rxParamData.num_params, 
                   m_txParamData.num_params,
-                  m_rqstParamMap.num_params,
-                  m_rdReads,
-                  m_rdCalls,
-                  m_wrWrites,
-                  m_wrCalls);
+                  m_rqstParamMap.num_params);
     }
 
     else if (theLine == (baseLine + 2))
     {
+        debug_str(Ioi, theLine, 0, "Rd(%d|%d|%d - %d) Wr(%d|%d|%d - %d)",
+                  m_rdReads[CC_PARAM],
+                  m_rdReads[CC_REPORT_TRIG],
+                  m_rdReads[CC_EFAST_MGR],
+                  m_rdCalls,
+                  m_wrWrites[CC_PARAM],
+                  m_wrWrites[CC_REPORT_TRIG],
+                  m_wrWrites[CC_EFAST_MGR],
+                  m_wrCalls);
+    }
+
+    else if (theLine == (baseLine + 3))
+    {
         debug_str(Ioi, theLine, 0, "MB: %s %s",
-                  in.GetStatusStr(), out.GetStatusStr());
+            in.GetStatusStr(), out.GetStatusStr());
         nextPage = true;
     }
 

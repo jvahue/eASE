@@ -45,6 +45,7 @@ enum SecCmds {
     eSetChanId      = 9,
     eNvmRead        = 10,
     eNvmWrite       = 11,
+    eGetAseVersion  = 12,
 
 // Ase Enums 101-199
 

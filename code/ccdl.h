@@ -127,10 +127,10 @@ protected:
     UINT32 m_maxParamIndex;
 
     UINT32 m_wrCalls;
-    UINT32 m_wrWrites;
+    UINT32 m_wrWrites[CC_MAX_SLOT];
 
     UINT32 m_rdCalls;
-    UINT32 m_rdReads;
+    UINT32 m_rdReads[CC_MAX_SLOT];
 
 
 };
