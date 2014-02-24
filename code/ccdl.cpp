@@ -196,7 +196,6 @@ void CCDL::Update(MailBox& in, MailBox& out)
         //    m_pCommon->recfgSuccess = false;
         //}
 
-        Receive(in);
 
         // we only use this timer if we are acting as channel A (see eCcdlStartTx)
         if (rxTimer > 0)
@@ -219,6 +218,8 @@ void CCDL::Update(MailBox& in, MailBox& out)
 
         switch (m_mode) {
         case eCcdlStart:
+            lastTx = 0;
+
             memset((void*)m_inBuffer, 0, sizeof(m_inBuffer));
             memset((void*)m_outBuffer, 0, sizeof(m_outBuffer));
 
@@ -268,10 +269,12 @@ void CCDL::Update(MailBox& in, MailBox& out)
             break;
 
         case eCcdlStartRx:
+            Receive(in);
             GetParamData();
             break;
 
         case eCcdlRun:
+            Receive(in);
             GetParamData();
             Transmit(out);
             break;

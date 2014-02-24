@@ -260,7 +260,7 @@ void IoiProcess::UpdateIoi()
 
     if (m_updated > 0)
     {
-           m_avgIoiTime /= m_updated;
+        m_avgIoiTime /= m_updated;
     }
     else
     {
@@ -1014,7 +1014,7 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames) const
 //
 bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data)
 {
-#define PARAM_SET_SIZE (eSecCharDataSize/sizeof(m_paramInfo))
+#define PARAM_SET_SIZE (eSecCharDataSize/sizeof(ParamCfg))
     bool status = false;
     UINT32 i;
     ParamCfg* pCfg = (ParamCfg*)data;
@@ -1171,8 +1171,8 @@ void IoiProcess::InitIoi()
         }
 
         // clear out the paramInfo
-        memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
-        m_paramInfoCount = 0;
+        //memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
+        //m_paramInfoCount = 0;
 
         // prep the CCDL request buffer
         m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
