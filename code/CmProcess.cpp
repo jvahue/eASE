@@ -261,6 +261,7 @@ void CmProcess::ProcessLiveData()
                 size = strlen(rspBuffer);
             }
 
+            size = size <= 3000 ? size : 3000;
             m_rxStreamFifo[GSE_SOURCE_MAX].Push(rspBuffer, size);
         }
     }
