@@ -76,7 +76,7 @@ enum SecCmds {
 //-------------------------------- IOI 400 - 599 ------------------------------
     eGetSensorNames = 400,
     eGetSensorValue = 401,
-    eSetSensorValue = 402,   // TBD: this should be deleted as only eSetSensorSG is used
+    eSetSensorValue = 402,  // TBD: this should be deleted as only eSetSensorSG is used
     eSetSensorSG    = 403,
     eResetSG        = 404,
     eRunSG          = 405,
@@ -91,7 +91,17 @@ enum SecCmds {
     eParamState     = 414,
     eParamIoState   = 415,
     eSetStaticIoi   = 416,
-    eGetStaticIoi   = 417,
+    eGetStaticIoi   = 417,  // Used to set value and pause/resume IOI updates
+
+//-------------------------------- CCDL 600 - 699 -----------------------------
+    eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF
+
+    eCcdlTrig     = 601,  // used to read/write a CCDL trigger
+    eCcdlBinCrc   = 603,  // used to read/write a CCDL Bin File Crc
+    eCcdlCfgCrc   = 604,  // used to read/write a CCDL Cfg File Crc
+    eCcdlXmlCrc   = 605,  // used to read/write a CCDL Xml File Crc
+    eCcdlAcidRx   = 606,  // used to read/write ACID Rx on bus flag
+    eCcdlAcidOk   = 607,  // used to read/write ACID match confirmed
 
 //-------------------------------- unallocated --------------------------------
     eStartLogging   = 55560,
