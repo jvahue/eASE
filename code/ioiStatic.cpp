@@ -464,7 +464,7 @@ StaticIoiContainer::StaticIoiContainer()
 
     strcpy(HMUpartNumber, "-5318410-12SK01-");
     strcpy(HMUSerialNumber, "0000999999");
-    strcpy(PWSwDwgNumber, "PY1022429-016");
+    strcpy(PWSwDwgNumber, "PY1022429-017");
     strcpy(UTASSwDwgNumber, "UtasSwDwg");
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
