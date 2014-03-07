@@ -62,15 +62,19 @@ CmdRspThread::CmdRspThread()
     , m_frames(0)
     , m_overrunCount(0)
     , m_updateDisplay(true)
+    , m_elapsedProc(0)
+    , m_elapsedDisp(0)
 {
 }
 
 void CmdRspThread::Process()
 {
+    UINT32 start;
     UINT32 theLine = 0;
 
     while (1)
     {
+        start = HsTimer();
         m_systemTick = GET_SYSTEM_TICK;
         m_frames += 1;
         if (IS_ADRF_ON)
@@ -81,16 +85,19 @@ void CmdRspThread::Process()
         {
             HandlePowerOff();
         }
+        m_elapsedProc = HsTimeDiff(start);
+
+        start = HsTimer();
+        if (m_updateDisplay)
+        {
+            theLine = UpdateDisplay(VID_SYS, theLine);
+        }
+        m_elapsedDisp = HsTimeDiff(start);
 
         // check if we overran
         if (m_systemTick != GET_SYSTEM_TICK)
         {
             m_overrunCount += 1;
-        }
-
-        if (m_updateDisplay)
-        {
-            theLine = UpdateDisplay(VID_SYS, theLine);
         }
 
         waitUntilNextPeriod();
@@ -109,12 +116,13 @@ int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
     debug_str(who, theLine, 0,
-              "ePySte(%s) ADRF(%s) MS(%s) Script(%s) Frame(%d/%d)",
+        "PySte:%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d",
               IS_CONNECTED ? "Conn" : "NoConn",
               adrfState[m_pCommon->adrfState],
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",
-              m_frames, m_overrunCount
+              m_frames, m_overrunCount,
+              m_elapsedProc, m_elapsedDisp
               );
 
     return theLine;

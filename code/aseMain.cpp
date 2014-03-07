@@ -128,6 +128,10 @@ int main(void)
     nextTime.tm_mon  = 7;
     nextTime.tm_mday = 27;
 
+    aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
+    aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
+
+
     // default to MS being online
     aseCommon.bMsOnline = true;
 

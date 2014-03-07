@@ -75,7 +75,8 @@ protected:
     // This is the real work horse
     virtual void HandlePowerOff() {}
 
-
+    UINT32  m_elapsedProc;
+    UINT32  m_elapsedDisp;
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
     bool    m_updateDisplay;

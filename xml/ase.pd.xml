@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "1623653757"
+     validityKey = "1586720439"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -160,7 +160,7 @@
    <threadTemplates>
       <threadTemplate
            name = "StdThreadTemplate"
-           budget = "500"
+           budget = "1000"
            instanceCount = "3"
            slackEnabled = "no"
            stackSizeInPages = "5"

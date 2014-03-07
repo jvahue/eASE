@@ -76,6 +76,7 @@ protected:
     UINT32 m_page;
     UINT32 m_paramDetails;
 
+    UINT32 m_scheduledX;
     UINT32 m_scheduled;
     UINT32 m_updated;
 
@@ -105,6 +106,11 @@ protected:
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;
     INT32 m_ioiChanId; 
+
+    UINT32 m_maxProcDuration;
+    UINT32 m_elapsed;
+    UINT32 m_peak;
+    UINT32 m_execFrame;
 
     //------------------------------------------
     // Static IOI Data

@@ -82,6 +82,11 @@ IoiProcess::IoiProcess()
     , m_totalIoiTime(0)
     , m_ccdl(&aseCommon)
     , m_chanId(-1)
+    , m_scheduledX(0)
+    , m_elapsed(0)
+    , m_maxProcDuration(850)
+    , m_peak(0)
+    , m_execFrame(0)
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -91,6 +96,7 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
+    m_peak = 0;
 }
 
 /****************************************************************************
@@ -216,29 +222,39 @@ void IoiProcess::RunSimulation()
 //
 void IoiProcess::UpdateIoi()
 {
-    UINT32 i;
-    UINT32 scheduleZ1 = 3001;
+    bool wrapAround = false;
+    UINT32 start;
     UINT32 remoteX = 0;
+    UINT32 scheduleZ1 = 0;
+    UINT32 startParam = m_scheduledX;
     Parameter* param;
 
     m_scheduled = 0; // need to see how many are really scheduled
-    m_updated = 0;   // toggle the lsb
+    m_updated = 0;   // 
+    m_elapsed = 0;
 
-    if ( m_initStatus == ioiSuccess)
+    if (m_initStatus == ioiSuccess && !m_initParams && m_paramIoRunning)
     {
         m_totalParamTime = 0;
         m_totalIoiTime = 0;
 
-        param = &m_parameters[0];
-        for (i=0; i < m_paramLoopEnd && !m_initParams; ++i)
+        start = HsTimer();
+        param = &m_parameters[m_scheduledX];
+        // convert until we have gone though every param or timeout or we start to initIOI
+        while ((!wrapAround ||
+                (wrapAround && m_scheduledX != startParam)) && 
+               !m_initParams && 
+               m_elapsed < m_maxProcDuration)
         {
-            if (param->m_isValid && !param->m_isChild)
+            if (param->m_isValid && param->IsRunning() && !param->m_isChild)
             {
-                m_scheduled += param->Update( GET_SYSTEM_TICK, m_sgRun);
+                m_scheduled += param->Update( m_execFrame, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
 
-                if (m_paramIoRunning && m_scheduled != scheduleZ1 && param->IsRunning())
+                // any update needed for this IOI?
+                if (m_scheduled != scheduleZ1 )
                 {
+                    scheduleZ1 = m_scheduled;
                     if (param->m_src != PARAM_SRC_CROSS)
                     {
                         WriteIoi(param);
@@ -252,26 +268,44 @@ void IoiProcess::UpdateIoi()
                         m_ccdl.m_txParamData.num_params = remoteX;
                     }
                 }
-                scheduleZ1 = m_scheduled;
             }
-            ++param;
+
+            if (++m_scheduledX >= m_paramLoopEnd)
+            {
+                m_scheduledX = 0;
+                param = &m_parameters[0];
+                wrapAround = true;
+            }
+            else
+            {
+                ++param;
+            }
+
+            m_elapsed = HsTimeDiff(start);
         }
-    }
 
-    if (m_updated > 0)
-    {
-        m_avgIoiTime /= m_updated;
-    }
-    else
-    {
-        m_avgIoiTime = 0;
-    }
+        if (m_scheduled > m_peak)
+        {
+            m_peak = m_scheduled;
+        }
 
-    // complete the contents of the ccdl param data
-    m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
-    if ( m_ccdl.CcdlIsRunning())
-    {
-        m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
+        if (m_updated > 0)
+        {
+            m_avgIoiTime /= m_updated;
+        }
+        else
+        {
+            m_avgIoiTime = 0;
+        }
+
+        // complete the contents of the ccdl param data
+        m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
+        if ( m_ccdl.CcdlIsRunning())
+        {
+            m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
+        }
+
+        m_execFrame += 1;
     }
 }
 
@@ -364,23 +398,26 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     else if (theLine == 1)
     {
         debug_str(Ioi, theLine, 0,
-                  "IOI(%s) SigGen(%s) Params(%4d) ParamInfo(%4d) Sched(%4d) Updated(%4d)",
-                  ioiInitStatus[m_initStatus],
+                  "IOI:%s/%s SG:%s pCnt:%4d pInfo:%4d Sched:%4d/%d Updated:%4d",
+                  ioiInitStatus[m_initStatus], m_paramIoRunning ? "Run" : "Stop",
                   m_sgRun ? " On" : "Off",
                   m_paramCount,
                   m_paramInfoCount,
-                  m_scheduled, m_updated);
+                  m_scheduled, m_peak, m_updated);
     }
     else if (theLine == 2)
     {
         debug_str(Ioi, theLine, 0,
-                  "oErr(%d) wErr(%d) cErr(%d) TotP(%d) TotI(%d) AvgIoi(%d)",
+                  "oErr:%d wErr:%d cErr:%d TotP:%5d IoiT:%4d IoiA:%2d SchedX:%4d %4d/%d",
                   m_ioiOpenFailCount,
                   m_ioiWriteFailCount,
                   m_ioiCloseFailCount,
                   m_totalParamTime,
                   m_totalIoiTime,
-                  m_avgIoiTime);
+                  m_avgIoiTime,
+                  m_scheduledX,
+                  m_elapsed, 
+                  m_maxProcDuration);
     }
     else
     {
@@ -913,7 +950,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     //----------------------------------------------------------------------------------------------
     case eParamIoState:
-        m_paramIoRunning = m_parameters[request.variableId].m_isValid != 0;
+        m_paramIoRunning = request.variableId != 0;
         secComm.m_response.successful = true;
         serviced = TRUE;
         break;
@@ -954,6 +991,12 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    //----------------------------------------------------------------------------------------------
+    case eSetIoiDuration:
+        m_maxProcDuration = request.variableId;
+        serviced = TRUE;
+
+        break;
     default:
         // we did not service this command
         serviced = FALSE;
@@ -1067,6 +1110,7 @@ void IoiProcess::InitIoi()
     if (m_initStatus == ioiSuccess)
     {
         m_initParams = true;
+        m_scheduledX = 0;
 
         // clear the display
         m_displayCount = 0;
@@ -1170,14 +1214,15 @@ void IoiProcess::InitIoi()
             }
         }
 
-        // clear out the paramInfo
-        //memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
-        //m_paramInfoCount = 0;
-
         // prep the CCDL request buffer
         m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
 
         ScheduleParameters();
+        m_execFrame = 0;
+        m_maxProcDuration = 850;  // 1000 - 150us overhead
+        m_peak = 0;
+
+        // must be the last statement
         m_initParams = false;
     }
 }
@@ -1189,57 +1234,54 @@ void IoiProcess::InitIoi()
 //
 void IoiProcess::ScheduleParameters()
 {
-    UINT32 _01HZ = 0;
-    UINT32 _02HZ = 0;
-    UINT32 _04HZ = 0;
-    UINT32 _05HZ = 0;
-    UINT32 _10HZ = 0;
-    UINT32 _20HZ = 0;
-    UINT32 _25HZ = 0;
-    UINT32 _50HZ = 0;
-    UINT32 _XXHZ = 0;
+    UINT32 _02HZ = 6;
+    UINT32 _04HZ = 5;
+    UINT32 _08HZ = 4;
+    UINT32 _10HZ = 3;
+    UINT32 _20HZ = 2;
+    UINT32 _50HZ = 1;
+    UINT32 simRate;
 
     for (UINT32 i = 0; i < (UINT32)eAseMaxParams; ++i)
     {
         if (m_parameters[i].m_isValid)
         {
-            switch (m_parameters[i].m_rateHz)
+            simRate = m_parameters[i].m_rateHz * 2;
+            switch (simRate)
             {
-            case 1:
-                m_parameters[i].m_nextUpdate = _01HZ;
-                _01HZ = (_01HZ + 1) % 100;
-                break;
             case 2:
                 m_parameters[i].m_nextUpdate = _02HZ;
-                _02HZ = (_02HZ + 1) % 100;
+                _02HZ = (_02HZ + 1) % 50;
                 break;
             case 4:
                 m_parameters[i].m_nextUpdate = _04HZ;
-                _04HZ = (_04HZ + 1) % 100;
+                _04HZ = (_04HZ + 1) % 25;
                 break;
-            case 5:
-                m_parameters[i].m_nextUpdate = _05HZ;
-                _05HZ = (_05HZ + 1) % 100;
+            case 8:
+                m_parameters[i].m_nextUpdate = _08HZ;
+                _08HZ = (_08HZ + 1) % 12;
                 break;
             case 10:
                 m_parameters[i].m_nextUpdate = _10HZ;
-                _10HZ = (_10HZ + 1) % 100;
+                _10HZ = (_10HZ + 1) % 10;
                 break;
             case 20:
                 m_parameters[i].m_nextUpdate = _20HZ;
-                _20HZ = (_20HZ + 1) % 100;
+                _20HZ = (_20HZ + 1) % 5;
                 break;
-            case 25:
-                m_parameters[i].m_nextUpdate = _25HZ;
-                _25HZ = (_25HZ + 1) % 100;
+            case 40:
+                m_parameters[i].m_nextUpdate = _50HZ;
+                _50HZ = (_50HZ + 1) % 2;
                 break;
             case 50:
                 m_parameters[i].m_nextUpdate = _50HZ;
-                _50HZ = (_50HZ + 1) % 100;
+                _50HZ = (_50HZ + 1) % 2;
+                break;
+            case 100:
+                m_parameters[i].m_nextUpdate = 0;
                 break;
             default:
-                m_parameters[i].m_nextUpdate = _XXHZ;
-                _XXHZ = (_XXHZ + 1) % 100;
+                m_parameters[i].m_nextUpdate = _02HZ;
                 break;
             }
         }

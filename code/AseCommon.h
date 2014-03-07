@@ -15,7 +15,7 @@
 *
 *
 */
-# define version "v0.4.3 m3"  " " __DATE__ " " __TIME__
+# define version "v0.4.4"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -31,7 +31,8 @@
 // high speed timer
 #define HsTimer() getTimeStamp()
 
-#define HsTimeDiff(start) ((HsTimer() - start)/getSystemInfoDEOS()->eventLogClockFrequency)
+// return us
+#define HsTimeDiff(start) ((HsTimer() - start) * aseCommon.clockFreqInv) 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
@@ -106,6 +107,8 @@ typedef struct
     LINUX_TM_FMT time;           // what time is it
     bool         recfgSuccess;   // recfg success reset CCDL mode CmReconfig sets, CCDL clears
     bool         isChannelA;     // true when we are in channel A
+    UINT32       clockFreq;
+    float        clockFreqInv;
 } AseCommon;
 
 extern AseCommon aseCommon;
