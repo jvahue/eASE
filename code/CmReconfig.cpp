@@ -468,6 +468,11 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
             if (m_modeTimeout == 0)
             {
                 m_mode = eCmRecfgIdle;
+
+                // delete the files
+                m_file.Delete( m_xmlFileName, File::ePartCmProc);
+                m_file.Delete( m_cfgFileName, File::ePartCmProc);
+
                 sprintf(m_xmlFileName, "Failed Reconfig - Timeout");
                 sprintf(m_cfgFileName, "Failed Reconfig - Timeout");
                 m_lastErrCode = eCmRecfgStsNoVfyRsp;
