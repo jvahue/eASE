@@ -92,7 +92,9 @@ enum SecCmds {
     eParamIoState   = 415,
     eSetStaticIoi   = 416,
     eGetStaticIoi   = 417,  // Used to set value and pause/resume IOI updates
-    eSetIoiDuration = 418,  
+    eSetIoiDuration = 418, 
+    eGetRemoteTrig  = 419,
+    eSetRemoteTrig  = 420,
 
 //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF

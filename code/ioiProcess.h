@@ -25,7 +25,8 @@ public:
         eIoiFailDisplay = 10,
         eIoiMaxDisplay = 34,  // MUST BE AN EVEN NUMBER 40 or less
         eMaxPages = 3,
-        eMaxQueueDepth = 2
+        eMaxQueueDepth = 2,
+        eMaxTriggerSize = 128
     };
 
 
@@ -102,6 +103,9 @@ protected:
     CCDL    m_ccdl;
     MailBox m_ccdlIn;   // local to remote ADRF - we own this
     MailBox m_ccdlOut;  // remote to local ADRF - ADRF owns this
+    char m_localTriggers[eMaxTriggerSize];
+    char m_remoteTriggers[eMaxTriggerSize];
+
 
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;

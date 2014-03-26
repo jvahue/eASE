@@ -97,6 +97,9 @@ IoiProcess::IoiProcess()
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
     m_peak = 0;
+
+    memset((void*)m_localTriggers, 0, sizeof(m_localTriggers));
+    memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
 }
 
 /****************************************************************************
@@ -207,6 +210,7 @@ void IoiProcess::RunSimulation()
     if ((m_systemTick & 1) == 1)
     {
         m_ccdl.Update(m_ccdlIn, m_ccdlOut);
+        UpdateCCDL();
     }
 
     // at 1 Hz send the channel ID
@@ -338,11 +342,15 @@ void IoiProcess::WriteIoi(Parameter* param )
 
 //---------------------------------------------------------------------------------------------
 // Function: UpdateCCDL
-// Description: Update the CCDL and send
+// Description: Update the CCDL buffers
 //
 void IoiProcess::UpdateCCDL()
 {
+    // Send the simulated Remote Channel's Trigger Requests
+    m_ccdl.Write(CC_REPORT_TRIG, m_remoteTriggers, eMaxTriggerSize);
 
+    // Get the local ADRF Trigger Request
+    m_ccdl.Read(CC_REPORT_TRIG, m_localTriggers, eMaxTriggerSize);
 }
 
 //---------------------------------------------------------------------------------------------
@@ -991,12 +999,71 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-    //----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------
     case eSetIoiDuration:
         m_maxProcDuration = request.variableId;
         serviced = TRUE;
 
         break;
+
+    //-----------------------------------------------------------------------------------------
+    case eGetRemoteTrig:
+        // return the state of a local/remote report requested
+        if (itemId >= 0 && itemId < 128)
+        {
+            if (request.sigGenId == 0)
+            {
+                secComm.m_response.value = float(m_localTriggers[request.sigGenId]);
+                secComm.m_response.successful = true;
+            }
+            else if (request.sigGenId == 1)
+            {
+                secComm.m_response.value = float(m_remoteTriggers[request.sigGenId]);
+                secComm.m_response.successful = true;
+            }
+            else
+            {
+                secComm.ErrorMsg("GetRemoteTrig: Invalid location(%d)", request.sigGenId);
+                secComm.m_response.successful = false;
+
+            }
+        }
+        else
+        {
+            secComm.ErrorMsg("GetRemoteTrig: Invalid Report Id(%d)", itemId);
+            secComm.m_response.successful = false;
+        }
+
+        serviced = TRUE;
+        break;
+
+    //-----------------------------------------------------------------------------------------
+    case eSetRemoteTrig:
+        // set the state of a remote report requested
+        if (itemId >= 0 && itemId < 128)
+        {
+            if (request.sigGenId)
+            {
+                m_remoteTriggers[itemId] = 1;
+            }
+            else
+            {
+                m_remoteTriggers[itemId] = 0;
+            }
+            
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("SetRemoteTrig: Invalid Report Id(%d)", itemId);
+            secComm.m_response.successful = false;
+        }
+
+        serviced = TRUE;
+        break;
+
+
+    //-----------------------------------------------------------------------------------------
     default:
         // we did not service this command
         serviced = FALSE;
@@ -1012,7 +1079,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     return serviced;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: FillSensorNames
 // Description: Send the parameter names up to ePySte
 // Start at the location defined from PySte t0=0, t1..n=pBaseIndex(n-1)+125
