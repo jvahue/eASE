@@ -1013,12 +1013,12 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         {
             if (request.sigGenId == 0)
             {
-                secComm.m_response.value = float(m_localTriggers[request.sigGenId]);
+                secComm.m_response.value = float(m_localTriggers[itemId]);
                 secComm.m_response.successful = true;
             }
             else if (request.sigGenId == 1)
             {
-                secComm.m_response.value = float(m_remoteTriggers[request.sigGenId]);
+                secComm.m_response.value = float(m_remoteTriggers[itemId]);
                 secComm.m_response.successful = true;
             }
             else
