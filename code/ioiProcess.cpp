@@ -197,10 +197,19 @@ void IoiProcess::Run()
 //
 void IoiProcess::RunSimulation()
 {
+    static bool remoteReset = true;
+
     if (!m_pCommon->bScriptRunning)
     {
         m_sgRun = false;
         m_ioiStatic.Reset();
+        remoteReset = true;
+    }
+    // when we first start running a script reset the remote trigger requests
+    else if (remoteReset)
+    {
+       memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
+       remoteReset = false;
     }
 
     UpdateIoi();
@@ -217,6 +226,25 @@ void IoiProcess::RunSimulation()
     if ((m_systemTick % 100) == 0)
     {
         WriteChanId();
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+// Function: HandlePowerOff
+// Description: Processing done to simulate the ioi process
+//
+void IoiProcess::HandlePowerOff()
+{
+    m_ccdlIn.Reset();
+    m_ccdlOut.Reset();
+    m_ccdl.Reset();
+    m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
+    m_ioiStatic.Reset();
+
+    // if power is off and we are not running a script the reset the remote trigger requests
+    if (!m_pCommon->bScriptRunning)
+    {
+        memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
     }
 }
 
@@ -351,19 +379,6 @@ void IoiProcess::UpdateCCDL()
 
     // Get the local ADRF Trigger Request
     m_ccdl.Read(CC_REPORT_TRIG, m_localTriggers, eMaxTriggerSize);
-}
-
-//---------------------------------------------------------------------------------------------
-// Function: HandlePowerOff
-// Description: Processing done to simulate the ioi process
-//
-void IoiProcess::HandlePowerOff()
-{
-    m_ccdlIn.Reset();
-    m_ccdlOut.Reset();
-    m_ccdl.Reset();
-    m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
-    m_ioiStatic.Reset();
 }
 
 //---------------------------------------------------------------------------------------------
