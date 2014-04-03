@@ -350,7 +350,7 @@ void IoiProcess::WriteIoi(Parameter* param )
     UINT32 start;
     ioiStatus writeStatus;
 
-    if (!m_initParams)
+    if (!m_initParams && param->m_ioiValid)
     {
         start = HsTimer();
         writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
@@ -1207,6 +1207,9 @@ void IoiProcess::InitIoi()
         m_ioiCloseFailCount = 0;
         memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
 
+        // reset write fail counter
+        m_ioiWriteFailCount = 0;
+
         // close any open ioi
         for (i=0; i < (int)eAseMaxParams; ++i)
         {
@@ -1264,7 +1267,7 @@ void IoiProcess::InitIoi()
             if (!childRelationship && 
                 m_parameters[index].m_src != PARAM_SRC_CROSS &&
                 m_parameters[index].m_src != PARAM_SRC_CALC &&
-                m_parameters[index].m_src != PARAM_SRC_HMU  // TODO: Remove this later
+                m_parameters[index].m_src != PARAM_SRC_HMU  // Remove this later
                 )
             {
                 openStatus = ioi_open(m_parameters[index].m_ioiName,

@@ -250,7 +250,7 @@ bool CmReconfig::StartReconfig(MailBox& out)
         }
         else
         {
-            sprintf(m_mbErr, "Mailbox Send IPC: %s", out.GetIpcStatusString());
+            sprintf(m_mbErr, "StartReconfig Send: %s", out.GetStatusStr());
         }
     }
     else
@@ -494,7 +494,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     return status;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: GetMode
 // Description: Return a string rep of the mode name
 //
@@ -503,7 +503,7 @@ const char* CmReconfig::GetModeName() const
     return modeNames[m_mode];
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: GetMode
 // Description: Return a string rep of the mode name
 //

@@ -1,9 +1,9 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-2124561001"
-     fileDate = "Tue Jan 14 18:14:54 2014"
-     toolVersion = "3.4.0"
+     validityKey = "-1938712855"
+     fileDate = "Thu Apr 03 15:47:21 2014"
+     toolVersion = "3.4.1"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
      mapConfigurationFileTo = "flash"
@@ -1129,7 +1129,7 @@
       ></producedItem>
       <producedItem
            name = "10724024_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1138,7 +1138,7 @@
       ></producedItem>
       <producedItem
            name = "10724024_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1147,7 +1147,7 @@
       ></producedItem>
       <producedItem
            name = "10724024_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1156,7 +1156,7 @@
       ></producedItem>
       <producedItem
            name = "10724032_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1165,7 +1165,7 @@
       ></producedItem>
       <producedItem
            name = "10724032_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1174,7 +1174,7 @@
       ></producedItem>
       <producedItem
            name = "10724032_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1183,7 +1183,7 @@
       ></producedItem>
       <producedItem
            name = "10724040_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1192,7 +1192,7 @@
       ></producedItem>
       <producedItem
            name = "10724040_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1201,7 +1201,7 @@
       ></producedItem>
       <producedItem
            name = "10724040_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1210,7 +1210,7 @@
       ></producedItem>
       <producedItem
            name = "10724048_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1219,7 +1219,7 @@
       ></producedItem>
       <producedItem
            name = "10724048_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1228,7 +1228,7 @@
       ></producedItem>
       <producedItem
            name = "10724048_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1237,7 +1237,7 @@
       ></producedItem>
       <producedItem
            name = "10724056_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1246,7 +1246,7 @@
       ></producedItem>
       <producedItem
            name = "10724056_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1255,7 +1255,7 @@
       ></producedItem>
       <producedItem
            name = "10724056_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1264,7 +1264,7 @@
       ></producedItem>
       <producedItem
            name = "10724064_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1273,7 +1273,7 @@
       ></producedItem>
       <producedItem
            name = "10724064_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1282,7 +1282,7 @@
       ></producedItem>
       <producedItem
            name = "10724064_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1291,7 +1291,7 @@
       ></producedItem>
       <producedItem
            name = "10724072_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1300,7 +1300,7 @@
       ></producedItem>
       <producedItem
            name = "10724072_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1309,7 +1309,7 @@
       ></producedItem>
       <producedItem
            name = "10724072_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1318,7 +1318,7 @@
       ></producedItem>
       <producedItem
            name = "10724080_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1327,7 +1327,7 @@
       ></producedItem>
       <producedItem
            name = "10724080_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1336,7 +1336,7 @@
       ></producedItem>
       <producedItem
            name = "10724080_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1480,7 +1480,7 @@
       ></producedItem>
       <producedItem
            name = "10724128_33"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1489,7 +1489,7 @@
       ></producedItem>
       <producedItem
            name = "10724128_65"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1498,7 +1498,7 @@
       ></producedItem>
       <producedItem
            name = "10724128_97"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1507,7 +1507,7 @@
       ></producedItem>
       <producedItem
            name = "10724136_32"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1516,7 +1516,7 @@
       ></producedItem>
       <producedItem
            name = "10724136_64"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -1525,7 +1525,7 @@
       ></producedItem>
       <producedItem
            name = "10724136_96"
-           productionRate = "125000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -5196,6 +5196,258 @@
            comment = "FR_HDA2_HMU, Brightness_Command"
       ></producedItem>
       <producedItem
+           name = "108584_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, INT_Rwy_Length"
+      ></producedItem>
+      <producedItem
+           name = "108584_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, INT_Rwy_Length"
+      ></producedItem>
+      <producedItem
+           name = "108608_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, INT_Alt_AGL_Value"
+      ></producedItem>
+      <producedItem
+           name = "108608_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, INT_Alt_AGL_Value"
+      ></producedItem>
+      <producedItem
+           name = "108632_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, AEZ1"
+      ></producedItem>
+      <producedItem
+           name = "108632_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, AEZ1"
+      ></producedItem>
+      <producedItem
+           name = "108648_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP Localizer Deviation Feet"
+      ></producedItem>
+      <producedItem
+           name = "108648_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP Localizer Deviation Feet"
+      ></producedItem>
+      <producedItem
+           name = "108656_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP Directional Guidance"
+      ></producedItem>
+      <producedItem
+           name = "108656_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP Directional Guidance"
+      ></producedItem>
+      <producedItem
+           name = "108664_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, Guidance Heading Error 1"
+      ></producedItem>
+      <producedItem
+           name = "108664_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, Guidance Heading Error 1"
+      ></producedItem>
+      <producedItem
+           name = "108672_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, Guidance Track Error 1"
+      ></producedItem>
+      <producedItem
+           name = "108672_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, Guidance Track Error 1"
+      ></producedItem>
+      <producedItem
+           name = "108688_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP ANC Localizer Deviation"
+      ></producedItem>
+      <producedItem
+           name = "108688_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP ANC Localizer Deviation"
+      ></producedItem>
+      <producedItem
+           name = "108712_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP Flare Vertical Speed"
+      ></producedItem>
+      <producedItem
+           name = "108712_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP Flare Vertical Speed"
+      ></producedItem>
+      <producedItem
+           name = "108768_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP KALMAN GS DEV"
+      ></producedItem>
+      <producedItem
+           name = "108768_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP KALMAN GS DEV"
+      ></producedItem>
+      <producedItem
+           name = "108880_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, CLP Corrected Localizer Track"
+      ></producedItem>
+      <producedItem
+           name = "108880_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, CLP Corrected Localizer Track"
+      ></producedItem>
+      <producedItem
+           name = "108968_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, ABCY1"
+      ></producedItem>
+      <producedItem
+           name = "108968_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, ABCY1"
+      ></producedItem>
+      <producedItem
+           name = "108976_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, Distance To Glidescope"
+      ></producedItem>
+      <producedItem
+           name = "108976_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, Distance To Glidescope"
+      ></producedItem>
+      <producedItem
+           name = "108992_32"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA1_HMU, Distance To Loc App State"
+      ></producedItem>
+      <producedItem
+           name = "108992_64"
+           productionRate = "33000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HDA2_HMU, Distance To Loc App State"
+      ></producedItem>
+      <producedItem
            name = "109512_32"
            productionRate = "33000"
            messageForm = "I"
@@ -5284,6 +5536,42 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_HMA2_HMU, ARINC Wrap Around Input"
+      ></producedItem>
+      <producedItem
+           name = "112944_32"
+           productionRate = "25000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HMA1_HMU, SM ANC Localizer Deviation"
+      ></producedItem>
+      <producedItem
+           name = "112944_64"
+           productionRate = "25000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HMA2_HMU, SM ANC Localizer Deviation"
+      ></producedItem>
+      <producedItem
+           name = "113824_32"
+           productionRate = "25000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HMA1_HMU, Takeoff Guidance States"
+      ></producedItem>
+      <producedItem
+           name = "113824_64"
+           productionRate = "25000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_HMA2_HMU, Takeoff Guidance States"
       ></producedItem>
       <producedItem
            name = "113864_32"
@@ -7578,7 +7866,7 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_FMS1_HMU, N1 EPR Reference"
+           comment = "FR_FMS1_HMU, N1 EPR Reference (FMS)"
       ></producedItem>
       <producedItem
            name = "225040_64"
@@ -7587,7 +7875,25 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_FMS2_HMU, N1 EPR Reference"
+           comment = "FR_FMS2_HMU, N1 EPR Reference (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "225042_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS1_HMU, N1 Reference - TI (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "225042_64"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, N1 Reference - TI (FMS)"
       ></producedItem>
       <producedItem
            name = "225104_32"
@@ -9192,22 +9498,112 @@
            comment = "FR_FMS2_HMU, Flap Speed (FMS)"
       ></producedItem>
       <producedItem
-           name = "227920_32"
-           productionRate = "100000"
+           name = "227928_32"
+           productionRate = "1000000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_FMS1_HMU, Reference Airspeed Tracking (FMS)"
+           comment = "FR_FMS1_HMU, Passenger Weight - Zone D (FMS)"
       ></producedItem>
       <producedItem
-           name = "227920_64"
+           name = "227928_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, Passenger Weight - Zone D (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227936_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS1_HMU, Total Number of Passengers (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227936_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, Total Number of Passengers (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227976_32"
            productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_FMS2_HMU, Reference Airspeed Tracking (FMS)"
+           comment = "FR_FMS1_HMU, GAMA Active Waypoint"
+      ></producedItem>
+      <producedItem
+           name = "227976_64"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, GAMA Active Waypoint"
+      ></producedItem>
+      <producedItem
+           name = "227984_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS1_HMU, RTA Time Error (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227984_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, RTA Time Error (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227992_32"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS1_HMU, AHRS GNSS Aiding Command (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "227992_64"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, AHRS GNSS Aiding Command (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "228000_32"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS1_HMU, IRS GNSS Aiding Command (FMS)"
+      ></producedItem>
+      <producedItem
+           name = "228000_64"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FMS2_HMU, IRS GNSS Aiding Command (FMS)"
       ></producedItem>
       <producedItem
            name = "231680_32"
@@ -9500,7 +9896,7 @@
       <producedItem
            name = "231878_32"
            productionRate = "1000000"
-           messageForm = "fffffBBBBBBBB12x"
+           messageForm = "fffffBBBBBBBBfBB6x"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
@@ -9509,11 +9905,83 @@
       <producedItem
            name = "231878_64"
            productionRate = "1000000"
-           messageForm = "fffffBBBBBBBB12x"
+           messageForm = "fffffBBBBBBBBfBB6x"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "CPF_DATA, Passenger and Cargo Weight"
+      ></producedItem>
+      <producedItem
+           name = "231886_32"
+           productionRate = "1000000"
+           messageForm = "HB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, Total Number of Passengers"
+      ></producedItem>
+      <producedItem
+           name = "231886_64"
+           productionRate = "1000000"
+           messageForm = "HB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, Total Number of Passengers"
+      ></producedItem>
+      <producedItem
+           name = "231894_32"
+           productionRate = "200000"
+           messageForm = "BB14x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, FMS Display Indicators"
+      ></producedItem>
+      <producedItem
+           name = "231894_64"
+           productionRate = "200000"
+           messageForm = "BB14x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, FMS Display Indicators"
+      ></producedItem>
+      <producedItem
+           name = "231902_32"
+           productionRate = "100000"
+           messageForm = "BBB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, IRS GNSS Aiding Command"
+      ></producedItem>
+      <producedItem
+           name = "231902_64"
+           productionRate = "100000"
+           messageForm = "BBB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, IRS GNSS Aiding Command"
+      ></producedItem>
+      <producedItem
+           name = "231910_32"
+           productionRate = "100000"
+           messageForm = "BBB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, AHRS GNSS Aiding Command"
+      ></producedItem>
+      <producedItem
+           name = "231910_64"
+           productionRate = "100000"
+           messageForm = "BBB1x"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "CPF_DATA, AHRS GNSS Aiding Command"
       ></producedItem>
       <producedItem
            name = "2510080_0"
@@ -9523,15 +9991,6 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_FCS_MON1, MonitorStatus"
-      ></producedItem>
-      <producedItem
-           name = "2510088_0"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_FCS_MON1, MonitorFaultStatus"
       ></producedItem>
       <producedItem
            name = "2510096_0"
@@ -9822,6 +10281,24 @@
            comment = "FR_FG_L2_Data, FlightDirectorState"
       ></producedItem>
       <producedItem
+           name = "2527008_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FG_L1_Data, BetaTargetIndicator"
+      ></producedItem>
+      <producedItem
+           name = "2527008_64"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_FG_L2_Data, BetaTargetIndicator"
+      ></producedItem>
+      <producedItem
            name = "2527040_32"
            productionRate = "50000"
            messageForm = "I"
@@ -9948,24 +10425,6 @@
            comment = "FR_FG_L2_Data, AutopilotRollCommand"
       ></producedItem>
       <producedItem
-           name = "2527504_32"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_FG_L1_Data, AutopilotRollRate"
-      ></producedItem>
-      <producedItem
-           name = "2527504_64"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_FG_L2_Data, AutopilotRollRate"
-      ></producedItem>
-      <producedItem
            name = "2527552_32"
            productionRate = "50000"
            messageForm = "I"
@@ -10018,24 +10477,6 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_FG_L2_Data, PitchTarget"
-      ></producedItem>
-      <producedItem
-           name = "2527624_32"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_FG_L1_Data, AutopilotNzCommand"
-      ></producedItem>
-      <producedItem
-           name = "2527624_64"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_FG_L2_Data, AutopilotNzCommand"
       ></producedItem>
       <producedItem
            name = "2527672_32"
@@ -12231,7 +12672,7 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_RTSA2_HMU, On-Side A_B Switch"
+           comment = "FR_RTSA2_HMU, AFD Discrete Data"
       ></producedItem>
       <producedItem
            name = "3611786_64"
@@ -12240,7 +12681,7 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_RTSA4_HMU, On-Side A_B Switch"
+           comment = "FR_RTSA4_HMU, AFD Discrete Data"
       ></producedItem>
       <producedItem
            name = "3611786_96"
@@ -12249,7 +12690,61 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_RTSA5_HMU, On-Side A_B Switch"
+           comment = "FR_RTSA5_HMU, AFD Discrete Data"
+      ></producedItem>
+      <producedItem
+           name = "3611794_32"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA2_HMU, Baro_Correction_Hpa"
+      ></producedItem>
+      <producedItem
+           name = "3611794_64"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA4_HMU, Baro_Correction_Hpa"
+      ></producedItem>
+      <producedItem
+           name = "3611794_96"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA5_HMU, Baro_Correction_Hpa"
+      ></producedItem>
+      <producedItem
+           name = "3611802_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA2_HMU, RTSA Fault Reporting"
+      ></producedItem>
+      <producedItem
+           name = "3611802_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA4_HMU, RTSA Fault Reporting"
+      ></producedItem>
+      <producedItem
+           name = "3611802_96"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_RTSA5_HMU, RTSA Fault Reporting"
       ></producedItem>
       <producedItem
            name = "665344_0"
@@ -13000,7 +13495,7 @@
       ></producedItem>
       <producedItem
            name = "8194672_0"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20056,7 +20551,7 @@
       ></producedItem>
       <producedItem
            name = "8285888_33"
-           productionRate = "200000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20461,7 +20956,7 @@
       ></producedItem>
       <producedItem
            name = "8295168_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20470,7 +20965,7 @@
       ></producedItem>
       <producedItem
            name = "8295176_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20479,7 +20974,7 @@
       ></producedItem>
       <producedItem
            name = "8295184_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20497,7 +20992,7 @@
       ></producedItem>
       <producedItem
            name = "8295232_64"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20506,7 +21001,7 @@
       ></producedItem>
       <producedItem
            name = "8295240_64"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -20515,7 +21010,7 @@
       ></producedItem>
       <producedItem
            name = "8295248_64"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -46435,7 +46930,7 @@
       ></producedItem>
       <producedItem
            name = "8332544_32"
-           productionRate = "959000"
+           productionRate = "95000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -46444,7 +46939,7 @@
       ></producedItem>
       <producedItem
            name = "8332544_33"
-           productionRate = "959000"
+           productionRate = "95000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -46453,7 +46948,7 @@
       ></producedItem>
       <producedItem
            name = "8332544_64"
-           productionRate = "959000"
+           productionRate = "95000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -46462,7 +46957,7 @@
       ></producedItem>
       <producedItem
            name = "8332544_65"
-           productionRate = "959000"
+           productionRate = "95000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -47322,7 +47817,7 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_IOC4_HMU, High Compressor discharge Temperature_T17"
+           comment = "FR_IOC4_HMU, High Compressor discharge Temperature_T3"
       ></producedItem>
       <producedItem
            name = "8332968_65"
@@ -53023,12 +53518,12 @@
       ></producedItem>
       <producedItem
            name = "8349888_34"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_IOC1_HMU, CPCS_Status_Word"
+           comment = "FR_IOC1_HMU, SFY_Safety_Alarms"
       ></producedItem>
       <producedItem
            name = "8349888_64"
@@ -53050,12 +53545,12 @@
       ></producedItem>
       <producedItem
            name = "8349888_66"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_IOC1_HMU, CPCS_Status_Word"
+           comment = "FR_IOC1_HMU, SFY_Safety_Alarms"
       ></producedItem>
       <producedItem
            name = "8349896_32"
@@ -55804,7 +56299,7 @@
       ></producedItem>
       <producedItem
            name = "8375664_0"
-           productionRate = "1000000"
+           productionRate = "20000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55813,7 +56308,7 @@
       ></producedItem>
       <producedItem
            name = "8375664_32"
-           productionRate = "1000000"
+           productionRate = "20000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59583,6 +60078,15 @@
            comment = "FR_AFD1_HMU, Reference_Approach_Climb_Speed"
       ></producedItem>
       <producedItem
+           name = "9370032_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, Reference_Approach_Final_Takeoff"
+      ></producedItem>
+      <producedItem
            name = "9370051_32"
            productionRate = "50000"
            messageForm = "I"
@@ -59592,6 +60096,33 @@
            comment = "FR_AFD1_HMU, Maximum_Allowable_Airspeed"
       ></producedItem>
       <producedItem
+           name = "9370057_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, AFD_Range_1"
+      ></producedItem>
+      <producedItem
+           name = "9370065_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, AFD_Range_2"
+      ></producedItem>
+      <producedItem
+           name = "9370073_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, AFD_Range_3"
+      ></producedItem>
+      <producedItem
            name = "9370080_32"
            productionRate = "200000"
            messageForm = "I"
@@ -59599,6 +60130,15 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, ALT_Landing_Field_Elevation"
+      ></producedItem>
+      <producedItem
+           name = "9370081_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, AFD_Range_4"
       ></producedItem>
       <producedItem
            name = "9370104_32"
@@ -59719,7 +60259,7 @@
       ></producedItem>
       <producedItem
            name = "9370272_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59728,7 +60268,7 @@
       ></producedItem>
       <producedItem
            name = "9370280_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59737,7 +60277,7 @@
       ></producedItem>
       <producedItem
            name = "9370288_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59746,7 +60286,7 @@
       ></producedItem>
       <producedItem
            name = "9370296_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59773,7 +60313,7 @@
       ></producedItem>
       <producedItem
            name = "9370328_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59782,7 +60322,7 @@
       ></producedItem>
       <producedItem
            name = "9370336_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59791,7 +60331,7 @@
       ></producedItem>
       <producedItem
            name = "9370344_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59809,7 +60349,7 @@
       ></producedItem>
       <producedItem
            name = "9370360_32"
-           productionRate = "200000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59880,15 +60420,6 @@
            comment = "FR_AFD1_HMU, Map_Display_Mode3_LR"
       ></producedItem>
       <producedItem
-           name = "9370451_32"
-           productionRate = "50000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, Vertical_Speed_Value"
-      ></producedItem>
-      <producedItem
            name = "9370456_32"
            productionRate = "50000"
            messageForm = "I"
@@ -59941,6 +60472,24 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, PFD_Discrete_Wd_3"
+      ></producedItem>
+      <producedItem
+           name = "9370497_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, PFD_Discrete_WD_5"
+      ></producedItem>
+      <producedItem
+           name = "9370504_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, PFD_Discrete_Wd_3_Fusion"
       ></producedItem>
       <producedItem
            name = "9370512_32"
@@ -60030,7 +60579,7 @@
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, EICAS_Cool_Discrete_Wd1"
+           comment = "FR_AFD1_HMU, EICAS_Comparator_Discrete_WD2"
       ></producedItem>
       <producedItem
            name = "9370634_32"
@@ -60040,6 +60589,15 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, Angle_of_Attack_Normalized"
+      ></producedItem>
+      <producedItem
+           name = "9370640_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, EICAS_Comparator_Discrete_WD3"
       ></producedItem>
       <producedItem
            name = "9370648_32"
@@ -60076,6 +60634,15 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, Distance_To_Go"
+      ></producedItem>
+      <producedItem
+           name = "9370728_32"
+           productionRate = "50000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, Broadcast_Event_Wd1"
       ></producedItem>
       <producedItem
            name = "9370752_32"
@@ -60141,15 +60708,6 @@
            comment = "FR_AFD1_HMU, Vertical_Resolution_Advisory"
       ></producedItem>
       <producedItem
-           name = "9370824_32"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, WX_Control_Wd2_Primary"
-      ></producedItem>
-      <producedItem
            name = "9370832_32"
            productionRate = "200000"
            messageForm = "I"
@@ -60166,15 +60724,6 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, WXR_Outputs"
-      ></producedItem>
-      <producedItem
-           name = "9370848_32"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, WX_Control_Wd2_Secondary"
       ></producedItem>
       <producedItem
            name = "9370849_32"
@@ -60267,6 +60816,15 @@
            comment = "FR_AFD1_HMU, Autopilot_Status_1"
       ></producedItem>
       <producedItem
+           name = "9371096_32"
+           productionRate = "100000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, Displayed_Assumed_Temperature"
+      ></producedItem>
+      <producedItem
            name = "9371104_32"
            productionRate = "1000000"
            messageForm = "I"
@@ -60283,6 +60841,15 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_AFD1_HMU, Strapping_Maintenance_Word_2"
+      ></producedItem>
+      <producedItem
+           name = "9371120_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, Strapping_Maintenance_Word_3"
       ></producedItem>
       <producedItem
            name = "9371192_32"
@@ -60330,51 +60897,6 @@
            comment = "FR_AFD1_HMU, AFD_Data_Wd1"
       ></producedItem>
       <producedItem
-           name = "9371264_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, AGS_661_Wd1"
-      ></producedItem>
-      <producedItem
-           name = "9371272_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, AGS_661_Wd2"
-      ></producedItem>
-      <producedItem
-           name = "9371288_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, AGS_661_Wd3"
-      ></producedItem>
-      <producedItem
-           name = "9371296_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, AGS_661_Wd4"
-      ></producedItem>
-      <producedItem
-           name = "9371304_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_AFD1_HMU, EIS_Synoptics"
-      ></producedItem>
-      <producedItem
            name = "9371328_32"
            productionRate = "200000"
            messageForm = "I"
@@ -60402,6 +60924,15 @@
            comment = "FR_AFD1_HMU, Wind_Direction_Magnetic"
       ></producedItem>
       <producedItem
+           name = "9371352_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_AFD1_HMU, EICAS_Internal_Discrete_Wd1"
+      ></producedItem>
+      <producedItem
            name = "9382952_32"
            productionRate = "200000"
            messageForm = "I"
@@ -60420,22 +60951,130 @@
            comment = "FR_AFD1_HMU, TMAF_Right_Engine_N1_Reference"
       ></producedItem>
       <producedItem
-           name = "9916552_0"
-           productionRate = "50000"
+           name = "9916456_0"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, EVS_Brightness_Output"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_3_Accum_1_Press_Output"
       ></producedItem>
       <producedItem
-           name = "9916560_0"
-           productionRate = "50000"
+           name = "9916464_0"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, HUD_Contrast_Output"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_1_Press_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916472_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_2_Press_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916480_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_3_Press_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916488_32"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_1_Qty_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916496_65"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_2_Qty_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916504_64"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_3_Qty_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916512_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_1_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916520_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_2_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916528_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_3_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916536_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_ACMP_2B_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916544_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_ACMP_3A_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916552_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_ACMP_3B_Temp_Output"
+      ></producedItem>
+      <producedItem
+           name = "9916600_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Hyd_Sys_3_Accum_2_Press_Output"
       ></producedItem>
       <producedItem
            name = "9916880_0"
@@ -60448,7 +61087,7 @@
       ></producedItem>
       <producedItem
            name = "9916896_0"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -60465,6 +61104,132 @@
            comment = "FR_EICAS1_HMU, TAWS_SMS_Panel_Selections_Wd"
       ></producedItem>
       <producedItem
+           name = "9916912_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, EICAS_Avionics_Disc_Wd_3"
+      ></producedItem>
+      <producedItem
+           name = "9916920_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, EICAS_Avionics_Disc_Wd_4"
+      ></producedItem>
+      <producedItem
+           name = "9918344_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, DMC_Packed_Discretes_2"
+      ></producedItem>
+      <producedItem
+           name = "9918352_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, DMC_Packed_Discretes_3"
+      ></producedItem>
+      <producedItem
+           name = "9918656_0"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Datalink_Message_Discretes_Wd"
+      ></producedItem>
+      <producedItem
+           name = "9918792_0"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Flight_Leg_NDO"
+      ></producedItem>
+      <producedItem
+           name = "9919432_0"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, CM_Third_Party_Data_ARINC_NDO_42"
+      ></producedItem>
+      <producedItem
+           name = "9919440_0"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, CM_Third_Party_Data_ARINC_NDO_43"
+      ></producedItem>
+      <producedItem
+           name = "9919448_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Left_IOT_Flight_Number_Wd_1"
+      ></producedItem>
+      <producedItem
+           name = "9919448_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Right_IOT_Flight_Number_Wd_1"
+      ></producedItem>
+      <producedItem
+           name = "9919456_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Left_IOT_Flight_Number_Wd_2"
+      ></producedItem>
+      <producedItem
+           name = "9919456_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Right_IOT_Flight_Number_Wd_2"
+      ></producedItem>
+      <producedItem
+           name = "9919464_32"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Left_IOT_Flight_Number_Wd_3"
+      ></producedItem>
+      <producedItem
+           name = "9919464_64"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:automatic"
+           comment = "FR_EICAS1_HMU, Right_IOT_Flight_Number_Wd_3"
+      ></producedItem>
+      <producedItem
            name = "9921008_0"
            productionRate = "100000"
            messageForm = "I"
@@ -60474,265 +61239,22 @@
            comment = "FR_EICAS1_HMU, EICAS_Display_Disc_Wd_1"
       ></producedItem>
       <producedItem
-           name = "9921040_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, AILERON_TRIM_DISPLAY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9921048_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, RUDDER_TRIM_DISPLAY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922104_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, Flap_Cockpit_Handle_Selection_Disc_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9922232_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, SLAT_POSITION_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922264_32"
+           name = "9921016_0"
            productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_THROTTLE_LEVER_ANGLE_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922264_64"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_THROTTLE_LEVER_ANGLE_BNR"
+           comment = "FR_EICAS1_HMU, EICAS_Display_Disc_Wd_2"
       ></producedItem>
       <producedItem
            name = "9922296_0"
-           productionRate = "200000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:automatic"
            comment = "FR_EICAS1_HMU, FLAP_POSITION_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922800_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, APU_FUEL_FLOW_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922816_0"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, EICAS_Eng_Bleed_Status_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9922824_0"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, EICAS_Brake_Status_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9922872_0"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, TOTAL_FUEL_QUANTITY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922880_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_MAX_CONTINUOUS_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922880_64"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_MAX_CONTINUOUS_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922888_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_MAX_TO_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922888_64"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_MAX_TO_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922896_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_MAX_CLIMB_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922896_64"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_MAX_CLIMB_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922904_32"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_MAX_CRUISE_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922904_64"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_MAX_CRUISE_RATING_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922928_0"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_WING_TANK_FUEL_QUANTITY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922936_0"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_WING_TANK_FUEL_QUANTITY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922944_0"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, CENTER_TANK_FUEL_QUANTITY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9922952_0"
-           productionRate = "1000000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, AFT_TANK_FUEL_QUANTITY_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9923136_0"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_Outbd_Brake_Temp_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9923144_0"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_Inbd_Brake_Temp_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9923152_0"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_Outbd_Brake_Temp_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9923160_0"
-           productionRate = "100000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_Inbd_Brake_Temp_Wd"
-      ></producedItem>
-      <producedItem
-           name = "9923384_32"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, L_ENG_FUEL_FLOW_BNR"
-      ></producedItem>
-      <producedItem
-           name = "9923384_64"
-           productionRate = "200000"
-           messageForm = "I"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "FR_EICAS1_HMU, R_ENG_FUEL_FLOW_BNR"
       ></producedItem>
       <producedItem
            name = "BatInputVdc"
