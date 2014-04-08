@@ -75,6 +75,8 @@ CmdRspThread* cmdRspThreads[] = {
 static BOOLEAN CheckCmds(SecComm& secComm);
 static void SetTime(SecRequest& request);
 static void UpdateTime();
+static void UpdateShipDate();
+static void UpdateShipTime();
 
 static BOOLEAN NvmRead(SecComm& secComm);
 static BOOLEAN NvmWrite(SecComm& secComm);
@@ -128,9 +130,11 @@ int main(void)
     nextTime.tm_mon  = 7;
     nextTime.tm_mday = 27;
 
+    UpdateShipDate();
+    UpdateShipTime();
+
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
     aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
-
 
     // default to MS being online
     aseCommon.bMsOnline = true;
@@ -259,6 +263,63 @@ static void UpdateTime()
             }
         }
     }
+
+    // update the ships time
+    if (_10msec == 0)
+    {
+        UpdateShipDate();
+        UpdateShipTime();
+        debug_str(AseMain, 7, 0, "Ship Date: 0x%08x Time: 0x%08x",
+            aseCommon.shipDate,
+            aseCommon.shipTime);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Update the ships date - 
+// pack into label 0260 reverse => 0x0D
+// sdi = 1
+// ssm = 11
+static void UpdateShipDate()
+{
+#define DATE_SSM 0x60000000
+#define DATE_SDI 0x100
+#define DATE_LABEL 0x0d
+
+    UINT8 dayX10 = aseCommon.time.tm_mday / 10;
+    UINT8 dayX1  = aseCommon.time.tm_mday % 10;
+    UINT8 monthX10 = aseCommon.time.tm_mon / 10;
+    UINT8 monthX1  = aseCommon.time.tm_mon % 10;
+    UINT8 yearX10  = (aseCommon.time.tm_year - 2000) / 10;
+    UINT8 yearX1   = (aseCommon.time.tm_year - 2000) % 10;
+
+    UINT32 dateData;
+    dateData  = (dayX10 << 27) & 0x18000000L;
+    dateData |= (dayX1  << 23) & 0x07800000L;
+    dateData |= (monthX10 << 22) & 0x00400000L;
+    dateData |= (monthX1 << 18) & 0x003c0000L;
+    dateData |= (yearX10 << 14) & 0x0003c000L;
+    dateData |= (yearX1 << 10) & 0x00003c00L;
+
+    aseCommon.shipDate = DATE_SSM | dateData | DATE_SDI | DATE_LABEL;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Update the ships date - 
+// pack into label 0150 reverse => 
+// sdi = 1
+// ssm = 11
+static void UpdateShipTime()
+{
+#define TIME_SSM 0x60000000
+#define TIME_SDI 0x100
+#define TIME_LABEL 0x16
+
+    UINT32 timeData = (aseCommon.time.tm_hour << 23) & 0x0f800000L;
+    timeData |= (aseCommon.time.tm_min << 17) & 0x007e0000L;
+    timeData |= (aseCommon.time.tm_sec << 11) & 0x0001f800L;
+
+    aseCommon.shipTime = TIME_SSM | timeData | TIME_SDI | TIME_LABEL;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -319,7 +380,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             if ( adrfProcHndl == NULL)
             {
                 adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-                debug_str(AseMain, 5, 0, "PowerOn: Create process %s returned: %d",
+                debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
                                                                  adrfName,
                                                                  adrfProcStatus);
                 // Update the global-shared data block
@@ -335,7 +396,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             if (adrfProcHndl != NULL)
             {
                 adrfProcStatus = deleteProcess( adrfProcHndl);
-                debug_str(AseMain, 5, 0, "PowerOff: Delete process %s returned: %d",
+                debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
                                                    adrfName,
                                                    adrfProcStatus);
                 adrfProcStatus =  processNotActive;

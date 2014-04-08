@@ -15,7 +15,7 @@
 *
 *
 */
-# define version "v0.4.5 m3"  " " __DATE__ " " __TIME__
+# define version "v0.4.6"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -109,6 +109,8 @@ typedef struct
     bool         isChannelA;     // true when we are in channel A
     UINT32       clockFreq;
     float        clockFreqInv;
+    UINT32       shipDate;       // the entire word
+    UINT32       shipTime;       // 
 } AseCommon;
 
 extern AseCommon aseCommon;

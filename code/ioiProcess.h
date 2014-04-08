@@ -116,6 +116,9 @@ protected:
     UINT32 m_peak;
     UINT32 m_execFrame;
 
+    UINT32 m_dateId;
+    UINT32 m_timeId;
+
     //------------------------------------------
     // Static IOI Data
     StaticIoiContainer m_ioiStatic;

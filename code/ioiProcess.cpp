@@ -87,6 +87,9 @@ IoiProcess::IoiProcess()
     , m_maxProcDuration(850)
     , m_peak(0)
     , m_execFrame(0)
+    , m_dateId(eAseMaxParams)
+    , m_timeId(eAseMaxParams)
+
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -287,8 +290,22 @@ void IoiProcess::UpdateIoi()
                 if (m_scheduled != scheduleZ1 )
                 {
                     scheduleZ1 = m_scheduled;
+
+                    // jam in the ships date/time 
+                    if (m_scheduledX == m_dateId)
+                    {
+                        param->m_ioiValue = aseCommon.shipDate;
+                        param->m_rawValue = aseCommon.shipDate;
+                    }
+                    else if (m_scheduledX == m_timeId)
+                    {
+                        param->m_ioiValue = aseCommon.shipTime;
+                        param->m_rawValue = aseCommon.shipTime;
+                    }
+
                     if (param->m_src != PARAM_SRC_CROSS)
                     {
+
                         WriteIoi(param);
                     }
                     else
@@ -643,6 +660,8 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
 //
 BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 {
+    UINT32 dateId;
+    UINT32 timeId;
     BOOLEAN serviced = TRUE;
     ResponseType rType = eRspNormal;
     //int port;  // 0 = gse, 1 = ms
@@ -1077,6 +1096,32 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
+    //-----------------------------------------------------------------------------------------
+    case eSetShipTimeId:
+        // item/varibaleID paramID for Date in the upper half of the word, time in lower half
+        dateId = itemId >> 16;
+        timeId = itemId & 0xffff;
+        if (m_parameters[dateId].m_isValid) 
+        {
+            if (m_parameters[timeId].m_isValid) 
+            {
+                m_dateId = dateId;
+                m_timeId = timeId;
+            }
+            else
+            {
+                secComm.ErrorMsg("eSetShipTimeId: Invalid Time Id(%d)", timeId);
+                secComm.m_response.successful = false;
+            }
+        }
+        else
+        {
+            secComm.ErrorMsg("eSetShipTimeId: Invalid Date Id(%d)", dateId);
+            secComm.m_response.successful = false;
+        }
+
+        serviced = TRUE;
+        break;
 
     //-----------------------------------------------------------------------------------------
     default:
@@ -1193,6 +1238,9 @@ void IoiProcess::InitIoi()
     {
         m_initParams = true;
         m_scheduledX = 0;
+
+        m_dateId = eAseMaxParams;
+        m_timeId = eAseMaxParams;
 
         // clear the display
         m_displayCount = 0;
