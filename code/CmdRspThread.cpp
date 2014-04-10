@@ -64,6 +64,7 @@ CmdRspThread::CmdRspThread()
     , m_updateDisplay(true)
     , m_elapsedProc(0)
     , m_elapsedDisp(0)
+    , m_maxDuration(0)
 {
 }
 
@@ -87,12 +88,15 @@ void CmdRspThread::Process()
         }
         m_elapsedProc = HsTimeDiff(start);
 
-        start = HsTimer();
         if (m_updateDisplay)
         {
             theLine = UpdateDisplay(VID_SYS, theLine);
         }
         m_elapsedDisp = HsTimeDiff(start);
+        if (m_elapsedDisp < 10000 && m_elapsedDisp > m_maxDuration)
+        {
+            m_maxDuration = m_elapsedDisp;
+        }
 
         // check if we overran
         if (m_systemTick != GET_SYSTEM_TICK)
@@ -116,13 +120,13 @@ int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
     debug_str(who, theLine, 0,
-        "PySte:%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d",
+        "PySte:%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
               IS_CONNECTED ? "Conn" : "NoConn",
               adrfState[m_pCommon->adrfState],
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",
               m_frames, m_overrunCount,
-              m_elapsedProc, m_elapsedDisp
+              m_elapsedProc, m_elapsedDisp, m_maxDuration
               );
 
     return theLine;

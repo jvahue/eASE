@@ -3,7 +3,7 @@
      name = "ase-process-template"
      mailboxQuota = "10"
      systemMemoryObjectQuota = "0"
-     validityKey = "1586720439"
+     validityKey = "-113399374"
      breakAtStartup = "no"
      mutexQuota = "0"
      semaphoreQuota = "5"
@@ -159,9 +159,19 @@
    </processInstances>
    <threadTemplates>
       <threadTemplate
+           name = "IoiThreadTemplate"
+           budget = "1500"
+           instanceCount = "1"
+           slackEnabled = "no"
+           stackSizeInPages = "5"
+           period = "fastest"
+           namesOfMutexesLocked = ""
+           usedToCreateISRThread = "no"
+      ></threadTemplate>
+      <threadTemplate
            name = "StdThreadTemplate"
-           budget = "1000"
-           instanceCount = "3"
+           budget = "300"
+           instanceCount = "2"
            slackEnabled = "no"
            stackSizeInPages = "5"
            period = "fastest"
@@ -170,7 +180,7 @@
       ></threadTemplate>
       <threadTemplate
            name = "mainThreadTemplate"
-           budget = "500"
+           budget = "300"
            instanceCount = "1"
            slackEnabled = "no"
            stackSizeInPages = "5"

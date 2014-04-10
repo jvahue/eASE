@@ -84,7 +84,7 @@ IoiProcess::IoiProcess()
     , m_chanId(-1)
     , m_scheduledX(0)
     , m_elapsed(0)
-    , m_maxProcDuration(850)
+    , m_maxProcDuration(1100)
     , m_peak(0)
     , m_execFrame(0)
     , m_dateId(eAseMaxParams)
@@ -191,7 +191,7 @@ void IoiProcess::Run()
 
     // Create the thread thru the base class method.
     // Use the default Ase template
-    Launch("IoiProcess", "StdThreadTemplate");
+    Launch("IoiProcess", "IoiThreadTemplate");
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -77,6 +77,7 @@ protected:
 
     UINT32  m_elapsedProc;
     UINT32  m_elapsedDisp;
+    UINT32  m_maxDuration;
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
     bool    m_updateDisplay;
