@@ -76,6 +76,7 @@ protected:
     virtual void HandlePowerOff() {}
 
     UINT32  m_elapsedProc;
+    UINT32  m_elapsedProcZ1;
     UINT32  m_elapsedDisp;
     UINT32  m_maxDuration;
     UINT32  m_systemTick;

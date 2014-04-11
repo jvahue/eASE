@@ -104,6 +104,7 @@ void ParamConverter::Reset()
 //
 UINT32 ParamConverter::A429Converter(float value)
 {
+    float bias = 0.5f;
     UINT32 rawValue = 0;
 
     if (m_a429.format == eBNR)
@@ -119,13 +120,15 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            m_data = UINT32( (value / m_scaleLsb) + 0.5f);
-
-            rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
             if (value < 0.0f)
             {
                 rawValue = A429_BNRPutSign(rawValue, 1);
+                bias = -0.5f;
             }
+
+            m_data = UINT32( (value / m_scaleLsb) + bias);
+
+            rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
         }
     }
     else if (m_a429.format == eDisc)
@@ -133,7 +136,6 @@ UINT32 ParamConverter::A429Converter(float value)
         m_data = UINT32(value);
         rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
     }
-    // TODO: other formats
 
     rawValue |= m_a429.a429Template;
 

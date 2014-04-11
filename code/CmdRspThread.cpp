@@ -93,6 +93,8 @@ void CmdRspThread::Process()
             theLine = UpdateDisplay(VID_SYS, theLine);
         }
         m_elapsedDisp = HsTimeDiff(start);
+        m_elapsedProcZ1 = m_elapsedProc;
+
         if (m_elapsedDisp < 10000 && m_elapsedDisp > m_maxDuration)
         {
             m_maxDuration = m_elapsedDisp;
@@ -126,7 +128,7 @@ int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",
               m_frames, m_overrunCount,
-              m_elapsedProc, m_elapsedDisp, m_maxDuration
+              m_elapsedProcZ1, m_elapsedDisp, m_maxDuration
               );
 
     return theLine;
