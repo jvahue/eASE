@@ -31,10 +31,33 @@
 /* Local Defines                                                             */
 /*****************************************************************************/
 #define MAX_CMD_RSP 2
+#define _50msec 5
+
+#define BUS_POWER_LOSS 0x20  // indicate the loss of Bus Power (power-off rqst)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
+enum PowerState {
+    ePsOff,  // Power is off (assert adrfProcHndl == NULL)
+    ePsOn,   // Power is on  (assert adrfProcHndl != NULL)
+    ePs50,   // Bus Power Lost waiting for Latch (assert adrfProcHndl != NULL)
+    ePsLatch // Battery Latched (assert adrfProcHndl != NULL)
+};
+
+enum BatteryTestControlState {
+    eBattDisabled,  // No battery latching is available
+    eBattEnabled,      // Battery Latching works as expected
+    eBattStuckLo,   // Battery Never Latched
+    eBattStuckHi    // Battery Always Latched
+};
+
+typedef struct
+{
+    platformResourceHandle handle;
+    accessStyle style;
+    void *address;
+} PLATFORM_OBJECT;
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -51,9 +74,25 @@ process_handle_t adrfProcHndl = NULL;
 LINUX_TM_FMT nextTime;
 UINT32 _10msec;
 
-static platformResourceHandle nvmHandle;
-static BYTE* nvmBaseAddr;
+PLATFORM_OBJECT nvm;
+//static platformResourceHandle nvmHandle;
+//static BYTE* nvm.address;
 static const UINT32 NvmSize = 0x31000;
+
+//----------------------------------------------------------------------------
+// Battery Control Variables
+// This affects the power-on/off state
+PLATFORM_OBJECT battStsReg;
+PLATFORM_OBJECT battCtlReg;
+
+PowerState powerState;
+BatteryTestControlState batteryState;
+INT32 powerOffDelay;      // number of 10ms frames to delay before killing the ADRF process
+INT32 powerOffTimer;      // timer for the power off processing
+
+UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
+UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
+
 
 /*****************************************************************************/
 /* Global Variables                                                          */
@@ -77,6 +116,8 @@ static void SetTime(SecRequest& request);
 static void UpdateTime();
 static void UpdateShipDate();
 static void UpdateShipTime();
+static void UpdateBattery();
+static void PowerOff();
 
 static BOOLEAN NvmRead(SecComm& secComm);
 static BOOLEAN NvmWrite(SecComm& secComm);
@@ -133,6 +174,11 @@ int main(void)
     UpdateShipDate();
     UpdateShipTime();
 
+    // No battery operation enabled
+    powerState = ePsOff;
+    batteryState = eBattDisabled;
+    batteryIsLatched = false;
+
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
     aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
 
@@ -156,8 +202,14 @@ int main(void)
     // default to Channel A
     aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
-    status = attachPlatformResource("","ADRF_NVRAM",&nvmHandle,
-             &access_style,(void**)&nvmBaseAddr);
+    status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
+        &nvm.style,(void**)&nvm.address);
+
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battStsReg.handle,
+        &battStsReg.style,(void**)&battStsReg.address);
+
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battCtlReg.handle,
+        &battCtlReg.style,(void**)&battCtlReg.address);
 
     // overhead of timing
     start = HsTimer();
@@ -172,6 +224,7 @@ int main(void)
     debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
 
     aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
+    powerState = (processSuccess == adrfProcStatus) ? ePsOn : ePsOff;
 
     // The main thread goes into an infinite loop.
     while (1)
@@ -211,6 +264,8 @@ int main(void)
         waitUntilNextPeriod();
         
         UpdateTime();
+
+        UpdateBattery();
 
         frames += 1;
 
@@ -376,34 +431,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case ePowerOn:
-            // Create the ADRF process to simulate behavior during power on
-            if ( adrfProcHndl == NULL)
-            {
-                adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-                debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
-                                                                 adrfName,
-                                                                 adrfProcStatus);
-                // Update the global-shared data block
-                aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
-            }
+            batteryStsMirror &= ~BUS_POWER_LOSS;
+
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case ePowerOff:
-            // Kill the ADRF process to simulate behavior during power off
-            if (adrfProcHndl != NULL)
-            {
-                adrfProcStatus = deleteProcess( adrfProcHndl);
-                debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
-                                                   adrfName,
-                                                   adrfProcStatus);
-                adrfProcStatus =  processNotActive;
-                adrfProcHndl   = NULL;
-            }
-            // Update the global-shared data block
-            aseCommon.adrfState = eAdrfOff;
+            // request the power off
+            batteryStsMirror |= BUS_POWER_LOSS;
 
             SetTime(request);
             secComm.m_response.successful = TRUE;
@@ -436,9 +473,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-         //---------------
+        //---------------
         case eNvmRead:
-            if (nvmBaseAddr != NULL)
+            if (nvm.address != NULL)
             {
                 secComm.m_response.successful = NvmRead(secComm);
             }
@@ -450,9 +487,9 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-         //---------------
+        //---------------
         case eNvmWrite:
-            if (nvmBaseAddr != NULL)
+            if (nvm.address != NULL)
             {
                 secComm.m_response.successful = NvmWrite(secComm);
             }
@@ -465,11 +502,31 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
+        //------------------------
         case eGetAseVersion:
             strcpy(secComm.m_response.streamData, version);
             secComm.m_response.streamSize = strlen(version);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
+
+        //------------------------
+        case eSetBatteryCtrl:
+            // variableId => Battery Control State
+            // sigGenId   => Power-Off Delay Timer, 0: never power-off 
+            if (request.variableId >= (INT32)eBattDisabled && 
+                request.variableId <= (INT32)eBattStuckHi)
+            {
+                batteryState = BatteryTestControlState(request.variableId);
+                powerOffDelay = request.sigGenId;
+                powerOffTimer = powerOffDelay;
+            }
+            else
+            {
+                secComm.ErrorMsg("Battery Control Error (%d)" % request.variableId);
+                secComm.m_response.successful = FALSE;
+            }
+            serviced = TRUE;
+            break;
 
         default:
             break;
@@ -499,12 +556,12 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 //-------------------------------------------------------------------------------------------------
 static void SetTime(SecRequest& request)
 {
-    aseCommon.time.tm_year = request.variableId;  // year from 1900
-    aseCommon.time.tm_mon  = request.sigGenId;   // month    0..11
-    aseCommon.time.tm_mday = request.resetRequest;  // day of the month  1..31
+    aseCommon.time.tm_year = request.variableId;       // year from 1900
+    aseCommon.time.tm_mon  = request.sigGenId;         // month    0..11
+    aseCommon.time.tm_mday = request.resetRequest;     // day of the month  1..31
     aseCommon.time.tm_hour = request.clearCfgRequest;  // hours    0..23
-    aseCommon.time.tm_min  = int(request.value);   // minutes  0..59
-    aseCommon.time.tm_sec  = int(request.param1);   // seconds  0..59
+    aseCommon.time.tm_min  = int(request.value);       // minutes  0..59
+    aseCommon.time.tm_sec  = int(request.param1);      // seconds  0..59
 
     nextTime.tm_year = int(request.param2);
     nextTime.tm_mon  = int(request.param3);
@@ -520,6 +577,7 @@ static void SetTime(SecRequest& request)
 //
 static BOOLEAN NvmRead(SecComm& secComm)
 {
+    BYTE* nvmAddress = (BYTE*)nvm.address;
     UINT32 offset = secComm.m_request.variableId;
     UINT32 bytes = secComm.m_request.sigGenId;
 
@@ -527,7 +585,7 @@ static BOOLEAN NvmRead(SecComm& secComm)
     {
         if (bytes <= eSecStreamSize)
         {
-            memcpy(secComm.m_response.streamData, (void*)(nvmBaseAddr + offset), bytes);
+            memcpy(secComm.m_response.streamData, (void*)(nvmAddress + offset), bytes);
             secComm.m_response.streamSize = bytes;
             return TRUE;
         }
@@ -547,15 +605,17 @@ static BOOLEAN NvmRead(SecComm& secComm)
 }
 
 //---------------------------------------------------------------------------------------------
+// NVM Read/Write Logic
 static BOOLEAN NvmWrite(SecComm& secComm)
 {
+    BYTE* nvmAddress = (BYTE*)nvm.address;
     UINT32 offset = secComm.m_request.variableId;
     UINT32 size = secComm.m_request.charDataSize;
     UINT16* data;
 
     if ((offset + size) < NvmSize)
     {
-        NV_WriteAligned((void*)(nvmBaseAddr+offset),
+        NV_WriteAligned((void*)(nvmAddress + offset),
                         (void*)secComm.m_request.charData,
                         size);
     }
@@ -566,10 +626,10 @@ static BOOLEAN NvmWrite(SecComm& secComm)
 static
 void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 {
+    UINT8* ptr8;
     UINT16 aligner;
-    UINT16         *dest_ptr16 = (UINT16*)dest;
+    UINT16 *dest_ptr16 = (UINT16*)dest;
     const UINT16   *src_ptr16 = (UINT16*)src;
-    UINT8*         ptr8;
 
     if(size > 0)
     {
@@ -615,3 +675,112 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 }
 
 
+
+
+//---------------------------------------------------------------------------------------------
+// UpdateBattery - This function Performs the IOI battery feedback logic based on battery state
+static void UpdateBattery()
+{
+#define LEVEL_A_ON 1
+#define LEVEL_C_ON 1
+#define LEVEL_C_FB 2
+#define BUS_POWER_OFF (batteryStsMirror & BUS_POWER_LOSS)
+
+    // read battery control from the ADRF
+    batteryCtlMirror =  *(UINT32*)(battCtlReg.address);
+
+    // Handle the Battery feedback logic
+    if (batteryState == eBattDisabled)
+    {
+        powerOffTimer = 0;
+        _50MsTimer = 0;
+        batteryStsMirror &= ~LEVEL_A_ON; // level indicates battery is disabled 
+    }
+    else if (batteryState == eBattEnabled)
+    {
+        // track the battery control latch request
+        if (batteryCtlMirror % LEVEL_C_ON)
+        {
+            // ADRF requesting a battery latch, indicate we see it on
+            batteryStsMirror |= LEVEL_C_FB;
+        }
+        else
+        {
+            // ADRF is not requesting a battery latch, indicate we see it off
+            batteryStsMirror &= ~LEVEL_C_FB;
+        }
+    }
+    else if (batteryState == eBattStuckLo)
+    {
+        // we are stuck lo
+        batteryStsMirror &= ~LEVEL_C_FB;
+    }
+    else if (batteryState == eBattStuckHi)
+    {
+        // We are stuck hi
+        batteryStsMirror |= LEVEL_C_FB;
+    }
+
+    // provide status
+    *(UINT32*)(battStsReg.address) = batteryCtlMirror;
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerCtrl()
+{
+    static UINT32 _50MsTimer = 0;
+
+    switch (powerState)
+    {
+    case ePsOff:
+        PowerOff();
+        break;
+    case ePsOn:
+        PowerOn();
+        break;
+    case ePs50:
+        // start the 50ms power hold
+        break;
+    case ePs50To:
+        // timeout the 50ms power hold
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerOn()
+{
+    // Create the ADRF process to simulate behavior during power on
+    if ( adrfProcHndl == NULL)
+    {
+        adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+        debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
+            adrfName,
+            adrfProcStatus);
+    }
+    // Update the global-shared data block
+    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
+    powerState = (processSuccess == adrfProcStatus) ? ePsOn : ePsOff;
+
+    // clear the bus loss signal
+    batteryStsMirror &= ~BUS_POWER_LOSS;
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerOff()
+{
+    // Kill the ADRF process to simulate behavior during power off
+    if (adrfProcHndl != NULL)
+    {
+        adrfProcStatus = deleteProcess( adrfProcHndl);
+        debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
+            adrfName,
+            adrfProcStatus);
+        adrfProcStatus =  processNotActive;
+        adrfProcHndl   = NULL;
+    }
+    // Update the global-shared data block
+    aseCommon.adrfState = eAdrfOff;
+
+    // clear the bus loss signal
+    batteryStsMirror &= ~BUS_POWER_LOSS;
+}

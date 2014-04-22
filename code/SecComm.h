@@ -46,6 +46,7 @@ enum SecCmds {
     eNvmRead        = 10,
     eNvmWrite       = 11,
     eGetAseVersion  = 12,
+    eSetBatteryCtrl = 13,
 
 // Ase Enums 101-199
 
