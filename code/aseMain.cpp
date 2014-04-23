@@ -33,7 +33,21 @@
 #define MAX_CMD_RSP 2
 #define _50msec 5
 
-#define BUS_POWER_LOSS 0x20  // indicate the loss of Bus Power (power-off rqst)
+#define LEVEL_A_ON 1
+#define LVL_A_ENABLE (batteryStsMirror | LEVEL_A_ON)
+#define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
+
+#define LEVEL_C_ON 1
+#define LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
+
+#define LEVEL_C_FB 2
+#define LVL_C_BAT_LATCH (batteryStsMirror | LEVEL_C_FB)
+#define LVL_C_BAT_UNLATCH (batteryStsMirror & ~LEVEL_C_FB)
+
+#define BUS_POWER_ON 0x20  // indicate the loss of Bus Power (power-off rqst)
+#define SET_BUS_POWER_ON (batteryStsMirror | BUS_POWER_ON)
+#define SET_BUS_POWER_OFF (batteryStsMirror & ~BUS_POWER_ON)
+#define BUS_POWER_IS_ON (batteryStsMirror & BUS_POWER_ON)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -56,8 +70,15 @@ typedef struct
 {
     platformResourceHandle handle;
     accessStyle style;
-    void *address;
-} PLATFORM_OBJECT;
+    BYTE *address;
+} PLATFORM_UINT08;
+
+typedef struct
+{
+    platformResourceHandle handle;
+    accessStyle style;
+    UINT32 *address;
+} PLATFORM_UINT32;
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -74,7 +95,7 @@ process_handle_t adrfProcHndl = NULL;
 LINUX_TM_FMT nextTime;
 UINT32 _10msec;
 
-PLATFORM_OBJECT nvm;
+PLATFORM_UINT08 nvm;
 //static platformResourceHandle nvmHandle;
 //static BYTE* nvm.address;
 static const UINT32 NvmSize = 0x31000;
@@ -82,17 +103,17 @@ static const UINT32 NvmSize = 0x31000;
 //----------------------------------------------------------------------------
 // Battery Control Variables
 // This affects the power-on/off state
-PLATFORM_OBJECT battStsReg;
-PLATFORM_OBJECT battCtlReg;
+PLATFORM_UINT32 battStsReg;
+PLATFORM_UINT32 battCtlReg;
 
 PowerState powerState;
 BatteryTestControlState batteryState;
 INT32 powerOffDelay;      // number of 10ms frames to delay before killing the ADRF process
 INT32 powerOffTimer;      // timer for the power off processing
+INT32 _50MsTimer;         // times out the 50ms holdup
 
 UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
 UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
-
 
 /*****************************************************************************/
 /* Global Variables                                                          */
@@ -117,6 +138,8 @@ static void UpdateTime();
 static void UpdateShipDate();
 static void UpdateShipTime();
 static void UpdateBattery();
+static void PowerCtl();
+static void PowerOn();
 static void PowerOff();
 
 static BOOLEAN NvmRead(SecComm& secComm);
@@ -157,27 +180,22 @@ int main(void)
     UINT32 cmdIdle = 0;
     UINT32 lastCmdAt = 0;
 
+    debug_str_init();
+    videoRedirect = AseMain;
+
     _10msec = 0;
 
     memset( &aseCommon, 0, sizeof(aseCommon));
     memset( &nextTime, 0, sizeof(nextTime));
 
     // default time 
-    aseCommon.time.tm_year = 2013;
-    aseCommon.time.tm_mon  = 7;
-    aseCommon.time.tm_mday = 26;
-
     nextTime.tm_year = 2013;
     nextTime.tm_mon  = 7;
     nextTime.tm_mday = 27;
 
-    UpdateShipDate();
-    UpdateShipTime();
-
-    // No battery operation enabled
-    powerState = ePsOff;
-    batteryState = eBattDisabled;
-    batteryIsLatched = false;
+    aseCommon.time.tm_year = 2013;
+    aseCommon.time.tm_mon  = 7;
+    aseCommon.time.tm_mday = 26;
 
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
     aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
@@ -188,9 +206,11 @@ int main(void)
     // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
     aseCommon.systemTickPtr = systemTickPointer();
 
-    debug_str_init();
-    videoRedirect = AseMain;
+    UpdateShipDate();
+    UpdateShipTime();
 
+    //---------------------------------------------------------------------
+    // Start Running All of the ASE Threads
     secComm.Run();
 
     // Run all of the cmd response threads
@@ -198,18 +218,14 @@ int main(void)
     {
         cmdRspThreads[i]->Run(&aseCommon);
     }
+    //---------------------------------------------------------------------
 
     // default to Channel A
     aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
+    // Attach to NVM
     status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
         &nvm.style,(void**)&nvm.address);
-
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battStsReg.handle,
-        &battStsReg.style,(void**)&battStsReg.address);
-
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battCtlReg.handle,
-        &battCtlReg.style,(void**)&battCtlReg.address);
 
     // overhead of timing
     start = HsTimer();
@@ -219,17 +235,27 @@ int main(void)
     // see CheckCmds - where this is updated
     debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
 
-    // Initially create the adrf to start it running.
-    adrfProcStatus  = createProcess( adrfName, adrfTmplName, 0, TRUE, &adrfProcHndl);
-    debug_str(AseMain, 6, 0, "Initial Create of adrf returned: %d", adrfProcStatus);
+    // POWER CONTROL SETUP
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battCtlReg.handle,
+        &battCtlReg.style,(void**)&battCtlReg.address);
 
-    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
-    powerState = (processSuccess == adrfProcStatus) ? ePsOn : ePsOff;
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battStsReg.handle,
+        &battStsReg.style,(void**)&battStsReg.address);
+
+    // move the Status Register Address forward 4 bytes
+    battStsReg.address = &battStsReg.address[1];
+
+    // No battery latching operations enabled
+    powerState = ePsOff;
+    batteryState = eBattDisabled;
+    batteryStsMirror = LVL_A_DISABLE;
+    batteryStsMirror = SET_BUS_POWER_ON;
+    PowerCtl();
 
     // The main thread goes into an infinite loop.
     while (1)
     {
-        // call the base class to get the first row
+        // call the base class to display the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
 
         debug_str(AseMain, 1, 0, "ASE: %s %04d/%02d/%02d %02d:%02d:%02d.%0.3d in channel %s",
@@ -265,7 +291,7 @@ int main(void)
         
         UpdateTime();
 
-        UpdateBattery();
+        PowerCtl();
 
         frames += 1;
 
@@ -431,7 +457,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case ePowerOn:
-            batteryStsMirror &= ~BUS_POWER_LOSS;
+            batteryStsMirror = SET_BUS_POWER_ON;
 
             SetTime(request);
             secComm.m_response.successful = TRUE;
@@ -440,8 +466,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOff:
             // request the power off
-            batteryStsMirror |= BUS_POWER_LOSS;
-
+            batteryStsMirror = SET_BUS_POWER_OFF;
+                
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -522,7 +548,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             }
             else
             {
-                secComm.ErrorMsg("Battery Control Error (%d)" % request.variableId);
+                secComm.ErrorMsg("Battery Control Error (%d)", request.variableId);
                 secComm.m_response.successful = FALSE;
             }
             serviced = TRUE;
@@ -577,7 +603,6 @@ static void SetTime(SecRequest& request)
 //
 static BOOLEAN NvmRead(SecComm& secComm)
 {
-    BYTE* nvmAddress = (BYTE*)nvm.address;
     UINT32 offset = secComm.m_request.variableId;
     UINT32 bytes = secComm.m_request.sigGenId;
 
@@ -585,7 +610,7 @@ static BOOLEAN NvmRead(SecComm& secComm)
     {
         if (bytes <= eSecStreamSize)
         {
-            memcpy(secComm.m_response.streamData, (void*)(nvmAddress + offset), bytes);
+            memcpy(secComm.m_response.streamData, (void*)(nvm.address + offset), bytes);
             secComm.m_response.streamSize = bytes;
             return TRUE;
         }
@@ -608,14 +633,13 @@ static BOOLEAN NvmRead(SecComm& secComm)
 // NVM Read/Write Logic
 static BOOLEAN NvmWrite(SecComm& secComm)
 {
-    BYTE* nvmAddress = (BYTE*)nvm.address;
     UINT32 offset = secComm.m_request.variableId;
     UINT32 size = secComm.m_request.charDataSize;
     UINT16* data;
 
     if ((offset + size) < NvmSize)
     {
-        NV_WriteAligned((void*)(nvmAddress + offset),
+        NV_WriteAligned((void*)(nvm.address + offset),
                         (void*)secComm.m_request.charData,
                         size);
     }
@@ -681,68 +705,113 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 // UpdateBattery - This function Performs the IOI battery feedback logic based on battery state
 static void UpdateBattery()
 {
-#define LEVEL_A_ON 1
-#define LEVEL_C_ON 1
-#define LEVEL_C_FB 2
-#define BUS_POWER_OFF (batteryStsMirror & BUS_POWER_LOSS)
-
     // read battery control from the ADRF
-    batteryCtlMirror =  *(UINT32*)(battCtlReg.address);
+    batteryCtlMirror =  *battCtlReg.address;
 
     // Handle the Battery feedback logic
     if (batteryState == eBattDisabled)
     {
         powerOffTimer = 0;
-        _50MsTimer = 0;
-        batteryStsMirror &= ~LEVEL_A_ON; // level indicates battery is disabled 
+        batteryStsMirror = LVL_A_DISABLE; // level indicates battery is disabled 
     }
     else if (batteryState == eBattEnabled)
     {
         // track the battery control latch request
-        if (batteryCtlMirror % LEVEL_C_ON)
+        if (LVL_C_ON_BATT)
         {
             // ADRF requesting a battery latch, indicate we see it on
-            batteryStsMirror |= LEVEL_C_FB;
+            batteryStsMirror = LVL_C_BAT_LATCH;
         }
         else
         {
             // ADRF is not requesting a battery latch, indicate we see it off
-            batteryStsMirror &= ~LEVEL_C_FB;
+            batteryStsMirror = LVL_C_BAT_UNLATCH;
         }
     }
     else if (batteryState == eBattStuckLo)
     {
         // we are stuck lo
-        batteryStsMirror &= ~LEVEL_C_FB;
+        batteryStsMirror = LVL_C_BAT_UNLATCH;
     }
     else if (batteryState == eBattStuckHi)
     {
         // We are stuck hi
-        batteryStsMirror |= LEVEL_C_FB;
+        batteryStsMirror = LVL_C_BAT_LATCH;
     }
 
     // provide status
-    *(UINT32*)(battStsReg.address) = batteryCtlMirror;
+    *battStsReg.address = batteryStsMirror;
 }
 
 //---------------------------------------------------------------------------------------------
-static void PowerCtrl()
+static void PowerCtl()
 {
     static UINT32 _50MsTimer = 0;
+
+    // update the battery status and ctrl words
+    UpdateBattery();
 
     switch (powerState)
     {
     case ePsOff:
-        PowerOff();
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
         break;
+
     case ePsOn:
-        PowerOn();
+        // always make sure this is zero if we are not counting down
+        _50MsTimer = 0;
+
+        // check to see if we lost bus power
+        if (!BUS_POWER_IS_ON)
+        {
+            // see if the script is allowing battery latching
+            if (LVL_A_ENABLE)
+            {
+                _50MsTimer = _50msec;
+                powerState = ePs50;
+            }
+            else
+            {
+                PowerOff();
+            }
+        }
         break;
+
     case ePs50:
-        // start the 50ms power hold
+        // if bus power comes back turn us on
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
+        else if (LVL_C_ON_BATT && _50MsTimer > 0)
+        {
+            _50MsTimer = 0;
+            powerState = ePsLatch;
+        }
+        else 
+        {
+            --_50MsTimer;
+            if (_50MsTimer == 0)
+            {
+                // shut off
+                PowerOff();
+            }
+        }
         break;
-    case ePs50To:
-        // timeout the 50ms power hold
+
+    case ePsLatch:
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
+        else if (!LVL_C_ON_BATT)
+        {
+            PowerOff();
+        }
+        break;
     }
 }
 
@@ -756,13 +825,22 @@ static void PowerOn()
         debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
             adrfName,
             adrfProcStatus);
+
+        // Update the global state info
+        if (processSuccess == adrfProcStatus)
+        {
+            aseCommon.adrfState = eAdrfOn;
+            powerState = ePsOn;
+        }
+        else
+        {
+            aseCommon.adrfState = eAdrfOff;
+            powerState = ePsOff;
+        }
     }
-    // Update the global-shared data block
-    aseCommon.adrfState = (processSuccess == adrfProcStatus) ? eAdrfOn : eAdrfOff;
-    powerState = (processSuccess == adrfProcStatus) ? ePsOn : ePsOff;
 
     // clear the bus loss signal
-    batteryStsMirror &= ~BUS_POWER_LOSS;
+    batteryStsMirror = SET_BUS_POWER_ON;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -772,15 +850,18 @@ static void PowerOff()
     if (adrfProcHndl != NULL)
     {
         adrfProcStatus = deleteProcess( adrfProcHndl);
+        adrfProcStatus =  processNotActive;
+        adrfProcHndl   = NULL;
+
         debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
             adrfName,
             adrfProcStatus);
-        adrfProcStatus =  processNotActive;
-        adrfProcHndl   = NULL;
     }
+
     // Update the global-shared data block
     aseCommon.adrfState = eAdrfOff;
+    powerState = ePsOff;
 
     // clear the bus loss signal
-    batteryStsMirror &= ~BUS_POWER_LOSS;
+    batteryStsMirror = SET_BUS_POWER_OFF;
 }
