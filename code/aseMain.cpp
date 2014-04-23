@@ -108,8 +108,6 @@ PLATFORM_UINT32 battCtlReg;
 
 PowerState powerState;
 BatteryTestControlState batteryState;
-INT32 powerOffDelay;      // number of 10ms frames to delay before killing the ADRF process
-INT32 powerOffTimer;      // timer for the power off processing
 INT32 _50MsTimer;         // times out the 50ms holdup
 
 UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
@@ -246,6 +244,7 @@ int main(void)
     battStsReg.address = &battStsReg.address[1];
 
     // No battery latching operations enabled
+    _50MsTimer = 0;
     powerState = ePsOff;
     batteryState = eBattDisabled;
     batteryStsMirror = LVL_A_DISABLE;
@@ -543,8 +542,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 request.variableId <= (INT32)eBattStuckHi)
             {
                 batteryState = BatteryTestControlState(request.variableId);
-                powerOffDelay = request.sigGenId;
-                powerOffTimer = powerOffDelay;
             }
             else
             {
@@ -711,7 +708,6 @@ static void UpdateBattery()
     // Handle the Battery feedback logic
     if (batteryState == eBattDisabled)
     {
-        powerOffTimer = 0;
         batteryStsMirror = LVL_A_DISABLE; // level indicates battery is disabled 
     }
     else if (batteryState == eBattEnabled)
@@ -746,8 +742,6 @@ static void UpdateBattery()
 //---------------------------------------------------------------------------------------------
 static void PowerCtl()
 {
-    static UINT32 _50MsTimer = 0;
-
     // update the battery status and ctrl words
     UpdateBattery();
 
@@ -761,9 +755,6 @@ static void PowerCtl()
         break;
 
     case ePsOn:
-        // always make sure this is zero if we are not counting down
-        _50MsTimer = 0;
-
         // check to see if we lost bus power
         if (!BUS_POWER_IS_ON)
         {
@@ -839,8 +830,8 @@ static void PowerOn()
         }
     }
 
-    // clear the bus loss signal
     batteryStsMirror = SET_BUS_POWER_ON;
+    _50MsTimer = 0;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -862,6 +853,6 @@ static void PowerOff()
     aseCommon.adrfState = eAdrfOff;
     powerState = ePsOff;
 
-    // clear the bus loss signal
     batteryStsMirror = SET_BUS_POWER_OFF;
+    _50MsTimer = 0;
 }
