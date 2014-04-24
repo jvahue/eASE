@@ -45,6 +45,12 @@ static const char* adrfState[] = {
     "Ready",
 };
 
+static const char* asePower[] = {
+    "Off",
+    "On",
+    "HoldUp",
+    "Latch"
+};
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -122,8 +128,9 @@ int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
     debug_str(who, theLine, 0,
-        "PySte:%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
+        "PySte:%s/%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
               IS_CONNECTED ? "Conn" : "NoConn",
+              asePower[m_pCommon->asePowerState],
               adrfState[m_pCommon->adrfState],
               IS_MS_ONLINE ? "On" : "Off",
               IS_SCRIPT_ACTIVE ? "Run" : "Off",

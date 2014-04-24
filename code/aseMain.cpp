@@ -15,6 +15,7 @@
 /* Compiler Specific Includes                                                */
 /*****************************************************************************/
 #include <deos.h>
+#include <stdio.h>
 #include <string.h>
 #include <videobuf.h>
 
@@ -40,9 +41,10 @@
 #define LEVEL_C_ON 1
 #define LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
 
-#define LEVEL_C_FB 2
-#define LVL_C_BAT_LATCH (batteryStsMirror | LEVEL_C_FB)
-#define LVL_C_BAT_UNLATCH (batteryStsMirror & ~LEVEL_C_FB)
+#define LEVEL_C_FBL 2  // Local FB signals
+#define LEVEL_C_FBC 4  // combined FB signals - active low
+#define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVEL_C_FBL) & ~LEVEL_C_FBC)
+#define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVEL_C_FBL) |  LEVEL_C_FBC)
 
 #define BUS_POWER_ON 0x20  // indicate the loss of Bus Power (power-off rqst)
 #define SET_BUS_POWER_ON (batteryStsMirror | BUS_POWER_ON)
@@ -52,13 +54,6 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
-enum PowerState {
-    ePsOff,  // Power is off (assert adrfProcHndl == NULL)
-    ePsOn,   // Power is on  (assert adrfProcHndl != NULL)
-    ePs50,   // Bus Power Lost waiting for Latch (assert adrfProcHndl != NULL)
-    ePsLatch // Battery Latched (assert adrfProcHndl != NULL)
-};
-
 enum BatteryTestControlState {
     eBattDisabled,  // No battery latching is available
     eBattEnabled,      // Battery Latching works as expected
@@ -106,7 +101,6 @@ static const UINT32 NvmSize = 0x31000;
 PLATFORM_UINT32 battStsReg;
 PLATFORM_UINT32 battCtlReg;
 
-PowerState powerState;
 BatteryTestControlState batteryState;
 INT32 _50MsTimer;         // times out the 50ms holdup
 
@@ -223,7 +217,7 @@ int main(void)
 
     // Attach to NVM
     status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
-        &nvm.style,(void**)&nvm.address);
+                                    &nvm.style, (void**)&nvm.address);
 
     // overhead of timing
     start = HsTimer();
@@ -234,21 +228,27 @@ int main(void)
     debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
 
     // POWER CONTROL SETUP
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battCtlReg.handle,
-        &battCtlReg.style,(void**)&battCtlReg.address);
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
+                                    &battCtlReg.style, (void**)&battCtlReg.address);
 
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C",&battStsReg.handle,
-        &battStsReg.style,(void**)&battStsReg.address);
+    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battStsReg.handle,
+                                    &battStsReg.style, (void**)&battStsReg.address);
 
     // move the Status Register Address forward 4 bytes
     battStsReg.address = &battStsReg.address[1];
 
     // No battery latching operations enabled
+    *battCtlReg.address = 0;
+    *battStsReg.address = 0;
+
     _50MsTimer = 0;
-    powerState = ePsOff;
+    aseCommon.asePowerState = ePsOff;
     batteryState = eBattDisabled;
-    batteryStsMirror = LVL_A_DISABLE;
+
     batteryStsMirror = SET_BUS_POWER_ON;
+    batteryStsMirror = LVL_C_BAT_UNLATCH;
+    batteryStsMirror = LVL_A_DISABLE;
+
     PowerCtl();
 
     // The main thread goes into an infinite loop.
@@ -315,94 +315,6 @@ int main(void)
 }
 
 //-------------------------------------------------------------------------------------------------
-// Update the wall clock time - PySte will resend every now and then but wee need to maintain it
-// between those updates.
-static void UpdateTime()
-{
-    // keep time
-    _10msec += 10;
-    if (_10msec >= 1000)
-    {
-        _10msec = 0;
-        aseCommon.time.tm_sec += 1;
-        if (aseCommon.time.tm_sec >= 60)
-        {
-            aseCommon.time.tm_sec = 0;
-            aseCommon.time.tm_min += 1;
-            if (aseCommon.time.tm_min >= 60)
-            {
-                aseCommon.time.tm_min = 0;
-                aseCommon.time.tm_hour += 1;
-                if (aseCommon.time.tm_hour >= 24)
-                {
-                    aseCommon.time.tm_hour = 0;
-                    aseCommon.time.tm_year = nextTime.tm_year;
-                    aseCommon.time.tm_mon = nextTime.tm_mon;
-                    aseCommon.time.tm_mday = nextTime.tm_mday;
-                }
-            }
-        }
-    }
-
-    // update the ships time
-    if (_10msec == 0)
-    {
-        UpdateShipDate();
-        UpdateShipTime();
-        debug_str(AseMain, 7, 0, "Ship Date: 0x%08x Time: 0x%08x",
-            aseCommon.shipDate,
-            aseCommon.shipTime);
-    }
-}
-
-//-------------------------------------------------------------------------------------------------
-// Update the ships date - 
-// pack into label 0260 reverse => 0x0D
-// sdi = 1
-// ssm = 11
-static void UpdateShipDate()
-{
-#define DATE_SSM 0x60000000
-#define DATE_SDI 0x100
-#define DATE_LABEL 0x0d
-
-    UINT8 dayX10 = aseCommon.time.tm_mday / 10;
-    UINT8 dayX1  = aseCommon.time.tm_mday % 10;
-    UINT8 monthX10 = aseCommon.time.tm_mon / 10;
-    UINT8 monthX1  = aseCommon.time.tm_mon % 10;
-    UINT8 yearX10  = (aseCommon.time.tm_year - 2000) / 10;
-    UINT8 yearX1   = (aseCommon.time.tm_year - 2000) % 10;
-
-    UINT32 dateData;
-    dateData  = (dayX10 << 27) & 0x18000000L;
-    dateData |= (dayX1  << 23) & 0x07800000L;
-    dateData |= (monthX10 << 22) & 0x00400000L;
-    dateData |= (monthX1 << 18) & 0x003c0000L;
-    dateData |= (yearX10 << 14) & 0x0003c000L;
-    dateData |= (yearX1 << 10) & 0x00003c00L;
-
-    aseCommon.shipDate = DATE_SSM | dateData | DATE_SDI | DATE_LABEL;
-}
-
-//-------------------------------------------------------------------------------------------------
-// Update the ships date - 
-// pack into label 0150 reverse => 
-// sdi = 1
-// ssm = 11
-static void UpdateShipTime()
-{
-#define TIME_SSM 0x60000000
-#define TIME_SDI 0x100
-#define TIME_LABEL 0x16
-
-    UINT32 timeData = (aseCommon.time.tm_hour << 23) & 0x0f800000L;
-    timeData |= (aseCommon.time.tm_min << 17) & 0x007e0000L;
-    timeData |= (aseCommon.time.tm_sec << 11) & 0x0001f800L;
-
-    aseCommon.shipTime = TIME_SSM | timeData | TIME_SDI | TIME_LABEL;
-}
-
-//-------------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
     void *theAreg;
@@ -437,6 +349,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case eScriptDone:
             aseCommon.bScriptRunning = FALSE;
             SetTime(request);
+            // reset the battery latch logic to default (i.e., no battery latching
+            batteryState = eBattDisabled;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -503,6 +417,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             if (nvm.address != NULL)
             {
                 secComm.m_response.successful = NvmRead(secComm);
+                secComm.m_response.successful = TRUE;
             }
             else
             {
@@ -517,7 +432,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             if (nvm.address != NULL)
             {
                 secComm.m_response.successful = NvmWrite(secComm);
-            }
+                secComm.m_response.successful = TRUE;
+           }
             else
             {
                 secComm.ErrorMsg("NVM Memory Handle Error");
@@ -542,12 +458,27 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 request.variableId <= (INT32)eBattStuckHi)
             {
                 batteryState = BatteryTestControlState(request.variableId);
+                secComm.m_response.successful = TRUE;
             }
             else
             {
                 secComm.ErrorMsg("Battery Control Error (%d)", request.variableId);
                 secComm.m_response.successful = FALSE;
             }
+            serviced = TRUE;
+            break;
+
+        //------------------------
+        case eGetBatterySts:
+            // pack the Power State and Battery State into the 
+            sprintf(secComm.m_response.streamData, 
+                    "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x", 
+                    aseCommon.asePowerState, 
+                    batteryState,
+                    batteryCtlMirror,
+                    batteryStsMirror);
+            secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+            secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
@@ -574,6 +505,170 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     }
 
     return cmdSeen;
+}
+
+//---------------------------------------------------------------------------------------------
+// UpdateBattery - This function Performs the IOI battery feedback logic based on battery state
+static void UpdateBattery()
+{
+    // read battery control from the ADRF
+    batteryCtlMirror =  *battCtlReg.address;
+
+    // Handle the Battery feedback logic
+    if (batteryState == eBattDisabled)
+    {
+        batteryStsMirror = LVL_A_DISABLE;     // level indicates battery is disabled 
+        batteryStsMirror = LVL_C_BAT_UNLATCH;
+    }
+    else 
+    {
+        batteryStsMirror = LVL_A_ENABLE;
+
+        if (batteryState == eBattEnabled)
+        {
+            // track the battery control latch request
+            if (LVL_C_ON_BATT)
+            {
+                // ADRF requesting a battery latch, indicate we see it on
+                batteryStsMirror = LVL_C_BAT_LATCH;
+            }
+            else
+            {
+                // ADRF is not requesting a battery latch, indicate we see it off
+                batteryStsMirror = LVL_C_BAT_UNLATCH;
+            }
+        }
+        else if (batteryState == eBattStuckLo)
+        {
+            // we are stuck lo
+            batteryStsMirror = LVL_C_BAT_UNLATCH;
+        }
+        else if (batteryState == eBattStuckHi)
+        {
+            // We are stuck hi
+            batteryStsMirror = LVL_C_BAT_LATCH;
+        }
+    }
+
+    // provide status
+    *battStsReg.address = batteryStsMirror;
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerCtl()
+{
+    // update the battery status and ctrl words
+    UpdateBattery();
+
+    switch (aseCommon.asePowerState)
+    {
+    case ePsOff:
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
+        break;
+
+    case ePsOn:
+        // check to see if we lost bus power
+        if (!BUS_POWER_IS_ON)
+        {
+            // see if the script is allowing battery latching
+            if (LVL_A_ENABLE)
+            {
+                _50MsTimer = _50msec;
+                aseCommon.asePowerState = ePs50;
+            }
+            else
+            {
+                PowerOff();
+            }
+        }
+        break;
+
+    case ePs50:
+        // if bus power comes back turn us on
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
+        else if (LVL_C_ON_BATT && _50MsTimer > 0)
+        {
+            _50MsTimer = 0;
+            aseCommon.asePowerState = ePsLatch;
+        }
+        else 
+        {
+            if (--_50MsTimer == 0)
+            {
+                // shut off as the ADRF has not latched the battery
+                PowerOff();
+            }
+        }
+        break;
+
+    case ePsLatch:
+        if (BUS_POWER_IS_ON)
+        {
+            PowerOn();
+        }
+        else if (!LVL_C_ON_BATT)
+        {
+            PowerOff();
+        }
+        break;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerOn()
+{
+    // Create the ADRF process to simulate behavior during power on
+    if ( adrfProcHndl == NULL)
+    {
+        adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+        debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
+            adrfName,
+            adrfProcStatus);
+
+        // Update the global state info
+        if (processSuccess == adrfProcStatus)
+        {
+            aseCommon.adrfState = eAdrfOn;
+            aseCommon.asePowerState = ePsOn;
+        }
+        else
+        {
+            aseCommon.adrfState = eAdrfOff;
+            aseCommon.asePowerState = ePsOff;
+        }
+    }
+
+    batteryStsMirror = SET_BUS_POWER_ON;
+    _50MsTimer = 0;
+}
+
+//---------------------------------------------------------------------------------------------
+static void PowerOff()
+{
+    // Kill the ADRF process to simulate behavior during power off
+    if (adrfProcHndl != NULL)
+    {
+        adrfProcStatus = deleteProcess( adrfProcHndl);
+        adrfProcStatus =  processNotActive;
+        adrfProcHndl   = NULL;
+
+        debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
+            adrfName,
+            adrfProcStatus);
+    }
+
+    // Update the global-shared data block
+    aseCommon.adrfState = eAdrfOff;
+    aseCommon.asePowerState = ePsOff;
+
+    batteryStsMirror = SET_BUS_POWER_OFF;
+    _50MsTimer = 0;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -698,161 +793,92 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 
 
 
-//---------------------------------------------------------------------------------------------
-// UpdateBattery - This function Performs the IOI battery feedback logic based on battery state
-static void UpdateBattery()
+//-------------------------------------------------------------------------------------------------
+// Update the wall clock time - PySte will resend every now and then but wee need to maintain it
+// between those updates.
+
+static void UpdateTime()
 {
-    // read battery control from the ADRF
-    batteryCtlMirror =  *battCtlReg.address;
-
-    // Handle the Battery feedback logic
-    if (batteryState == eBattDisabled)
+    // keep time
+    _10msec += 10;
+    if (_10msec >= 1000)
     {
-        batteryStsMirror = LVL_A_DISABLE; // level indicates battery is disabled 
-    }
-    else if (batteryState == eBattEnabled)
-    {
-        // track the battery control latch request
-        if (LVL_C_ON_BATT)
+        _10msec = 0;
+        aseCommon.time.tm_sec += 1;
+        if (aseCommon.time.tm_sec >= 60)
         {
-            // ADRF requesting a battery latch, indicate we see it on
-            batteryStsMirror = LVL_C_BAT_LATCH;
-        }
-        else
-        {
-            // ADRF is not requesting a battery latch, indicate we see it off
-            batteryStsMirror = LVL_C_BAT_UNLATCH;
-        }
-    }
-    else if (batteryState == eBattStuckLo)
-    {
-        // we are stuck lo
-        batteryStsMirror = LVL_C_BAT_UNLATCH;
-    }
-    else if (batteryState == eBattStuckHi)
-    {
-        // We are stuck hi
-        batteryStsMirror = LVL_C_BAT_LATCH;
-    }
-
-    // provide status
-    *battStsReg.address = batteryStsMirror;
-}
-
-//---------------------------------------------------------------------------------------------
-static void PowerCtl()
-{
-    // update the battery status and ctrl words
-    UpdateBattery();
-
-    switch (powerState)
-    {
-    case ePsOff:
-        if (BUS_POWER_IS_ON)
-        {
-            PowerOn();
-        }
-        break;
-
-    case ePsOn:
-        // check to see if we lost bus power
-        if (!BUS_POWER_IS_ON)
-        {
-            // see if the script is allowing battery latching
-            if (LVL_A_ENABLE)
+            aseCommon.time.tm_sec = 0;
+            aseCommon.time.tm_min += 1;
+            if (aseCommon.time.tm_min >= 60)
             {
-                _50MsTimer = _50msec;
-                powerState = ePs50;
-            }
-            else
-            {
-                PowerOff();
+                aseCommon.time.tm_min = 0;
+                aseCommon.time.tm_hour += 1;
+                if (aseCommon.time.tm_hour >= 24)
+                {
+                    aseCommon.time.tm_hour = 0;
+                    aseCommon.time.tm_year = nextTime.tm_year;
+                    aseCommon.time.tm_mon = nextTime.tm_mon;
+                    aseCommon.time.tm_mday = nextTime.tm_mday;
+                }
             }
         }
-        break;
-
-    case ePs50:
-        // if bus power comes back turn us on
-        if (BUS_POWER_IS_ON)
-        {
-            PowerOn();
-        }
-        else if (LVL_C_ON_BATT && _50MsTimer > 0)
-        {
-            _50MsTimer = 0;
-            powerState = ePsLatch;
-        }
-        else 
-        {
-            --_50MsTimer;
-            if (_50MsTimer == 0)
-            {
-                // shut off
-                PowerOff();
-            }
-        }
-        break;
-
-    case ePsLatch:
-        if (BUS_POWER_IS_ON)
-        {
-            PowerOn();
-        }
-        else if (!LVL_C_ON_BATT)
-        {
-            PowerOff();
-        }
-        break;
     }
-}
 
-//---------------------------------------------------------------------------------------------
-static void PowerOn()
-{
-    // Create the ADRF process to simulate behavior during power on
-    if ( adrfProcHndl == NULL)
+    // update the ships time
+    if (_10msec == 0)
     {
-        adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-        debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
-            adrfName,
-            adrfProcStatus);
-
-        // Update the global state info
-        if (processSuccess == adrfProcStatus)
-        {
-            aseCommon.adrfState = eAdrfOn;
-            powerState = ePsOn;
-        }
-        else
-        {
-            aseCommon.adrfState = eAdrfOff;
-            powerState = ePsOff;
-        }
+        UpdateShipDate();
+        UpdateShipTime();
+        debug_str(AseMain, 7, 0, "Ship Date: 0x%08x Time: 0x%08x",
+            aseCommon.shipDate,
+            aseCommon.shipTime);
     }
-
-    batteryStsMirror = SET_BUS_POWER_ON;
-    _50MsTimer = 0;
 }
 
-//---------------------------------------------------------------------------------------------
-static void PowerOff()
+//-------------------------------------------------------------------------------------------------
+// Update the ships date - 
+// pack into label 0260 reverse => 0x0D
+// sdi = 1
+// ssm = 11
+static void UpdateShipDate()
 {
-    // Kill the ADRF process to simulate behavior during power off
-    if (adrfProcHndl != NULL)
-    {
-        adrfProcStatus = deleteProcess( adrfProcHndl);
-        adrfProcStatus =  processNotActive;
-        adrfProcHndl   = NULL;
+#define DATE_SSM 0x60000000
+#define DATE_SDI 0x100
+#define DATE_LABEL 0x0d
 
-        debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
-            adrfName,
-            adrfProcStatus);
-    }
+    UINT8 dayX10 = aseCommon.time.tm_mday / 10;
+    UINT8 dayX1  = aseCommon.time.tm_mday % 10;
+    UINT8 monthX10 = aseCommon.time.tm_mon / 10;
+    UINT8 monthX1  = aseCommon.time.tm_mon % 10;
+    UINT8 yearX10  = (aseCommon.time.tm_year - 2000) / 10;
+    UINT8 yearX1   = (aseCommon.time.tm_year - 2000) % 10;
 
-    // Update the global-shared data block
-    aseCommon.adrfState = eAdrfOff;
-    powerState = ePsOff;
+    UINT32 dateData;
+    dateData  = (dayX10 << 27) & 0x18000000L;
+    dateData |= (dayX1  << 23) & 0x07800000L;
+    dateData |= (monthX10 << 22) & 0x00400000L;
+    dateData |= (monthX1 << 18) & 0x003c0000L;
+    dateData |= (yearX10 << 14) & 0x0003c000L;
+    dateData |= (yearX1 << 10) & 0x00003c00L;
 
-    batteryStsMirror = SET_BUS_POWER_OFF;
-    _50MsTimer = 0;
+    aseCommon.shipDate = DATE_SSM | dateData | DATE_SDI | DATE_LABEL;
 }
+
+//-------------------------------------------------------------------------------------------------
+// Update the ships date - 
+// pack into label 0150 reverse => 
+// sdi = 1
+// ssm = 11
+static void UpdateShipTime()
+{
+#define TIME_SSM 0x60000000
+#define TIME_SDI 0x100
+#define TIME_LABEL 0x16
+
+    UINT32 timeData = (aseCommon.time.tm_hour << 23) & 0x0f800000L;
+    timeData |= (aseCommon.time.tm_min << 17) & 0x007e0000L;
+    timeData |= (aseCommon.time.tm_sec << 11) & 0x0001f800L;
+
+    aseCommon.shipTime = TIME_SSM | timeData | TIME_SDI | TIME_LABEL;
+}
+

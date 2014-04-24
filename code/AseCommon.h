@@ -90,6 +90,13 @@ typedef struct {
 
 typedef char ParameterName[eAseParamNameSize];
 
+enum PowerState {
+    ePsOff,  // Power is off (assert adrfProcHndl == NULL)
+    ePsOn,   // Power is on  (assert adrfProcHndl != NULL)
+    ePs50,   // Bus Power Lost waiting for Latch (assert adrfProcHndl != NULL)
+    ePsLatch // Battery Latched (assert adrfProcHndl != NULL)
+};
+
 enum AdrfState {
     eAdrfOff,
     eAdrfOn,
@@ -100,6 +107,7 @@ enum AdrfState {
 typedef struct
 {
     AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active
+    PowerState   asePowerState;  // Current Ase Power State
     UNSIGNED32   *systemTickPtr; // Pointer to the system tick value.
     bool         bConnected;     // ePySte Connection
     bool         bScriptRunning; // Is a script actively running
