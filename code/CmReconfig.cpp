@@ -280,7 +280,8 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 
         memset( &outData, 0, sizeof(outData));
 
-        if (inData.code == MS_DATETIME_REQ)
+        // if we got a request for MS time and the MS is online - then respond
+        if (inData.code == MS_DATETIME_REQ && IS_MS_ONLINE)
         {
             LINUX_TM_FMT time;
 

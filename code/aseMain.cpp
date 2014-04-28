@@ -34,22 +34,24 @@
 #define MAX_CMD_RSP 2
 #define _50msec 5
 
-#define LEVEL_A_ON 1
-#define LVL_A_ENABLE (batteryStsMirror | LEVEL_A_ON)
-#define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
-
+// Battery Control Signals
 #define LEVEL_C_ON 1
 #define LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
+
+// Battery Status Signals
+#define LEVEL_A_ON 1
+#define LVL_A_ENABLE  (batteryStsMirror |  LEVEL_A_ON)
+#define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
 
 #define LEVEL_C_FBL 2  // Local FB signals
 #define LEVEL_C_FBC 4  // combined FB signals - active low
 #define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVEL_C_FBL) & ~LEVEL_C_FBC)
 #define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVEL_C_FBL) |  LEVEL_C_FBC)
 
-#define BUS_POWER_ON 0x20  // indicate the loss of Bus Power (power-off rqst)
-#define SET_BUS_POWER_ON (batteryStsMirror | BUS_POWER_ON)
+#define BUS_POWER_ON 0x20  // indicate the loss of Bus Power
+#define SET_BUS_POWER_ON  (batteryStsMirror |  BUS_POWER_ON)
 #define SET_BUS_POWER_OFF (batteryStsMirror & ~BUS_POWER_ON)
-#define BUS_POWER_IS_ON (batteryStsMirror & BUS_POWER_ON)
+#define BUS_POWER_IS_ON   (batteryStsMirror &  BUS_POWER_ON)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
