@@ -645,6 +645,10 @@ static void PowerOn()
             aseCommon.asePowerState = ePsOff;
         }
     }
+    else
+    {
+        aseCommon.asePowerState = ePsOn;
+    }
 
     batteryStsMirror = SET_BUS_POWER_ON;
     _50MsTimer = 0;
