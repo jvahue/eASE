@@ -131,6 +131,30 @@ UINT32 ParamConverter::A429Converter(float value)
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
         }
     }
+    else if (m_a429.format == eBCD)
+    {
+        UINT32 bcdShift = 0;
+        UINT32 bcdValue = 0;
+
+        if (value < 0.0f)
+        {
+            rawValue = A429_BCDPutSign(rawValue, 3);
+            value = -value;
+        }
+
+        m_data = UINT32(value);
+
+        for (int i=0; i < m_a429.wordSize; ++i)
+        {
+            UINT32 digit = m_data % 10;
+            bcdValue |= digit << bcdShift;
+            bcdShift += 4;
+            m_data /= 10;
+        }
+
+        // Use the BNR packer as it just positions everything
+        rawValue = A429_BNRPutData(rawValue, bcdValue, m_a429.msb, m_a429.lsb);
+    }
     else if (m_a429.format == eDisc)
     {
         m_data = UINT32(value);
@@ -324,7 +348,7 @@ void ParamConverter::A429ParseGps()
 UINT32 ParamConverter::ExpectedSSM()
 {
 #define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
-#define BCD_VALID_SSM   0x03 //
+#define BCD_VALID_SSM   0x00 // -- valid positive
 #define DISC_VALID_SSM  0x00 //
 
     unsigned int expected = BNR_VALID_SSM;
