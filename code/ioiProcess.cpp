@@ -115,7 +115,8 @@ IoiProcess::IoiProcess()
 int IoiProcess::GetChanId(void)
 {
 #define CHAN_A 1
-    if (m_chanId == -1 || !(m_chanId == 0 || m_chanId == 1))
+#define CHAN_B 2
+    if (m_chanId == -1 || !(m_chanId == 1 || m_chanId == 2))
     {
         if (m_chanIdFile.Open(chanIdFileName, File::ePartCmProc, 'r'))
         {
