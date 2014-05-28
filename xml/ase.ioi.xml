@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-1938712855"
-     fileDate = "Thu Apr 03 15:47:21 2014"
+     validityKey = "-2136145710"
+     fileDate = "Tue May 27 16:37:25 2014"
      toolVersion = "3.4.1"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -61681,6 +61681,24 @@
       ></producedItem>
       <producedItem
            name = "chn_id"
+           productionRate = "aperiodic"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "processDiscreteInputs will write once after initialization"
+      ></producedItem>
+      <producedItem
+           name = "chn_id0"
+           productionRate = "aperiodic"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "processDiscreteInputs will write once after initialization"
+      ></producedItem>
+      <producedItem
+           name = "chn_id1"
            productionRate = "aperiodic"
            messageForm = "I"
            messageUnits = ""

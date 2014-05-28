@@ -15,7 +15,7 @@
 *
 *
 */
-# define version "v0.5.2"  " " __DATE__ " " __TIME__
+# define version "v0.5.3"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))

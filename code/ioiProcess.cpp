@@ -28,6 +28,7 @@
 /*****************************************************************************/
 #define CC_RX_MBOX_NAME_ASE "ADRF_MBOX_TX"  // these look backwards on purpose
 #define CC_TX_MBOX_NAME_ASE "ADRF_MBOX_RX"
+#define CHAN_A 1
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -114,9 +115,7 @@ IoiProcess::IoiProcess()
 //
 int IoiProcess::GetChanId(void)
 {
-#define CHAN_A 1
-#define CHAN_B 2
-    if (m_chanId == -1 || !(m_chanId == 1 || m_chanId == 2))
+    if (m_chanId == -1 || !(m_chanId == 0 || m_chanId == 1))
     {
         if (m_chanIdFile.Open(chanIdFileName, File::ePartCmProc, 'r'))
         {
@@ -157,8 +156,25 @@ bool IoiProcess::SetChanId(int chanId)
 
 void IoiProcess::WriteChanId()
 {   
+    INT32 v;
     // No status check - what would we do on failure
     ioi_write(m_ioiChanId, &m_chanId);
+    if (m_chanId == CHAN_A)
+    {
+        // chan A
+        v = 1;
+        ioi_write(m_ioiChanId0, &v);
+        v = 0;
+        ioi_write(m_ioiChanId1, &v);
+    }
+    else
+    {
+        // chan B
+        v = 0;
+        ioi_write(m_ioiChanId0, &v);
+        v = 1;
+        ioi_write(m_ioiChanId1, &v);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -176,6 +192,8 @@ void IoiProcess::Run()
 
     // send out the channel ID - look no return status checks
     ioi_open("chn_id", ioiWritePermission, (int*)&m_ioiChanId);
+    ioi_open("chn_id0", ioiWritePermission, (int*)&m_ioiChanId0);
+    ioi_open("chn_id1", ioiWritePermission, (int*)&m_ioiChanId1);
     m_chanId = GetChanId();    // create the CCDL mailboxes
 
     //--------------------------------------------------------------------------

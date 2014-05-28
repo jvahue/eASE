@@ -110,6 +110,8 @@ protected:
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;
     INT32 m_ioiChanId; 
+    INT32 m_ioiChanId0; 
+    INT32 m_ioiChanId1; 
 
     UINT32 m_maxProcDuration;
     UINT32 m_elapsed;
