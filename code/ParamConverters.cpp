@@ -72,6 +72,16 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     {
         rawValue = A429Converter(value);
     }
+    else if (m_type == PARAM_FMT_BIN_A664)
+    {
+        rawValue = A429Converter(value);
+    }
+    else if (m_type == PARAM_FMT_FLT_A664)
+    {
+        // just pack the float : what about moving it around inside and big data set?
+        UINT32 *data = (UINT32*)&value;
+        rawValue = *data;
+    }
 
     return rawValue;
 }
@@ -243,11 +253,14 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     }
     else if (m_type == PARAM_FMT_BIN_A664)
     {
-
+        // Turn this into a A429 DISCRETE and use its discrete packing code
+        m_a429.format = eDisc;
+        m_a429.lsb = m_gpa & 0xFFFF;;
+        m_a429.msb = (m_a429.lsb + (m_gpa >> 16)) - 1;
+        m_a429.a429Template = 0;
     }
     else if (m_type == PARAM_FMT_FLT_A664)
     {
-
     }
 
     SetIoiName();

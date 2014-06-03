@@ -330,7 +330,33 @@ char* Parameter::ParamInfo(char* buffer, int row)
     }
     else
     {
-        sprintf(buffer, "%s - oops not supported yet", paramType5[m_type]);
+        if ( row == 0)
+        {
+            //               #   Type(Fmt) Rate Child SigGen
+            //               0   5  11  18      25     31  34
+            //               v   v  v   v       v      v   v
+            sprintf(buffer, "%4d:%s %2dHz - %2d in %2d %s",
+                m_index,
+                paramType5[m_type],
+                m_rateHz,
+                m_childCount+1, m_updateDuration,
+                m_isChild ? "Kid" : ""
+                );
+        }
+        else if ( row == 1)
+        {
+            sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
+            buffer[39] = '\0';
+        }
+        else if ( row == 2)
+        {
+            m_sigGen.GetRepresentation(sgRep);
+            sprintf(buffer, "     %s", sgRep);
+        }
+        else
+        {
+            sprintf(buffer, "Invalid row %d", row);
+        }
     }
 
     return buffer;
