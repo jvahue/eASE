@@ -50,10 +50,21 @@ public:
 
     };
 
+    // enums must match RECFG_ERR_CODE_ENUM in Interface_CM.h before
     enum CmReconfigStatus {
-      eCmRecfgStsOk = 0,     // enums must match RECFG_ERR_CODE_ENUM in Interface_CM.h before
-      eCmRecfgStsBadFile,    // .. eCmRecfgStsNoVfyRsp - this is our status for no response
-      eCmRecfgStsNoVfyRsp,
+      eCmRecfgStsOk = 0,     
+      eCmRecfgStsBadFile,
+      eCmRecfgCrcError,
+      eCmRecfgDelimitError,
+      eCmRecfgParseError,
+      eCmRecfgBinFileCrcError,
+      eCmRecfgBinChanCrcError,
+      eCmRecfgBadXmlFile,
+      eCmRecfgXmlCrcError,
+      eCmRecfgXmlParseError,
+      eCmRecfgNoCmResponse,
+
+      eCmRecfgStsNoVfyRsp,  // .. eCmRecfgStsNoVfyRsp - this is our status for no response
       eCmRecfgStsMax
     };
 

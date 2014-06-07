@@ -48,10 +48,20 @@ static const char* modeNames[] = {
 };
 
 static const CHAR* recfgStatus[] = {
-    "Ok",
-    "Bad File",
-    "No VfyRsp",
-    "No Status"
+    "Ok",           // eCmRecfgStsOk:
+    "BadFile",      // eCmRecfgStsBadFile:
+    "CRC ",         // eCmRecfgCrcError:
+    "Delimiter",    // eCmRecfgDelimitError:
+    "ParseErr",     // eCmRecfgParseError:
+    "BinCrc",       // eCmRecfgBinFileCrcError:
+    "BinChan",      // eCmRecfgBinChanCrcError:
+    "Bad XML",      // eCmRecfgBadXmlFile:
+    "XML CRC",      // eCmRecfgXmlCrcError:
+    "XMLParse",     // eCmRecfgXmlParseError:
+    "No CM Rsp",    // eCmRecfgNoCmResponse:
+    "Sts Time Out", // eCmRecfgStsNoVfyRsp:
+    "Wait Sts",     // eCmRecfgStsMax:
+    "Unknown Sts?", // any other value
 };
 
 static const CHAR* cmdStrings[] = {
@@ -160,10 +170,8 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         break;
 
     case eGetReconfigSts:
-        strcpy( secComm.m_response.streamData, GetCfgStatus());
-        secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+        secComm.m_response.value = FLOAT32(m_lastErrCode);
         secComm.m_response.successful = TRUE;
-
         serviced = TRUE;
         break;
 
@@ -510,7 +518,14 @@ const char* CmReconfig::GetModeName() const
 //
 const char* CmReconfig::GetCfgStatus() const
 {
-    return recfgStatus[m_lastErrCode];
+    if (m_lastErrCode >= eCmRecfgStsOk && m_lastErrCode <= eCmRecfgStsMax)
+    {
+        return recfgStatus[m_lastErrCode];
+    }
+    else
+    {
+        return recfgStatus[eCmRecfgStsMax+1];
+    }
 }
 
 const char* CmReconfig::GetLastCmd() const
