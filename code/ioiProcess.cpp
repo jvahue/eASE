@@ -261,11 +261,12 @@ void IoiProcess::HandlePowerOff()
     m_ccdlOut.Reset();
     m_ccdl.Reset();
     m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
-    m_ioiStatic.Reset();
 
     // if power is off and we are not running a script the reset the remote trigger requests
     if (!m_pCommon->bScriptRunning)
     {
+        // restart any halted static IOI
+        m_ioiStatic.Reset();
         memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
     }
 }
