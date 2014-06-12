@@ -29,6 +29,7 @@ public:
     bool ioiValid;          // is the ioi opened
     bool ioiRunning;        // is the ioi being output on a regular basis
     bool ioiIsInput;
+    INT32 m_updateCount;    // how many times has the value been read/written
 
     StaticIoiObj(char* name, bool isInput=false);
     bool OpenIoi();

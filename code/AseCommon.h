@@ -8,7 +8,8 @@
 #include "alt_stdtypes.h"
 
 #include "ParamMgr.h"
-#include "Time.h"
+#include "TimeSrcObject.h"
+
 
 /**********************************************************************************************
 * Description: Common/Standard definitions for the ASE modules.
@@ -112,13 +113,13 @@ typedef struct
     bool         bConnected;     // ePySte Connection
     bool         bScriptRunning; // Is a script actively running
     bool         bMsOnline;      // is the MS online
-    LINUX_TM_FMT time;           // what time is it
     bool         recfgSuccess;   // recfg success reset CCDL mode CmReconfig sets, CCDL clears
     bool         isChannelA;     // true when we are in channel A
     UINT32       clockFreq;
     float        clockFreqInv;
     UINT32       shipDate;       // the entire word
     UINT32       shipTime;       // 
+    TimeSrcObj   clocks[eClkMax];  // what time is it
 } AseCommon;
 
 extern AseCommon aseCommon;

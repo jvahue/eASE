@@ -53,6 +53,18 @@
 #define SET_BUS_POWER_OFF (batteryStsMirror & ~BUS_POWER_ON)
 #define BUS_POWER_IS_ON   (batteryStsMirror &  BUS_POWER_ON)
 
+#define eDyHdr 0
+#define eDyASE 1
+#define eDyMs  2
+#define eDyRem 3
+#define eDyShip 4
+#define eDySec  5
+#define eDyCom  6
+#define eDyLast 7
+#define eDyErr  8
+#define eDyAdrf 9
+#define eDyShHx 10
+
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
@@ -182,14 +194,12 @@ int main(void)
     memset( &aseCommon, 0, sizeof(aseCommon));
     memset( &nextTime, 0, sizeof(nextTime));
 
-    // default time 
-    nextTime.tm_year = 2013;
-    nextTime.tm_mon  = 7;
-    nextTime.tm_mday = 27;
-
-    aseCommon.time.tm_year = 2013;
-    aseCommon.time.tm_mon  = 7;
-    aseCommon.time.tm_mday = 26;
+    for (int i = 0; i < eClkMax; ++i)
+    {
+        aseCommon.clocks[i].Init();
+    }
+    UpdateShipDate();
+    UpdateShipTime();
 
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
     aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
@@ -199,9 +209,6 @@ int main(void)
 
     // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
     aseCommon.systemTickPtr = systemTickPointer();
-
-    UpdateShipDate();
-    UpdateShipTime();
 
     //---------------------------------------------------------------------
     // Start Running All of the ASE Threads
@@ -227,7 +234,7 @@ int main(void)
     td = HsTimeDiff(start);
 
     // see CheckCmds - where this is updated
-    debug_str(AseMain, 5, 0, "Last Cmd Id: 0");
+    debug_str(AseMain, eDyLast, 0, "Last Cmd Id: 0");
 
     // POWER CONTROL SETUP
     status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
@@ -257,26 +264,54 @@ int main(void)
     while (1)
     {
         // call the base class to display the first row
-        cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, 0);
+        cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, eDyHdr);
 
-        debug_str(AseMain, 1, 0, "ASE: %s %04d/%02d/%02d %02d:%02d:%02d.%0.3d in channel %s",
+        debug_str(AseMain, eDyASE, 0, "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
+                  aseCommon.clocks[eClkRtc].m_time.tm_year,
+                  aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
+                  aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
+                  aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
+                  aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
+                  aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
+                  aseCommon.clocks[eClkRtc].m_10ms,
                   version,
-                  aseCommon.time.tm_year,
-                  aseCommon.time.tm_mon,   // month    0..11
-                  aseCommon.time.tm_mday,  // day of the month  1..31
-                  aseCommon.time.tm_hour,  // hours    0..23
-                  aseCommon.time.tm_min,   // minutes  0..59
-                  aseCommon.time.tm_sec,   // seconds  0..59
-                  _10msec,
                   aseCommon.isChannelA ? "A" : "B"
                   );
 
+        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+            aseCommon.clocks[eClkMs].m_time.tm_year,
+            aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
+            aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
+            aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
+            aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
+            aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
+            aseCommon.clocks[eClkMs].m_10ms);
+
+        debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+            aseCommon.clocks[eClkRemote].m_time.tm_year,
+            aseCommon.clocks[eClkRemote].m_time.tm_mon,   // month    0..11
+            aseCommon.clocks[eClkRemote].m_time.tm_mday,  // day of the month  1..31
+            aseCommon.clocks[eClkRemote].m_time.tm_hour,  // hours    0..23
+            aseCommon.clocks[eClkRemote].m_time.tm_min,   // minutes  0..59
+            aseCommon.clocks[eClkRemote].m_time.tm_sec,   // seconds  0..59
+            aseCommon.clocks[eClkRemote].m_10ms);
+
+        debug_str(AseMain, eDyShip, 0, "SHP: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+            aseCommon.clocks[eClkShips].m_time.tm_year,
+            aseCommon.clocks[eClkShips].m_time.tm_mon,   // month    0..11
+            aseCommon.clocks[eClkShips].m_time.tm_mday,  // day of the month  1..31
+            aseCommon.clocks[eClkShips].m_time.tm_hour,  // hours    0..23
+            aseCommon.clocks[eClkShips].m_time.tm_min,   // minutes  0..59
+            aseCommon.clocks[eClkShips].m_time.tm_sec,   // seconds  0..59
+            aseCommon.clocks[eClkShips].m_10ms);
+
+
         // Write the system tick value to video memory.
-        debug_str(AseMain, 2, 0, "SecComm(%s) %d - %d",
+        debug_str(AseMain, eDySec, 0, "SecComm(%s) %d - %d",
                   secComm.GetSocketInfo(),
                   frames, td);
 
-        debug_str(AseMain, 3, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
+        debug_str(AseMain, eDyCom, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
                   secComm.GetRxCount(),
                   secComm.GetTxCount(),
                   secComm.isRxing ? "Yes" : "No ",
@@ -285,11 +320,11 @@ int main(void)
                   MAX_IDLE_FRAMES
                   );
 
-        debug_str(AseMain, 4, 0, "%s", secComm.GetErrorMsg());
+        debug_str(AseMain, eDyErr, 0, "%s", secComm.GetErrorMsg());
 
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
-        
+
         UpdateTime();
 
         PowerCtl();
@@ -337,7 +372,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
-        debug_str(AseMain, 5, 0, "Last Cmd Id: %d        ", request.cmdId);
+        debug_str(AseMain, eDyLast, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {
@@ -373,7 +408,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOn:
             batteryStsMirror = SET_BUS_POWER_ON;
-
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -382,7 +416,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case ePowerOff:
             // request the power off
             batteryStsMirror = SET_BUS_POWER_OFF;
-                
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -455,8 +488,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         //------------------------
         case eSetBatteryCtrl:
             // variableId => Battery Control State
-            // sigGenId   => Power-Off Delay Timer, 0: never power-off 
-            if (request.variableId >= (INT32)eBattDisabled && 
+            // sigGenId   => Power-Off Delay Timer, 0: never power-off
+            if (request.variableId >= (INT32)eBattDisabled &&
                 request.variableId <= (INT32)eBattStuckHi)
             {
                 batteryState = BatteryTestControlState(request.variableId);
@@ -472,10 +505,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         //------------------------
         case eGetBatterySts:
-            // pack the Power State and Battery State into the 
-            sprintf(secComm.m_response.streamData, 
-                    "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x", 
-                    aseCommon.asePowerState, 
+            // pack the Power State and Battery State into the
+            sprintf(secComm.m_response.streamData,
+                    "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x",
+                    aseCommon.asePowerState,
                     batteryState,
                     batteryCtlMirror,
                     batteryStsMirror);
@@ -519,10 +552,10 @@ static void UpdateBattery()
     // Handle the Battery feedback logic
     if (batteryState == eBattDisabled)
     {
-        batteryStsMirror = LVL_A_DISABLE;     // level indicates battery is disabled 
+        batteryStsMirror = LVL_A_DISABLE;     // level indicates battery is disabled
         batteryStsMirror = LVL_C_BAT_UNLATCH;
     }
-    else 
+    else
     {
         batteryStsMirror = LVL_A_ENABLE;
 
@@ -599,7 +632,7 @@ static void PowerCtl()
             _50MsTimer = 0;
             aseCommon.asePowerState = ePsLatch;
         }
-        else 
+        else
         {
             if (--_50MsTimer == 0)
             {
@@ -629,7 +662,7 @@ static void PowerOn()
     if ( adrfProcHndl == NULL)
     {
         adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-        debug_str(AseMain, 6, 0, "PowerOn: Create process %s returned: %d",
+        debug_str(AseMain, eDyAdrf, 0, "PowerOn: Create process %s returned: %d",
             adrfName,
             adrfProcStatus);
 
@@ -680,23 +713,17 @@ static void PowerOff()
 //-------------------------------------------------------------------------------------------------
 static void SetTime(SecRequest& request)
 {
-    aseCommon.time.tm_year = request.variableId;       // year from 1900
-    aseCommon.time.tm_mon  = request.sigGenId;         // month    0..11
-    aseCommon.time.tm_mday = request.resetRequest;     // day of the month  1..31
-    aseCommon.time.tm_hour = request.clearCfgRequest;  // hours    0..23
-    aseCommon.time.tm_min  = int(request.value);       // minutes  0..59
-    aseCommon.time.tm_sec  = int(request.param1);      // seconds  0..59
+    PyTimeStruct* timeObjs = (PyTimeStruct*)request.charData;
 
-    nextTime.tm_year = int(request.param2);
-    nextTime.tm_mon  = int(request.param3);
-    nextTime.tm_mday = int(request.param4);
-
-    _10msec = 0;
+    for (int i=0; i < eClkMax; ++i)
+    {
+        aseCommon.clocks[i].SetTime(timeObjs[i]);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
 // Read from n bytes <sigGenId> NVM memory at the offset address specified <variableId>.  The
-// offset address is from the base of NVM memory.  This assumes all addresses are inside our 
+// offset address is from the base of NVM memory.  This assumes all addresses are inside our
 // NVM [0..NvmSize-1] bytes.
 //
 static BOOLEAN NvmRead(SecComm& secComm)
@@ -714,14 +741,14 @@ static BOOLEAN NvmRead(SecComm& secComm)
         }
         else
         {
-            secComm.ErrorMsg("NvmRead: Requested bytes (%d) exceeds max (%d)", 
+            secComm.ErrorMsg("NvmRead: Requested bytes (%d) exceeds max (%d)",
                 bytes, eSecStreamSize);
             return FALSE;
         }
     }
     else
     {
-        secComm.ErrorMsg("NvmRead: Requested read outside of NVM by %d bytes", 
+        secComm.ErrorMsg("NvmRead: Requested read outside of NVM by %d bytes",
             (NvmSize - (offset + bytes)));
         return FALSE;
     }
@@ -805,29 +832,9 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 
 static void UpdateTime()
 {
-    // keep time
-    _10msec += 10;
-    if (_10msec >= 1000)
+    for (int i=0; i < eClkMax; ++i)
     {
-        _10msec = 0;
-        aseCommon.time.tm_sec += 1;
-        if (aseCommon.time.tm_sec >= 60)
-        {
-            aseCommon.time.tm_sec = 0;
-            aseCommon.time.tm_min += 1;
-            if (aseCommon.time.tm_min >= 60)
-            {
-                aseCommon.time.tm_min = 0;
-                aseCommon.time.tm_hour += 1;
-                if (aseCommon.time.tm_hour >= 24)
-                {
-                    aseCommon.time.tm_hour = 0;
-                    aseCommon.time.tm_year = nextTime.tm_year;
-                    aseCommon.time.tm_mon = nextTime.tm_mon;
-                    aseCommon.time.tm_mday = nextTime.tm_mday;
-                }
-            }
-        }
+        aseCommon.clocks[i].UpdateTime();
     }
 
     // update the ships time
@@ -835,14 +842,14 @@ static void UpdateTime()
     {
         UpdateShipDate();
         UpdateShipTime();
-        debug_str(AseMain, 7, 0, "Ship Date: 0x%08x Time: 0x%08x",
+        debug_str(AseMain, eDyShHx, 0, "Ship Date: 0x%08x Time: 0x%08x",
             aseCommon.shipDate,
             aseCommon.shipTime);
     }
 }
 
 //-------------------------------------------------------------------------------------------------
-// Update the ships date - 
+// Update the ships date -
 // pack into label 0260 reverse => 0x0D
 // sdi = 1
 // ssm = 11
@@ -852,12 +859,12 @@ static void UpdateShipDate()
 #define DATE_SDI 0x100
 #define DATE_LABEL 0x0d
 
-    UINT8 dayX10 = aseCommon.time.tm_mday / 10;
-    UINT8 dayX1  = aseCommon.time.tm_mday % 10;
-    UINT8 monthX10 = aseCommon.time.tm_mon / 10;
-    UINT8 monthX1  = aseCommon.time.tm_mon % 10;
-    UINT8 yearX10  = (aseCommon.time.tm_year - 2000) / 10;
-    UINT8 yearX1   = (aseCommon.time.tm_year - 2000) % 10;
+    UINT8 dayX10 = aseCommon.clocks[eClkShips].m_time.tm_mday / 10;
+    UINT8 dayX1  = aseCommon.clocks[eClkShips].m_time.tm_mday % 10;
+    UINT8 monthX10 = aseCommon.clocks[eClkShips].m_time.tm_mon / 10;
+    UINT8 monthX1  = aseCommon.clocks[eClkShips].m_time.tm_mon % 10;
+    UINT8 yearX10  = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) / 10;
+    UINT8 yearX1   = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) % 10;
 
     UINT32 dateData;
     dateData  = (dayX10 << 27) & 0x18000000L;
@@ -871,8 +878,8 @@ static void UpdateShipDate()
 }
 
 //-------------------------------------------------------------------------------------------------
-// Update the ships date - 
-// pack into label 0150 reverse => 
+// Update the ships date -
+// pack into label 0150 reverse =>
 // sdi = 1
 // ssm = 11
 static void UpdateShipTime()
@@ -881,9 +888,9 @@ static void UpdateShipTime()
 #define TIME_SDI 0x100
 #define TIME_LABEL 0x16
 
-    UINT32 timeData = (aseCommon.time.tm_hour << 23) & 0x0f800000L;
-    timeData |= (aseCommon.time.tm_min << 17) & 0x007e0000L;
-    timeData |= (aseCommon.time.tm_sec << 11) & 0x0001f800L;
+    UINT32 timeData = (aseCommon.clocks[eClkShips].m_time.tm_hour << 23) & 0x0f800000L;
+    timeData |= (aseCommon.clocks[eClkShips].m_time.tm_min << 17) & 0x007e0000L;
+    timeData |= (aseCommon.clocks[eClkShips].m_time.tm_sec << 11) & 0x0001f800L;
 
     aseCommon.shipTime = TIME_SSM | timeData | TIME_SDI | TIME_LABEL;
 }

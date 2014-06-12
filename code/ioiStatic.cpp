@@ -133,6 +133,7 @@ StaticIoiObj::StaticIoiObj(char* name, bool isInput)
     , ioiValid(false)
     , ioiRunning(true)
     , ioiIsInput(isInput)
+    , m_updateCount(0)
 {
     strcpy(ioiName, name);
     strcpy(m_shortName, name);
@@ -168,6 +169,7 @@ bool StaticIoiObj::WriteStaticIoi(void* data)
         writeStatus = ioi_write(ioiChan, data);
     }
 
+    m_updateCount += writeStatus == ioiSuccess ? 1 : 0;
     return writeStatus == ioiSuccess;
 }
 
@@ -182,6 +184,7 @@ bool StaticIoiObj::ReadStaticIoi(void* data)
         readStatus = ioi_read(ioiChan, data);
     }
 
+    m_updateCount += readStatus == ioiSuccess ? 1 : 0;
     return readStatus == ioiSuccess;
 }
 
@@ -600,8 +603,19 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
 // si17 => rtc_io_rd_seconds
 void StaticIoiContainer::UpdateStaticIoi()
 {
+#define TEN(x) ( ((x >> 4) & 0xF) * 10)
+#define ONE(x) (x & 0xF)
+#define VALUE(x) TEN(x) + ONE(x)
+
     // compute max count to provide a 2 Hz update rate 500ms/100ms => 5 frames
     const int kMaxCount = (m_ioiStaticOutCount/5) + 1;
+
+    static unsigned int lastYrCnt  = 0;
+    static unsigned int lastMoCnt  = 0;
+    static unsigned int lastDayCnt = 0;
+    static unsigned int lastHrCnt  = 0;
+    static unsigned int lastMinCnt = 0;
+    static unsigned int lastSecCnt  = 0;
 
     static unsigned char lastMin = 0;
     static unsigned char lastHr  = 0;
@@ -615,60 +629,67 @@ void StaticIoiContainer::UpdateStaticIoi()
     unsigned char data;
 
     // copy the current time into the rtc_IOI when things change
+    //StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
+    //StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
+    //StaticIoiByte  si14("rtc_io_rd_hour", 0);                      // 14
+    //StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
+    //StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
+    //StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
+    //StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
     // seconds updated
-    ones = aseCommon.time.tm_sec % 10;
-    tens = aseCommon.time.tm_sec / 10;
+    ones = aseCommon.clocks[eClkRtc].m_time.tm_sec % 10;
+    tens = aseCommon.clocks[eClkRtc].m_time.tm_sec / 10;
     data = tens << 4 | ones;
     si17.data = data;
 
     // minutes updated
-    if ( lastMin != aseCommon.time.tm_min)
+    if ( lastMin != aseCommon.clocks[eClkRtc].m_time.tm_min)
     {
-        ones = aseCommon.time.tm_min % 10;
-        tens = aseCommon.time.tm_min / 10;
+        ones = aseCommon.clocks[eClkRtc].m_time.tm_min % 10;
+        tens = aseCommon.clocks[eClkRtc].m_time.tm_min / 10;
         data = tens << 4 | ones;
         si15.data = data;
-        lastMin = aseCommon.time.tm_min;
+        lastMin = aseCommon.clocks[eClkRtc].m_time.tm_min;
     }
 
     // hours updated
-    if ( lastHr != aseCommon.time.tm_hour)
+    if ( lastHr != aseCommon.clocks[eClkRtc].m_time.tm_hour)
     {
-        ones = aseCommon.time.tm_hour % 10;
-        tens = aseCommon.time.tm_hour / 10;
+        ones = aseCommon.clocks[eClkRtc].m_time.tm_hour % 10;
+        tens = aseCommon.clocks[eClkRtc].m_time.tm_hour / 10;
         data = tens << 4 | ones;
         si14.data = data;
-        lastHr = aseCommon.time.tm_hour;
+        lastHr = aseCommon.clocks[eClkRtc].m_time.tm_hour;
     }
 
     // day updated
-    if ( lastDay != aseCommon.time.tm_mday)
+    if ( lastDay != aseCommon.clocks[eClkRtc].m_time.tm_mday)
     {
-        ones = aseCommon.time.tm_mday % 10;
-        tens = aseCommon.time.tm_mday / 10;
+        ones = aseCommon.clocks[eClkRtc].m_time.tm_mday % 10;
+        tens = aseCommon.clocks[eClkRtc].m_time.tm_mday / 10;
         data = tens << 4 | ones;
         si12.data = data;
-        lastDay = aseCommon.time.tm_mday;
+        lastDay = aseCommon.clocks[eClkRtc].m_time.tm_mday;
     }
 
     // month updated
-    if ( lastMo != aseCommon.time.tm_mon)
+    if ( lastMo != aseCommon.clocks[eClkRtc].m_time.tm_mon)
     {
-        ones = aseCommon.time.tm_mon % 10;
-        tens = aseCommon.time.tm_mon / 10;
+        ones = aseCommon.clocks[eClkRtc].m_time.tm_mon % 10;
+        tens = aseCommon.clocks[eClkRtc].m_time.tm_mon / 10;
         data = tens << 4 | ones;
         si16.data = data;
-        lastMo != aseCommon.time.tm_mon;
+        lastMo != aseCommon.clocks[eClkRtc].m_time.tm_mon;
     }
 
     // year updated
-    if ( lastYr != aseCommon.time.tm_year)
+    if ( lastYr != aseCommon.clocks[eClkRtc].m_time.tm_year)
     {
-        ones = (aseCommon.time.tm_year - 2000) % 10;
-        tens = (aseCommon.time.tm_year - 2000) / 10;
+        ones = (aseCommon.clocks[eClkRtc].m_time.tm_year - 2000) % 10;
+        tens = (aseCommon.clocks[eClkRtc].m_time.tm_year - 2000) / 10;
         data = tens << 4 | ones;
         si18.data = data;
-        lastYr = aseCommon.time.tm_year;
+        lastYr = aseCommon.clocks[eClkRtc].m_time.tm_year;
     }
 
     for (int i = 0; i < kMaxCount; ++i)
@@ -692,6 +713,39 @@ void StaticIoiContainer::UpdateStaticIoi()
         {
             m_readError += 1;
         }
+    }
+
+    // update the RTC time based on what we received
+    //StaticIoiByte   so14("rtc_io_wr_date", 0, true);                    // 14
+    //StaticIoiByte   so15("rtc_io_wr_day", 0, true);                     // 15
+    //StaticIoiByte   so16("rtc_io_wr_hour", 0, true);                    // 16
+    //StaticIoiByte   so17("rtc_io_wr_minutes", 0, true);                 // 17
+    //StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
+    //StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
+    //StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
+    if (lastYrCnt  != so20.m_updateCount &&
+        lastMoCnt  != so18.m_updateCount &&
+        lastDayCnt != so15.m_updateCount &&
+        lastHrCnt  != so16.m_updateCount &&
+        lastMinCnt != so17.m_updateCount &&
+        lastSecCnt != so19.m_updateCount
+        )
+    {
+        lastYrCnt  = so20.m_updateCount;
+        lastMoCnt  = so18.m_updateCount;
+        lastDayCnt = so15.m_updateCount;
+        lastHrCnt  = so16.m_updateCount;
+        lastMinCnt = so17.m_updateCount;
+        lastSecCnt = so19.m_updateCount;
+
+        // Move the new values into RTC time 
+        // sec: data = tens << 4 | ones;
+        aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(so20.data) + 2000;
+        aseCommon.clocks[eClkRtc].m_time.tm_mon  = VALUE(so18.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(so15.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_sec  = VALUE(so19.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_min  = VALUE(so17.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_hour = VALUE(so16.data);
     }
 }
 
