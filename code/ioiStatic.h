@@ -62,7 +62,7 @@ public:
     {}
     virtual bool SetStaticIoiData(SecRequest& request);
     virtual bool GetStaticIoiData(IocResponse& m_response);
-    virtual bool Update() {return WriteStaticIoi(&data);}
+    virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     unsigned char data;
 };

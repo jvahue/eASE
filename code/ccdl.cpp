@@ -82,6 +82,7 @@ static CHAR* stateStr[] = {
 CCDL::CCDL( AseCommon* pCommon )
     : m_pCommon(pCommon)
     , m_isValid(true)
+    , m_inhibit(false)
     , m_actingChan(EFAST_CHA)
     , m_mode(eCcdlStart)
     , m_modeDelay(0)
@@ -173,7 +174,20 @@ void CCDL::Reset()
 //
 BOOLEAN CCDL::CheckCmd( SecComm& secComm )
 {
-    return FALSE;
+    BOOLEAN serviced = FALSE;
+    ResponseType rType = eRspNormal;
+    int itemId;
+
+    SecRequest request = secComm.m_request;
+    itemId = request.variableId;
+
+    switch (request.cmdId)
+    {
+    default:
+        break;
+    }
+
+    return serviced;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -298,7 +312,12 @@ void CCDL::Update(MailBox& in, MailBox& out)
 void CCDL::Receive(MailBox& in)
 {
     // if we get something unpack it into our holder data
-    if (in.Receive(m_inBuffer, sizeof(m_inBuffer)))
+    if (m_inhibit)
+    {
+        in.Receive(m_inBuffer, sizeof(m_inBuffer));
+        memset(m_inBuffer, 0, sizeof(m_inBuffer));
+    }
+    else if (in.Receive(m_inBuffer, sizeof(m_inBuffer)))
     {
         m_rxCount += 1;
     }
@@ -314,7 +333,12 @@ void CCDL::Receive(MailBox& in)
 //
 bool CCDL::Transmit(MailBox& out)
 {
-    bool result = out.Send(m_outBuffer, sizeof(m_outBuffer)) == TRUE;
+    bool result = true;
+
+    if (m_inhibit)
+    {
+        result = out.Send(m_outBuffer, sizeof(m_outBuffer)) == TRUE;
+    }
 
     if (result)
     {

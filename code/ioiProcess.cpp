@@ -416,6 +416,8 @@ void IoiProcess::UpdateCCDL()
 
     // Get the local ADRF Trigger Request
     m_ccdl.Read(CC_REPORT_TRIG, m_localTriggers, eMaxTriggerSize);
+
+
 }
 
 //---------------------------------------------------------------------------------------------
@@ -682,7 +684,8 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 {
     UINT32 dateId;
     UINT32 timeId;
-    BOOLEAN serviced = TRUE;
+    BOOLEAN serviced = FALSE;
+    BOOLEAN subserviced = FALSE;
     ResponseType rType = eRspNormal;
     //int port;  // 0 = gse, 1 = ms
     int itemId;
@@ -712,11 +715,6 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             secComm.m_response.successful = FALSE;
             serviced = TRUE;
         }
-        break;
-
-    case eSetSensorValue:
-        // TBD: This option should be removed as ePySte will convert a call to SetSensor('x', 33.3)
-        //      into eSetSensorSG with the type set to manual
         break;
 
     case eSetSensorSG:
@@ -1145,8 +1143,8 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
     //-----------------------------------------------------------------------------------------
     default:
-        // we did not service this command
-        serviced = FALSE;
+        // we did not service this command - check our subordinates
+        subserviced = m_ccdl.CheckCmd(secComm);
         break;
     }
 
@@ -1156,7 +1154,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         secComm.IncCmdServiced(rType);
     }
 
-    return serviced;
+    return serviced || subserviced;
 }
 
 //---------------------------------------------------------------------------------------------

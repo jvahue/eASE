@@ -270,6 +270,18 @@ bool StaticIoiByte::GetStaticIoiData(IocResponse& m_response)
     return true;
 }
 
+bool StaticIoiByte::Update()
+{
+    if (ioiIsInput)
+    {
+        return ReadStaticIoi(&data);
+    }
+    else
+    {
+        return WriteStaticIoi(&data);
+    }
+}
+
 //=============================================================================================
 //IocResponse StaticIoiInt::GetStaticIoiData()
 //{

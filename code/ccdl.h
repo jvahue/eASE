@@ -97,6 +97,7 @@ public:
 protected:
     AseCommon* m_pCommon;
     bool m_isValid;
+    bool m_inhibit;
     EFAST_CH_ENUM m_actingChan;
     CcdlModes m_mode;
     UINT32 m_modeDelay;
@@ -111,6 +112,13 @@ protected:
 
     EFAST_CROSS_CH_DATA m_eFastIn;
     EFAST_CROSS_CH_DATA m_eFastOut;
+    // dateTime, useDateTime
+    // srcTime, useSrcTime
+    // lcFileCrc, useLcFileCrc
+    // combineFileCrc, usecombineFileCrc
+    // combineFileCrc, usecombineFileCrc
+    // 
+
 
     BOOLEAN m_reportIn[MAX_ADRF_REPORT];
     BOOLEAN m_reportOut[MAX_ADRF_REPORT];
@@ -131,8 +139,6 @@ protected:
 
     UINT32 m_rdCalls;
     UINT32 m_rdReads[CC_MAX_SLOT];
-
-
 };
 
 #endif
