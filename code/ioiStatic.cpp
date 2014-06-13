@@ -716,16 +716,15 @@ void StaticIoiContainer::UpdateStaticIoi()
     }
 
     // update the RTC time based on what we received
+    //StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
+    //StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
     //StaticIoiByte   so14("rtc_io_wr_date", 0, true);                    // 14
-    //StaticIoiByte   so15("rtc_io_wr_day", 0, true);                     // 15
     //StaticIoiByte   so16("rtc_io_wr_hour", 0, true);                    // 16
     //StaticIoiByte   so17("rtc_io_wr_minutes", 0, true);                 // 17
-    //StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
     //StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
-    //StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
     if (lastYrCnt  != so20.m_updateCount &&
         lastMoCnt  != so18.m_updateCount &&
-        lastDayCnt != so15.m_updateCount &&
+        lastDayCnt != so14.m_updateCount &&
         lastHrCnt  != so16.m_updateCount &&
         lastMinCnt != so17.m_updateCount &&
         lastSecCnt != so19.m_updateCount
@@ -733,7 +732,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         lastYrCnt  = so20.m_updateCount;
         lastMoCnt  = so18.m_updateCount;
-        lastDayCnt = so15.m_updateCount;
+        lastDayCnt = so14.m_updateCount;
         lastHrCnt  = so16.m_updateCount;
         lastMinCnt = so17.m_updateCount;
         lastSecCnt = so19.m_updateCount;
@@ -742,10 +741,10 @@ void StaticIoiContainer::UpdateStaticIoi()
         // sec: data = tens << 4 | ones;
         aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(so20.data) + 2000;
         aseCommon.clocks[eClkRtc].m_time.tm_mon  = VALUE(so18.data);
-        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(so15.data);
-        aseCommon.clocks[eClkRtc].m_time.tm_sec  = VALUE(so19.data);
-        aseCommon.clocks[eClkRtc].m_time.tm_min  = VALUE(so17.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(so14.data);
         aseCommon.clocks[eClkRtc].m_time.tm_hour = VALUE(so16.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_min  = VALUE(so17.data);
+        aseCommon.clocks[eClkRtc].m_time.tm_sec  = VALUE(so19.data);
     }
 }
 

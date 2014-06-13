@@ -293,12 +293,12 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
         {
             LINUX_TM_FMT time;
 
-            time.tm_year = m_pCommon->clocks[eClkMax].m_time.tm_year; // year from 1900
-            time.tm_mon  = m_pCommon->clocks[eClkMax].m_time.tm_mon;  // month    0..11
-            time.tm_mday = m_pCommon->clocks[eClkMax].m_time.tm_mday; // day of the month  1..31
-            time.tm_hour = m_pCommon->clocks[eClkMax].m_time.tm_hour; // hours    0..23
-            time.tm_min  = m_pCommon->clocks[eClkMax].m_time.tm_min;  // minutes  0..59
-            time.tm_sec  = m_pCommon->clocks[eClkMax].m_time.tm_sec;  // seconds  0..59
+            time.tm_year = m_pCommon->clocks[eClkMs].m_time.tm_year; // year from 1900
+            time.tm_mon  = m_pCommon->clocks[eClkMs].m_time.tm_mon;  // month    0..11
+            time.tm_mday = m_pCommon->clocks[eClkMs].m_time.tm_mday; // day of the month  1..31
+            time.tm_hour = m_pCommon->clocks[eClkMs].m_time.tm_hour; // hours    0..23
+            time.tm_min  = m_pCommon->clocks[eClkMs].m_time.tm_min;  // minutes  0..59
+            time.tm_sec  = m_pCommon->clocks[eClkMs].m_time.tm_sec;  // seconds  0..59
 
             memcpy ( &outData.buff[0], &time, sizeof(time));
 
