@@ -230,8 +230,9 @@ void IoiProcess::RunSimulation()
     // when we first start running a script reset the remote trigger requests
     else if (remoteReset)
     {
-       memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
-       remoteReset = false;
+        memset( m_ccdl.m_useCcdlItem, 0, sizeof(m_ccdl.m_useCcdlItem));
+        memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
+        remoteReset = false;
     }
 
     UpdateIoi();
@@ -267,6 +268,7 @@ void IoiProcess::HandlePowerOff()
     {
         // restart any halted static IOI
         m_ioiStatic.Reset();
+        memset( m_ccdl.m_useCcdlItem, 0, sizeof(m_ccdl.m_useCcdlItem));
         memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
     }
 }
@@ -417,7 +419,7 @@ void IoiProcess::UpdateCCDL()
     // Get the local ADRF Trigger Request
     m_ccdl.Read(CC_REPORT_TRIG, m_localTriggers, eMaxTriggerSize);
 
-
+    m_ccdl.UpdateEfast();
 }
 
 //---------------------------------------------------------------------------------------------

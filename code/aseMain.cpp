@@ -101,9 +101,6 @@ const char adrfTmplName[] = "adrf-template";
 processStatus    adrfProcStatus = processNotActive;
 process_handle_t adrfProcHndl = NULL;
 
-LINUX_TM_FMT nextTime;
-UINT32 _10msec;
-
 PLATFORM_UINT08 nvm;
 //static platformResourceHandle nvmHandle;
 //static BYTE* nvm.address;
@@ -189,10 +186,7 @@ int main(void)
     debug_str_init();
     videoRedirect = AseMain;
 
-    _10msec = 0;
-
     memset( &aseCommon, 0, sizeof(aseCommon));
-    memset( &nextTime, 0, sizeof(nextTime));
 
     for (int i = 0; i < eClkMax; ++i)
     {
@@ -719,6 +713,9 @@ static void SetTime(SecRequest& request)
     {
         aseCommon.clocks[i].SetTime(timeObjs[i]);
     }
+
+    // compute new remote base time
+    aseCommon.newBaseTimeRqst += 1;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -823,22 +820,21 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
     }
 }
 
-
-
-
 //-------------------------------------------------------------------------------------------------
 // Update the wall clock time - PySte will resend every now and then but wee need to maintain it
 // between those updates.
 
 static void UpdateTime()
 {
+    aseCommon.remElapsedMif += 1;
+
     for (int i=0; i < eClkMax; ++i)
     {
         aseCommon.clocks[i].UpdateTime();
     }
 
     // update the ships time
-    if (_10msec == 0)
+    if (aseCommon.clocks[eClkShips].m_10ms == 0)
     {
         UpdateShipDate();
         UpdateShipTime();

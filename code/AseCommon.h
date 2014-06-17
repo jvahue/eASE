@@ -16,7 +16,7 @@
 *
 *
 */
-# define version "v0.7.0"  " " __DATE__ " " __TIME__
+# define version "v0.8.0"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -120,6 +120,9 @@ typedef struct
     UINT32       shipDate;       // the entire word
     UINT32       shipTime;       // 
     TimeSrcObj   clocks[eClkMax];  // what time is it
+    UINT32       newBaseTimeRqst;  // Number of clock updates Rxed
+    UINT32       newBaseTimeSrv;   // Number of remote clock updates serviced
+    UINT32       remElapsedMif;    // number of elapsed MIF since base time
 } AseCommon;
 
 extern AseCommon aseCommon;

@@ -73,10 +73,22 @@ public:
         //eCcdlHold
     };
 
+    enum CcdlItems {
+        eCcdlIdSource,
+        eCcdlIdElapsed,
+        eCcdlIdLclFileCrc,
+        eCcdlIdCmbFileCrc,
+        eCcdlIdLclXmlCrc,
+        eCcdlIdAcidRx,
+        eCcdlIdAcidOk,
+        eCcdlIdMaxItem,
+    };
+
     CCDL(AseCommon* pCommon);
     void Reset();
 
     void Update(MailBox& in, MailBox& out);
+    void UpdateEfast();
     void  Write(CC_SLOT_ID id, void* buf, INT32 size);
     INT32 Read(CC_SLOT_ID id, void* buf, INT32 size);
     bool CcdlIsRunning() {return m_mode == eCcdlRun;}
@@ -94,7 +106,6 @@ public:
 
     PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
 
-protected:
     AseCommon* m_pCommon;
     bool m_isValid;
     bool m_inhibit;
@@ -112,13 +123,8 @@ protected:
 
     EFAST_CROSS_CH_DATA m_eFastIn;
     EFAST_CROSS_CH_DATA m_eFastOut;
-    // dateTime, useDateTime
-    // srcTime, useSrcTime
-    // lcFileCrc, useLcFileCrc
-    // combineFileCrc, usecombineFileCrc
-    // combineFileCrc, usecombineFileCrc
-    // 
-
+    EFAST_CROSS_CH_DATA m_eFastHold;
+    bool m_useCcdlItem[eCcdlIdMaxItem];
 
     BOOLEAN m_reportIn[MAX_ADRF_REPORT];
     BOOLEAN m_reportOut[MAX_ADRF_REPORT];

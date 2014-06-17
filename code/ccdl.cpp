@@ -114,6 +114,8 @@ CCDL::CCDL( AseCommon* pCommon )
         }
     }
 
+    memset( m_useCcdlItem, 0, sizeof(m_useCcdlItem));
+
     Reset();
 }
 
@@ -181,10 +183,68 @@ BOOLEAN CCDL::CheckCmd( SecComm& secComm )
     SecRequest request = secComm.m_request;
     itemId = request.variableId;
 
+    secComm.m_response.successful = TRUE;
     switch (request.cmdId)
     {
+    case eSetCcdlItem:
+        if (itemId == request.resetRequest)
+        {
+            m_useCcdlItem[itemId] = false;
+        }
+        else
+        {
+            m_useCcdlItem[itemId] = true;
+            switch (itemId)
+            {
+            case eCcdlIdSource:
+                if (itemId == eCcdlIdSource && 
+                    request.sigGenId >= TIME_LOCAL_SRC && request.sigGenId < TIME_MAX_SRC)
+                {
+                    m_eFastHold.srcTime = (EFAST_TIME_SRC)request.sigGenId;
+                }
+                else
+                {
+                    m_useCcdlItem[itemId] = false;
+                    secComm.ErrorMsg("CCDL Time Source Error: <%d>", request.sigGenId);
+                    secComm.m_response.successful = FALSE;
+                }
+                break;
+            case eCcdlIdElapsed:
+                m_eFastHold.sysElapsedTime = request.sigGenId;
+                break;
+            case eCcdlIdLclFileCrc:
+                m_eFastHold.lcFileCRC = request.sigGenId;
+                break;
+            case eCcdlIdCmbFileCrc:
+                m_eFastHold.combinedFileCRC = request.sigGenId;
+                break;
+            case eCcdlIdLclXmlCrc:
+                m_eFastHold.lcXMLCRC = request.sigGenId;
+                break;
+            case eCcdlIdAcidRx:
+                m_eFastHold.bACIDRx = request.sigGenId == 1;
+                break;
+            case eCcdlIdAcidOk:
+                m_eFastHold.bACIDOk = request.sigGenId == 1;
+                break;
+            }
+        }
+        serviced = TRUE;
+        break;
+
+    case eSetCcdlState:
+        m_inhibit = (itemId == 0);
+        serviced = TRUE;
+        break;
+
     default:
         break;
+    }
+
+    if (serviced)
+    {
+        secComm.SetHandler("Ccdl");
+        secComm.IncCmdServiced(rType);
     }
 
     return serviced;
@@ -335,7 +395,7 @@ bool CCDL::Transmit(MailBox& out)
 {
     bool result = true;
 
-    if (m_inhibit)
+    if (!m_inhibit)
     {
         result = out.Send(m_outBuffer, sizeof(m_outBuffer)) == TRUE;
     }
@@ -507,8 +567,8 @@ void CCDL::ValidateRemoteSetup()
         m_txParam = 0;
         PARAM_XCH_ITEM* pParam = &m_rxParamData.data[0];
 
-        // verify the right sensor have been sent src = CROSS
-        for (int x = 0; x < m_maxParamIndex; ++x)
+        // verify the right sensors have been sent src = CROSS
+        for (int x = 0; x < m_maxParamIndex && m_txParam <= PARAM_XCH_BUFF_MAX; ++x)
         {
             if (m_parameters[x].m_isValid && m_parameters[x].m_src == PARAM_SRC_CROSS)
             {
@@ -606,3 +666,44 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
     return theLine;
 }
 
+void CCDL::UpdateEfast()
+{
+    if (m_pCommon->newBaseTimeRqst != m_pCommon->newBaseTimeSrv)
+    {
+        TimeSrcObj* remTime = &m_pCommon->clocks[eClkRemote];
+        TIMESTRUCT time;
+        time.Year  = remTime->m_time.tm_year;
+        time.Month = remTime->m_time.tm_mon;
+        time.Day   = remTime->m_time.tm_mday;
+        time.Hour  = remTime->m_time.tm_hour;
+        time.Minute = remTime->m_time.tm_min;
+        time.Second = remTime->m_time.tm_sec;
+
+        // compute the new base time
+        m_eFastHold.dateTime.secSinceBaseYr = remTime->GetSecSinceBaseYr();
+        m_eFastHold.dateTime.ts = remTime->GetTimeStamp();
+        m_pCommon->remElapsedMif = 0;
+
+        m_pCommon->newBaseTimeSrv += 1;
+    }
+
+    Read(CC_EFAST_MGR, &m_eFastIn, sizeof(m_eFastIn));
+
+    // loop it all back unless we are overriding a value
+    m_eFastOut = m_eFastIn;
+
+    // share our base time
+    m_eFastOut.dateTime = m_eFastHold.dateTime;
+    m_eFastOut.sysElapsedTime = m_pCommon->remElapsedMif;
+    
+    if (m_useCcdlItem[eCcdlIdSource]) m_eFastOut.srcTime =  m_eFastHold.srcTime;
+    if (m_useCcdlItem[eCcdlIdElapsed]) m_eFastOut.sysElapsedTime =  m_eFastHold.sysElapsedTime;
+    if (m_useCcdlItem[eCcdlIdLclFileCrc]) m_eFastOut.lcFileCRC =  m_eFastHold.lcFileCRC;
+    if (m_useCcdlItem[eCcdlIdCmbFileCrc]) m_eFastOut.combinedFileCRC =  m_eFastHold.combinedFileCRC;
+    if (m_useCcdlItem[eCcdlIdLclXmlCrc]) m_eFastOut.lcXMLCRC =  m_eFastHold.lcXMLCRC;
+    if (m_useCcdlItem[eCcdlIdAcidRx]) m_eFastOut.bACIDRx =  m_eFastHold.bACIDRx;
+    if (m_useCcdlItem[eCcdlIdAcidOk]) m_eFastOut.bACIDOk =  m_eFastHold.bACIDOk;
+
+    Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
+
+}

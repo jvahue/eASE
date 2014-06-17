@@ -98,6 +98,8 @@ enum SecCmds {
     eGetRemoteTrig  = 419,
     eSetRemoteTrig  = 420,
     eSetShipTimeId  = 421,  // indicate which params are the ships date/time
+    eSetCcdlItem    = 422,  // Set/Clear a value used in eFAST CCDL
+    eSetCcdlState   = 423,  // Enable/Disable CCDL activity
 
 //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF
