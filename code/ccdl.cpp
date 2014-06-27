@@ -687,23 +687,23 @@ void CCDL::UpdateEfast()
         m_pCommon->newBaseTimeSrv += 1;
     }
 
-    Read(CC_EFAST_MGR, &m_eFastIn, sizeof(m_eFastIn));
+    if (Read(CC_EFAST_MGR, &m_eFastIn, sizeof(m_eFastIn)))
+    {
+        // loop it all back unless we are overriding a value
+        m_eFastOut = m_eFastIn;
 
-    // loop it all back unless we are overriding a value
-    m_eFastOut = m_eFastIn;
+        // share our base time
+        m_eFastOut.dateTime = m_eFastHold.dateTime;
+        m_eFastOut.sysElapsedTime = m_pCommon->remElapsedMif;
+        
+        if (m_useCcdlItem[eCcdlIdSource]) m_eFastOut.srcTime =  m_eFastHold.srcTime;
+        if (m_useCcdlItem[eCcdlIdElapsed]) m_eFastOut.sysElapsedTime =  m_eFastHold.sysElapsedTime;
+        if (m_useCcdlItem[eCcdlIdLclFileCrc]) m_eFastOut.lcFileCRC =  m_eFastHold.lcFileCRC;
+        if (m_useCcdlItem[eCcdlIdCmbFileCrc]) m_eFastOut.combinedFileCRC =  m_eFastHold.combinedFileCRC;
+        if (m_useCcdlItem[eCcdlIdLclXmlCrc]) m_eFastOut.lcXMLCRC =  m_eFastHold.lcXMLCRC;
+        if (m_useCcdlItem[eCcdlIdAcidRx]) m_eFastOut.bACIDRx =  m_eFastHold.bACIDRx;
+        if (m_useCcdlItem[eCcdlIdAcidOk]) m_eFastOut.bACIDOk =  m_eFastHold.bACIDOk;
 
-    // share our base time
-    m_eFastOut.dateTime = m_eFastHold.dateTime;
-    m_eFastOut.sysElapsedTime = m_pCommon->remElapsedMif;
-    
-    if (m_useCcdlItem[eCcdlIdSource]) m_eFastOut.srcTime =  m_eFastHold.srcTime;
-    if (m_useCcdlItem[eCcdlIdElapsed]) m_eFastOut.sysElapsedTime =  m_eFastHold.sysElapsedTime;
-    if (m_useCcdlItem[eCcdlIdLclFileCrc]) m_eFastOut.lcFileCRC =  m_eFastHold.lcFileCRC;
-    if (m_useCcdlItem[eCcdlIdCmbFileCrc]) m_eFastOut.combinedFileCRC =  m_eFastHold.combinedFileCRC;
-    if (m_useCcdlItem[eCcdlIdLclXmlCrc]) m_eFastOut.lcXMLCRC =  m_eFastHold.lcXMLCRC;
-    if (m_useCcdlItem[eCcdlIdAcidRx]) m_eFastOut.bACIDRx =  m_eFastHold.bACIDRx;
-    if (m_useCcdlItem[eCcdlIdAcidOk]) m_eFastOut.bACIDOk =  m_eFastHold.bACIDOk;
-
-    Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
-
+        Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
+    }
 }
