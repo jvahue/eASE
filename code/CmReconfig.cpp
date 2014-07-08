@@ -112,14 +112,18 @@ void CmReconfig::Init()
         m_lastCmd = ADRF_TO_CM_CODE_MAX;
     }
 
-    m_mode = eCmRecfgIdle;
-    m_modeTimeout = 0;
-    m_lastErrCode = eCmRecfgStsMax;
-    m_lastReCfgFailed = false;
-    memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
-    memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
-    memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
-    memset(m_mbErr, 0, sizeof(m_mbErr));
+    // we may have setup a very long timeout on the latch state so honor that
+    if (m_mode != eCmRecfgLatch && m_mode != eCmRecfgWaitRequest)
+    {
+        m_mode = eCmRecfgIdle;
+        m_modeTimeout = 0;
+        m_lastErrCode = eCmRecfgStsMax;
+        m_lastReCfgFailed = false;
+        memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
+        memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
+        memset(m_unexpectedCmds, 0, sizeof(m_unexpectedCmds));
+        memset(m_mbErr, 0, sizeof(m_mbErr));
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
