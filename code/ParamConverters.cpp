@@ -173,6 +173,11 @@ UINT32 ParamConverter::A429Converter(float value)
 
     rawValue |= m_a429.a429Template;
 
+    if (m_type == PARAM_FMT_A429)
+    {
+        rawValue |= 0x80000000;
+    }
+
     return rawValue;
 }
 
