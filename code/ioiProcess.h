@@ -78,6 +78,7 @@ protected:
     UINT32 m_paramDetails;
 
     UINT32 m_scheduledX;
+    UINT32 m_remoteX;
     UINT32 m_scheduled;
     UINT32 m_updated;
 

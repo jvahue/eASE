@@ -38,7 +38,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
     eAseParamNameSize  = 32,  // SEC/IOC size of a sensor name (UUT uses 32)
-    eAseMaxParams = 3000,      // a maximum of 3000 parameters in the system
+    eAseMaxParams = 3000,     // a maximum of 3000 parameters in the system
     eAseCharDataSize = 2048,
     eAseStreamSize = 3500
 };

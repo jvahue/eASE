@@ -84,6 +84,7 @@ IoiProcess::IoiProcess()
     , m_ccdl(&aseCommon)
     , m_chanId(-1)
     , m_scheduledX(0)
+    , m_remoteX(0)
     , m_elapsed(0)
     , m_maxProcDuration(1100)
     , m_peak(0)
@@ -241,6 +242,18 @@ void IoiProcess::RunSimulation()
     // at 50 Hz pack the CCDL message and send it out
     if ((m_systemTick & 1) == 1)
     {
+        // complete the contents of the ccdl param data
+        m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
+        if ( m_ccdl.CcdlIsRunning())
+        {
+            m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
+            m_remoteX = 0;
+        }
+        else
+        {
+            m_remoteX = 0;
+        }
+
         m_ccdl.Update(m_ccdlIn, m_ccdlOut);
         UpdateCCDL();
     }
@@ -281,7 +294,7 @@ void IoiProcess::UpdateIoi()
 {
     bool wrapAround = false;
     UINT32 start;
-    UINT32 remoteX = 0;
+    
     UINT32 scheduleZ1 = 0;
     UINT32 startParam = m_scheduledX;
     Parameter* param;
@@ -333,10 +346,10 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        m_ccdl.m_txParamData.data[remoteX].id = param->m_ccdlId;
-                        m_ccdl.m_txParamData.data[remoteX].val = param->m_ioiValue;
-                        remoteX += 1;
-                        m_ccdl.m_txParamData.num_params = remoteX;
+                        m_ccdl.m_txParamData.data[m_remoteX].id = param->m_ccdlId;
+                        m_ccdl.m_txParamData.data[m_remoteX].val = param->m_ioiValue;
+                        m_remoteX += 1;
+                        m_ccdl.m_txParamData.num_params = m_remoteX;
                     }
                 }
             }
@@ -367,13 +380,6 @@ void IoiProcess::UpdateIoi()
         else
         {
             m_avgIoiTime = 0;
-        }
-
-        // complete the contents of the ccdl param data
-        m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
-        if ( m_ccdl.CcdlIsRunning())
-        {
-            m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
         }
 
         m_execFrame += 1;

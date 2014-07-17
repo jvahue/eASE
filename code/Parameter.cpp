@@ -149,7 +149,14 @@ void Parameter::Init(ParamCfg* paramInfo)
 
     m_rateHz = paramInfo->rateHz;
 
-    m_updateMs = 1000 / (paramInfo->rateHz * 2.0);
+    if (paramInfo->src != PARAM_SRC_CROSS)
+    {
+        m_updateMs = 1000 / (paramInfo->rateHz * 2);
+    }
+    else
+    {
+        m_updateMs = 1000 / paramInfo->rateHz;
+    }
     extraMs = m_updateMs % 10;
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
