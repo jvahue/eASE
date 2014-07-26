@@ -92,6 +92,10 @@ void Parameter::Reset()
     m_childCount = 0;
 
     ParamConverter::Reset();
+
+    // clear out the SigGen
+    m_sigGen.SetParams(eSGmanual, 0, 0.0f, 0.0f, 0.0f, 0.0f);
+    m_sigGen.Reset(m_value);
 }
 
 //-------------------------------------------------------------------------------------------------
