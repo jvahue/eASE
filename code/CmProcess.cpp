@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//            Copyright (C) 2013 Knowlogic Software Corp.
+//            Copyright (C) 2013-2015 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: CmProcess.cpp
@@ -18,6 +18,7 @@
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "AseCommon.h"
+#include "CommonDef.h"      // defined in adrf
 
 #include "CmProcess.h"
 
@@ -88,8 +89,11 @@ void CmProcess::Run()
 
     // create alias for this process because adrf will be granting write access
     // to CMProcess, not ASE
-    processStatus ps = createProcessAlias( "CMProcess");
-    ps = createProcessAlias( "MFDProcess");
+    //processStatus ps = createProcessAlias( "CMProcess");
+    //ps = createProcessAlias( "MFDProcess");
+    //ps = createProcessAlias( "acm");
+    processStatus ps = createProcessAlias(CM_PROCESS_NAME);
+    ps = createProcessAlias(MFD_PROCESS_NAME);
 
     //--------------------------------------------------------------------------
     // Set up mailboxes for GSE commands with ADRF
@@ -161,7 +165,7 @@ void CmProcess::RunSimulation()
         // at 1Hz see if the adrf is ready
         if ((m_frames - m_lastGseSent) > 100)
         {
-            // if we are invalid 
+            // if we are invalid
             if (m_gseOutBox.GetIpcStatus() != ipcValid)
             {
                 // after 120 sec reset the MB
@@ -213,7 +217,7 @@ void CmProcess::ProcessGseMessages(MailBox& mb)
         {
             //int size = strlen(rsp.rspMsg);
             int size = rsp.rspHdr.rspLen;
-            if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)  
+            if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)
             {
                 m_rxStreamFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
             }
@@ -235,9 +239,9 @@ void CmProcess::ProcessGseMessages(MailBox& mb)
 // Two modes (binary and ascii) are supported.
 // Binary Stream description 13 byte header, N params 6 bytes each, checksum32
 //   "#77"                       3
-//   Timestamp 6 bytes           6 9 
+//   Timestamp 6 bytes           6 9
 //   ReportId 2 bytes            2 11
-//   Number of Params 2 bytes    
+//   Number of Params 2 bytes
 //   Param 0 6 bytes
 //   .. Param N bytes 7-x
 //   Checksum 4 bytes
@@ -324,8 +328,8 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             if ( request.charDataSize < GSE_MAX_LINE_SIZE)
             {
-                memcpy((void*)m_txStreamCmd[port].commandLine, 
-                       (void*)request.charData, 
+                memcpy((void*)m_txStreamCmd[port].commandLine,
+                       (void*)request.charData,
                        request.charDataSize);
                 m_txStreamCmd[port].commandLine[request.charDataSize] = '\0';
 
@@ -368,7 +372,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         port = request.variableId;  // 0 = gse, 1 = ms
         if (port >= GSE_SOURCE_CM && port < (GSE_SOURCE_MAX+1))
         {
-            secComm.m_response.streamSize = 
+            secComm.m_response.streamSize =
                 m_rxStreamFifo[port].Pop(secComm.m_response.streamData, eSecStreamSize);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;

@@ -1,13 +1,30 @@
 #ifndef AseCommon_h
 #define AseCommon_h
+/******************************************************************************
+            Copyright (C) 2013-2015 Knowlogic Software Corp.
+         All Rights Reserved. Proprietary and Confidential.
 
-// File: AseCommon.h
+    File:        AseCommon.h
 
+    Description: Common ASE definitions
+
+    VERSION
+    $Revision: $  $Date: $
+
+******************************************************************************/
+
+/*****************************************************************************/
+/* Compiler Specific Includes                                                */
+/*****************************************************************************/
 #include <deos.h>
 
-#include "alt_stdtypes.h"
+/*****************************************************************************/
+/* Software Specific Includes                                                */
+/*****************************************************************************/
+#include "alt_stdtypes.h"     // from adrf
 
-#include "ParamMgr.h"
+#include "ParamMgr.h"         // from adrf
+
 #include "TimeSrcObject.h"
 
 
@@ -16,7 +33,7 @@
 *
 *
 */
-# define version "v0.8.4"  " " __DATE__ " " __TIME__
+# define version "v0.8.5"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -33,7 +50,7 @@
 #define HsTimer() getTimeStamp()
 
 // return us
-#define HsTimeDiff(start) ((HsTimer() - start) * aseCommon.clockFreqInv) 
+#define HsTimeDiff(start) ((HsTimer() - start) * aseCommon.clockFreqInv)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 enum AseSystemConstants {
@@ -118,7 +135,7 @@ typedef struct
     UINT32       clockFreq;
     float        clockFreqInv;
     UINT32       shipDate;       // the entire word
-    UINT32       shipTime;       // 
+    UINT32       shipTime;       //
     TimeSrcObj   clocks[eClkMax];  // what time is it
     UINT32       newBaseTimeRqst;  // Number of clock updates Rxed
     UINT32       newBaseTimeSrv;   // Number of remote clock updates serviced

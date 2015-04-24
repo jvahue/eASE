@@ -53,12 +53,12 @@ static BYTE m_inBuffer[CC_MAX_SIZE];
 static BYTE m_outBuffer[CC_MAX_SIZE];
 
 
-static CHAR* chanStr[] = {
+static const CHAR* chanStr[] = {
     "A",
     "B"
 };
 
-static CHAR* modeStr[] = {
+static const CHAR* modeStr[] = {
     "Start",
     "StartTx",
     "StartRx",
@@ -66,7 +66,7 @@ static CHAR* modeStr[] = {
     "Hold"
 };
 
-static CHAR* stateStr[] = {
+static const CHAR* stateStr[] = {
     "Err",
     "Ok",
     "Init"
