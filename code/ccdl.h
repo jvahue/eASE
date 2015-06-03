@@ -104,7 +104,6 @@ public:
     bool Transmit(MailBox& out);
     void ValidateRemoteSetup();
 
-    PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
 
     AseCommon* m_pCommon;
     bool m_isValid;
@@ -116,8 +115,11 @@ public:
     CcdlState m_txState;
 
     // Out msg components
-    UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID map
-    PARAM_XCH_BUFF m_rqstParamMap;        // what we request we will receive
+    UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID (index) map
+    PARAM_XCH_BUFF m_rqstParamMap;               // what we request we will receive
+    PARAM_XCH_BUFF m_txParamData;                // this is what we send to the ADRF at run time
+    
+    // In msg components
     PARAM_XCH_BUFF m_rxParamData;         // this is what we get in
     UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
 

@@ -222,13 +222,14 @@ void IoiProcess::RunSimulation()
 {
     static bool remoteReset = true;
 
+    // when the script stops ...
     if (!m_pCommon->bScriptRunning)
     {
         m_sgRun = false;
         m_ioiStatic.Reset();
         remoteReset = true;
     }
-    // when we first start running a script reset the remote trigger requests
+    // when we first start running a script - reset the remote trigger requests
     else if (remoteReset)
     {
         memset( m_ccdl.m_useCcdlItem, 0, sizeof(m_ccdl.m_useCcdlItem));
@@ -316,13 +317,13 @@ void IoiProcess::UpdateIoi()
                !m_initParams && 
                m_elapsed < m_maxProcDuration)
         {
-            if (param->m_isValid && param->IsRunning() && !param->m_isChild)
+            if (param->m_isValid && param->IsRunning())
             {
                 m_scheduled += param->Update( m_execFrame, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
 
                 // any update needed for this IOI?
-                if (m_scheduled != scheduleZ1 )
+                if (m_scheduled != scheduleZ1 && !param->m_isChild )
                 {
                     scheduleZ1 = m_scheduled;
 
@@ -340,12 +341,14 @@ void IoiProcess::UpdateIoi()
 
                     if (param->m_src != PARAM_SRC_CROSS)
                     {
-
                         WriteIoi(param);
                     }
                     else
                     {
                         // move data to xchan ioi slot
+                        // Note: all params with the same masterId will point to the same slot, 
+                        // but only the fast (or one of the fastest) will be processed as a parent 
+                        // and sent across during the IoiUpdate processing.
                         m_ccdl.m_txParamData.data[m_remoteX].id = param->m_ccdlId;
                         m_ccdl.m_txParamData.data[m_remoteX].val = param->m_ioiValue;
                         m_remoteX += 1;
@@ -1363,6 +1366,11 @@ void IoiProcess::InitIoi()
                     m_ioiOpenFailCount += 1;
                     m_parameters[index].m_isValid = false;
                 }
+            }
+            // TODO: SCR-300 add logic to pick the fastest rate masterId when the
+            //       same masterId is tagged in multiple cross chan params
+            else if (m_parameters[index].m_src == PARAM_SRC_CROSS)
+            {
             }
 
             // default the display to the first eIoiMaxDisplay parameters created

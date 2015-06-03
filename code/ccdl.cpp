@@ -30,6 +30,11 @@
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
+typedef struct CROSS_INFOtag {
+    UINT32 paramIndex;
+    UINT32 masterId;
+    UINT32 seen;
+} CROSS_INFO;
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -321,6 +326,7 @@ void CCDL::Update(MailBox& in, MailBox& out)
 
         case eCcdlStartTx:
             // limit Tx to 900 ms interval so we don't overflow the buffer
+            // TBD should this be 500 vs 900 to handle the restart logic of 2Hz?
             if ((lastTx + 90) < GET_SYSTEM_TICK)
             {
                 lastTx = GET_SYSTEM_TICK;
@@ -487,6 +493,10 @@ void CCDL::SendParamRqst()
 // NOTE: this is called from InitIoi when we know we are doing a Reconfig - if ASE is restarted
 // you must Reconfig the target so ASE has some Param setup.
 //
+// TODO:
+// SCR-300 - make sure we request ccdl params like the adrf does, a single entry for each 
+//           masterId
+//
 void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
 {
     UINT32 i;
@@ -502,6 +512,7 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
     m_rqstParamMap.type = PARAM_XCH_TYPE_SETUP;
     for (i=0; i < maxParamIndex && m_rxParam < PARAM_XCH_BUFF_MAX; ++i)
     {
+        // todo: make sure we only send
         if (aParam->m_isValid && aParam->m_src != PARAM_SRC_CROSS)
         {
             m_rqstParamMap.data[m_rxParam].id = m_rxParam;
@@ -520,7 +531,11 @@ void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
 
 //---------------------------------------------------------------------------------------------
 // Function: GetParamRqst
-// Description: Receive the ccdl request from the "remote chan" really the same one we are in.
+// Description: Receive the ccdl request from the "remote chan" - the ADRF in our channel
+//
+//
+// todo: when ever we receive a PARAM_XCH_TYPE_SETUP we must send ours
+//       back - for async startup, remote lost, remote reconfig situations
 //
 void CCDL::GetParamData()
 {
@@ -560,41 +575,62 @@ void CCDL::GetParamData()
 // Function: ValidateRemoteSetup
 // Description: Verify the remote channel correctly built the request for us to Tx data to them
 //
+// SCR-300: Update this to scan down the list of parameters for each masterId seen 
+//          Also verify that each masterId exists in the list received only once.
+//          We may have 5 params with cross as src, but only three entries in here.
+//
+// Item 1. Collect all xch params in a list
+// Item 2. tag each as found
+// Item 3. make sure all are present in the request
+// Item 4. make sure the request has only one entry for each master id
+//
+// Note: all params with the same masterId will point to the same slot, but only the fast (or one of
+// the fastest) will be processed as a parent and sent across during the IoiUpdate processing.
+//
 void CCDL::ValidateRemoteSetup()
 {
+    UINT32 crossCount = 0;
+    CROSS_INFO crossInfo[eAseMaxParams];
+    
     if ( m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
     {
-        m_txParam = 0;
-        PARAM_XCH_ITEM* pParam = &m_rxParamData.data[0];
-
-        // verify the right sensors have been sent src = CROSS
-        for (int x = 0; x < m_maxParamIndex && m_txParam <= PARAM_XCH_BUFF_MAX; ++x)
+        // scan down the parameter list and find all the params with src = cross
+        // Item 1.
+        for (int x=0; x < m_maxParamIndex; ++x)
         {
             if (m_parameters[x].m_isValid && m_parameters[x].m_src == PARAM_SRC_CROSS)
             {
-                if (m_parameters[x].m_masterId == pParam->val)
-                {
-                    if (m_txParam == pParam->id)
-                    {
-                        m_parameters[x].m_ccdlId = pParam->id;
-                        m_txParam += 1;
-                        ++pParam;
-                    }
-                    else
-                    {
-                        m_txState = eCcdlStateErr;
-                    }
-                }
-                else
-                {
-                    m_txState = eCcdlStateErr;
-                }
+                crossInfo[crossCount].paramIndex = x;
+                crossInfo[crossCount].masterId = m_parameters[x].m_masterId;
+                crossInfo[crossCount].seen = 0;
+                crossCount += 1;
             }
         }
 
-        if (m_txState != eCcdlStateErr)
+        // verify the right sensors have been sent src = CROSS
+        // verify any masterId that are children - sent one with the fast update rate
+        for (int slot = 0; slot < m_rxParamData.num_params; ++slot)
         {
-            m_txState = m_txParam == m_rxParamData.num_params ? eCcdlStateOk : eCcdlStateErr;
+            for (int x = 0; x < crossCount; ++x)
+            {
+                if (crossInfo[x].masterId == m_rxParamData.data[slot].val)
+                {
+                    // Item 2.
+                    crossInfo[x].seen += 1;
+                    m_parameters[crossInfo[x].paramIndex].m_ccdlId = slot;
+                }
+            }
+        }
+        
+        // make sure all cross params were seen once and only once
+        for (int x = 0; x < crossCount; ++x)
+        {
+            // Item 3/4
+            if (crossInfo[x].seen != 1)
+            {
+                m_txState = eCcdlStateErr;
+                break;
+            }
         }
 
         // sequence the mode
