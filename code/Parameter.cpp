@@ -184,7 +184,7 @@ bool Parameter::IsChild(Parameter& other)
     // verify the src is the same
     if (m_src == other.m_src)
     {
-        if (m_src == PARAM_SRC_A664)
+        if (m_src == PARAM_SRC_A664 || m_src == PARAM_SRC_CROSS)
         {
             m_isChild = m_masterId == other.m_masterId;
         }

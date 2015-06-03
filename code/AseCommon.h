@@ -16,7 +16,7 @@
 *
 *
 */
-# define version "v0.8.4"  " " __DATE__ " " __TIME__
+# define version "v0.8.5"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -125,6 +125,10 @@ typedef struct
     UINT32       remElapsedMif;    // number of elapsed MIF since base time
 } AseCommon;
 
-extern AseCommon aseCommon;
+#define HIST_TRIG_BUFF 86400 // Make this div by 1800 byte blks.  Current NVM size is 85496
+typedef UINT32 FlightTriggerHistory[(HIST_TRIG_BUFF/4)];
 
+extern AseCommon aseCommon;
+extern FlightTriggerHistory HistTrigBuff;
+extern FlightTriggerHistory HistTrigBuff_Rx;
 #endif

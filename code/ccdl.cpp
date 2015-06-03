@@ -4,7 +4,7 @@
 //
 //    File: ccdl.cpp
 //
-//    Description: Simulate the Cross Channel Data Link
+//    Description: Simulate the Cross Channel Data Link.
 //
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
@@ -623,6 +623,8 @@ void CCDL::ValidateRemoteSetup()
         }
         
         // make sure all cross params were seen once and only once
+        m_txState = eCcdlStateOk;
+
         for (int x = 0; x < crossCount; ++x)
         {
             // Item 3/4

@@ -123,6 +123,9 @@ UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
 /*****************************************************************************/
 AseCommon aseCommon;
 
+FlightTriggerHistory HistTrigBuff;    // Flight Trigger in NVM to send Ref 1
+FlightTriggerHistory HistTrigBuff_Rx; // Flight Trigger in NVM received Ref 2
+
 /*****************************************************************************/
 /* Constant Data                                                             */
 /*****************************************************************************/
@@ -718,11 +721,15 @@ static void SetTime(SecRequest& request)
     aseCommon.newBaseTimeRqst += 1;
 }
 
-//-------------------------------------------------------------------------------------------------
-// Read from n bytes <sigGenId> NVM memory at the offset address specified <variableId>.  The
-// offset address is from the base of NVM memory.  This assumes all addresses are inside our
-// NVM [0..NvmSize-1] bytes.
+//--------------------------------------------------------------------------------------------------
+// Read from n bytes <n=sigGenId> NVM memory <ref=resetRequest> at the offset address specified 
+// <offset=variableId>.  The offset address is from the base of NVM memory.  This assumes all 
+// addresses are inside our NVM [0..NvmSize-1] bytes.
 //
+// This code services three memory areas:
+// 0. The actual NVM area
+// 1. Our copy of the Flight Trigger area
+// 2. The Rx buffer holding the Flight trigger data form the remote channel
 static BOOLEAN NvmRead(SecComm& secComm)
 {
     UINT32 offset = secComm.m_request.variableId;
@@ -751,7 +758,7 @@ static BOOLEAN NvmRead(SecComm& secComm)
     }
 }
 
-//---------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // NVM Read/Write Logic
 static BOOLEAN NvmWrite(SecComm& secComm)
 {
@@ -769,6 +776,7 @@ static BOOLEAN NvmWrite(SecComm& secComm)
    return TRUE;
 }
 
+//--------------------------------------------------------------------------------------------------
 static
 void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 {
