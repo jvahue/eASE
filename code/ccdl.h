@@ -66,11 +66,12 @@ public:
     };
 
     enum CcdlModes {
-        eCcdlStart,
-        eCcdlStartTx,
-        eCcdlStartRx,
-        eCcdlRun,
-        //eCcdlHold
+        eCcdlStart,     // Startup mode
+        eCcdlStartTx,   // Start Channel A Tx Setup
+        eCcdlStartRx,   // Wait Channel B Rx Setup from A
+        eCcdlRun,       // We are running and sending only param data
+        eCcdlRunHist,   // we are running and sending param & flt trigger data
+        eCcdlHold       // the ccdl is in hold mode no Tx
     };
 
     enum CcdlItems {
@@ -91,7 +92,7 @@ public:
     void UpdateEfast();
     void  Write(CC_SLOT_ID id, void* buf, INT32 size);
     INT32 Read(CC_SLOT_ID id, void* buf, INT32 size);
-    bool CcdlIsRunning() {return m_mode == eCcdlRun;}
+    bool CcdlIsRunning() {return (m_mode == eCcdlRun || m_mode == eCcdlRunHist);}
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
     int PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out);
@@ -99,12 +100,12 @@ public:
     void PackRequestParams(Parameter* parameters, UINT32 maxParamIndex);
     void SendParamRqst();
     void GetParamData();
+    bool SendParamData();
 
     void Receive(MailBox& in);
     bool Transmit(MailBox& out);
     void ValidateRemoteSetup();
 
-    PARAM_XCH_BUFF m_txParamData;  // this is what we send to the ADRF at run time
 
     AseCommon* m_pCommon;
     bool m_isValid;
@@ -116,8 +117,12 @@ public:
     CcdlState m_txState;
 
     // Out msg components
-    UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID map
-    PARAM_XCH_BUFF m_rqstParamMap;        // what we request we will receive
+    UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID (index) map
+    PARAM_XCH_BUFF m_rqstParamMap;               // what we request we will receive
+    PARAM_XCH_BUFF m_txParamData;                // this is what we send to the ADRF at run time
+    PARAM_XCH_BUFF m_txHistData;                 // this is where we send the history data from
+    
+    // In msg components
     PARAM_XCH_BUFF m_rxParamData;         // this is what we get in
     UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
 
@@ -145,6 +150,11 @@ public:
 
     UINT32 m_rdCalls;
     UINT32 m_rdReads[CC_MAX_SLOT];
+
+    // Flight Trigger History Vars
+    UINT16 m_histPacketRx;  // how many history packets have we received
+    UINT16 m_histPacketTx;  // how many history packets have we transmitted
+    bool   m_isStartup;
 };
 
 #endif

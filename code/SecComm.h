@@ -100,6 +100,7 @@ enum SecCmds {
     eSetShipTimeId  = 421,  // indicate which params are the ships date/time
     eSetCcdlItem    = 422,  // Set/Clear a value used in eFAST CCDL
     eSetCcdlState   = 423,  // Enable/Disable CCDL activity
+    eGetCcdlValue   = 424,  // Read the raw value sent across the CCDL
 
 //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF
