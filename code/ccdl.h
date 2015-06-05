@@ -92,7 +92,7 @@ public:
     void UpdateEfast();
     void  Write(CC_SLOT_ID id, void* buf, INT32 size);
     INT32 Read(CC_SLOT_ID id, void* buf, INT32 size);
-    bool CcdlIsRunning() {return m_mode == eCcdlRun;}
+    bool CcdlIsRunning() {return (m_mode == eCcdlRun || m_mode == eCcdlRunHist);}
 
     virtual BOOLEAN CheckCmd( SecComm& secComm);
     int PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out);
@@ -154,6 +154,7 @@ public:
     // Flight Trigger History Vars
     UINT16 m_histPacketRx;  // how many history packets have we received
     UINT16 m_histPacketTx;  // how many history packets have we transmitted
+    bool   m_isStartup;
 };
 
 #endif

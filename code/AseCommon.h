@@ -29,6 +29,12 @@
 #define IS_ADRF_ON        (m_pCommon->adrfState != eAdrfOff)
 #define IS_MS_ONLINE      (m_pCommon->bMsOnline)
 
+// Flight Trigger History Constants
+#define HIST_TRIG_BUFF 86400 // Make this div by 1800 byte blks.  Current NVM size is 85496
+#define HIST_BLK_SIZE 1800 
+#define HIST_BLK_MAX (HIST_TRIG_BUFF/HIST_BLK_SIZE)
+
+
 // high speed timer
 #define HsTimer() getTimeStamp()
 
@@ -126,11 +132,11 @@ typedef struct
     BYTE         *nvmAddress;      // share this with the CCDL object
 } AseCommon;
 
-#define HIST_TRIG_BUFF 86400 // Make this div by 1800 byte blks.  Current NVM size is 85496
-#define RPT_HIST_BLK_SIZE 1800 
-typedef UINT32 FlightTriggerHistory[(HIST_TRIG_BUFF/4)];
+typedef BYTE FlightTriggerHistory[(HIST_TRIG_BUFF)];
 
 extern AseCommon aseCommon;
+
+// these are declared here so our NVM memory reader has access to them
 extern FlightTriggerHistory HistTrigBuff;
 extern FlightTriggerHistory HistTrigBuffRx;
 #endif
