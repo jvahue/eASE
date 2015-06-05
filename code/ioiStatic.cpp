@@ -116,6 +116,7 @@ StaticIoiByte   so17("rtc_io_wr_minutes", 0, true);                 // 17
 StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
 StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
 StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
+StaticIoiInt    so21("adrf_data_batt_timer", 0, true);              // 21
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -560,6 +561,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so18;
     m_staticIoiIn[x++] = &so19;
     m_staticIoiIn[x++] = &so20;
+    m_staticIoiIn[x++] = &so21;
 
     m_ioiStaticInCount = x;
     m_validIoiIn = 0;

@@ -114,6 +114,19 @@ const A429_IOI_NAME ioiA429Names[] =
         { 0303, 0, "ac_tail_num_high_raw" },  // Param 89
         { 0251, 0, "flight_leg_raw" },        // Param 90
         {  051, 0, "hmu_option_data_raw" },   // Param 91
+        { 0365, 1, "inert_vert_speed1_raw" }, // Param 92
+        { 0365, 2, "inert_vert_speed2_raw" }, // Param 93
+        { 0365, 3, "inert_vert_speed3_raw" }, // Param 94
+        { 0143, 1, "flight_id_word1_1_raw" }, // Param 95
+        { 0143, 2, "flight_id_word1_2_raw" }, // Param 96
+        { 0144, 1, "flight_id_word2_1_raw" }, // Param 97
+        { 0144, 2, "flight_id_word2_2_raw" }, // Param 98
+        { 0145, 1, "flight_id_word3_1_raw" }, // Param 99
+        { 0145, 2, "flight_id_word3_2_raw" }, // Param 100
+        { 0146, 1, "flight_id_word4_1_raw" }, // Param 101
+        { 0146, 2, "flight_id_word4_2_raw" }, // Param 102
+        { 0273, 0, "eicas_avion_disc_wd2_raw" }, // Param 103 NOTE: io.ioi.xml has only 1 avail
+        { 0304, 0, "cm_dir_opt_data_raw" },  // Param 104 
         {    0, 0, "\0" }
 };
 

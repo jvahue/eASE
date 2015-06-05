@@ -181,10 +181,10 @@ bool Parameter::IsChild(Parameter& other)
 {
     bool childRelationship = false;
 
-    // Cross cannot be a child
-    if (m_src == other.m_src && m_src != PARAM_SRC_CROSS)
+    // verify the src is the same
+    if (m_src == other.m_src)
     {
-        if (m_src == PARAM_SRC_A664)
+        if (m_src == PARAM_SRC_A664 || m_src == PARAM_SRC_CROSS)
         {
             m_isChild = m_masterId == other.m_masterId;
         }
@@ -254,7 +254,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     {
         start = HsTimer();
 
-        // only the 'root' parent updates its children
+        // only the 'root' parent collects the children's data 
         if (!m_isChild)
         {
             // compute the children of this parameter
@@ -264,7 +264,9 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             while (cp != NULL)
             {
                 m_childCount += 1;
-                count += cp->Update(sysTick, sgRun);
+                // each param updates itself at it's rate 
+                // here we just pick up the value
+                //count += cp->Update(sysTick, sgRun);
                 children |= cp->m_rawValue;
                 cp = cp->m_link;
             }
