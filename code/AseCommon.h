@@ -123,12 +123,14 @@ typedef struct
     UINT32       newBaseTimeRqst;  // Number of clock updates Rxed
     UINT32       newBaseTimeSrv;   // Number of remote clock updates serviced
     UINT32       remElapsedMif;    // number of elapsed MIF since base time
+    BYTE         *nvmAddress;      // share this with the CCDL object
 } AseCommon;
 
 #define HIST_TRIG_BUFF 86400 // Make this div by 1800 byte blks.  Current NVM size is 85496
+#define RPT_HIST_BLK_SIZE 1800 
 typedef UINT32 FlightTriggerHistory[(HIST_TRIG_BUFF/4)];
 
 extern AseCommon aseCommon;
 extern FlightTriggerHistory HistTrigBuff;
-extern FlightTriggerHistory HistTrigBuff_Rx;
+extern FlightTriggerHistory HistTrigBuffRx;
 #endif

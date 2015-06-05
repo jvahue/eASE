@@ -66,11 +66,12 @@ public:
     };
 
     enum CcdlModes {
-        eCcdlStart,
-        eCcdlStartTx,
-        eCcdlStartRx,
-        eCcdlRun,
-        //eCcdlHold
+        eCcdlStart,     // Startup mode
+        eCcdlStartTx,   // Start Channel A Tx Setup
+        eCcdlStartRx,   // Wait Channel B Rx Setup from A
+        eCcdlRun,       // We are running and sending only param data
+        eCcdlRunHist,   // we are running and sending param & flt trigger data
+        eCcdlHold       // the ccdl is in hold mode no Tx
     };
 
     enum CcdlItems {
@@ -99,6 +100,7 @@ public:
     void PackRequestParams(Parameter* parameters, UINT32 maxParamIndex);
     void SendParamRqst();
     void GetParamData();
+    bool SendParamData();
 
     void Receive(MailBox& in);
     bool Transmit(MailBox& out);
@@ -118,6 +120,7 @@ public:
     UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID (index) map
     PARAM_XCH_BUFF m_rqstParamMap;               // what we request we will receive
     PARAM_XCH_BUFF m_txParamData;                // this is what we send to the ADRF at run time
+    PARAM_XCH_BUFF m_txHistData;                 // this is where we send the history data from
     
     // In msg components
     PARAM_XCH_BUFF m_rxParamData;         // this is what we get in
@@ -147,6 +150,10 @@ public:
 
     UINT32 m_rdCalls;
     UINT32 m_rdReads[CC_MAX_SLOT];
+
+    // Flight Trigger History Vars
+    UINT16 m_histPacketRx;  // how many history packets have we received
+    UINT16 m_histPacketTx;  // how many history packets have we transmitted
 };
 
 #endif

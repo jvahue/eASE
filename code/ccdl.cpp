@@ -68,6 +68,7 @@ static CHAR* modeStr[] = {
     "StartTx",
     "StartRx",
     "Run",
+    "RunHist",
     "Hold"
 };
 
@@ -549,7 +550,7 @@ void CCDL::GetParamData()
         {
             ValidateRemoteSetup();
         }
-        else if ( m_mode == eCcdlRun)
+        else if ( m_mode == eCcdlRun || m_mode == eCcdlRunHist)
         {
             bool paramsOk = true;
             if ( m_rxParamData.type == PARAM_XCH_TYPE_DATA)
@@ -566,6 +567,36 @@ void CCDL::GetParamData()
                     m_ccdlRawParam[pIndex] = m_rxParamData.data[x].val;
                 }
                 m_rxState = paramsOk ? eCcdlStateOk : eCcdlStateErr;
+
+                if (m_mode != eCcdlRunHist)
+                {
+                    m_histPacketRx = 0;  // how many history packets have we received
+                    m_histPacketTx = 0;  // how many history packets have we transmitted
+                }
+            }
+            else if (m_rxParamData.type == PARAM_XCH_RPT_HIST_DATA)
+            {
+                // This is the only way that we ever get into this mode unless the test script 
+                // commands it - that is we just react to the ADRF initiating the transfer
+                m_mode = eCcdlRunHist;
+
+                UINT32 offset = (m_rxParamData.num_params - 1) * RPT_HIST_BLK_SIZE;
+                if (m_rxParamData.num_params == 1)
+                {
+                    memset(HistTrigBuffRx, 0, sizeof(HistTrigBuffRx));
+                    m_histPacketRx = 0;  // how many history packets have we received
+                }
+
+                memcpy(&HistTrigBuffRx[offset/4], m_rxParamData.data, RPT_HIST_BLK_SIZE);
+                m_histPacketRx++;
+
+                if ((m_histPacketRx >= (HIST_TRIG_BUFF/RPT_HIST_BLK_SIZE)) && 
+                    (m_histPacketRx == m_rxParamData.num_params) )
+                {
+                    // we will take ourself out of Hist mode when the ADRF responds that it got 
+                    // our data
+                    Write(CC_PARAM_TRIG_HIST, &m_histPacketRx, sizeof(m_histPacketRx));
+                }
             }
         }
     }
@@ -666,8 +697,9 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
 
     if (theLine == baseLine)
     {
-        debug_str(Ioi, theLine, 0, "CCDL(%d) is %s: Mode(%s) Rx(%d/%d/%s) Tx(%d/%d/%s)",
-                  m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode],
+        debug_str(Ioi, theLine, 0, "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
+                  m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode], 
+                  m_histPacketTx, m_histPacketRx,
                   m_rxCount, m_rxFailCount, stateStr[m_rxState],
                   m_txCount, m_txFailCount, stateStr[m_txState]);
     }
@@ -744,4 +776,89 @@ void CCDL::UpdateEfast()
 
         Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
     }
+}
+
+// This function determines what data to send at run time history or parameter depending on the mode
+// We return true when we send the param data so the IOI can clear its index into the CCDL Param buf
+bool CCDL::SendParamData()
+{
+#define HIST_OFFSET 0x0544
+    BYTE* src;
+    BYTE* dst;
+    bool sentParams = true;
+    static bool sendParam = true;
+    static UINT32 timeout = 0;
+
+    if (m_mode == eCcdlRun)
+    {
+        // here we only send param data
+        Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
+        sendParam = true;
+    }
+    else if (m_mode == eCcdlRunHist)
+    {
+        // now we toggle between param data and the history buffer
+        if (m_histPacketTx == 0)
+        {
+            // get a copy of the NVM while we send the Param
+            dst = (BYTE*)HistTrigBuff;
+            src = &m_pCommon->nvmAddress[HIST_OFFSET];
+            memcpy(dst, src, sizeof(HistTrigBuff));
+            m_histPacketTx = 1;
+
+            sendParam = true;
+        }
+
+        // What are we sending this frame
+        if (sendParam)
+        {
+            Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
+            sendParam = false;
+        }
+        else
+        {
+            if (m_histPacketTx < (HIST_TRIG_BUFF/RPT_HIST_BLK_SIZE))
+            {
+                UINT32 offset = (m_histPacketTx - 1) * RPT_HIST_BLK_SIZE;
+                m_txHistData.type = PARAM_XCH_RPT_HIST_DATA;
+                m_txHistData.num_params = m_histPacketTx;
+                memcpy(m_txHistData.data, &HistTrigBuff[offset/4], RPT_HIST_BLK_SIZE);
+                Write(CC_PARAM, &m_txHistData, sizeof(m_txHistData));
+
+                sentParams = false;
+                m_histPacketTx += 1;
+                // we sent our last packet start the timeout for a response form the ADRF
+                if (m_histPacketTx >= (HIST_TRIG_BUFF/RPT_HIST_BLK_SIZE))
+                {
+                    // 510 ms timeout
+                    timeout = GET_SYSTEM_TICK + 51;                        
+                }
+            }
+            else
+            {
+                // here we are done sending hist so send params
+                Write(CC_PARAM, &m_txParamData, sizeof(m_txParamData));
+
+                // we are waiting for a response indicating they received everything
+                if ( Read(CC_PARAM_TRIG_HIST, &m_txHistData, sizeof(m_txHistData)) )
+                {
+                    if (m_txHistData.trig_update == (HIST_TRIG_BUFF/RPT_HIST_BLK_SIZE))
+                    {
+                        m_mode = eCcdlRun;
+                        m_histPacketTx = 0;
+                    }
+                }
+
+                if (timeout < GET_SYSTEM_TICK && m_mode == eCcdlRunHist)
+                {
+                    // do it again.
+                    m_histPacketTx = 0;
+                }
+            }
+
+            sendParam = true;
+        }
+    }
+
+    return sentParams;
 }

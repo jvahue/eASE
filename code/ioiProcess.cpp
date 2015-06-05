@@ -247,8 +247,10 @@ void IoiProcess::RunSimulation()
         m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
         if ( m_ccdl.CcdlIsRunning())
         {
-            m_ccdl.Write(CC_PARAM, &m_ccdl.m_txParamData, sizeof(m_ccdl.m_txParamData));
-            m_remoteX = 0;
+            if (m_ccdl.SendParamData())
+            {
+                m_remoteX = 0;
+            }
         }
         else
         {

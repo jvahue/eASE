@@ -124,7 +124,7 @@ UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
 AseCommon aseCommon;
 
 FlightTriggerHistory HistTrigBuff;    // Flight Trigger in NVM to send Ref 1
-FlightTriggerHistory HistTrigBuff_Rx; // Flight Trigger in NVM received Ref 2
+FlightTriggerHistory HistTrigBuffRx; // Flight Trigger in NVM received Ref 2
 
 /*****************************************************************************/
 /* Constant Data                                                             */
