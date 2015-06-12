@@ -125,7 +125,7 @@ CCDL::CCDL( AseCommon* pCommon )
     }
 
     memset( m_useCcdlItem, 0, sizeof(m_useCcdlItem));
-
+    memset(HistTrigBuffRx, 0xff, sizeof(HistTrigBuffRx));
     Reset();
 }
 
@@ -299,7 +299,7 @@ void CCDL::Update(MailBox& in, MailBox& out)
                 if (++rxTimer > 100)
                 {
                     // go back and transmit our request packet again
-                    m_mode = eCcdlStartTx;
+                    m_mode = eCcdlRun;
                     rxTimer = 0;
                 }
             }
@@ -564,65 +564,57 @@ void CCDL::GetParamData()
     INT32 bytes = Read(CC_PARAM, &m_rxParamData, sizeof(m_rxParamData));
     if (bytes > 0)
     {
-        // nothing to here really just transition chan B to send mode
-        if (m_mode == eCcdlStartRx)
+        bool paramsOk = true;
+        if ( m_rxParamData.type == PARAM_XCH_TYPE_DATA)
+        {
+            // scatter the data to the param positions
+            for (int x=0; x < m_rxParamData.num_params; ++x)
+            {
+                pIndex = m_rqstParamMap.data[x].id;
+                if (!m_parameters[pIndex].m_isValid || 
+                    m_parameters[pIndex].m_src == PARAM_SRC_CROSS)
+                {
+                    paramsOk = false;
+                }
+                m_ccdlRawParam[pIndex] = m_rxParamData.data[x].val;
+            }
+            m_rxState = paramsOk ? eCcdlStateOk : eCcdlStateErr;
+
+            if (m_mode != eCcdlRunHist)
+            {
+                m_histPacketRx = 0;  // how many history packets have we received
+                m_histPacketTx = 0;  // how many history packets have we transmitted
+            }
+        }
+        else if (m_rxParamData.type == PARAM_XCH_RPT_HIST_DATA)
+        {
+            // This is the only way that we ever get into this mode unless the test script 
+            // commands it (TBD) - that is we just react to the ADRF initiating the transfer
+            m_mode = eCcdlRunHist;
+
+            UINT32 offset = HIST_OFFSET(m_rxParamData.num_params);
+            if (m_rxParamData.num_params == 1)
+            {
+                memset(HistTrigBuffRx, 0, sizeof(HistTrigBuffRx));
+                m_histPacketRx = 0;  // how many history packets have we received
+            }
+
+            memcpy(&HistTrigBuffRx[offset], m_rxParamData.data, HIST_BLK_SIZE);
+            m_histPacketRx++;
+
+            if ((m_histPacketRx >= HIST_BLK_MAX) && 
+                (m_histPacketRx == m_rxParamData.num_params) )
+            {
+                // we will take ourself out of Hist mode when the ADRF responds that it got 
+                // our data - here we tell the ADRF we got everything
+                Write(CC_PARAM_TRIG_HIST, &m_histPacketRx, sizeof(m_histPacketRx));
+            }
+        }
+
+        // the remote channel thinks we need to resync or is trying to sync
+        else if (m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
         {
             ValidateRemoteSetup();
-        }
-        else if ( m_mode == eCcdlRun || m_mode == eCcdlRunHist)
-        {
-            bool paramsOk = true;
-            if ( m_rxParamData.type == PARAM_XCH_TYPE_DATA)
-            {
-                // scatter the data to the param positions
-                for (int x=0; x < m_rxParamData.num_params; ++x)
-                {
-                    pIndex = m_rqstParamMap.data[x].id;
-                    if (!m_parameters[pIndex].m_isValid || 
-                        m_parameters[pIndex].m_src == PARAM_SRC_CROSS)
-                    {
-                        paramsOk = false;
-                    }
-                    m_ccdlRawParam[pIndex] = m_rxParamData.data[x].val;
-                }
-                m_rxState = paramsOk ? eCcdlStateOk : eCcdlStateErr;
-
-                if (m_mode != eCcdlRunHist)
-                {
-                    m_histPacketRx = 0;  // how many history packets have we received
-                    m_histPacketTx = 0;  // how many history packets have we transmitted
-                }
-            }
-            else if (m_rxParamData.type == PARAM_XCH_RPT_HIST_DATA)
-            {
-                // This is the only way that we ever get into this mode unless the test script 
-                // commands it (TBD) - that is we just react to the ADRF initiating the transfer
-                m_mode = eCcdlRunHist;
-
-                UINT32 offset = HIST_OFFSET(m_rxParamData.num_params);
-                if (m_rxParamData.num_params == 1)
-                {
-                    memset(HistTrigBuffRx, 0, sizeof(HistTrigBuffRx));
-                    m_histPacketRx = 0;  // how many history packets have we received
-                }
-
-                memcpy(&HistTrigBuffRx[offset], m_rxParamData.data, HIST_BLK_SIZE);
-                m_histPacketRx++;
-
-                if ((m_histPacketRx >= HIST_BLK_MAX) && 
-                    (m_histPacketRx == m_rxParamData.num_params) )
-                {
-                    // we will take ourself out of Hist mode when the ADRF responds that it got 
-                    // our data
-                    Write(CC_PARAM_TRIG_HIST, &m_histPacketRx, sizeof(m_histPacketRx));
-                }
-            }
-
-            // the remote channel thinks we need to resync or is trying to sync
-            else if (m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
-            {
-                ValidateRemoteSetup();
-            }
         }
     }
 }

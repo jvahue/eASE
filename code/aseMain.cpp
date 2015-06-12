@@ -446,16 +446,45 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         //---------------
         case eNvmRead:
-            if (nvm.address != NULL)
+            // check which memory area the user wants to read from
+            if (secComm.m_request.resetAll == 0)
             {
-                secComm.m_response.successful = NvmRead(secComm);
-                secComm.m_response.successful = TRUE;
+                if (nvm.address != NULL)
+                {
+                    secComm.m_response.successful = NvmRead(secComm);
+                    secComm.m_response.successful = TRUE;
+                }
+                else
+                {
+                    secComm.ErrorMsg("NVM Memory Handle Error");
+                    secComm.m_response.successful = FALSE;
+                }
+            }
+            else if (secComm.m_request.resetAll == 1)
+            {
+                // range check the read
+                UINT32 totalSize = sizeof(HistTrigBuffRx);
+                UINT32 offset = secComm.m_request.variableId;
+                UINT32 size = secComm.m_request.sigGenId;
+
+                if ((offset + size) <= totalSize)
+                {
+                    memcpy(secComm.m_response.streamData, (void*)&HistTrigBuffRx[offset], size);
+                    secComm.m_response.streamSize = size;
+                }
+                else
+                {
+                    secComm.ErrorMsg("Memory Read boundary error: attempt to read %d - max %d", 
+                        (offset + size), totalSize);
+                    secComm.m_response.successful = FALSE;
+                }
             }
             else
             {
-                secComm.ErrorMsg("NVM Memory Handle Error");
+                secComm.ErrorMsg("Invalid memory identifier %d", secComm.m_request.resetAll);
                 secComm.m_response.successful = FALSE;
             }
+
             serviced = TRUE;
             break;
 
