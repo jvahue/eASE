@@ -53,7 +53,7 @@ const A429_IOI_NAME ioiA429Names[] =
         { 0332, 2, "lat_accel2_raw" },        // Param 28
         { 0332, 3, "lat_accel3_raw" },        // Param 29
         { 0110, 4, "latpos_coarse_raw" },     // Param 30   NOTE: SDI 4 == IGNORE
-        { 0120, 4, "latpos_fine_raw" },       // Param 31   NOTE: SDI 4 == IGNORE
+        { 0120, 1, "latpos_fine_raw" },       // Param 31   NOTE: SDI 4 == IGNORE
         { 0335, 1, "left_inbd_wspd1_raw" },   // Param 32
         { 0335, 2, "left_inbd_wspd2_raw" },   // Param 33
         { 0334, 1, "left_outbd_wspd1_raw" },  // Param 34
@@ -63,7 +63,7 @@ const A429_IOI_NAME ioiA429Names[] =
         { 0331, 2, "long_accel2_raw" },       // Param 38
         { 0331, 3, "long_accel3_raw" },       // Param 39
         { 0111, 4, "longpos_coarse_raw" },    // Param 40   NOTE: SDI 4 == IGNORE
-        { 0121, 4, "longpos_fine_raw" },      // Param 41   NOTE: SDI 4 == IGNORE
+        { 0121, 1, "longpos_fine_raw" },      // Param 41   NOTE: SDI 4 == IGNORE
         { 0205, 0, "mach1_raw" },             // Param 42
         { 0205, 1, "mach2_raw" },             // Param 43
         { 0205, 2, "mach3_raw" },             // Param 44
@@ -126,7 +126,12 @@ const A429_IOI_NAME ioiA429Names[] =
         { 0146, 1, "flight_id_word4_1_raw" }, // Param 101
         { 0146, 2, "flight_id_word4_2_raw" }, // Param 102
         { 0273, 0, "eicas_avion_disc_wd2_raw" }, // Param 103 NOTE: io.ioi.xml has only 1 avail
-        { 0304, 0, "cm_dir_opt_data_raw" },  // Param 104 
+        { 0273, 1, "eicas_avion_disc_wd2_raw" }, // Param 104 NOTE: io.ioi.xml has only 1 avail
+        { 0273, 2, "eicas_avion_disc_wd2_raw" }, // Param 105 NOTE: io.ioi.xml has only 1 avail
+        { 0273, 3, "eicas_avion_disc_wd2_raw" }, // Param 106 NOTE: io.ioi.xml has only 1 avail
+        { 0304, 4, "cm_dir_opt_data_raw" },  // Param 107
+        { 0120, 2, "latpos_fine_raw" },      // Param 108 NOTE: See latpos_fine_raw SD=01 above
+        { 0121, 2, "longpos_fine_raw" },     // Param 109 NOTE: See longpos_fine_raw SD=01 above
         {    0, 0, "\0" }
 };
 
