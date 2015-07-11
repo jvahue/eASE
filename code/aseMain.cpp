@@ -329,19 +329,27 @@ int main(void)
         frames += 1;
 
         // Any new cmds seen
-        if (CheckCmds( secComm))
+        if ( secComm.IsConnected())
         {
-            lastCmdAt = frames;
+            if (CheckCmds( secComm))
+            {
+                lastCmdAt = frames;
+            }
+            else
+            {
+                // no msg loss timeout if we are running a script - we could be in along delay
+                cmdIdle = frames - lastCmdAt;
+                if (cmdIdle > MAX_IDLE_FRAMES)
+                {
+                    secComm.forceConnectionClosed = !aseCommon.bScriptRunning;
+                    lastCmdAt = frames;
+                }
+            }
         }
         else
         {
-            // no connection loss timeout if we are running a script
-            cmdIdle = frames - lastCmdAt;
-            if (cmdIdle > MAX_IDLE_FRAMES)
-            {
-                secComm.forceConnectionClosed = TRUE;
-                lastCmdAt = frames;
-            }
+            secComm.forceConnectionClosed = FALSE;
+            cmdIdle = 0;
         }
 
         aseCommon.bConnected = secComm.IsConnected();
@@ -351,7 +359,6 @@ int main(void)
 //-------------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
-    void *theAreg;
     accessStyle asA;
     UNSIGNED32 myChanID;
     resourceStatus  status;

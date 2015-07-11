@@ -96,7 +96,7 @@ SecComm::SecComm()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function: Create
-// Description: Create a Socket Rx thread to recieve the cmds from PySte
+// Description: Create a Socket Rx thread to receive the cmds from PySte
 void SecComm::Run()
 {
     // spawn the thread
@@ -190,7 +190,8 @@ void SecComm::Process()
                 if (m_clientSocket != SOCKET_ERROR)
                 {
                     m_connState = eConnConnected;
-                    forceConnectionClosed = false;
+                    forceConnectionClosed = FALSE;
+                    memset((void*)m_errMsg, 0, sizeof(m_errMsg));
                 }
                 else
                 {
@@ -206,7 +207,8 @@ void SecComm::Process()
 
             rxed = 0;
             cbBytesRet = 0;
-            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && rxed < size && !forceConnectionClosed)
+            while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && 
+                   rxed < size && !forceConnectionClosed)
             {
                 isRxing = true;
                 cbBytesRet = recv(m_clientSocket, &buffer[rxed], MAX_RX-rxed, 0);
@@ -216,7 +218,7 @@ void SecComm::Process()
                 {
                     rxed += cbBytesRet;
                     m_rxCount += cbBytesRet;
-                    forceConnectionClosed = false;
+                    forceConnectionClosed = FALSE;
                 }
                 else if (cbBytesRet == 0)
                 {
