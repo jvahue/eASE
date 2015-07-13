@@ -65,6 +65,7 @@ protected:
     int PageStatic(int theLine, bool& nextPage);
     
     UINT32 m_paramCount;
+    UINT32 m_minParamIndex;
     UINT32 m_maxParamIndex;
     UINT32 m_paramLoopEnd;
     Parameter m_parameters[eAseMaxParams];
@@ -80,7 +81,8 @@ protected:
     UINT32 m_scheduledX;
     UINT32 m_remoteX;
     UINT32 m_scheduled;
-    UINT32 m_updated;
+    UINT32 m_ioiUpdated;
+    UINT32 m_loopCount;
 
     bool m_initParams;
     ioiStatus m_initStatus;

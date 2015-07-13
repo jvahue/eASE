@@ -120,7 +120,7 @@ public:
     virtual UINT32 Convert(FLOAT32 value);
     void SetIoiName();
     
-    bool m_isValid;     // ADRF update rate for the parameter in Hz
+    bool m_isValid;        // is the parameter active and setup was successful
     UINT32  m_masterId;
     UINT32  m_gpa;
     UINT32  m_gpb;

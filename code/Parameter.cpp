@@ -77,6 +77,7 @@ void Parameter::Reset()
     m_ioiChan = -1;
     m_isRunning = true;        // parameter comes up running
     m_index = eAseMaxParams;
+    m_nextIndex = eAseMaxParams;
     m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
     m_ioiValue = 0;            // current ioi value after Update
@@ -249,13 +250,12 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     UINT32 count = 0;
     UINT32 children = 0;
 
+    start = HsTimer();
     // see if it is time for an update
     if (m_nextUpdate <= sysTick)
     {
-        start = HsTimer();
-
         // only the 'root' parent collects the children's data 
-        if (!m_isChild)
+        if (!m_isChild && m_link != NULL)
         {
             // compute the children of this parameter
             Parameter* cp = m_link;
@@ -283,8 +283,8 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         m_nextUpdate = sysTick + m_updateIntervalTicks;
         m_updateCount += 1;
         count += 1;
-        m_updateDuration = HsTimeDiff(start);
     }
+    m_updateDuration = HsTimeDiff(start);
 
     return count;
 }

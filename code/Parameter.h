@@ -24,13 +24,13 @@ enum ParamConstants {eParamShort = 23};
     char* Display(char* buffer);
     char* ParamInfo(char* buffer, int row);
     char* CompressName(char* src, int size);
-    bool IsRunning() {return m_isRunning;}
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
     bool m_isRunning;
     ParameterName m_name;       // the parameter name
     ParameterName m_shortName;  // the short parameter name for the display
     UINT32  m_index;
+    UINT32  m_nextIndex;   // the next valid parameter - for processing
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
 

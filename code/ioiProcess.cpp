@@ -70,7 +70,7 @@ IoiProcess::IoiProcess()
     , m_page(0)
     , m_paramDetails(0)
     , m_scheduled(0)
-    , m_updated(0)
+    , m_ioiUpdated(0)
     , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
     , m_initParams(false)
     , m_ioiOpenFailCount(0)
@@ -303,8 +303,9 @@ void IoiProcess::UpdateIoi()
     Parameter* param;
 
     m_scheduled = 0; // need to see how many are really scheduled
-    m_updated = 0;   // 
+    m_ioiUpdated = 0;   // 
     m_elapsed = 0;
+    m_loopCount = 0;
 
     if (m_initStatus == ioiSuccess && !m_initParams && m_paramIoRunning)
     {
@@ -319,7 +320,8 @@ void IoiProcess::UpdateIoi()
                !m_initParams && 
                m_elapsed < m_maxProcDuration)
         {
-            if (param->m_isValid && param->IsRunning())
+            m_loopCount += 1;
+            if (param->m_isValid && param->m_isRunning)
             {
                 m_scheduled += param->Update( m_execFrame, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
@@ -359,16 +361,18 @@ void IoiProcess::UpdateIoi()
                 }
             }
 
-            if (++m_scheduledX >= m_paramLoopEnd)
+            // go find the next valid parameter
+            if (m_scheduledX == m_maxParamIndex)
             {
-                m_scheduledX = 0;
-                param = &m_parameters[0];
+                m_scheduledX = m_minParamIndex;
                 wrapAround = true;
             }
             else
             {
-                ++param;
+                m_scheduledX = param->m_nextIndex;
             }
+
+            param = &m_parameters[m_scheduledX];
 
             m_elapsed = HsTimeDiff(start);
         }
@@ -378,9 +382,9 @@ void IoiProcess::UpdateIoi()
             m_peak = m_scheduled;
         }
 
-        if (m_updated > 0)
+        if (m_ioiUpdated > 0)
         {
-            m_avgIoiTime /= m_updated;
+            m_avgIoiTime /= m_ioiUpdated;
         }
         else
         {
@@ -408,7 +412,7 @@ void IoiProcess::WriteIoi(Parameter* param )
 
         if (writeStatus == ioiSuccess)
         {
-            m_updated += 1; // count how many we updated
+            m_ioiUpdated += 1; // count how many we updated
         }
         else
         {
@@ -473,12 +477,12 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     else if (theLine == 1)
     {
         debug_str(Ioi, theLine, 0,
-                  "IOI:%s/%s SG:%s pCnt:%4d pInfo:%4d Sched:%4d/%d Updated:%4d",
+                  "IOI:%s/%s SG:%s pCnt:%4d pInfo:%4d Sched:%4d/%d Updated:%4d/%4d",
                   ioiInitStatus[m_initStatus], m_paramIoRunning ? "Run" : "Stop",
                   m_sgRun ? " On" : "Off",
                   m_paramCount,
                   m_paramInfoCount,
-                  m_scheduled, m_peak, m_updated);
+                  m_scheduled, m_peak, m_ioiUpdated, m_loopCount);
     }
     else if (theLine == 2)
     {
@@ -1391,9 +1395,28 @@ void IoiProcess::InitIoi()
         m_maxProcDuration = 850;  // 1000 - 150us overhead
         m_peak = 0;
 
-        // must be the last statement
+        // compute the min/max param indexes and offset to next parameter
+        m_minParamIndex = m_maxParamIndex;
+        for (i = 0; i < m_paramLoopEnd; ++i)
+        {
+            if (m_minParamIndex == m_maxParamIndex && m_parameters[i].m_isValid)
+            {
+                m_minParamIndex = i;
+                i1 = i;
+            }
+            else if (m_parameters[i].m_isValid)
+            {
+                m_parameters[i1].m_nextIndex = i;
+                i1 = i;
+            }
+        }
+
+        //----------------------------------
+        //!!! MUST BE THE LAST STATEMENT !!!
         m_initParams = false;
+        //----------------------------------
     }
+
 }
 
 //-------------------------------------------------------------------------------------------------
