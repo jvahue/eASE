@@ -42,6 +42,7 @@ char HMUSerialNumber[20];
 char PWSwDwgNumber[20];
 char UTASSwDwgNumber[20];
 
+// ------------------- U U T   I N P U T S ---------------------------
 // --------- The Order MUST match AseIoiInfo in eFastCmds.py ---------
 StaticIoiInt   si00("aircraft_id_1", 0);                       // 00
 StaticIoiInt   si01("aircraft_id_2", 0);                       // 01
@@ -87,6 +88,10 @@ StaticIoiStr   si37("HMUSerialNumber", HMUSerialNumber, 20);   // 37
 StaticIoiStr   si38("PWSwDwgNumber", PWSwDwgNumber, 20);       // 38
 StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber, 20);   // 39
 
+StaticIoiInt   si40("pat_scr", 0);                             // 40
+StaticIoiInt   si41("pat_scr_button", 0);                      // 41
+
+// -------------------- U U T   O U T P U T S ------------------------
 // --------- The Order MUST match adrfOutMap in eFastCmds.py ---------
 int adrfFault[13];
 int adrfTime[2];
@@ -117,6 +122,57 @@ StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
 StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
 StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
 StaticIoiInt    so21("adrf_data_batt_timer", 0, true);              // 21
+
+StaticIoiFloat so22("8204050_32", 0.0f, true); // 22 - 0x7D2F1220, # A Engine Inlet Angle 1
+StaticIoiFloat so23("8204051_32", 0.0f, true); // 23 - 0x7D2F1320, # A Idle Time, A
+StaticIoiFloat so24("8204052_32", 0.0f, true); // 24 - 0x7D2F1420, # A PAT Total Test Time
+StaticIoiFloat so25("8204053_32", 0.0f, true); // 25 - 0x7D2F1520, # A Shutdown time Delay
+StaticIoiFloat so26("8204054_32", 0.0f, true); // 26 - 0x7D2F1620, # A Wind Speed
+StaticIoiFloat so27("8204055_32", 0.0f, true); // 27 - 0x7D2F1720, # A N1 Setting Tolerance
+StaticIoiFloat so28("8204056_32", 0.0f, true); // 28 - 0x7D2F1820, # A Test Stabilization Time
+StaticIoiFloat so29("8204059_32", 0.0f, true); // 29 - 0x7D2F1B20, # A PAT_MIN_IDLE_TREMAIN
+StaticIoiFloat so30("8204060_32", 0.0f, true); // 30 - 0x7D2F1C20, # A PAT_N1_TARGET
+StaticIoiFloat so31("8204061_32", 0.0f, true); // 31 - 0x7D2F1D20, # A PAT_N1_TARGET_TIME
+StaticIoiFloat so32("8204062_32", 0.0f, true); // 32 - 0x7D2F1E20, # A PAT_IDLE_CLOSE_TIME
+StaticIoiFloat so33("8204063_32", 0.0f, true); // 33 - 0x7D2F1F20, # A PAT_N1_STABLE_AVG
+StaticIoiFloat so34("8204064_32", 0.0f, true); // 34 - 0x7D2F2020, # A PAT_N2_STABLE_AVG
+StaticIoiFloat so35("8204065_32", 0.0f, true); // 35 - 0x7D2F2120, # A PAT_N2_LIM_MIN
+StaticIoiFloat so36("8204066_32", 0.0f, true); // 36 - 0x7D2F2220, # A PAT_N2_LIM_MAX
+StaticIoiFloat so37("8204067_32", 0.0f, true); // 37 - 0x7D2F2320, # A PAT_EGT_STABLE_AVG
+StaticIoiFloat so38("8204068_32", 0.0f, true); // 38 - 0x7D2F2420, # A PAT_EGT_LIM_MIN
+StaticIoiFloat so39("8204069_32", 0.0f, true); // 39 - 0x7D2F2520, # A PAT_EGT_LIM_MAX
+StaticIoiFloat so40("8204070_32", 0.0f, true); // 40 - 0x7D2F2620, # A PAT_WF_STABLE_AVG
+StaticIoiFloat so41("8204071_32", 0.0f, true); // 41 - 0x7D2F2720, # A PAT_WF_LIM_MIN
+StaticIoiFloat so42("8204072_32", 0.0f, true); // 42 - 0x7D2F2820, # A PAT_WF_LIM_MAX
+
+StaticIoiFloat so43("8204057_32", 0.0f, true); // 43 - 0x7D2F1920, # A Sts Wd1
+StaticIoiFloat so44("8204058_32", 0.0f, true); // 44 - 0x7D2F1A20, # A Sts Wd2
+
+StaticIoiFloat so45("8204050_64", 0.0f, true); // 45 - 0x7D2F1240, # B Engine Inlet Angle 1
+StaticIoiFloat so46("8204051_64", 0.0f, true); // 46 - 0x7D2F1340, # B Idle Time, A
+StaticIoiFloat so47("8204052_64", 0.0f, true); // 47 - 0x7D2F1440, # B PAT Total Test Time
+StaticIoiFloat so48("8204053_64", 0.0f, true); // 48 - 0x7D2F1540, # B Shutdown time Delay
+StaticIoiFloat so49("8204054_64", 0.0f, true); // 49 - 0x7D2F1640, # B Wind Speed
+StaticIoiFloat so50("8204055_64", 0.0f, true); // 50 - 0x7D2F1740, # B N1 Setting Tolerance
+StaticIoiFloat so51("8204056_64", 0.0f, true); // 51 - 0x7D2F1840, # B Test Stabilization Time
+StaticIoiFloat so52("8204059_64", 0.0f, true); // 52 - 0x7D2F1B40, # B PAT_MIN_IDLE_TREMAIN
+StaticIoiFloat so53("8204060_64", 0.0f, true); // 53 - 0x7D2F1C40, # B PAT_N1_TARGET
+StaticIoiFloat so54("8204061_64", 0.0f, true); // 54 - 0x7D2F1D40, # B PAT_N1_TARGET_TIME
+StaticIoiFloat so55("8204062_64", 0.0f, true); // 55 - 0x7D2F1E40, # B PAT_IDLE_CLOSE_TIME
+StaticIoiFloat so56("8204063_64", 0.0f, true); // 56 - 0x7D2F1F40, # B PAT_N1_STABLE_AVG
+StaticIoiFloat so57("8204064_64", 0.0f, true); // 57 - 0x7D2F2040, # B PAT_N2_STABLE_AVG
+StaticIoiFloat so58("8204065_64", 0.0f, true); // 58 - 0x7D2F2140, # B PAT_N2_LIM_MIN
+StaticIoiFloat so59("8204066_64", 0.0f, true); // 59 - 0x7D2F2240, # B PAT_N2_LIM_MAX
+StaticIoiFloat so60("8204067_64", 0.0f, true); // 60 - 0x7D2F2340, # B PAT_EGT_STABLE_AVG
+StaticIoiFloat so61("8204068_64", 0.0f, true); // 61 - 0x7D2F2440, # B PAT_EGT_LIM_MIN
+StaticIoiFloat so62("8204069_64", 0.0f, true); // 62 - 0x7D2F2540, # B PAT_EGT_LIM_MAX
+StaticIoiFloat so63("8204070_64", 0.0f, true); // 63 - 0x7D2F2640, # B PAT_WF_STABLE_AVG
+StaticIoiFloat so64("8204071_64", 0.0f, true); // 64 - 0x7D2F2740, # B PAT_WF_LIM_MIN
+StaticIoiFloat so65("8204072_64", 0.0f, true); // 65 - 0x7D2F2840, # B PAT_WF_LIM_MAX
+
+StaticIoiFloat so66("8204057_64", 0.0f, true); // 66 - 0x7D2F1940, # B Sts Wd1
+StaticIoiFloat so67("8204058_64", 0.0f, true); // 67 - 0x7D2F1A40, # B Sts Wd2
+
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -525,8 +581,11 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiOut[x++] = &si35;  // 35
     m_staticIoiOut[x++] = &si36;  // 36
     m_staticIoiOut[x++] = &si37;  // 37
-    m_staticIoiOut[x++] = &si38;  // 38
-    m_staticIoiOut[x++] = &si39;  // 39
+	m_staticIoiOut[x++] = &si38;  // 38
+	m_staticIoiOut[x++] = &si39;  // 39
+
+	m_staticIoiOut[x++] = &si40;  // 40
+	m_staticIoiOut[x++] = &si41;  // 41
 
     m_ioiStaticOutCount = x;
     m_updateIndex = 0;
@@ -562,6 +621,56 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so19;
     m_staticIoiIn[x++] = &so20;
     m_staticIoiIn[x++] = &so21;
+    
+    m_staticIoiIn[x++] = &so22;
+    m_staticIoiIn[x++] = &so23;
+    m_staticIoiIn[x++] = &so24;
+    m_staticIoiIn[x++] = &so25;
+    m_staticIoiIn[x++] = &so26;
+    m_staticIoiIn[x++] = &so27;
+    m_staticIoiIn[x++] = &so28;
+    m_staticIoiIn[x++] = &so29;
+    m_staticIoiIn[x++] = &so30;
+    m_staticIoiIn[x++] = &so31;
+    m_staticIoiIn[x++] = &so32;
+    m_staticIoiIn[x++] = &so33;
+    m_staticIoiIn[x++] = &so34;
+    m_staticIoiIn[x++] = &so35;
+    m_staticIoiIn[x++] = &so36;
+    m_staticIoiIn[x++] = &so37;
+    m_staticIoiIn[x++] = &so38;
+    m_staticIoiIn[x++] = &so39;
+    m_staticIoiIn[x++] = &so40;
+    m_staticIoiIn[x++] = &so41;
+    m_staticIoiIn[x++] = &so42;
+    
+    m_staticIoiIn[x++] = &so43;
+    m_staticIoiIn[x++] = &so44;
+    
+    m_staticIoiIn[x++] = &so45;
+    m_staticIoiIn[x++] = &so46;
+    m_staticIoiIn[x++] = &so47;
+    m_staticIoiIn[x++] = &so48;
+    m_staticIoiIn[x++] = &so49;
+    m_staticIoiIn[x++] = &so50;
+    m_staticIoiIn[x++] = &so51;
+    m_staticIoiIn[x++] = &so52;
+    m_staticIoiIn[x++] = &so53;
+    m_staticIoiIn[x++] = &so54;
+    m_staticIoiIn[x++] = &so55;
+    m_staticIoiIn[x++] = &so56;
+    m_staticIoiIn[x++] = &so57;
+    m_staticIoiIn[x++] = &so58;
+    m_staticIoiIn[x++] = &so59;
+    m_staticIoiIn[x++] = &so60;
+    m_staticIoiIn[x++] = &so61;
+    m_staticIoiIn[x++] = &so62;
+    m_staticIoiIn[x++] = &so63;
+    m_staticIoiIn[x++] = &so64;
+    m_staticIoiIn[x++] = &so65;
+    
+    m_staticIoiIn[x++] = &so66;
+    m_staticIoiIn[x++] = &so67;
 
     m_ioiStaticInCount = x;
     m_validIoiIn = 0;

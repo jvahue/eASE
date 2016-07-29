@@ -88,7 +88,7 @@ public:
         : StaticIoiObj(name, isInput)
         , data(value)
     {}
-     virtual bool SetStaticIoiData(SecRequest& request);
+    virtual bool SetStaticIoiData(SecRequest& request);
     virtual bool GetStaticIoiData(IocResponse& m_response);
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
