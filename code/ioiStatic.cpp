@@ -145,8 +145,8 @@ StaticIoiFloat so40("8204070_32", 0.0f, true); // 40 - 0x7D2F2620, # A PAT_WF_ST
 StaticIoiFloat so41("8204071_32", 0.0f, true); // 41 - 0x7D2F2720, # A PAT_WF_LIM_MIN
 StaticIoiFloat so42("8204072_32", 0.0f, true); // 42 - 0x7D2F2820, # A PAT_WF_LIM_MAX
 
-StaticIoiFloat so43("8204057_32", 0.0f, true); // 43 - 0x7D2F1920, # A Sts Wd1
-StaticIoiFloat so44("8204058_32", 0.0f, true); // 44 - 0x7D2F1A20, # A Sts Wd2
+StaticIoiInt   so43("8204057_32", 0, true); // 43 - 0x7D2F1920, # A Sts Wd1
+StaticIoiInt   so44("8204058_32", 0, true); // 44 - 0x7D2F1A20, # A Sts Wd2
 
 StaticIoiFloat so45("8204050_64", 0.0f, true); // 45 - 0x7D2F1240, # B Engine Inlet Angle 1
 StaticIoiFloat so46("8204051_64", 0.0f, true); // 46 - 0x7D2F1340, # B Idle Time, A
@@ -170,8 +170,8 @@ StaticIoiFloat so63("8204070_64", 0.0f, true); // 63 - 0x7D2F2640, # B PAT_WF_ST
 StaticIoiFloat so64("8204071_64", 0.0f, true); // 64 - 0x7D2F2740, # B PAT_WF_LIM_MIN
 StaticIoiFloat so65("8204072_64", 0.0f, true); // 65 - 0x7D2F2840, # B PAT_WF_LIM_MAX
 
-StaticIoiFloat so66("8204057_64", 0.0f, true); // 66 - 0x7D2F1940, # B Sts Wd1
-StaticIoiFloat so67("8204058_64", 0.0f, true); // 67 - 0x7D2F1A40, # B Sts Wd2
+StaticIoiInt   so66("8204057_64", 0, true); // 66 - 0x7D2F1940, # B Sts Wd1
+StaticIoiInt   so67("8204058_64", 0, true); // 67 - 0x7D2F1A40, # B Sts Wd2
 
 
 //----------------------------------------------------------------------------/
@@ -434,7 +434,8 @@ bool StaticIoiFloat::Update()
 //---------------------------------------------------------------------------------------------
 bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
 {
-    return false;
+	m_response.value = data;
+    return true;
 }
 
 //=============================================================================================
