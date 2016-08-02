@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//            Copyright (C) 2014 Knowlogic Software Corp.
+//          Copyright (C) 2014-2016 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiStatic.cpp
@@ -123,55 +123,55 @@ StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
 StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
 StaticIoiInt    so21("adrf_data_batt_timer", 0, true);              // 21
 
-StaticIoiFloat so22("8204050_32", 0.0f, true); // 22 - 0x7D2F1220, # A Engine Inlet Angle 1
-StaticIoiFloat so23("8204051_32", 0.0f, true); // 23 - 0x7D2F1320, # A Idle Time, A
-StaticIoiFloat so24("8204052_32", 0.0f, true); // 24 - 0x7D2F1420, # A PAT Total Test Time
-StaticIoiFloat so25("8204053_32", 0.0f, true); // 25 - 0x7D2F1520, # A Shutdown time Delay
-StaticIoiFloat so26("8204054_32", 0.0f, true); // 26 - 0x7D2F1620, # A Wind Speed
-StaticIoiFloat so27("8204055_32", 0.0f, true); // 27 - 0x7D2F1720, # A N1 Setting Tolerance
-StaticIoiFloat so28("8204056_32", 0.0f, true); // 28 - 0x7D2F1820, # A Test Stabilization Time
-StaticIoiFloat so29("8204059_32", 0.0f, true); // 29 - 0x7D2F1B20, # A PAT_MIN_IDLE_TREMAIN
-StaticIoiFloat so30("8204060_32", 0.0f, true); // 30 - 0x7D2F1C20, # A PAT_N1_TARGET
-StaticIoiFloat so31("8204061_32", 0.0f, true); // 31 - 0x7D2F1D20, # A PAT_N1_TARGET_TIME
-StaticIoiFloat so32("8204062_32", 0.0f, true); // 32 - 0x7D2F1E20, # A PAT_IDLE_CLOSE_TIME
-StaticIoiFloat so33("8204063_32", 0.0f, true); // 33 - 0x7D2F1F20, # A PAT_N1_STABLE_AVG
-StaticIoiFloat so34("8204064_32", 0.0f, true); // 34 - 0x7D2F2020, # A PAT_N2_STABLE_AVG
-StaticIoiFloat so35("8204065_32", 0.0f, true); // 35 - 0x7D2F2120, # A PAT_N2_LIM_MIN
-StaticIoiFloat so36("8204066_32", 0.0f, true); // 36 - 0x7D2F2220, # A PAT_N2_LIM_MAX
-StaticIoiFloat so37("8204067_32", 0.0f, true); // 37 - 0x7D2F2320, # A PAT_EGT_STABLE_AVG
-StaticIoiFloat so38("8204068_32", 0.0f, true); // 38 - 0x7D2F2420, # A PAT_EGT_LIM_MIN
-StaticIoiFloat so39("8204069_32", 0.0f, true); // 39 - 0x7D2F2520, # A PAT_EGT_LIM_MAX
-StaticIoiFloat so40("8204070_32", 0.0f, true); // 40 - 0x7D2F2620, # A PAT_WF_STABLE_AVG
-StaticIoiFloat so41("8204071_32", 0.0f, true); // 41 - 0x7D2F2720, # A PAT_WF_LIM_MIN
-StaticIoiFloat so42("8204072_32", 0.0f, true); // 42 - 0x7D2F2820, # A PAT_WF_LIM_MAX
+// A429 Floating point values, so pass them back as integer
+StaticIoiInt so22("8204050_32", 0, true); // 22 - 0x7D2F1220, # A Engine Inlet Angle 1
+StaticIoiInt so23("8204051_32", 0, true); // 23 - 0x7D2F1320, # A Idle Time, A
+StaticIoiInt so24("8204052_32", 0, true); // 24 - 0x7D2F1420, # A PAT Total Test Time
+StaticIoiInt so25("8204053_32", 0, true); // 25 - 0x7D2F1520, # A Shutdown time Delay
+StaticIoiInt so26("8204054_32", 0, true); // 26 - 0x7D2F1620, # A Wind Speed
+StaticIoiInt so27("8204055_32", 0, true); // 27 - 0x7D2F1720, # A N1 Setting Tolerance
+StaticIoiInt so28("8204056_32", 0, true); // 28 - 0x7D2F1820, # A Test Stabilization Time
+StaticIoiInt so29("8204059_32", 0, true); // 29 - 0x7D2F1B20, # A PAT_MIN_IDLE_TREMAIN
+StaticIoiInt so30("8204060_32", 0, true); // 30 - 0x7D2F1C20, # A PAT_N1_TARGET
+StaticIoiInt so31("8204061_32", 0, true); // 31 - 0x7D2F1D20, # A PAT_N1_TARGET_TIME
+StaticIoiInt so32("8204062_32", 0, true); // 32 - 0x7D2F1E20, # A PAT_IDLE_CLOSE_TIME
+StaticIoiInt so33("8204063_32", 0, true); // 33 - 0x7D2F1F20, # A PAT_N1_STABLE_AVG
+StaticIoiInt so34("8204064_32", 0, true); // 34 - 0x7D2F2020, # A PAT_N2_STABLE_AVG
+StaticIoiInt so35("8204065_32", 0, true); // 35 - 0x7D2F2120, # A PAT_N2_LIM_MIN
+StaticIoiInt so36("8204066_32", 0, true); // 36 - 0x7D2F2220, # A PAT_N2_LIM_MAX
+StaticIoiInt so37("8204067_32", 0, true); // 37 - 0x7D2F2320, # A PAT_EGT_STABLE_AVG
+StaticIoiInt so38("8204068_32", 0, true); // 38 - 0x7D2F2420, # A PAT_EGT_LIM_MIN
+StaticIoiInt so39("8204069_32", 0, true); // 39 - 0x7D2F2520, # A PAT_EGT_LIM_MAX
+StaticIoiInt so40("8204070_32", 0, true); // 40 - 0x7D2F2620, # A PAT_WF_STABLE_AVG
+StaticIoiInt so41("8204071_32", 0, true); // 41 - 0x7D2F2720, # A PAT_WF_LIM_MIN
+StaticIoiInt so42("8204072_32", 0, true); // 42 - 0x7D2F2820, # A PAT_WF_LIM_MAX
+StaticIoiInt so43("8204057_32", 0, true); // 43 - 0x7D2F1920, # A Sts Wd1
+StaticIoiInt so44("8204058_32", 0, true); // 44 - 0x7D2F1A20, # A Sts Wd2
 
-StaticIoiInt   so43("8204057_32", 0, true); // 43 - 0x7D2F1920, # A Sts Wd1
-StaticIoiInt   so44("8204058_32", 0, true); // 44 - 0x7D2F1A20, # A Sts Wd2
-
-StaticIoiFloat so45("8204050_64", 0.0f, true); // 45 - 0x7D2F1240, # B Engine Inlet Angle 1
-StaticIoiFloat so46("8204051_64", 0.0f, true); // 46 - 0x7D2F1340, # B Idle Time, A
-StaticIoiFloat so47("8204052_64", 0.0f, true); // 47 - 0x7D2F1440, # B PAT Total Test Time
-StaticIoiFloat so48("8204053_64", 0.0f, true); // 48 - 0x7D2F1540, # B Shutdown time Delay
-StaticIoiFloat so49("8204054_64", 0.0f, true); // 49 - 0x7D2F1640, # B Wind Speed
-StaticIoiFloat so50("8204055_64", 0.0f, true); // 50 - 0x7D2F1740, # B N1 Setting Tolerance
-StaticIoiFloat so51("8204056_64", 0.0f, true); // 51 - 0x7D2F1840, # B Test Stabilization Time
-StaticIoiFloat so52("8204059_64", 0.0f, true); // 52 - 0x7D2F1B40, # B PAT_MIN_IDLE_TREMAIN
-StaticIoiFloat so53("8204060_64", 0.0f, true); // 53 - 0x7D2F1C40, # B PAT_N1_TARGET
-StaticIoiFloat so54("8204061_64", 0.0f, true); // 54 - 0x7D2F1D40, # B PAT_N1_TARGET_TIME
-StaticIoiFloat so55("8204062_64", 0.0f, true); // 55 - 0x7D2F1E40, # B PAT_IDLE_CLOSE_TIME
-StaticIoiFloat so56("8204063_64", 0.0f, true); // 56 - 0x7D2F1F40, # B PAT_N1_STABLE_AVG
-StaticIoiFloat so57("8204064_64", 0.0f, true); // 57 - 0x7D2F2040, # B PAT_N2_STABLE_AVG
-StaticIoiFloat so58("8204065_64", 0.0f, true); // 58 - 0x7D2F2140, # B PAT_N2_LIM_MIN
-StaticIoiFloat so59("8204066_64", 0.0f, true); // 59 - 0x7D2F2240, # B PAT_N2_LIM_MAX
-StaticIoiFloat so60("8204067_64", 0.0f, true); // 60 - 0x7D2F2340, # B PAT_EGT_STABLE_AVG
-StaticIoiFloat so61("8204068_64", 0.0f, true); // 61 - 0x7D2F2440, # B PAT_EGT_LIM_MIN
-StaticIoiFloat so62("8204069_64", 0.0f, true); // 62 - 0x7D2F2540, # B PAT_EGT_LIM_MAX
-StaticIoiFloat so63("8204070_64", 0.0f, true); // 63 - 0x7D2F2640, # B PAT_WF_STABLE_AVG
-StaticIoiFloat so64("8204071_64", 0.0f, true); // 64 - 0x7D2F2740, # B PAT_WF_LIM_MIN
-StaticIoiFloat so65("8204072_64", 0.0f, true); // 65 - 0x7D2F2840, # B PAT_WF_LIM_MAX
-
-StaticIoiInt   so66("8204057_64", 0, true); // 66 - 0x7D2F1940, # B Sts Wd1
-StaticIoiInt   so67("8204058_64", 0, true); // 67 - 0x7D2F1A40, # B Sts Wd2
+// A429 Floating point values, so pass them back as integer
+StaticIoiInt so45("8204050_64", 0, true); // 45 - 0x7D2F1240, # B Engine Inlet Angle 1
+StaticIoiInt so46("8204051_64", 0, true); // 46 - 0x7D2F1340, # B Idle Time, A
+StaticIoiInt so47("8204052_64", 0, true); // 47 - 0x7D2F1440, # B PAT Total Test Time
+StaticIoiInt so48("8204053_64", 0, true); // 48 - 0x7D2F1540, # B Shutdown time Delay
+StaticIoiInt so49("8204054_64", 0, true); // 49 - 0x7D2F1640, # B Wind Speed
+StaticIoiInt so50("8204055_64", 0, true); // 50 - 0x7D2F1740, # B N1 Setting Tolerance
+StaticIoiInt so51("8204056_64", 0, true); // 51 - 0x7D2F1840, # B Test Stabilization Time
+StaticIoiInt so52("8204059_64", 0, true); // 52 - 0x7D2F1B40, # B PAT_MIN_IDLE_TREMAIN
+StaticIoiInt so53("8204060_64", 0, true); // 53 - 0x7D2F1C40, # B PAT_N1_TARGET
+StaticIoiInt so54("8204061_64", 0, true); // 54 - 0x7D2F1D40, # B PAT_N1_TARGET_TIME
+StaticIoiInt so55("8204062_64", 0, true); // 55 - 0x7D2F1E40, # B PAT_IDLE_CLOSE_TIME
+StaticIoiInt so56("8204063_64", 0, true); // 56 - 0x7D2F1F40, # B PAT_N1_STABLE_AVG
+StaticIoiInt so57("8204064_64", 0, true); // 57 - 0x7D2F2040, # B PAT_N2_STABLE_AVG
+StaticIoiInt so58("8204065_64", 0, true); // 58 - 0x7D2F2140, # B PAT_N2_LIM_MIN
+StaticIoiInt so59("8204066_64", 0, true); // 59 - 0x7D2F2240, # B PAT_N2_LIM_MAX
+StaticIoiInt so60("8204067_64", 0, true); // 60 - 0x7D2F2340, # B PAT_EGT_STABLE_AVG
+StaticIoiInt so61("8204068_64", 0, true); // 61 - 0x7D2F2440, # B PAT_EGT_LIM_MIN
+StaticIoiInt so62("8204069_64", 0, true); // 62 - 0x7D2F2540, # B PAT_EGT_LIM_MAX
+StaticIoiInt so63("8204070_64", 0, true); // 63 - 0x7D2F2640, # B PAT_WF_STABLE_AVG
+StaticIoiInt so64("8204071_64", 0, true); // 64 - 0x7D2F2740, # B PAT_WF_LIM_MIN
+StaticIoiInt so65("8204072_64", 0, true); // 65 - 0x7D2F2840, # B PAT_WF_LIM_MAX
+StaticIoiInt so66("8204057_64", 0, true); // 66 - 0x7D2F1940, # B Sts Wd1
+StaticIoiInt so67("8204058_64", 0, true); // 67 - 0x7D2F1A40, # B Sts Wd2
 
 
 //----------------------------------------------------------------------------/
@@ -884,6 +884,7 @@ void StaticIoiContainer::SetNewState( SecRequest& request)
 }
 
 //---------------------------------------------------------------------------------------------
+// Called when no script is running
 void StaticIoiContainer::Reset()
 {
     for (int i = 0; i < m_ioiStaticOutCount; ++i)
@@ -891,6 +892,10 @@ void StaticIoiContainer::Reset()
         // do not reset the running state if it is invalid
         m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
     }
+
+	// and values we want to reset if no script is running
+	si40.data = 0;  // pat_scr = 0 : the main screen
+	si41.data = 0;  // pat_button = 0 : 0
 }
 
 bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
