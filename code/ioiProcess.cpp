@@ -1332,52 +1332,64 @@ void IoiProcess::InitIoi()
 
             m_parameters[index].Init(&m_paramInfo[i]);
 
-            // check to see if this parameter is a child of any existing parameters
-            for (i1=0; i1 < m_paramLoopEnd; ++i1)
-            {
-                // if the param is valid and its not me
-                if (m_parameters[i1].m_isValid && !m_parameters[i1].m_isChild && i1 != index)
-                {
-                    childRelationship = m_parameters[index].IsChild(m_parameters[i1]);
-                    if (childRelationship)
-                    {
-                        break;
-                    }
-                }
-            }
+			if (m_parameters[index].m_masterId != 0)
+			{
+				// check to see if this parameter is a child of any existing parameters
+				for (i1=0; i1 < m_paramLoopEnd; ++i1)
+				{
+					// if the param is valid and its not me
+					if (m_parameters[i1].m_isValid && !m_parameters[i1].m_isChild && i1 != index)
+					{
+						childRelationship = m_parameters[index].IsChild(m_parameters[i1]);
+						if (childRelationship)
+						{
+							break;
+						}
+					}
+				}
 
-            // if not a child or src'd from ccdl - open the IOI channel
-            if (!childRelationship && 
-                m_parameters[index].m_src != PARAM_SRC_CROSS &&
-                m_parameters[index].m_src != PARAM_SRC_CALC &&
-                m_parameters[index].m_src != PARAM_SRC_HMU  // Remove this later
-                )
-            {
-                openStatus = ioi_open(m_parameters[index].m_ioiName,
-                                      ioiWritePermission,
-                                      (int*)&m_parameters[index].m_ioiChan);
+				// if not a child or src'd from ccdl - open the IOI channel
+				if (!childRelationship && 
+					m_parameters[index].m_src != PARAM_SRC_CROSS &&
+					m_parameters[index].m_src != PARAM_SRC_CALC &&
+					m_parameters[index].m_src != PARAM_SRC_HMU  // Remove this later
+					)
+				{
+					openStatus = ioi_open(m_parameters[index].m_ioiName,
+										  ioiWritePermission,
+										  (int*)&m_parameters[index].m_ioiChan);
 
-                if (openStatus == ioiSuccess)
-                {
-                    m_parameters[index].m_ioiValid = true;
-                }
-                else
-                {
-                    // copy name for display
-                    if (m_ioiOpenFailCount < (int)eIoiFailDisplay)
-                    {
-                        strncpy(m_openFailNames[m_ioiOpenFailCount],
-                                m_parameters[index].m_name, (int)eAseParamNameSize);
-                    }
-                    m_ioiOpenFailCount += 1;
-                    m_parameters[index].m_isValid = false;
-                }
-            }
-            // TODO: SCR-300 add logic to pick the fastest rate masterId when the
-            //       same masterId is tagged in multiple cross chan params
-            else if (m_parameters[index].m_src == PARAM_SRC_CROSS)
-            {
-            }
+					if (openStatus == ioiSuccess)
+					{
+						m_parameters[index].m_ioiValid = true;
+					}
+					else
+					{
+						// copy name for display
+						if (m_ioiOpenFailCount < (int)eIoiFailDisplay)
+						{
+							strncpy(m_openFailNames[m_ioiOpenFailCount],
+									m_parameters[index].m_name, (int)eAseParamNameSize);
+						}
+						m_ioiOpenFailCount += 1;
+						m_parameters[index].m_isValid = false;
+					}
+				}
+				// TODO: SCR-300 add logic to pick the fastest rate masterId when the
+				//       same masterId is tagged in multiple cross chan params
+				else if (m_parameters[index].m_src == PARAM_SRC_CROSS)
+				{
+				}
+			}
+			else
+			{
+				// this is a CIC type parameter which we really don't support in ASE it
+				// is done in the Cfg by sending individual params in for each of the CIC
+				// masterId in this param, just turn off any update for this param.
+				// -- We create it so we can convert the name to a Cfg param index
+				m_parameters[index].m_ioiValid = true;
+				m_parameters[index].m_isRunning = false;
+			}
 
             // default the display to the first eIoiMaxDisplay parameters created
             if (m_displayCount < (int)eIoiMaxDisplay && m_parameters[index].m_isValid)
