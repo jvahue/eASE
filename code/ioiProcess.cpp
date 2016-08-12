@@ -1332,7 +1332,7 @@ void IoiProcess::InitIoi()
 
             m_parameters[index].Init(&m_paramInfo[i]);
 
-			if (m_parameters[index].m_masterId != 0)
+			if (m_parameters[index].m_masterId != 0xFFFFFFFF)
 			{
 				// check to see if this parameter is a child of any existing parameters
 				for (i1=0; i1 < m_paramLoopEnd; ++i1)
