@@ -226,7 +226,7 @@ bool StaticIoiObj::WriteStaticIoi(void* data)
         writeStatus = ioi_write(ioiChan, data);
     }
 
-    m_updateCount += writeStatus == ioiSuccess ? 1 : 0;
+    m_updateCount += (ioiValid && ioiRunning && writeStatus == ioiSuccess) ? 1 : 0;
     return writeStatus == ioiSuccess;
 }
 
@@ -241,7 +241,7 @@ bool StaticIoiObj::ReadStaticIoi(void* data)
         readStatus = ioi_read(ioiChan, data);
     }
 
-    m_updateCount += readStatus == ioiSuccess ? 1 : 0;
+    m_updateCount += (ioiValid && ioiRunning && readStatus == ioiSuccess) ? 1 : 0;
     return readStatus == ioiSuccess;
 }
 
