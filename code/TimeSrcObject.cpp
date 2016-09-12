@@ -67,7 +67,8 @@ void TimeSrcObj::Init()
     m_tomorrow.tm_mon   = 7; 
     m_tomorrow.tm_mday  = 27; 
 
-    m_10ms = 0;}
+    m_10ms = 0;
+}
 
 void TimeSrcObj::SetTime( PyTimeStruct& timeRep)
 {

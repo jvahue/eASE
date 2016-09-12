@@ -1,13 +1,13 @@
 #ifndef TimeSrcObject_h
 #define TimeSrcObject_h
 /******************************************************************************
-Copyright (C) 2014 Knowlogic Software Corp.
+Copyright (C) 2014-2016 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
-File:        ccdl.h
+File:        TimeSrcObject.h
 
-Description: This file implements the base class for simulating the Cross
-channel Data Link (CCDL)
+Description: This file implements the base class for simulating time in the
+system. It allows for biasing time to skew clock times to check resyncs.
 
 VERSION
 $Revision: $  $Date: $

@@ -434,7 +434,7 @@ bool StaticIoiFloat::Update()
 //---------------------------------------------------------------------------------------------
 bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
 {
-	m_response.value = data;
+    m_response.value = data;
     return true;
 }
 
@@ -537,7 +537,7 @@ StaticIoiContainer::StaticIoiContainer()
 
     strcpy(HMUSerialNumber, "0000999999");
     strcpy(HMUpartNumber, "5316928SK01");
-    strcpy(UTASSwDwgNumber, "PY1022429-026");
+    strcpy(UTASSwDwgNumber, "PY1022429-028");
     strcpy(PWSwDwgNumber, "5318410-12SK01");
 
     // The Order MUST match AseIoiInfo in eFastCmds.py
@@ -582,11 +582,11 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiOut[x++] = &si35;  // 35
     m_staticIoiOut[x++] = &si36;  // 36
     m_staticIoiOut[x++] = &si37;  // 37
-	m_staticIoiOut[x++] = &si38;  // 38
-	m_staticIoiOut[x++] = &si39;  // 39
+    m_staticIoiOut[x++] = &si38;  // 38
+    m_staticIoiOut[x++] = &si39;  // 39
 
-	m_staticIoiOut[x++] = &si40;  // 40
-	m_staticIoiOut[x++] = &si41;  // 41
+    m_staticIoiOut[x++] = &si40;  // 40
+    m_staticIoiOut[x++] = &si41;  // 41
 
     m_ioiStaticOutCount = x;
     m_updateIndex = 0;
@@ -622,7 +622,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so19;
     m_staticIoiIn[x++] = &so20;
     m_staticIoiIn[x++] = &so21;
-    
+
     m_staticIoiIn[x++] = &so22;
     m_staticIoiIn[x++] = &so23;
     m_staticIoiIn[x++] = &so24;
@@ -644,10 +644,10 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so40;
     m_staticIoiIn[x++] = &so41;
     m_staticIoiIn[x++] = &so42;
-    
+
     m_staticIoiIn[x++] = &so43;
     m_staticIoiIn[x++] = &so44;
-    
+
     m_staticIoiIn[x++] = &so45;
     m_staticIoiIn[x++] = &so46;
     m_staticIoiIn[x++] = &so47;
@@ -669,7 +669,7 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so63;
     m_staticIoiIn[x++] = &so64;
     m_staticIoiIn[x++] = &so65;
-    
+
     m_staticIoiIn[x++] = &so66;
     m_staticIoiIn[x++] = &so67;
 
@@ -861,7 +861,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         lastMinCnt = so17.m_updateCount;
         lastSecCnt = so19.m_updateCount;
 
-        // Move the new values into RTC time 
+        // Move the new values into RTC time
         // sec: data = tens << 4 | ones;
         aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(so20.data) + 2000;
         aseCommon.clocks[eClkRtc].m_time.tm_mon  = VALUE(so18.data);
@@ -893,9 +893,58 @@ void StaticIoiContainer::Reset()
         m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
     }
 
-	// and values we want to reset if no script is running
-	si40.data = 0;  // pat_scr = 0 : the main screen
-	si41.data = 0;  // pat_button = 0 : 0
+    // and values we want to reset if no script is running
+    // use 0xffffffff to indicate the value has not been updated
+    si40.data = 0;  // pat_scr = 0 : the main screen
+    si41.data = 0;  // pat_button = 0 : 0
+
+    so22.data = 0xffffff;
+    so23.data = 0xffffff;
+    so24.data = 0xffffff;
+    so25.data = 0xffffff;
+    so26.data = 0xffffff;
+    so27.data = 0xffffff;
+    so28.data = 0xffffff;
+    so29.data = 0xffffff;
+    so30.data = 0xffffff;
+    so31.data = 0xffffff;
+    so32.data = 0xffffff;
+    so33.data = 0xffffff;
+    so34.data = 0xffffff;
+    so35.data = 0xffffff;
+    so36.data = 0xffffff;
+    so37.data = 0xffffff;
+    so38.data = 0xffffff;
+    so39.data = 0xffffff;
+    so40.data = 0xffffff;
+    so41.data = 0xffffff;
+    so42.data = 0xffffff;
+    so43.data = 0xffffff;
+    so44.data = 0xffffff;
+
+    so45.data = 0xffffff;
+    so46.data = 0xffffff;
+    so47.data = 0xffffff;
+    so48.data = 0xffffff;
+    so49.data = 0xffffff;
+    so50.data = 0xffffff;
+    so51.data = 0xffffff;
+    so52.data = 0xffffff;
+    so53.data = 0xffffff;
+    so54.data = 0xffffff;
+    so55.data = 0xffffff;
+    so56.data = 0xffffff;
+    so57.data = 0xffffff;
+    so58.data = 0xffffff;
+    so59.data = 0xffffff;
+    so60.data = 0xffffff;
+    so61.data = 0xffffff;
+    so62.data = 0xffffff;
+    so63.data = 0xffffff;
+    so64.data = 0xffffff;
+    so65.data = 0xffffff;
+    so66.data = 0xffffff;
+    so67.data = 0xffffff;
 }
 
 bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
