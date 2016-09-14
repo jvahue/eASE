@@ -135,6 +135,7 @@ public:
     bool GetStaticIoiData(SecComm& secComm);    
     void SetNewState(SecRequest& request);
     void Reset();
+    void ResetApatIoi();
     void UpdateStaticIoi();
 
     StaticIoiObj* m_staticIoiOut[100];

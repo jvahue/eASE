@@ -711,6 +711,11 @@ bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
     {
         return m_staticIoiOut[request.variableId]->SetStaticIoiData(request);
     }
+    else if (request.variableId == m_ioiStaticOutCount)
+    {
+        ResetApatIoi();
+        return true;
+    }
     else
     {
         return false;
@@ -893,6 +898,11 @@ void StaticIoiContainer::Reset()
         m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
     }
 
+    ResetApatIoi();
+}
+
+void StaticIoiContainer::ResetApatIoi()
+{
     // and values we want to reset if no script is running
     // use 0xffffffff to indicate the value has not been updated
     si40.data = 0;  // pat_scr = 0 : the main screen
