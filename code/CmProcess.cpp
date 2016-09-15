@@ -598,12 +598,12 @@ bool CmProcess::GetFile( SecComm& secComm)
             else
             {
                 m_fileXfer.FileStatus(m_rqstFile, false);
-                secComm.ErrorMsg("GetFile: File not available");
+                secComm.ErrorMsg("GetFile: File not available <%s> ", m_rqstFile);
             }
         }
         else
         {
-            secComm.ErrorMsg("GetFile: File is Open");
+            secComm.ErrorMsg("GetFile: File is Open <%s>", m_getFile.GetFileName());
         }
     }
 
