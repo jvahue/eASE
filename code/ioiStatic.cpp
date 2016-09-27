@@ -172,7 +172,9 @@ StaticIoiInt so64("8204071_64", 0, true); // 64 - 0x7D2F2740, # B PAT_WF_LIM_MIN
 StaticIoiInt so65("8204072_64", 0, true); // 65 - 0x7D2F2840, # B PAT_WF_LIM_MAX
 StaticIoiInt so66("8204057_64", 0, true); // 66 - 0x7D2F1940, # B Sts Wd1
 StaticIoiInt so67("8204058_64", 0, true); // 67 - 0x7D2F1A40, # B Sts Wd2
-
+// and two that we originally missed that do not have NDO numbers ...
+StaticIoiInt so68("adrf_pat_udt_remain_a", 0, true); // 68 adrf_pat_udt_remain_a 
+StaticIoiInt so69("adrf_pat_udt_remain_b", 0, true); // 69 adrf_pat_udt_remain_b 
 
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
@@ -673,6 +675,9 @@ StaticIoiContainer::StaticIoiContainer()
     m_staticIoiIn[x++] = &so66;
     m_staticIoiIn[x++] = &so67;
 
+    m_staticIoiIn[x++] = &so68;
+    m_staticIoiIn[x++] = &so69;
+
     m_ioiStaticInCount = x;
     m_validIoiIn = 0;
 
@@ -898,15 +903,17 @@ void StaticIoiContainer::Reset()
         m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
     }
 
+    // when the script is done reset these
+    si40.data = 0;  // pat_scr = 0 : the main screen
+    si41.data = 0;  // pat_button = 0 : 0
+
     ResetApatIoi();
 }
 
 void StaticIoiContainer::ResetApatIoi()
 {
     // and values we want to reset if no script is running
-    // use 0xffffffff to indicate the value has not been updated
-    si40.data = 0;  // pat_scr = 0 : the main screen
-    si41.data = 0;  // pat_button = 0 : 0
+    // use 0xffffff to indicate the value has not been updated
 
     so22.data = 0xffffff;
     so23.data = 0xffffff;
@@ -955,6 +962,9 @@ void StaticIoiContainer::ResetApatIoi()
     so65.data = 0xffffff;
     so66.data = 0xffffff;
     so67.data = 0xffffff;
+
+    so68.data = 0xffffff;
+    so69.data = 0xffffff;
 }
 
 bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
