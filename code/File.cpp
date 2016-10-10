@@ -1,4 +1,12 @@
-// File class implementation
+//-----------------------------------------------------------------------------
+//          Copyright (C) 2013-2016 Knowlogic Software Corp.
+//         All Rights Reserved. Proprietary and Confidential.
+//
+//    File: File.cpp
+//
+//    Description: File class implementation
+//
+//-----------------------------------------------------------------------------
 
 /*****************************************************************************/
 /* Compiler Specific Includes                                                */
@@ -8,8 +16,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-
 
 /*****************************************************************************/
 /* Software Specific Includes                                                */

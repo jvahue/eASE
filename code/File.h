@@ -65,7 +65,7 @@ class File
         UNSIGNED32 GetFileSize() const {return m_fileSize;}
 
 
-    protected:
+    //protected: JV 10/10/16 need access to the guts for error reporting
         enum FileConstants
         {
             eNumPorts    = 1,

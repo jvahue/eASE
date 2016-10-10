@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//            Copyright (C) 2013 Knowlogic Software Corp.
+//          Copyright (C) 2013-2016 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiProcess.cpp
@@ -896,7 +896,11 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
                 ++param;
             }
 
-            if (!found)
+            if (found)
+            {
+                secComm.m_response.successful = true;
+            }
+            else
             {
                 secComm.m_response.successful = false;
                 secComm.ErrorMsg("SetSsm: Invalid Signal Bus(%d), Label(%d)", bus, lbl);
@@ -932,7 +936,11 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             ++param;
         }
 
-        if (!found)
+        if (found)
+        {
+            secComm.m_response.successful = true;
+        }
+        else
         {
             secComm.m_response.successful = false;
             secComm.ErrorMsg("Invalid Signal Bus(%d), Label(%d)", bus, lb0);

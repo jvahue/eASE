@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//            Copyright (C) 2013-2015 Knowlogic Software Corp.
+//          Copyright (C) 2013-2016 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: CmProcess.cpp
@@ -592,7 +592,6 @@ bool CmProcess::GetFile( SecComm& secComm)
 
                 // return the file size
                 secComm.m_response.value = float(m_getFile.GetFileSize());
-
                 status = true;
             }
             else
@@ -616,17 +615,37 @@ bool CmProcess::GetFile( SecComm& secComm)
         if ((m_performAdrfOffload && continueAdrf) || !m_performAdrfOffload)
         {
             bytesRead = m_getFile.Read(secComm.m_response.streamData, eSecStreamSize);
-            secComm.m_response.streamSize = bytesRead;
-            if (bytesRead < eSecStreamSize)
+            secComm.m_response.streamSize = bytesRead == -1 ? 1 : bytesRead;
+
+            // check for a read error
+            if (bytesRead == -1)
             {
                 m_getFile.Close();
                 memset(m_rqstFile, 0, sizeof(m_rqstFile));
                 m_performAdrfOffload = false;
+
+                secComm.ErrorMsg(
+                    "GetFile: File Read Failed (bytesRead=%d). File State:\n"
+                    "  Size:     %d, Offset:         %d\n"
+                    "  NextRead: %d, PortBytesInUse: %d\n"
+                    "  EOF:      %s", 
+                    bytesRead,
+                    m_getFile.m_fileSize, m_getFile.m_physOffset,
+                    m_getFile.m_nextRead, m_getFile.m_portBytesInUse,
+                    m_getFile.m_bEOF ? "Yes" : "No");
+            }
+            else
+            {
+                // good read ...
+                status = true;
             }
 
-            if (bytesRead >= 0)
+            // if we are sending the end of the file, then close it up and set state
+            if (bytesRead < (INT32)eSecStreamSize)
             {
-                status = true;
+                m_getFile.Close();
+                memset(m_rqstFile, 0, sizeof(m_rqstFile));
+                m_performAdrfOffload = false;
             }
         }
         else

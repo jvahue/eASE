@@ -1,7 +1,7 @@
 #ifndef AseCommon_h
 #define AseCommon_h
 /******************************************************************************
-            Copyright (C) 2013-2015 Knowlogic Software Corp.
+          Copyright (C) 2013-2016 Knowlogic Software Corp.
          All Rights Reserved. Proprietary and Confidential.
 
     File:        AseCommon.h
@@ -33,7 +33,7 @@
 *
 *
 */
-# define version "v0.9.1"  " " __DATE__ " " __TIME__
+# define version "v0.9.2"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
