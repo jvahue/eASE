@@ -597,7 +597,8 @@ bool CmProcess::GetFile( SecComm& secComm)
             else
             {
                 m_fileXfer.FileStatus(m_rqstFile, false);
-                secComm.ErrorMsg("GetFile: File not available <%s> ", m_rqstFile);
+                secComm.ErrorMsg("GetFile: File not available(%d) <%s> ", 
+                        m_getFile.m_fileError, m_rqstFile);
             }
         }
         else
