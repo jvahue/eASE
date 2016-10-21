@@ -69528,6 +69528,33 @@
            comment = "XX: 2 Hz"
       ></producedItem>
       <producedItem
+           name = "fault_word3"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "ACM_FAULT_WORD_3 label 354"
+      ></producedItem>
+      <producedItem
+           name = "fault_word4"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "OS_FAULT_WORD_4 label 355"
+      ></producedItem>
+      <producedItem
+           name = "fault_word7"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "OS_FAULT_WORD_7 label 357"
+      ></producedItem>
+      <producedItem
            name = "flap_pos1_raw"
            productionRate = "200000"
            messageForm = "I"
@@ -69634,6 +69661,24 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"
            comment = "processDiscreteInputs will write once per second"
+      ></producedItem>
+      <producedItem
+           name = "hleif_eicas_annun_tx"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "EICAS_HLEIF_IND label 270"
+      ></producedItem>
+      <producedItem
+           name = "hmu_eicas_annun"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "EICAS_HMU_IND label 271"
       ></producedItem>
       <producedItem
            name = "hmu_option_data_raw"
@@ -70032,6 +70077,15 @@
            comment = "60: 4 Hz"
       ></producedItem>
       <producedItem
+           name = "prg_flash_cbit_fail"
+           productionRate = "1000000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "OS_FAULT_WORD_5 label 356"
+      ></producedItem>
+      <producedItem
            name = "right_inbd_wspd1_raw"
            productionRate = "100000"
            messageForm = "I"
@@ -70346,7 +70400,7 @@
            bufferOptions = "queueDepth:1"
            comment = "86: 100 Hz"
       ></producedItem>
-   </producedItems>
+  </producedItems>
    <consumedItems>
       <consumedItem
            name = "8204050_32"
@@ -70635,7 +70689,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_N2_STABLE_AVG"
+           comment = "PAT_N2_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -70645,7 +70699,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_N2_STABLE_AVG"
+           comment = "PAT_N2_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -70695,7 +70749,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_EGT_STABLE_AVG"
+           comment = "PAT_EGT_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -70705,7 +70759,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_EGT_STABLE_AVG"
+           comment = "PAT_EGT_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -70755,7 +70809,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_WF_STABLE_AVG"
+           comment = "PAT_WF_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -70765,7 +70819,7 @@
            messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
-           comment = "PAT_WF_STABLE_AVG"
+           comment = "PAT_WF_CORR"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
@@ -71048,5 +71102,5 @@
            comment = "rtc io wr year"
            consumptionOptions = "lastProduced"
       ></consumedItem>
-   </consumedItems>
+  </consumedItems>
 </ioiConfig>
