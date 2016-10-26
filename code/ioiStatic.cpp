@@ -91,6 +91,14 @@ StaticIoiStr   si39("UTASSwDwgNumber", UTASSwDwgNumber, 20);   // 39
 StaticIoiInt   si40("pat_scr", 0);                             // 40
 StaticIoiInt   si41("pat_scr_button", 0);                      // 41
 
+// SCR-355 New Internal signals
+StaticIoiInt   si42("fault_word3", 0);                         // 42 OL354
+StaticIoiInt   si43("fault_word4", 0);                         // 43 OL355
+StaticIoiInt   si44("prg_flash_cbit_fail", 0);                 // 44 OL356
+StaticIoiInt   si45("fault_word7", 0);                         // 45 OL357
+StaticIoiInt   si46("hleif_eicas_annun_tx", 0);                // 46 OL270
+StaticIoiInt   si47("hmu_eicas_annun", 0);                     // 47 OL271
+
 // -------------------- U U T   O U T P U T S ------------------------
 // --------- The Order MUST match adrfOutMap in eFastCmds.py ---------
 int adrfFault[13];
@@ -589,6 +597,13 @@ StaticIoiContainer::StaticIoiContainer()
 
     m_staticIoiOut[x++] = &si40;  // 40
     m_staticIoiOut[x++] = &si41;  // 41
+
+    m_staticIoiOut[x++] = &si42;  // 42
+    m_staticIoiOut[x++] = &si43;  // 43
+    m_staticIoiOut[x++] = &si44;  // 44
+    m_staticIoiOut[x++] = &si45;  // 45
+    m_staticIoiOut[x++] = &si46;  // 46
+    m_staticIoiOut[x++] = &si47;  // 47
 
     m_ioiStaticOutCount = x;
     m_updateIndex = 0;
