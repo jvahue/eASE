@@ -695,7 +695,7 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
 
 //-------------------------------------------------------------------------------------------------
 // Function: CheckCmd
-// Description: Update all of the "output" parameters from the ioi process
+// Description: Handle Command requests directed at the IOI processing
 //
 BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 {
@@ -1224,6 +1224,10 @@ void IoiProcess::FillSensorNames(INT32 start, SensorNames& snsNames) const
 //-------------------------------------------------------------------------------------------------
 // Function: CollectParamInfo
 // Description: Receive the parameter info from ePySte for a Cfg to be loaded
+// paramSetCount: how many param info elements were sent down
+// paramCount: where are we in the list, a value <= PARAM_SET_SIZE means starting and clear out 
+//             local data
+// data: the current set of paramInfo being sent down from PySte
 //
 bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data)
 {
