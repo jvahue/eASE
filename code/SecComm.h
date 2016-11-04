@@ -1,8 +1,8 @@
 #ifndef SecComm_h
 #define SecComm_h
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
 File:        SecComm.h
 
@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 /* Local Typedefs                                                            */
 /*****************************************************************************/
 enum SecCmds {
-//--------------------------- AseMain Serviced 1 - 199 -----------------------
+    //--------------------------- AseMain Serviced 1 - 199 -----------------------
     eRunScript      = 1,
     eScriptDone     = 2,
     eShutdown       = 3,
@@ -49,9 +49,9 @@ enum SecCmds {
     eSetBatteryCtrl = 13,
     eGetBatterySts  = 14,
 
-// Ase Enums 101-199
+    // Ase Enums 101-199
 
-//---------------------------- CMProcess 200 - 399 ----------------------------
+    //---------------------------- CMProcess 200 - 399 ----------------------------
     eReadStream     = 200,
     eClearStream    = 201,
     eWriteStream    = 202,
@@ -64,18 +64,18 @@ enum SecCmds {
     eLogFileCrc     = 209,
     eFileExists     = 210,
 
-// CmProc Reconfig Controls
+    // CmProc Reconfig Controls
     eCmFileNameDelay = 250,
     eCmRecfgAckDelay = 251,
     eGetRcfCount     = 252,
     eDeleteFile      = 253,
     eCmLatchWait     = 254,
 
-// CmProc Enums 301-399
+    // CmProc Enums 301-399
     eCmPartCfg      = 301,  // the Cfg file partition Id
     eCmPartLog      = 302,  // the Log file partition Id
 
-//-------------------------------- IOI 400 - 599 ------------------------------
+    //-------------------------------- IOI 400 - 599 ------------------------------
     eGetSensorNames = 400,
     eGetSensorValue = 401,
     eSetSensorValue = 402,  // TBD: this should be deleted as only eSetSensorSG is used
@@ -102,7 +102,7 @@ enum SecCmds {
     eSetCcdlState   = 423,  // Enable/Disable CCDL activity
     eGetCcdlValue   = 424,  // Read the raw value sent across the CCDL
 
-//-------------------------------- CCDL 600 - 699 -----------------------------
+    //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF
 
     eCcdlTrig     = 601,  // used to read/write a CCDL trigger
@@ -112,7 +112,7 @@ enum SecCmds {
     eCcdlAcidRx   = 606,  // used to read/write ACID Rx on bus flag
     eCcdlAcidOk   = 607,  // used to read/write ACID match confirmed
 
-//-------------------------------- unallocated --------------------------------
+    //-------------------------------- unallocated --------------------------------
     eStartLogging   = 55560,
     eStopLogging    = 55570,
     eLoadCfg        = 55580,
@@ -359,7 +359,7 @@ private:
     UINT32 m_cmdRequest;     // how many requests have come in
     UINT32 m_cmdServiced;    // how many cmds have been completely serviced
     CHAR* m_cmdHandlerName;  // Handler gives a pointer to their name
-    CHAR  m_errMsg[eSecErrorMsgSize]; // holds any error message when the SecComm object is invalid
+    CHAR  m_errMsg[eSecErrorMsgSize]; // holds any error msg when the SecComm object is invalid
     UINT32 m_rxCount;        // how many bytes have come in
     UINT32 m_txCount;        // how many bytes have gone out
     ConnState m_connState;   // connection state

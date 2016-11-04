@@ -14,7 +14,7 @@
 class Parameter : public ParamConverter
 {
 public:
-enum ParamConstants {eParamShort = 23};
+    enum ParamConstants {eParamShort = 23};
 
     Parameter();
     void Reset();

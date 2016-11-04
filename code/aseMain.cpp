@@ -1,13 +1,13 @@
 /******************************************************************************
-          Copyright (C) 2013-2016 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        aseMain.cpp
+File:        aseMain.cpp
 
-    Description: The main ASE process
+Description: The main ASE process
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 
@@ -43,8 +43,8 @@
 #define LVL_A_ENABLE  (batteryStsMirror |  LEVEL_A_ON)
 #define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
 
-#define LEVEL_C_FBL 2  // Local FB signals
-#define LEVEL_C_FBC 4  // combined FB signals - active low
+#define LEVEL_C_FBL 2  // Local feedback signals
+#define LEVEL_C_FBC 4  // combined feedback signals - active low
 #define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVEL_C_FBL) & ~LEVEL_C_FBC)
 #define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVEL_C_FBL) |  LEVEL_C_FBC)
 
@@ -70,7 +70,7 @@
 /*****************************************************************************/
 enum BatteryTestControlState {
     eBattDisabled,  // No battery latching is available
-    eBattEnabled,      // Battery Latching works as expected
+    eBattEnabled,   // Battery Latching works as expected
     eBattStuckLo,   // Battery Never Latched
     eBattStuckHi    // Battery Always Latched
 };
@@ -130,9 +130,9 @@ FlightTriggerHistory HistTrigBuffRx; // Flight Trigger in NVM received Ref 2
 /* Constant Data                                                             */
 /*****************************************************************************/
 CmdRspThread* cmdRspThreads[] = {
-  &cmProc,
-  &ioiProc,
-  NULL
+    &cmProc,
+    &ioiProc,
+    NULL
 };
 
 /*****************************************************************************/
@@ -201,7 +201,7 @@ int main(void)
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
     aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
 
-    // default to MS being online
+    // default to MS being on-line
     aseCommon.bMsOnline = true;
 
     // Grab the system tick pointer, all threads/tasks should use GET_SYSTEM_TICK
@@ -223,7 +223,7 @@ int main(void)
 
     // Attach to NVM
     status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
-                                    &nvm.style, (void**)&nvm.address);
+        &nvm.style, (void**)&nvm.address);
 
     // overhead of timing
     start = HsTimer();
@@ -235,10 +235,10 @@ int main(void)
 
     // POWER CONTROL SETUP
     status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
-                                    &battCtlReg.style, (void**)&battCtlReg.address);
+        &battCtlReg.style, (void**)&battCtlReg.address);
 
     status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battStsReg.handle,
-                                    &battStsReg.style, (void**)&battStsReg.address);
+        &battStsReg.style, (void**)&battStsReg.address);
 
     // move the Status Register Address forward 4 bytes
     battStsReg.address = &battStsReg.address[1];
@@ -263,17 +263,18 @@ int main(void)
         // call the base class to display the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, eDyHdr);
 
-        debug_str(AseMain, eDyASE, 0, "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
-                  aseCommon.clocks[eClkRtc].m_time.tm_year,
-                  aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
-                  aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
-                  aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
-                  aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
-                  aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
-                  aseCommon.clocks[eClkRtc].m_10ms,
-                  version,
-                  aseCommon.isChannelA ? "A" : "B"
-                  );
+        debug_str(AseMain, eDyASE, 0, 
+            "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
+            aseCommon.clocks[eClkRtc].m_time.tm_year,
+            aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
+            aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
+            aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
+            aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
+            aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
+            aseCommon.clocks[eClkRtc].m_10ms,
+            version,
+            aseCommon.isChannelA ? "A" : "B"
+            );
 
         debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
             aseCommon.clocks[eClkMs].m_time.tm_year,
@@ -305,17 +306,17 @@ int main(void)
 
         // Write the system tick value to video memory.
         debug_str(AseMain, eDySec, 0, "SecComm(%s) %d - %d",
-                  secComm.GetSocketInfo(),
-                  frames, td);
+            secComm.GetSocketInfo(),
+            frames, td);
 
         debug_str(AseMain, eDyCom, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
-                  secComm.GetRxCount(),
-                  secComm.GetTxCount(),
-                  secComm.isRxing ? "Yes" : "No ",
-                  secComm.forceConnectionClosed ? "Yes" : "No",
-                  cmdIdle+1,
-                  MAX_IDLE_FRAMES
-                  );
+            secComm.GetRxCount(),
+            secComm.GetTxCount(),
+            secComm.isRxing ? "Yes" : "No ",
+            secComm.forceConnectionClosed ? "Yes" : "No",
+            cmdIdle+1,
+            MAX_IDLE_FRAMES
+            );
 
         debug_str(AseMain, eDyErr, 0, "%s", secComm.GetErrorMsg());
 
@@ -356,7 +357,7 @@ int main(void)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 static BOOLEAN CheckCmds(SecComm& secComm)
 {
     accessStyle asA;
@@ -440,7 +441,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        //---------------
+            //---------------
         case eSetChanId:
             ioiProc.SetChanId(request.variableId);
 
@@ -451,7 +452,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        //---------------
+            //---------------
         case eNvmRead:
             // check which memory area the user wants to read from
             if (secComm.m_request.resetAll == 0)
@@ -476,7 +477,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
                 if ((offset + size) <= totalSize)
                 {
-                    memcpy(secComm.m_response.streamData, (void*)&HistTrigBuffRx[offset], size);
+                    memcpy(
+                        secComm.m_response.streamData, (void*)&HistTrigBuffRx[offset], size);
                     secComm.m_response.streamSize = size;
                 }
                 else
@@ -495,13 +497,13 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        //---------------
+            //---------------
         case eNvmWrite:
             if (nvm.address != NULL)
             {
                 secComm.m_response.successful = NvmWrite(secComm);
                 secComm.m_response.successful = TRUE;
-           }
+            }
             else
             {
                 secComm.ErrorMsg("NVM Memory Handle Error");
@@ -511,14 +513,14 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        //------------------------
+            //------------------------
         case eGetAseVersion:
             strcpy(secComm.m_response.streamData, version);
             secComm.m_response.streamSize = strlen(version);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
 
-        //------------------------
+            //------------------------
         case eSetBatteryCtrl:
             // variableId => Battery Control State
             // sigGenId   => Power-Off Delay Timer, 0: never power-off
@@ -536,15 +538,15 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             serviced = TRUE;
             break;
 
-        //------------------------
+            //------------------------
         case eGetBatterySts:
             // pack the Power State and Battery State into the
             sprintf(secComm.m_response.streamData,
-                    "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x",
-                    aseCommon.asePowerState,
-                    batteryState,
-                    batteryCtlMirror,
-                    batteryStsMirror);
+                "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x",
+                aseCommon.asePowerState,
+                batteryState,
+                batteryCtlMirror,
+                batteryStsMirror);
             secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -743,7 +745,7 @@ static void PowerOff()
     _50MsTimer = 0;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 static void SetTime(SecRequest& request)
 {
     PyTimeStruct* timeObjs = (PyTimeStruct*)request.charData;
@@ -757,7 +759,7 @@ static void SetTime(SecRequest& request)
     aseCommon.newBaseTimeRqst += 1;
 }
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Read from n bytes <n=sigGenId> NVM memory <ref=resetRequest> at the offset address specified 
 // <offset=variableId>.  The offset address is from the base of NVM memory.  This assumes all 
 // addresses are inside our NVM [0..NvmSize-1] bytes.
@@ -794,7 +796,7 @@ static BOOLEAN NvmRead(SecComm& secComm)
     }
 }
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // NVM Read/Write Logic
 static BOOLEAN NvmWrite(SecComm& secComm)
 {
@@ -805,14 +807,14 @@ static BOOLEAN NvmWrite(SecComm& secComm)
     if ((offset + size) < NvmSize)
     {
         NV_WriteAligned((void*)(nvm.address + offset),
-                        (void*)secComm.m_request.charData,
-                        size);
+            (void*)secComm.m_request.charData,
+            size);
     }
 
-   return TRUE;
+    return TRUE;
 }
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 static
 void NV_WriteAligned(void* dest, const void* src, UINT32 size)
 {
@@ -864,9 +866,9 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
-// Update the wall clock time - PySte will resend every now and then but wee need to maintain it
-// between those updates.
+//---------------------------------------------------------------------------------------------
+// Update the wall clock time - PySte will resend every now and then but we need to maintain
+// it between those updates.
 
 static void UpdateTime()
 {
@@ -888,7 +890,7 @@ static void UpdateTime()
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Update the ships date -
 // pack into label 0260 reverse => 0x0D
 // sdi = 1
@@ -917,7 +919,7 @@ static void UpdateShipDate()
     aseCommon.shipDate = DATE_SSM | dateData | DATE_SDI | DATE_LABEL;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Update the ships date -
 // pack into label 0150 reverse =>
 // sdi = 1

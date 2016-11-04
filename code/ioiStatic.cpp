@@ -196,11 +196,11 @@ StaticIoiInt so69("adrf_pat_udt_remain_b", 0, true); // 69 adrf_pat_udt_remain_b
 // Class Definitions                                                         -/
 //----------------------------------------------------------------------------/
 StaticIoiObj::StaticIoiObj(char* name, bool isInput)
-    : ioiChan(0)
-    , ioiValid(false)
-    , ioiRunning(true)
-    , ioiIsInput(isInput)
-    , m_updateCount(0)
+: ioiChan(0)
+, ioiValid(false)
+, ioiRunning(true)
+, ioiIsInput(isInput)
+, m_updateCount(0)
 {
     strcpy(ioiName, name);
     strcpy(m_shortName, name);
@@ -528,20 +528,20 @@ bool StaticIoiIntPtr::GetStaticIoiData(IocResponse& m_response)
 }
 
 StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput)
-    : StaticIoiObj(name, isInput)
+: StaticIoiObj(name, isInput)
 {
     data = value;
     bytes = size * sizeof(int);
 }
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
-    : m_ioiStaticOutCount(0)
-    , m_ioiStaticInCount(0)
-    , m_updateIndex(0)
-    , m_validIoiOut(0)
-    , m_validIoiIn(0)
-    , m_readError(0)
-    , m_writeError(0)
+: m_ioiStaticOutCount(0)
+, m_ioiStaticInCount(0)
+, m_updateIndex(0)
+, m_validIoiOut(0)
+, m_validIoiIn(0)
+, m_readError(0)
+, m_writeError(0)
 {
     UINT32 x = 0;
 

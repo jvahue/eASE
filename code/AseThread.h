@@ -10,7 +10,8 @@
 // fill in data within this object.
 //
 // The virtual functions are:
-// Run - Prepare the thread object for execution, init data, etc, calls Launch to start the thread running
+// Run - Prepare the thread object for execution, init data, etc, calls Launch to start the 
+//       thread running
 // Process - Performs the specific processing needs of the thread.
 //
 // Includes OS
@@ -30,22 +31,22 @@ public:
         eComplete,
         eError};
 
-    AseThread();
+        AseThread();
 
-    // Thread control
-    virtual void Run() {}
-    virtual void Run(AseCommon* pCommon)
-    {
-        m_pCommon = pCommon;
-        Run();
-    };
+        // Thread control
+        virtual void Run() {}
+        virtual void Run(AseCommon* pCommon)
+        {
+            m_pCommon = pCommon;
+            Run();
+        };
 
-    // Accessors
-    AseThreadState GetRunState();
+        // Accessors
+        AseThreadState GetRunState();
 
 protected:
     // Obj refs
-    // Thread Attribs.
+    // Thread Attributes.
     thread_handle_t m_hThread;
     AseThreadState  m_state;
     AseCommon*      m_pCommon;
@@ -57,7 +58,7 @@ protected:
 
     static void ThreadFunc( DWORD obj)
     {
-      ((AseThread*)obj)->Process();
+        ((AseThread*)obj)->Process();
     }
 };
 #endif

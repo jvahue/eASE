@@ -1,13 +1,13 @@
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        Fifo.cpp
+File:        Fifo.cpp
 
-    Description: This file implements the FIFO
+Description: This file implements the FIFO
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 
@@ -53,9 +53,9 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 // FIFO Code
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 FIFO::FIFO()
 {
     Reset();

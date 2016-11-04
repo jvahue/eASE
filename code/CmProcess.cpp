@@ -57,13 +57,13 @@ static const char* gsePortNames[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmProcess::CmProcess()
-    : m_requestPing(false)
-    , m_lastGseSent(0)
-    , m_performAdrfOffload(false)
-    , m_reconfig(&aseCommon)
-    , m_fileXfer(&aseCommon)
-    , m_lastPowerState(true)
-    , m_invalidSrc(0)
+: m_requestPing(false)
+, m_lastGseSent(0)
+, m_performAdrfOffload(false)
+, m_reconfig(&aseCommon)
+, m_fileXfer(&aseCommon)
+, m_lastPowerState(true)
+, m_invalidSrc(0)
 {
 
     // TODO: remove after debugging
@@ -81,8 +81,8 @@ CmProcess::CmProcess()
 }
 
 /****************************************************************************
- protected methods for FxProc
- ****************************************************************************/
+protected methods for FxProc
+****************************************************************************/
 
 void CmProcess::Run()
 {
@@ -134,7 +134,7 @@ void CmProcess::Run()
     Launch("CmProcess", "StdThreadTemplate");
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: RunSimulation
 // Description:
 //
@@ -201,7 +201,7 @@ void CmProcess::RunSimulation()
     scriptStateZ = IS_SCRIPT_ACTIVE;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ProcessGseMessages
 // Description: Process either the GSE mailbox or the MFD mailbox
 //
@@ -233,7 +233,7 @@ void CmProcess::ProcessGseMessages(MailBox& mb)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ProcessLiveData
 // Description: receive and buffer live data stream
 // Two modes (binary and ascii) are supported.
@@ -275,7 +275,7 @@ void CmProcess::ProcessLiveData()
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: HandlePowerOff
 // Description:
 //
@@ -308,7 +308,7 @@ void CmProcess::HandlePowerOff()
     m_lastPowerState = false;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: CheckCmd
 // Description:
 //
@@ -329,8 +329,8 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             if ( request.charDataSize < GSE_MAX_LINE_SIZE)
             {
                 memcpy((void*)m_txStreamCmd[port].commandLine,
-                       (void*)request.charData,
-                       request.charDataSize);
+                    (void*)request.charData,
+                    request.charDataSize);
                 m_txStreamCmd[port].commandLine[request.charDataSize] = '\0';
 
                 if (port == GSE_SOURCE_CM)
@@ -356,7 +356,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
             else
             {
                 secComm.ErrorMsg("%s Command Length (%d) exceeds (%d)",
-                                 gsePortNames[port], request.charDataSize, GSE_MAX_LINE_SIZE);
+                    gsePortNames[port], request.charDataSize, GSE_MAX_LINE_SIZE);
                 secComm.m_response.successful = FALSE;
             }
         }
@@ -428,12 +428,12 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 
     case eDeleteFile:
         // see if the file exists
-        secComm.m_response.successful = m_getFile.Delete(request.charData,
-                                                         File::PartitionType(request.variableId));
+        secComm.m_response.successful =
+            m_getFile.Delete(request.charData, File::PartitionType(request.variableId));
         if (!secComm.m_response.successful)
         {
             secComm.ErrorMsg("Failed File Delete <%s> Part(%) errorCode: %d",
-                             request.charData, request.variableId, m_getFile.GetFileError());
+                request.charData, request.variableId, m_getFile.GetFileError());
             secComm.m_response.value = float(m_getFile.GetFileError());
         }
 
@@ -443,7 +443,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     case eFileExists:
         // see if a file exists on target
         if ( m_getFile.Open(secComm.m_request.charData,
-                            File::PartitionType(secComm.m_request.sigGenId), 'r'))
+            File::PartitionType(secComm.m_request.sigGenId), 'r'))
         {
             secComm.m_response.successful = TRUE;
         }
@@ -451,7 +451,8 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             if (m_getFile.GetFileError() != eFileNotFound)
             {
-               secComm.ErrorMsg("Failed File Exists Check Error(%d)", m_getFile.GetFileError());
+                secComm.ErrorMsg("Failed File Exists Check Error(%d)", 
+                    m_getFile.GetFileError());
             }
             secComm.m_response.successful = FALSE;
         }
@@ -460,7 +461,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-    //----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------
     case eDisplayState:
         if (request.variableId == (int)CmProc)
         {
@@ -488,7 +489,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
     return serviced || subServiced;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: PutFile
 // Description: Handles putting a file on to the target system into the partition specified
 //
@@ -500,7 +501,7 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
 // When putting a file:
 //    (1) The put file must not be open already when we start (i.e., m_request.variabielId = 0)
 //    (2) The put file must open when writing data (i.e., m_request.variabielId = 1)
-//    (3) When data is recieved with size 0 the file is closed
+//    (3) When data is received with size 0 the file is closed
 //
 bool CmProcess::PutFile( SecComm& secComm)
 {
@@ -511,7 +512,8 @@ bool CmProcess::PutFile( SecComm& secComm)
     {
         if (!m_putFile.IsOpen())
         {
-            m_putFile.Open( secComm.m_request.charData, File::PartitionType(secComm.m_request.sigGenId), 'w');
+            m_putFile.Open( secComm.m_request.charData, 
+                File::PartitionType(secComm.m_request.sigGenId), 'w');
             status = true;
 
             // TODO: remove after debugging is complete
@@ -545,7 +547,7 @@ bool CmProcess::PutFile( SecComm& secComm)
     return status;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: GetFile
 // Description: Handles getting a file from the target system from the partition specified
 //
@@ -579,7 +581,8 @@ bool CmProcess::GetFile( SecComm& secComm)
             memset(m_rqstFile, 0, sizeof(m_rqstFile));
             memcpy(m_rqstFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
-            if (m_getFile.Open(m_rqstFile, File::PartitionType(secComm.m_request.sigGenId), 'r'))
+            if (m_getFile.Open(m_rqstFile, 
+                File::PartitionType(secComm.m_request.sigGenId), 'r'))
             {
                 m_fileXfer.FileStatus(m_rqstFile, true);
 
@@ -598,7 +601,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             {
                 m_fileXfer.FileStatus(m_rqstFile, false);
                 secComm.ErrorMsg("GetFile: File not available(%d) <%s> ", 
-                        m_getFile.m_fileError, m_rqstFile);
+                    m_getFile.m_fileError, m_rqstFile);
             }
         }
         else
@@ -664,7 +667,7 @@ bool CmProcess::GetFile( SecComm& secComm)
     return status;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: UpdateDisplay
 // Description: Update the video output display
 //
@@ -689,11 +692,12 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 1:
-       debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
-       break;
+        debug_str(CmProc, theLine, 0, "GseCmd: %s", m_lastGseCmd);
+        break;
 
     case 2:
-        debug_str(CmProc, theLine, 0, "RxFifo - Gse:%d Mfd:%d ACARS:%d LiveData:%d Invalid:%d",
+        debug_str(CmProc, theLine, 0, 
+            "RxFifo - Gse:%d Mfd:%d ACARS:%d LiveData:%d Invalid:%d",
             m_rxStreamFifo[0].Used(), m_rxStreamFifo[1].Used(),
             m_rxStreamFifo[2].Used(), m_rxStreamFifo[3].Used(),
             m_invalidSrc);
@@ -701,12 +705,12 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
 
     case 3:
         debug_str(CmProc, theLine, 0, "Cfg(%d/%d/%s) Mode/Status: %s(%d)/%s(%s)",
-                 m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
-                 m_reconfig.GetLastCmd(),
-                 m_reconfig.GetModeName(),
-                 m_reconfig.m_modeTimeout,
-                 m_reconfig.m_lastReCfgFailed ? "Err" : "Ok",
-                 m_reconfig.GetCfgStatus());
+            m_reconfig.m_recfgCount, m_reconfig.m_recfgCmds,
+            m_reconfig.GetLastCmd(),
+            m_reconfig.GetModeName(),
+            m_reconfig.m_modeTimeout,
+            m_reconfig.m_lastReCfgFailed ? "Err" : "Ok",
+            m_reconfig.GetCfgStatus());
         break;
 
     case 4:
@@ -721,7 +725,8 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 5:
-        debug_str(CmProc, theLine, 0, "Log Stats S/F/FL(%d/%d/%d) Bad/Crc:Snd-Rsp/Fmis(%d/%d-%d/%d)",
+        debug_str(CmProc, theLine, 0, 
+            "Log Stats S/F/FL(%d/%d/%d) Bad/Crc:Snd-Rsp/Fmis(%d/%d-%d/%d)",
             m_fileXfer.m_fileXferSuccess,
             m_fileXfer.m_fileXferFailed,
             m_fileXfer.m_fileXferFailLast,
@@ -760,14 +765,14 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
     case 11:
         // Update Mailbox Status
         debug_str(CmProc, theLine, 0, "Gse %s %s",
-                  m_gseInBox.GetStatusStr(),
-                  m_gseOutBox.GetStatusStr());
+            m_gseInBox.GetStatusStr(),
+            m_gseOutBox.GetStatusStr());
         break;
 
     case 12:
         debug_str(CmProc, theLine, 0, "MFD %s %s",
-                  m_mfdInBox.GetStatusStr(),
-                  m_mfdOutBox.GetStatusStr());
+            m_mfdInBox.GetStatusStr(),
+            m_mfdOutBox.GetStatusStr());
         break;
 
     case 13:

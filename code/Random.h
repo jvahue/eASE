@@ -7,12 +7,12 @@
 // Linear Congruential Generator class
 class RandGen
 {
-  public:
+public:
     RandGen(void);
     virtual void   Seed(UINT32 seed);
     virtual UINT32 Rand();
 
-  protected:
+protected:
 
     // Xn+1 = ((A * Xn) + C) % (M)
     unsigned int m_increment;   // Increment "C"

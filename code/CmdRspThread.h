@@ -1,16 +1,16 @@
 #ifndef CmdRspThread_h
 #define CmdRspThread_h
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        CmdRspThread.h
+File:        CmdRspThread.h
 
-    Description: This file implements the base class for threads that can
-    respond to PySte commands
+Description: This file implements the base class for threads that can
+respond to PySte commands
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 
@@ -82,7 +82,7 @@ protected:
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
     bool    m_updateDisplay;
-    
+
 };
 
 #endif

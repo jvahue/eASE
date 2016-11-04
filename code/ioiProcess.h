@@ -43,7 +43,7 @@ public:
 
 protected:
 
-     // Methods
+    // Methods
     // override the CmdRspThread::RunSimulation
     virtual void RunSimulation();
     virtual void HandlePowerOff();
@@ -63,7 +63,7 @@ protected:
     int PageIoiStatus(int theLine, bool& nextPage);
     int PageParams(int theLine, bool& nextPage);
     int PageStatic(int theLine, bool& nextPage);
-    
+
     UINT32 m_paramCount;
     UINT32 m_minParamIndex;
     UINT32 m_maxParamIndex;

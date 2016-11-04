@@ -1,15 +1,15 @@
 #ifndef Fifo_h
 #define Fifo_h
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        aseMain.cpp
+File:        aseMain.cpp
 
-    Description: The main ASE process
+Description: The main ASE process
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 

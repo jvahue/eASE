@@ -88,22 +88,22 @@ static const CHAR* stateStr[] = {
 // Description: Create an initialize the CCDL object
 //
 CCDL::CCDL( AseCommon* pCommon )
-    : m_pCommon(pCommon)
-    , m_isValid(true)
-    , m_inhibit(false)
-    , m_actingChan(EFAST_CHA)
-    , m_mode(eCcdlStart)
-    , m_modeDelay(0)
-    , m_rxState(eCcdlStateInit)
-    , m_txState(eCcdlStateInit)
-    , m_rxParam(0)
-    , m_txParam(0)
-    , m_parameters(NULL)
-    , m_maxParamIndex(0)
-    , m_wrCalls(0)
-    , m_rdCalls(0)
-    , m_histPacketTx(0)
-    , m_histPacketRx(0)
+: m_pCommon(pCommon)
+, m_isValid(true)
+, m_inhibit(false)
+, m_actingChan(EFAST_CHA)
+, m_mode(eCcdlStart)
+, m_modeDelay(0)
+, m_rxState(eCcdlStateInit)
+, m_txState(eCcdlStateInit)
+, m_rxParam(0)
+, m_txParam(0)
+, m_parameters(NULL)
+, m_maxParamIndex(0)
+, m_wrCalls(0)
+, m_rdCalls(0)
+, m_histPacketTx(0)
+, m_histPacketRx(0)
 {
     UINT32 current_offset = 0;
 
@@ -173,7 +173,7 @@ void CCDL::Reset()
 
     memset((void*)&m_eFastIn, 0, sizeof(m_eFastIn));
     memset((void*)&m_eFastOut, 0, sizeof(m_eFastOut));
-    
+
     memset((void*)m_ccdlRawParam, 0, sizeof(m_ccdlRawParam));
 
     memset((void*)m_inBuffer, 0, sizeof(m_inBuffer));
@@ -379,10 +379,10 @@ void CCDL::Update(MailBox& in, MailBox& out)
             Transmit(out);
             break;
 
-        //case eCcdlHold:
-        //    memset(m_inBuffer, 0, sizeof(m_inBuffer));
-        //    memset(m_outBuffer, 0, sizeof(m_outBuffer));
-        //    break;
+            //case eCcdlHold:
+            //    memset(m_inBuffer, 0, sizeof(m_inBuffer));
+            //    memset(m_outBuffer, 0, sizeof(m_outBuffer));
+            //    break;
 
         default:
             break;
@@ -431,8 +431,8 @@ bool CCDL::Transmit(MailBox& out)
         // clear sizes to signal buffer is free
         for(int i = 0; i < CC_MAX_SLOT; i++)
         {
-          UINT16* size_ptr = (UINT16*)&m_outBuffer[m_slotInfo[i].offset];
-          *size_ptr = 0;
+            UINT16* size_ptr = (UINT16*)&m_outBuffer[m_slotInfo[i].offset];
+            *size_ptr = 0;
         }
         m_txCount += 1;
     }
@@ -459,11 +459,11 @@ void  CCDL::Write(CC_SLOT_ID id, void* buf, INT32 size)
     //Verify buffer is free (size = 0)
     if(*buf_size == 0)
     {
-      memcpy(tx_buf, buf, size);
-      //Set size last, used as a semaphore to signal data has been written
-      // 16-bit write s/b atomic?
-      *buf_size = (UINT16)size; //keep lint happy
-      m_wrWrites[id]++;
+        memcpy(tx_buf, buf, size);
+        //Set size last, used as a semaphore to signal data has been written
+        // 16-bit write s/b atomic?
+        *buf_size = (UINT16)size; //keep lint happy
+        m_wrWrites[id]++;
     }
 }
 
@@ -627,19 +627,20 @@ void CCDL::GetParamData()
 //          Also verify that each masterId exists in the list received only once.
 //          We may have 5 params with cross as src, but only three entries in here.
 //
-// Item 1. Collect all xch params in a list
+// Item 1. Collect all cross-channel params in a list
 // Item 2. tag each as found
 // Item 3. make sure all are present in the request
 // Item 4. make sure the request has only one entry for each master id
 //
-// Note: all params with the same masterId will point to the same slot, but only the fast (or one of
-// the fastest) will be processed as a parent and sent across during the IoiUpdate processing.
+// Note: all params with the same masterId will point to the same slot, but only the fast (or
+// one of the fastest) will be processed as a parent and sent across during the IoiUpdate 
+// processing.
 //
 void CCDL::ValidateRemoteSetup()
 {
     UINT32 crossCount = 0;
     CROSS_INFO crossInfo[eAseMaxParams];
-    
+
     if ( m_rxParamData.type == PARAM_XCH_TYPE_SETUP)
     {
         // scan down the parameter list and find all the params with src = cross
@@ -669,7 +670,7 @@ void CCDL::ValidateRemoteSetup()
                 }
             }
         }
-        
+
         // make sure all cross params were seen once and only once
         m_txState = eCcdlStateOk;
 
@@ -721,33 +722,34 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
 
     if (theLine == baseLine)
     {
-        debug_str(Ioi, theLine, 0, "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
-                  m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode], 
-                  m_histPacketTx, m_histPacketRx,
-                  m_rxCount, m_rxFailCount, stateStr[m_rxState],
-                  m_txCount, m_txFailCount, stateStr[m_txState]);
+        debug_str(Ioi, theLine, 0, 
+            "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
+            m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode], 
+            m_histPacketTx, m_histPacketRx,
+            m_rxCount, m_rxFailCount, stateStr[m_rxState],
+            m_txCount, m_txFailCount, stateStr[m_txState]);
     }
     else if (theLine == (baseLine + 1))
     {
         debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d) ParamRqst(%d)",
-                  m_rxParamData.num_params, 
-                  m_txParamData.num_params,
-                  m_rqstParamMap.num_params);
+            m_rxParamData.num_params, 
+            m_txParamData.num_params,
+            m_rqstParamMap.num_params);
     }
 
     else if (theLine == (baseLine + 2))
     {
         debug_str(Ioi, theLine, 0, "Rd(%d|%d|%d|%d - %d) Wr(%d|%d|%d|%d - %d)",
-                  m_rdReads[CC_PARAM],
-                  m_rdReads[CC_REPORT_TRIG],
-                  m_rdReads[CC_EFAST_MGR],
-                  m_rdReads[CC_PARAM_TRIG_HIST],
-                  m_rdCalls,
-                  m_wrWrites[CC_PARAM],
-                  m_wrWrites[CC_REPORT_TRIG],
-                  m_wrWrites[CC_EFAST_MGR],
-                  m_wrWrites[CC_PARAM_TRIG_HIST],
-                  m_wrCalls);
+            m_rdReads[CC_PARAM],
+            m_rdReads[CC_REPORT_TRIG],
+            m_rdReads[CC_EFAST_MGR],
+            m_rdReads[CC_PARAM_TRIG_HIST],
+            m_rdCalls,
+            m_wrWrites[CC_PARAM],
+            m_wrWrites[CC_REPORT_TRIG],
+            m_wrWrites[CC_EFAST_MGR],
+            m_wrWrites[CC_PARAM_TRIG_HIST],
+            m_wrCalls);
     }
 
     else if (theLine == (baseLine + 3))
@@ -791,24 +793,31 @@ void CCDL::UpdateEfast()
         // share our base time
         m_eFastOut.dateTime = m_eFastHold.dateTime;
         m_eFastOut.sysElapsedTime = m_pCommon->remElapsedMif;
-        
-        if (m_useCcdlItem[eCcdlIdSource]) m_eFastOut.srcTime =  m_eFastHold.srcTime;
-        if (m_useCcdlItem[eCcdlIdElapsed]) m_eFastOut.sysElapsedTime =  m_eFastHold.sysElapsedTime;
-        if (m_useCcdlItem[eCcdlIdLclFileCrc]) m_eFastOut.lcFileCRC =  m_eFastHold.lcFileCRC;
-        if (m_useCcdlItem[eCcdlIdCmbFileCrc]) m_eFastOut.combinedFileCRC =  m_eFastHold.combinedFileCRC;
-        if (m_useCcdlItem[eCcdlIdLclXmlCrc]) m_eFastOut.lcXMLCRC =  m_eFastHold.lcXMLCRC;
-        if (m_useCcdlItem[eCcdlIdAcidRx]) m_eFastOut.bACIDRx =  m_eFastHold.bACIDRx;
-        if (m_useCcdlItem[eCcdlIdAcidOk]) m_eFastOut.bACIDOk =  m_eFastHold.bACIDOk;
+
+        if (m_useCcdlItem[eCcdlIdSource]) 
+            m_eFastOut.srcTime = m_eFastHold.srcTime;
+        if (m_useCcdlItem[eCcdlIdElapsed]) 
+            m_eFastOut.sysElapsedTime = m_eFastHold.sysElapsedTime;
+        if (m_useCcdlItem[eCcdlIdLclFileCrc]) 
+            m_eFastOut.lcFileCRC = m_eFastHold.lcFileCRC;
+        if (m_useCcdlItem[eCcdlIdCmbFileCrc]) 
+            m_eFastOut.combinedFileCRC = m_eFastHold.combinedFileCRC;
+        if (m_useCcdlItem[eCcdlIdLclXmlCrc]) 
+            m_eFastOut.lcXMLCRC = m_eFastHold.lcXMLCRC;
+        if (m_useCcdlItem[eCcdlIdAcidRx]) 
+            m_eFastOut.bACIDRx = m_eFastHold.bACIDRx;
+        if (m_useCcdlItem[eCcdlIdAcidOk]) 
+            m_eFastOut.bACIDOk = m_eFastHold.bACIDOk;
 
         Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
     }
 }
 
-//--------------------------------------------------------------------------------------------------
-// This function determines what data to send at run time.  It select either history or parameter 
-// depending on the mode.  This function is called at 50Hz from the RunSimulation.
-// We return true when we send the param data so the IOI can clear its index into the CCDL Param 
-// buf
+//---------------------------------------------------------------------------------------------
+// This function determines what data to send at run time.  It select either history or 
+// parameter depending on the mode.  This function is called at 50Hz from the RunSimulation.
+// We return true when we send the param data so the IOI can clear its index into the CCDL 
+// Param buf
 bool CCDL::SendParamData()
 {
 #define NVM_HIST_OFFSET 0x0544

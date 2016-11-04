@@ -1,13 +1,13 @@
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        CmdRspThread.cpp
+File:        CmdRspThread.cpp
 
-    Description: The file implements the CmdRspThread
+Description: The file implements the CmdRspThread
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 
@@ -64,13 +64,13 @@ static const char* asePower[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmdRspThread::CmdRspThread()
-    : m_systemTick(0)
-    , m_frames(0)
-    , m_overrunCount(0)
-    , m_updateDisplay(true)
-    , m_elapsedProc(0)
-    , m_elapsedDisp(0)
-    , m_maxDuration(0)
+: m_systemTick(0)
+, m_frames(0)
+, m_overrunCount(0)
+, m_updateDisplay(true)
+, m_elapsedProc(0)
+, m_elapsedDisp(0)
+, m_maxDuration(0)
 {
 }
 
@@ -120,30 +120,30 @@ void CmdRspThread::RunSimulation()
 {
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: UpdateDisplay
-// Description: Display the common proc state info at the top of the screen
+// Description: Display the common process state info at the top of the screen
 //
 int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
     //debug_str(who, 0, 0,"%s", m_blankLine);
     debug_str(who, theLine, 0,
         "PySte:%s/%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
-              IS_CONNECTED ? "Conn" : "NoConn",
-              asePower[m_pCommon->asePowerState],
-              adrfState[m_pCommon->adrfState],
-              IS_MS_ONLINE ? "On" : "Off",
-              IS_SCRIPT_ACTIVE ? "Run" : "Off",
-              m_frames, m_overrunCount,
-              m_elapsedProcZ1, m_elapsedDisp, m_maxDuration
-              );
+        IS_CONNECTED ? "Conn" : "NoConn",
+        asePower[m_pCommon->asePowerState],
+        adrfState[m_pCommon->adrfState],
+        IS_MS_ONLINE ? "On" : "Off",
+        IS_SCRIPT_ACTIVE ? "Run" : "Off",
+        m_frames, m_overrunCount,
+        m_elapsedProcZ1, m_elapsedDisp, m_maxDuration
+        );
 
     return theLine;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: CheckCmd
-// Description: Detemrine if the current command is intended for this thread
+// Description: Determine if the current command is intended for this thread
 //
 BOOLEAN CmdRspThread::CheckCmd( SecComm& secComm)
 {

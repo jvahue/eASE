@@ -2,7 +2,7 @@
 #define ParamConverters_h
 
 //-----------------------------------------------------------------------------
-//            Copyright (C) 2013 Knowlogic Software Corp.
+//          Copyright (C) 2013-2016 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 // File: ParamConverters.h
@@ -62,37 +62,37 @@ enum A429DiscretTypes {
 
 struct ARINC429_WORD_INFO
 {
-   // GPC Data
+    // GPC Data
     UINT8               label;
     UINT8               label0;      // the label the parameter was initialized with
 
-   // GPA Data
-   UINT8               channel;      // Rx Chan 0,1,2 or 3 from FPGA
-   A429WordFormat      format;       // Format (BNR, BCD, Discrete)
-   A429DiscretTypes    discType;     // Discrete Type (Standard, BNR, BCD)
-   UINT8               wordSize;     // Arinc Word Size 1 - 32 bits
-   UINT8               wordPos;      // Arinc Word Start Pos within 32 bit word (Start 0)
-   UINT8               lsb;
-   UINT8               msb;
+    // GPA Data
+    UINT8               channel;      // Rx Chan 0,1,2 or 3 from FPGA
+    A429WordFormat      format;       // Format (BNR, BCD, Discrete)
+    A429DiscretTypes    discType;     // Discrete Type (Standard, BNR, BCD)
+    UINT8               wordSize;     // Arinc Word Size 1 - 32 bits
+    UINT8               wordPos;      // Arinc Word Start Pos within 32 bit word (Start 0)
+    UINT8               lsb;
+    UINT8               msb;
 
-   UINT8               validSSM;     // Valid SSM for Word
-                                     //   NOTE: Valid SSM is directly related to the
-                                     //         FailureCondition[] array index.
-                                     //   (0 = Invalid 1 = Valid)
-                                     //   bit 0 = SSM '00'
-                                     //   bit 1 = SSM '01'
-                                     //   bit 2 = SSM '10'
-                                     //   bit 3 = SSM '11'
-   UINT8               SSM;
+    UINT8               validSSM;     // Valid SSM for Word
+    //   NOTE: Valid SSM is directly related to the
+    //         FailureCondition[] array index.
+    //   (0 = Invalid 1 = Valid)
+    //   bit 0 = SSM '00'
+    //   bit 1 = SSM '01'
+    //   bit 2 = SSM '10'
+    //   bit 3 = SSM '11'
+    UINT8               SSM;
 
-   BOOLEAN             sdiAllCall;   // SDI All Call Mode
-   BOOLEAN             ignoreSDI;    // Ignore SDI bits
-   UINT8               sdBits;       // SDBit definition
+    BOOLEAN             sdiAllCall;   // SDI All Call Mode
+    BOOLEAN             ignoreSDI;    // Ignore SDI bits
+    UINT8               sdBits;       // SDBit definition
 
-   UINT32              a429Template; // ssm, sdi, label only
+    UINT32              a429Template; // ssm, sdi, label only
 
-   // GPB Data
-   UINT32              dataLossTime; // Data Loss Timeout in milliseconds
+    // GPB Data
+    UINT32              dataLossTime; // Data Loss Timeout in milliseconds
 
 };
 
@@ -119,7 +119,7 @@ public:
     void Init(ParamCfg* paramInfo);
     virtual UINT32 Convert(FLOAT32 value);
     void SetIoiName();
-    
+
     bool m_isValid;        // is the parameter active and setup was successful
     UINT32  m_masterId;
     UINT32  m_gpa;

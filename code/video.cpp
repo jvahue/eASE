@@ -1,13 +1,13 @@
 /******************************************************************************
-              Copyright (C) 2012-2013 Pratt & Whitney Engine Services, Inc.
-                 All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2012-2013 Pratt & Whitney Engine Services, Inc.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        ParamSrcHMU.c
+File:        ParamSrcHMU.c
 
-    Description: Read and decode parameters from the 664 bus through DEoS IoI
+Description: Read and decode parameters from the 664 bus through DEoS IoI
 
-    VERSION
-      $Revision: 3 $  $Date: 6/19/13 11:56a $
+VERSION
+$Revision: 3 $  $Date: 6/19/13 11:56a $
 
 ******************************************************************************/
 
@@ -38,12 +38,12 @@ extern "C" {
 /*****************************************************************************/
 typedef struct
 {
-	CHAR smo_name[32];
-	void* smo;
-	ipcMemoryObjectHandle mo;
-	ipcAttachedMemoryObjectHandle amo;
-	VideoStream vid_stream;
-	BOOLEAN scroll;
+    CHAR smo_name[32];
+    void* smo;
+    ipcMemoryObjectHandle mo;
+    ipcAttachedMemoryObjectHandle amo;
+    VideoStream vid_stream;
+    BOOLEAN scroll;
 }DEBUG_SCREEN_DATA;
 
 /*****************************************************************************/
@@ -67,18 +67,18 @@ char blankLine[CGA_NUM_COLS+1]; // blanks the video line
 /*****************************************************************************/
 
 /******************************************************************************
- * Function:    debug_str_init
- *
- * Description: Setup a new debug screen. Create a new globally accessable
- *              shared memory object and initialize it as video memory.
- *
- * Parameters:  none
- *
- * Returns:     none
- *
- * Notes:
- *
- *****************************************************************************/
+* Function:    debug_str_init
+*
+* Description: Setup a new debug screen. Create a new globally accessable
+*              shared memory object and initialize it as video memory.
+*
+* Parameters:  none
+*
+* Returns:     none
+*
+* Notes:
+*
+*****************************************************************************/
 void debug_str_init(void)
 {
     ipcStatus is;
@@ -90,55 +90,55 @@ void debug_str_init(void)
 
     for(i = 0; i < VID_MAX; i++)
     {
-      //if not default screen, create a new screen
-      if(strcmp(m_screens[i].smo_name,"") != 0)
-      {
-          if ((is = getMemoryObjectHandle(m_screens[i].smo_name, &m_screens[i].mo)) == ipcValid)
-          {
-          }
-          else if ((is = createMemoryObject(m_screens[i].smo_name,
-                                            4096,FALSE, &m_screens[i].mo)) != ipcValid)
-          {
-          }
-          else if ((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(),
-                                                 TRUE, readWriteDeleteAccess)) != ipcValid)
-          {
-          }
-
-          if (is == ipcValid && attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo,
-                                                   readWriteAccess, &m_screens[i].smo,
-                                                   0x1000, 0, &m_screens[i].amo) == ipcValid)
+        //if not default screen, create a new screen
+        if(strcmp(m_screens[i].smo_name,"") != 0)
         {
-          initializeVideoMemory(m_screens[i].smo);
-          m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
-          m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
-          m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+            if ((is = getMemoryObjectHandle(m_screens[i].smo_name, &m_screens[i].mo)) == ipcValid)
+            {
+            }
+            else if ((is = createMemoryObject(m_screens[i].smo_name,
+                4096,FALSE, &m_screens[i].mo)) != ipcValid)
+            {
+            }
+            else if ((is = grantMemoryObjectAccess(m_screens[i].mo, currentProcessHandle(),
+                TRUE, readWriteDeleteAccess)) != ipcValid)
+            {
+            }
+
+            if (is == ipcValid && attachMemoryObject(m_screens[i].smo_name, m_screens[i].mo,
+                readWriteAccess, &m_screens[i].smo,
+                0x1000, 0, &m_screens[i].amo) == ipcValid)
+            {
+                initializeVideoMemory(m_screens[i].smo);
+                m_screens[i].vid_stream.setViewPortAddress((unsigned)m_screens[i].smo);
+                m_screens[i].vid_stream.getViewPort().setScroll(m_screens[i].scroll);
+                m_screens[i].vid_stream <<  "Main Vid Success: " << dec << is << "                   " <<  endl;
+            }
         }
-      }
     }
 }
 
 
 
 /******************************************************************************
- * Function:    debug_str
- *
- * Description:
- *
- * Parameters:  [in] screen: Screen enum
- *              [in] row,col: Initial cursor position, only for screens with no
- *                            scroll option set.
- *              [in] str:    Formatted string to write
- *              [in] ...:    varargs to use with formatted string.
- *
- * Returns:     none
- *
- * Notes:
- *
- *****************************************************************************/
+* Function:    debug_str
+*
+* Description:
+*
+* Parameters:  [in] screen: Screen enum
+*              [in] row,col: Initial cursor position, only for screens with no
+*                            scroll option set.
+*              [in] str:    Formatted string to write
+*              [in] ...:    varargs to use with formatted string.
+*
+* Returns:     none
+*
+* Notes:
+*
+*****************************************************************************/
 void debug_str(VID_DEFS screen, int row, int col, const CHAR* str, ... )
 {
-static VID_DEFS redirectZ1 = VID_SYS;
+    static VID_DEFS redirectZ1 = VID_SYS;
     UINT32 length;
     CHAR buf[256];
 
@@ -207,7 +207,7 @@ void debug_str1(VID_DEFS screen, int row, int col, CHAR* str)
             }
         }
     }
-    
+
     // make sure the line is not over 80 chars long
     str[80] = '\0';
 
@@ -221,21 +221,21 @@ void debug_str1(VID_DEFS screen, int row, int col, CHAR* str)
 }
 
 /******************************************************************************
- * Function:    clearRow
- *
- * Description: clear a row of a display
- *
- * Parameters:  [in] screen: Screen enum
- *              [in] row,col: Initial cursor position, only for screens with no
- *                            scroll option set.
- *              [in] str:    Formatted string to write
- *              [in] ...:    varargs to use with formatted string.
- *
- * Returns:     none
- *
- * Notes:
- *
- *****************************************************************************/
+* Function:    clearRow
+*
+* Description: clear a row of a display
+*
+* Parameters:  [in] screen: Screen enum
+*              [in] row,col: Initial cursor position, only for screens with no
+*                            scroll option set.
+*              [in] str:    Formatted string to write
+*              [in] ...:    varargs to use with formatted string.
+*
+* Returns:     none
+*
+* Notes:
+*
+*****************************************************************************/
 void clearRow(VID_DEFS screen,  int row)
 {
     m_screens[screen].vid_stream.getViewPort().cursor().put(row,0);

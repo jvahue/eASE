@@ -1,6 +1,6 @@
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
 File:        SecComm.cpp
 
@@ -65,22 +65,22 @@ static const CHAR* conSts[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 SecComm::SecComm()
-    : m_isValid(FALSE)
-    , m_connected(FALSE)
-    , m_port(eSecPortNumber)
-    , m_lastSequence(0)
-    , forceConnectionClosed(FALSE)
-    , isRxing(false)
-    , m_rspType(eRspWait)
-    , m_cmdRequest(0)
-    , m_cmdServiced(0)
-    , m_cmdHandlerName(NULL)
-    , m_rxCount(0)        // how many bytes have come in
-    , m_txCount(0)        // how many bytes have gone out
-    , m_connState(eConnNoSocket)
-    , m_socket(-1)
-    , m_clientSocket(-1)
-    , m_acceptCount(0)
+: m_isValid(FALSE)
+, m_connected(FALSE)
+, m_port(eSecPortNumber)
+, m_lastSequence(0)
+, forceConnectionClosed(FALSE)
+, isRxing(false)
+, m_rspType(eRspWait)
+, m_cmdRequest(0)
+, m_cmdServiced(0)
+, m_cmdHandlerName(NULL)
+, m_rxCount(0)        // how many bytes have come in
+, m_txCount(0)        // how many bytes have gone out
+, m_connState(eConnNoSocket)
+, m_socket(-1)
+, m_clientSocket(-1)
+, m_acceptCount(0)
 {
     memset((void*)&m_request, 0, sizeof(m_request));
     memset((void*)&m_bufRqst, 0, sizeof(m_bufRqst));
@@ -147,10 +147,10 @@ void SecComm::OpenConnection()
     }
     else
     {
-       // Error Message was set in SetupTransport
-       m_isValid = FALSE;
+        // Error Message was set in SetupTransport
+        m_isValid = FALSE;
     }
- }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function: Process
@@ -199,7 +199,7 @@ void SecComm::Process()
                     socketErrorType* lastErr;
                     lastErr = socketTransportLastError();
                     sprintf(m_errMsg, "Error accept - Rtn: %d, Err: %d",
-                            lastErr->accept.returnValue, lastErr->accept.errorValue);
+                        lastErr->accept.returnValue, lastErr->accept.errorValue);
 
                     m_connState = eConnNotConnected;
                 }
@@ -208,7 +208,7 @@ void SecComm::Process()
             rxed = 0;
             cbBytesRet = 0;
             while (m_connState == eConnConnected && cbBytesRet != SOCKET_ERROR && 
-                   rxed < size && !forceConnectionClosed)
+                rxed < size && !forceConnectionClosed)
             {
                 isRxing = true;
                 cbBytesRet = recv(m_clientSocket, &buffer[rxed], MAX_RX-rxed, 0);
@@ -238,7 +238,7 @@ void SecComm::Process()
                 socketErrorType* lastErr;
                 lastErr = socketTransportLastError();
                 sprintf(m_errMsg, "Error recv - Rtn: %d, Err: %d",
-                        lastErr->recv.returnValue, lastErr->recv.errorValue);
+                    lastErr->recv.returnValue, lastErr->recv.errorValue);
 
                 ResetConn();
                 waitUntilNextPeriod();
@@ -287,9 +287,9 @@ void SecComm::CheckCmd(const char* buffer, const int size)
     else
     {
         sprintf(m_errMsg, "Header Mismatch A/E 0x%08x/0x%08x 0x%08x/0x%08x Size: %d/%d",
-                m_bufRqst.header1, eSecAseH1,
-                m_bufRqst.header2, eSecAseH2,
-                m_bufRqst.size, size);
+            m_bufRqst.header1, eSecAseH1,
+            m_bufRqst.header2, eSecAseH2,
+            m_bufRqst.size, size);
         errCode = eHeaderError;
         SendAny( (const char*)&errCode, 1);
     }
@@ -346,7 +346,7 @@ void SecComm::SendAny(const char* data, UINT32 size)
         socketErrorType* lastErr;
         lastErr = socketTransportLastError();
         sprintf(m_errMsg, "Error send - Rtn: %d, Err: %d",
-                lastErr->send.returnValue, lastErr->send.errorValue);
+            lastErr->send.returnValue, lastErr->send.errorValue);
 
         m_connState = eConnNotConnected;
         closesocket(m_clientSocket);
@@ -377,48 +377,48 @@ INT32 SecComm::SetupTransport(clientConnectionHandleType &connectionHandle, CHAR
     DWORD bufferSizeInBytes;
 
     setupStatus = socketTransportInitialize("mailbox-transport.config",
-                                            "transportConfigurationId",
-                                            (DWORD)waitIndefinitely,
-                                            &setupError);
+        "transportConfigurationId",
+        (DWORD)waitIndefinitely,
+        &setupError);
     if (setupStatus != transportSuccess)
     {
         sprintf(m_errMsg, "socketTransportInitialize returned 0x%08x, error: %d",
-                setupStatus, setupError);
+            setupStatus, setupError);
     }
     else
     {
         setupStatus = socketTransportClientInitialize((DWORD)waitIndefinitely,
-                                                      &setupError);
+            &setupError);
         if (setupStatus != transportSuccess)
         {
             sprintf(m_errMsg,
-                    "socketTransportClientInitialize returned 0x%08x, error: %d",
-                    setupStatus, setupError);
+                "socketTransportClientInitialize returned 0x%08x, error: %d",
+                setupStatus, setupError);
         }
         else
         {
             setupStatus = socketTransportCreateConnection(connectionId,
-                                                          (DWORD)waitIndefinitely,
-                                                          COMPATIBILITY_ID_2,
-                                                          &connectionHandle,
-                                                          &sendBuffer,
-                                                          &bufferSizeInBytes,
-                                                          &setupError);
+                (DWORD)waitIndefinitely,
+                COMPATIBILITY_ID_2,
+                &connectionHandle,
+                &sendBuffer,
+                &bufferSizeInBytes,
+                &setupError);
             if (setupStatus != transportSuccess)
             {
                 sprintf(m_errMsg, "socketTransportCreateConnection returned 0x%08x, error: %d",
-                        setupStatus, setupError);
+                    setupStatus, setupError);
             }
             else
             {
                 setupStatus = socketTransportSetConnectionForThread( currentThreadHandle(),
-                                                                     connectionHandle,
-                                                                     (DWORD)waitIndefinitely,
-                                                                     &setupError);
+                    connectionHandle,
+                    (DWORD)waitIndefinitely,
+                    &setupError);
                 if (setupStatus != transportSuccess)
                 {
                     sprintf(m_errMsg, "socketTransportSetConnectionForThread returned 0x%08x, error: %d",
-                            setupStatus, setupError);
+                        setupStatus, setupError);
 
                 }
             }
@@ -453,10 +453,10 @@ const CHAR* SecComm::GetSocketInfo()
     int p1 = (sinAddr >> 24) & 0xff;
 
     sprintf(m_ipPort, "%s %d/%d(%d) %d.%d.%d.%d:%d Cmd: %d/%d",
-            conSts[m_connState],
-            m_socket, m_clientSocket, m_acceptCount,
-            p1, p2, p3, p4, eSecPortNumber,
-            m_cmdRequest, m_cmdServiced);
+        conSts[m_connState],
+        m_socket, m_clientSocket, m_acceptCount,
+        p1, p2, p3, p4, eSecPortNumber,
+        m_cmdRequest, m_cmdServiced);
     return m_ipPort;
 }
 

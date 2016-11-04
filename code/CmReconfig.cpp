@@ -2,9 +2,10 @@
 //          Copyright (C) 2013-2016 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
-//    File: CmProcess.cpp
+//    File: CmReconfig.cpp
 //
-//    Description:
+//    Description: Handle the reconfiguration process between PySte/ASE and 
+//                 the ADRF
 //
 // Video Display Layout
 //
@@ -76,18 +77,18 @@ static const CHAR* cmdStrings[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmReconfig::CmReconfig(AseCommon* pCommon)
-    : m_mode(eCmRecfgIdle)
-    , m_modeTimeout(0)
-    , m_lastErrCode(eCmRecfgStsMax)
-    , m_lastReCfgFailed(false)
-    , m_recfgCount(0)
-    , m_recfgCmds(0)
-    // Test Control Items
-    , m_tcRecfgAckDelay(0)
-    , m_tcFileNameDelay(0)
-    , m_tcRecfgLatchWait(1000)
-    , m_lastCmd(ADRF_TO_CM_CODE_MAX)
-    , m_pCommon(pCommon)
+: m_mode(eCmRecfgIdle)
+, m_modeTimeout(0)
+, m_lastErrCode(eCmRecfgStsMax)
+, m_lastReCfgFailed(false)
+, m_recfgCount(0)
+, m_recfgCmds(0)
+// Test Control Items
+, m_tcRecfgAckDelay(0)
+, m_tcFileNameDelay(0)
+, m_tcRecfgLatchWait(1000)
+, m_lastCmd(ADRF_TO_CM_CODE_MAX)
+, m_pCommon(pCommon)
 {
     memset(m_xmlFileName, 0, sizeof(m_xmlFileName));
     memset(m_cfgFileName, 0, sizeof(m_cfgFileName));
@@ -95,7 +96,7 @@ CmReconfig::CmReconfig(AseCommon* pCommon)
     memset(m_mbErr, 0, sizeof(m_mbErr));
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Init
 // Description: Make sure we are reset when the ADRF powers down, if we are in a script keep
 // counts.
@@ -126,7 +127,7 @@ void CmReconfig::Init()
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ResetControls
 // Description: reset the object controls to their defaults when a script ends
 //
@@ -138,7 +139,7 @@ void CmReconfig::ResetScriptControls()
     m_tcRecfgLatchWait = 1000;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: CheckCmd
 // Description: Set the filenames to be used during the reconfiguration process
 //
@@ -179,8 +180,8 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         serviced = TRUE;
         break;
 
-    //----------------------------------------------------------------------------
-    // Test Controls
+        //----------------------------------------------------------------------------
+        // Test Controls
     case eCmRecfgAckDelay:
         // send the old one back and set the new value
         secComm.m_response.value = float(m_tcRecfgAckDelay);
@@ -205,8 +206,8 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
         serviced = TRUE;
         break;
 
-    //----------------------------------------------------------------------------
-    // Test Status
+        //----------------------------------------------------------------------------
+        // Test Status
     case eGetRcfCount:
         secComm.m_response.value = float(m_recfgCount);
         secComm.m_response.successful = TRUE;
@@ -227,7 +228,7 @@ BOOLEAN CmReconfig::CheckCmd( SecComm& secComm, MailBox& out)
 }
 
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SetCfgFileName
 // Description: Set the filenames to be used during the reconfiguration process
 //
@@ -240,9 +241,9 @@ void CmReconfig::SetCfgFileName(const char* name, UINT32 size)
     strncpy(m_cfgFileName, &name[xmlLen+1], eCmRecfgFileSize);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SetCfgFileName
-// Description: MS has requested a reconfig
+// Description: MS has requested a reconfigure
 //
 bool CmReconfig::StartReconfig(MailBox& out)
 {
@@ -273,9 +274,9 @@ bool CmReconfig::StartReconfig(MailBox& out)
     return status;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ProcessCfgMailboxes
-// Description: Handle responding to the ADRF mailboxes for Reconfig
+// Description: Handle responding to the ADRF mailboxes for Reconfigure
 //
 void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 {
@@ -292,14 +293,14 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
 
         memset( &outData, 0, sizeof(outData));
 
-        // if we got a request for MS time and the MS is online - then respond
+        // if we got a request for MS time and the MS is on-line - then respond
         if (inData.code == MS_DATETIME_REQ && IS_MS_ONLINE)
         {
             LINUX_TM_FMT time;
 
             time.tm_year = m_pCommon->clocks[eClkMs].m_time.tm_year; // year from 1900
             time.tm_mon  = m_pCommon->clocks[eClkMs].m_time.tm_mon;  // month    0..11
-            time.tm_mday = m_pCommon->clocks[eClkMs].m_time.tm_mday; // day of the month  1..31
+            time.tm_mday = m_pCommon->clocks[eClkMs].m_time.tm_mday; // day of the month 1..31
             time.tm_hour = m_pCommon->clocks[eClkMs].m_time.tm_hour; // hours    0..23
             time.tm_min  = m_pCommon->clocks[eClkMs].m_time.tm_min;  // minutes  0..59
             time.tm_sec  = m_pCommon->clocks[eClkMs].m_time.tm_sec;  // seconds  0..59
@@ -321,7 +322,7 @@ void CmReconfig::ProcessCfgMailboxes(bool msOnline, MailBox& in, MailBox& out)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ProcessRecfg
 // Description: Handle commands related to reconfiguration
 //
@@ -352,7 +353,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     //       the protocol state whenever ADRF sends the RECFG_REQ_CODE code
     if (inData.code == RECFG_REQ_CODE)
     {
-        // The ADRF is requesting we start a reconfig
+        // The ADRF is requesting we start a reconfigure
         // TODO: are we responding
         // TODO: are we responding with garbage?
         m_modeTimeout = m_tcRecfgAckDelay;
@@ -395,7 +396,7 @@ bool CmReconfig::ProcessRecfg(bool msOnline, ADRF_TO_CM_RECFG_RESULT& inData, Ma
     {
         if (inData.code == MS_RECFG_ACK)
         {
-            // recfg request acknowledged wait for the ADRf to start the reconfig
+            // recfg request acknowledged wait for the ADRf to start the reconfigure
             m_mode = eCmRecfgWaitRequest;
             cmdHandled = true;
         }

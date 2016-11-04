@@ -2,17 +2,17 @@
 #define CMFILEXFER_H_
 
 /******************************************************************************
-          Copyright (C) 2013-2016 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:         CmFileXfer.h
+File:         CmFileXfer.h
 
-    Description:  This class implements the functionality of the ADRF
-    log transfer.  It handles all requests and responses during the
-    transfer.
+Description:  This class implements the functionality of the ADRF
+log transfer.  It handles all requests and responses during the
+transfer.
 
-    It has control items that allow the test scripts to define how it responds
-    to ADRF.
+It has control items that allow the test scripts to define how it responds
+to ADRF.
 
 ******************************************************************************/
 

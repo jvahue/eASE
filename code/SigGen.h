@@ -15,10 +15,10 @@ public:
     float Update( float oldValue, bool sgRun);
 
     bool SetParams( int type, int updateMs,
-                    float param1, float param2, float param3=0.0f, float param4=0.0f);
+        float param1, float param2, float param3=0.0f, float param4=0.0f);
 
     void GetParams( int updateMs,
-                    float& p1, float& p2, float& p3, float& p4) const;
+        float& p1, float& p2, float& p3, float& p4) const;
 
     void GetRepresentation(char* buffer) const;
     void GetSgName(char* buffer) const;

@@ -61,25 +61,25 @@ static const char* modeNames[] = {
 // Description: Implement the file transfer protocol
 //
 CmFileXfer::CmFileXfer(AseCommon* pCommon)
-    : m_mode(eXferIdle)
-    , m_modeTimeout(0)
+: m_mode(eXferIdle)
+, m_modeTimeout(0)
 
-    , m_tcAckDelay(0)
-    , m_tcAckStatus(CM_ACK)
-    , m_tcAckInfo(CM_FILE_XFR)
+, m_tcAckDelay(0)
+, m_tcAckStatus(CM_ACK)
+, m_tcAckInfo(CM_FILE_XFR)
 
-    , m_fileCrc(0)
-    //, m_fileCrcAck(0)
+, m_fileCrc(0)
+//, m_fileCrcAck(0)
 
-    , m_msOnline(false)
-    , m_pCommon(pCommon)
+, m_msOnline(false)
+, m_pCommon(pCommon)
 {
-  memset(m_xferFileName, 0, sizeof(m_xferFileName));
-  memset((void*)&m_sendMsgBuffer, 0, sizeof(m_sendMsgBuffer));
-  ResetCounters();
+    memset(m_xferFileName, 0, sizeof(m_xferFileName));
+    memset((void*)&m_sendMsgBuffer, 0, sizeof(m_sendMsgBuffer));
+    ResetCounters();
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: CheckCmd
 // Description: Command Handler for CmFileXfer
 //
@@ -137,7 +137,7 @@ BOOLEAN CmFileXfer::CheckCmd( SecComm& secComm)
     return serviced;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ProcessFileXfer
 // Description: Implement the file transfer protocol
 //
@@ -201,14 +201,14 @@ void CmFileXfer::ProcessFileXfer(bool msOnline, MailBox& in, MailBox& out)
 
         break;
 
-    // TODO: could add one more state to delay the COMPLETE response from us back to the ADRF
+        // TODO: could add 1 more state to delay the COMPLETE response from us back to the ADRF
 
     default:
         break;
     };
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: FileXferResponse
 // Description: Handle responding to the client input messages
 //
@@ -312,7 +312,7 @@ void CmFileXfer::FileXferResponse(FILE_RCV_MSG& rcv, MailBox& out)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SendAckCtrl
 // Description: Control sending Ack responses to the client
 //
@@ -328,7 +328,7 @@ void CmFileXfer::SendAckTimeout(MailBox& out)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SendAck
 // Description: Actually send the Ack
 //
@@ -345,7 +345,7 @@ void CmFileXfer::SendAck(MailBox& out)
     out.Send(&ack, sizeof(ack));
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SendCrc
 // Description: Send the CRC to the ADRF for the file just uploaded
 //
@@ -372,7 +372,7 @@ void CmFileXfer::SendCrc(MailBox& out)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: FileStatus
 // Description: Indicate a files status from CmProc - this only cares if the filename passed in
 // matches the xfer filename
@@ -396,7 +396,7 @@ void CmFileXfer::FileStatus(char* filename, bool canOpen)
     }
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: GetMode
 // Description: Display string for current mode
 //
@@ -405,7 +405,7 @@ const char* CmFileXfer::GetModeName() const
     return modeNames[m_mode];
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ResetCounters
 // Description: reset all of the status counters
 //

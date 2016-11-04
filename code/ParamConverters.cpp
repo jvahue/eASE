@@ -1,10 +1,10 @@
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File: ParamConverters.cpp
+File: ParamConverters.cpp
 
-    Description: The file implements the Parameter object processing
+Description: The file implements the Parameter object processing
 
 ******************************************************************************/
 
@@ -300,10 +300,10 @@ void ParamConverter::SetIoiA429Name()
         {
             //ioiNameUsed[i] += 1;
             //if (ioiNameUsed[i] == 1)
-           // {
-                strcpy( m_ioiName, ioiA429Names[i].name);
-           // }
-           //else
+            // {
+            strcpy( m_ioiName, ioiA429Names[i].name);
+            // }
+            //else
             //{
             //    sprintf( m_ioiName, "%s_%d", ioiA429Names[i].name, ioiNameUsed[i]);
             //}
@@ -421,7 +421,7 @@ void ParamConverter::SetSsm( INT32 value)
 //
 // Note: this function sets validity to allow the script to control sending the parameter to the
 // ADRF.  If the label is changed from the value the parameter was initialized with the parameter
-// is set to invlaid so no updates occur via IOI.  When the label is restored to its original
+// is set to invalid so no updates occur via IOI.  When the label is restored to its original
 // value validity is restored.
 //
 void ParamConverter::SetLabel( INT32 value)

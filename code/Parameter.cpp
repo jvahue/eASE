@@ -1,5 +1,5 @@
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
+          Copyright (C) 2013-2016 Knowlogic Software Corp.
          All Rights Reserved. Proprietary and Confidential.
 
     File: Parameter.cpp

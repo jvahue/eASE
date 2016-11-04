@@ -47,20 +47,20 @@ static char* modeNames[eMaxSensorMode] = {
 
 //--------------------------------------------------------------------------------------------------
 SignalGenerator::SignalGenerator()
-  : m_type( eSGmanual)
-  , m_param1(0.0f)
-  , m_param2(0.0f)
-  , m_param3(0.0f)
-  , m_param4(0.0f)
-  , m_orgParam1(0.0f)
-  , m_orgParam2(0.0f)
-  , m_orgParam3(0.0f)
-  , m_orgParam4(0.0f)
-  , m_counter(-1)
-  , m_degrees(0.0f)
-  , m_step0(0.0f)
-  , m_firstRun(true)
-  , m_last(0)
+: m_type( eSGmanual)
+, m_param1(0.0f)
+, m_param2(0.0f)
+, m_param3(0.0f)
+, m_param4(0.0f)
+, m_orgParam1(0.0f)
+, m_orgParam2(0.0f)
+, m_orgParam3(0.0f)
+, m_orgParam4(0.0f)
+, m_counter(-1)
+, m_degrees(0.0f)
+, m_step0(0.0f)
+, m_firstRun(true)
+, m_last(0)
 {
     // for deterministic results start with the same seed
     m_random.Seed(0);
@@ -111,7 +111,7 @@ float SignalGenerator::Reset( float lastValue)
 //--------------------------------------------------------------------------------------------------
 // The user just hit set so initialize or update the SG params
 bool SignalGenerator::SetParams( int type, int updateMs,
-                                 float param1, float param2, float param3, float param4)
+                                float param1, float param2, float param3, float param4)
 {
     bool status = true;
     m_type = static_cast<SigGenEnum>(type);
@@ -199,8 +199,8 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     // check if params are valid and we can generate the requested signal
     GetParams(updateMs, param1, param2, param3, param4);
     if ( !status ||
-         !EqFp( param1, m_orgParam1) || !EqFp( param2, m_orgParam2) ||
-         !EqFp( param3, m_orgParam3) || !EqFp( param4, m_orgParam4))
+        !EqFp( param1, m_orgParam1) || !EqFp( param2, m_orgParam2) ||
+        !EqFp( param3, m_orgParam3) || !EqFp( param4, m_orgParam4))
     {
         m_type = eSGmanual;
         return false;
@@ -215,7 +215,7 @@ bool SignalGenerator::SetParams( int type, int updateMs,
 // When the user selects a currently configured SG this function returns the parameters to the
 // display
 void SignalGenerator::GetParams( int updateMs,
-                                 float& param1, float& param2, float& param3, float& param4) const
+                                float& param1, float& param2, float& param3, float& param4) const
 {
     // BUG: the could be set to m_orgParamX but we reverse compute these until we get the error
     //     checking in SetParams
@@ -397,38 +397,38 @@ void SignalGenerator::GetRepresentation(char* buffer) const
 {
     switch (m_type)
     {
-        case eSGmanual:
-            sprintf(buffer, "manual(%.2f)", m_orgParam1);
-            break;
-        case eSGramp:
-            sprintf(buffer, "ramp(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
-          break;
-        case eSGrampHold:
-            sprintf(buffer, "rampHold(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
-            break;
-        case eSGtriangle:
-            sprintf(buffer, "triangle(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
-            break;
-        case eSGsine:
-            sprintf(buffer, "sine(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
-            break;
-        case eSG1Shot:
-            sprintf(buffer, "oneshot(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
-            break;
-        case eSGnShot:
-            sprintf(buffer, "nshot(%.2f, %.2f, %.2f, %.2f)",
-                             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
-            break;
-        case eSGpwm:
-            sprintf(buffer, "pwm(%.2f, %.2f, %.2f, %.2f)",
-                             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
-            break;
-        case eSGrandom:
-            sprintf(buffer, "random(%.2f, %.2f)", m_orgParam1, m_orgParam2);
-            break;
-        default:
-            sprintf(buffer, "Unknown(%d)", m_type);
-            break;
+    case eSGmanual:
+        sprintf(buffer, "manual(%.2f)", m_orgParam1);
+        break;
+    case eSGramp:
+        sprintf(buffer, "ramp(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
+        break;
+    case eSGrampHold:
+        sprintf(buffer, "rampHold(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
+        break;
+    case eSGtriangle:
+        sprintf(buffer, "triangle(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
+        break;
+    case eSGsine:
+        sprintf(buffer, "sine(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
+        break;
+    case eSG1Shot:
+        sprintf(buffer, "oneshot(%.2f, %.2f, %.2f)", m_orgParam1, m_orgParam2, m_orgParam3);
+        break;
+    case eSGnShot:
+        sprintf(buffer, "nshot(%.2f, %.2f, %.2f, %.2f)",
+            m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
+        break;
+    case eSGpwm:
+        sprintf(buffer, "pwm(%.2f, %.2f, %.2f, %.2f)",
+            m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
+        break;
+    case eSGrandom:
+        sprintf(buffer, "random(%.2f, %.2f)", m_orgParam1, m_orgParam2);
+        break;
+    default:
+        sprintf(buffer, "Unknown(%d)", m_type);
+        break;
 
     }
 }

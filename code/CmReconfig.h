@@ -2,18 +2,18 @@
 #define CMRECONFIG_H_
 
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:         CmReconfig.h
+File:         CmReconfig.h
 
-    Description:  This class implements the functitonality of the ADRF
-    reconfiguration.  It handles all requests and responses during the
-    reconfiguration.
+Description:  This class implements the functionality of the ADRF
+reconfiguration.  It handles all requests and responses during the
+reconfiguration.
 
-    It has control items that allow the test scripts to define how it responds
-    to ADRF.  All of these Test Control item are identified by m_tc<Name>.
-    All of them can be set via commands from the test script.
+It has control items that allow the test scripts to define how it responds
+to ADRF.  All of these Test Control item are identified by m_tc<Name>.
+All of them can be set via commands from the test script.
 
 ******************************************************************************/
 
@@ -52,20 +52,20 @@ public:
 
     // enums must match RECFG_ERR_CODE_ENUM in Interface_CM.h before
     enum CmReconfigStatus {
-      eCmRecfgStsOk = 0,     
-      eCmRecfgStsBadFile,
-      eCmRecfgCrcError,
-      eCmRecfgDelimitError,
-      eCmRecfgParseError,
-      eCmRecfgBinFileCrcError,
-      eCmRecfgBinChanCrcError,
-      eCmRecfgBadXmlFile,
-      eCmRecfgXmlCrcError,
-      eCmRecfgXmlParseError,
-      eCmRecfgNoCmResponse,
+        eCmRecfgStsOk = 0,     
+        eCmRecfgStsBadFile,
+        eCmRecfgCrcError,
+        eCmRecfgDelimitError,
+        eCmRecfgParseError,
+        eCmRecfgBinFileCrcError,
+        eCmRecfgBinChanCrcError,
+        eCmRecfgBadXmlFile,
+        eCmRecfgXmlCrcError,
+        eCmRecfgXmlParseError,
+        eCmRecfgNoCmResponse,
 
-      eCmRecfgStsNoVfyRsp,  // .. eCmRecfgStsNoVfyRsp - this is our status for no response
-      eCmRecfgStsMax
+        eCmRecfgStsNoVfyRsp,  // .. eCmRecfgStsNoVfyRsp - this is our status for no response
+        eCmRecfgStsMax
     };
 
     CmReconfig(AseCommon* pCommon);

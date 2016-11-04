@@ -63,7 +63,7 @@
 
 
 /*****************************************************************************/
-/* Local Variables                                       */
+/* Local Variables                                                           */
 /*****************************************************************************/
 const char* partName[] = {"CM-partition", "ADRF-partition"};
 
@@ -103,7 +103,7 @@ File::File()
 
     strncpy(m_clientAccessRes, "CM-CAR", eMaxResName);
 
-    // Open m_portAddr[] to 0 and the set the portsize.
+    // Open m_portAddr[] to 0 and the set the port size.
     for (i = 0; i < eNumPorts; i++)
     {
         m_portAddr[i] = 0;
@@ -119,7 +119,7 @@ File::File()
     if (m_resStatus == resValid)
     {
         // Get a pointer to the alive counter,
-        // wait for increment to show the cffs is running
+        // wait for increment to show the CFFS is running
         aliveCnt = cffsAliveCounter( m_sAdr );
         initVal  = *aliveCnt;
         do
@@ -259,7 +259,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
     SIGNED32   bytesRead = 0; // count of bytes copied to pBuff
     SIGNED32   debug_readCnt;
 
-    void*      pDest;    // working-address in pBuff for putting bytes frm port
+    void*      pDest;    // working-address in pBuff for putting bytes from port
     UNSIGNED32 destSize; // working-cnt of bytes avail in pBuff
 
     if ( !m_bOpen || size > MAX_READ_SIZE || m_mode != 'r')
@@ -267,7 +267,7 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
         m_fileError = eInvalidOperation;
         return -1;
     }
-    // Read from cffs for the requested size or EOF, whichever comes first.
+    // Read from CFFS for the requested size or EOF, whichever comes first.
     // if fewer bytes in port than requested by size, the function will transfer
     // available bytes from port -> pBuff and issue a read to fetch more bytes from
     // phys->port if available. Loop until the pBuff has been filled or
@@ -302,7 +302,9 @@ SIGNED32 File::Read(void *pBuff, UNSIGNED32 size)
             if (m_physOffset < m_fileSize )
             {
                 m_dataReq.sizeofStruct = sizeof(m_dataReq);
-                cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);//TBD still needed in v3.7.1
+                
+                //TBD still needed in v3.7.1
+                cffsGetPortInfo(m_cAdr, (UNSIGNED32)ePortIndex, &m_dataReq);
 
                 m_cffsStatus = cffsSeekX(m_sAdr,
                                          m_cAdr,
@@ -381,7 +383,7 @@ BOOLEAN File::Write(void *pBuff, UNSIGNED32 size)
             bytesToSend -= bytesFree;
             pBuff = (void*)((unsigned char*)pBuff + bytesFree);
 
-            // Perform a phys write from port to cffs...
+            // Perform a phys write from port to CFFS ...
             // (NOTE: Flush will resets m_bytesInUse to zero and set m_cffsStatus)
             Flush();
         }
@@ -399,7 +401,7 @@ BOOLEAN File::Delete(const char* fileName, File::PartitionType partType)
 {
     BOOLEAN status;
 
-    // always open as it really doesn't matter in cffs
+    // always open as it really doesn't matter in CFFS
     if ( Open(fileName, partType, 'r'))
     {
         // Delete the file
@@ -438,7 +440,7 @@ BOOLEAN File::Flush(void)
         cffsGetPortInfo(m_cAdr, ePortIndex, &m_dataReq);
 
         // Flush is called when the 512-aligned port is full or on final write
-        // so there should never be issues with cffs over-writing  on the previous
+        // so there should never be issues with CFFS over-writing  on the previous
         // media boundary.
         m_cffsStatus = CFFS_WRITE( m_sAdr,                   // ptr Srv metadata
                                    m_cAdr,                   // ptr client access res.

@@ -1,16 +1,16 @@
 #ifndef ccdl_h
 #define ccdl_h
 /******************************************************************************
-            Copyright (C) 2013 Knowlogic Software Corp.
-         All Rights Reserved. Proprietary and Confidential.
+Copyright (C) 2013-2016 Knowlogic Software Corp.
+All Rights Reserved. Proprietary and Confidential.
 
-    File:        ccdl.h
+File:        ccdl.h
 
-    Description: This file implements the base class for simulating the Cross
-    channel Data Link (CCDL)
+Description: This file implements the base class for simulating the Cross
+channel Data Link (CCDL)
 
-    VERSION
-    $Revision: $  $Date: $
+VERSION
+$Revision: $  $Date: $
 
 ******************************************************************************/
 
@@ -119,9 +119,9 @@ public:
     // Out msg components
     UINT32 m_rqstParamIdMap[PARAM_XCH_BUFF_MAX]; // slot to param ID (index) map
     PARAM_XCH_BUFF m_rqstParamMap;               // what we request we will receive
-    PARAM_XCH_BUFF m_txParamData;                // this is what we send to the ADRF at run time
+    PARAM_XCH_BUFF m_txParamData;                // this is what we send to the ADRF at runtime
     PARAM_XCH_BUFF m_txHistData;                 // this is where we send the history data from
-    
+
     // In msg components
     PARAM_XCH_BUFF m_rxParamData;         // this is what we get in
     UINT32 m_ccdlRawParam[eAseMaxParams]; // a place to hold the data from the remote channel
@@ -136,7 +136,7 @@ public:
 
     UINT32 m_ccdlCalls;
     UINT32 m_rxCount;      // how many input msgs
-    UINT32 m_txCount;      // how many output msg
+    UINT32 m_txCount;      // how many output msgs
     UINT32 m_rxParam;      // how many input params
     UINT32 m_txParam;      // how many output params
     UINT32 m_rxFailCount;  // how many missing/failed inputs
