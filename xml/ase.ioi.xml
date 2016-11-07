@@ -69159,6 +69159,15 @@
            comment = "UTAS SW Dwd Number send out during init"
       ></producedItem>
       <producedItem
+           name = "a664_to_ioc_eicas"
+           productionRate = "50000"
+           messageForm = "1024I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "A664 QAR Raw 20 Hz"
+      ></producedItem>
+      <producedItem
            name = "ac_aoa1_raw"
            productionRate = "50000"
            messageForm = "I"
@@ -70400,7 +70409,7 @@
            bufferOptions = "queueDepth:1"
            comment = "86: 100 Hz"
       ></producedItem>
-   </producedItems>
+  </producedItems>
    <consumedItems>
       <consumedItem
            name = "8204050_32"
@@ -71102,5 +71111,5 @@
            comment = "rtc io wr year"
            consumptionOptions = "lastProduced"
       ></consumedItem>
-   </consumedItems>
+  </consumedItems>
 </ioiConfig>
