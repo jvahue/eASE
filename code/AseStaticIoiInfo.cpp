@@ -8,8 +8,8 @@
 
 #include "ioiStatic.h"
 
-#define ASE_IN_MAX 93
-#define ASE_OUT_MAX 70
+#define ASE_IN_MAX 70
+#define ASE_OUT_MAX 93
 
 // ------------------- U U T   I N P U T S ---------------------------
 // -------------------- ASE Produced - ADRf Consumed -----------------
@@ -165,7 +165,7 @@ StaticIoiStr   si90("8313864_20", _8313864_20, 240);
 StaticIoiStr   si91("8313864_35", _8313864_35, 240);
 StaticIoiStr   si92("a664_to_ioc_eicas", _a664_to_ioc_eicas, 4096);
 
-StaticIoiObj* aseIoiIn[ASE_IN_MAX] = {
+StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &si0,
     &si1,
     &si2,
@@ -349,7 +349,7 @@ StaticIoiInt   so67("8204072_64", 0, true);
 StaticIoiInt   so68("adrf_pat_udt_remain_b", 0, true);
 StaticIoiInt   so69("adrf_pat_udt_remain_a", 0, true);
 
-StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
+StaticIoiObj* aseIoiIn[ASE_IN_MAX] = {
     &so0,
     &so1,
     &so2,

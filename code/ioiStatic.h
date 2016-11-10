@@ -24,7 +24,7 @@ class StaticIoiObj
 {
 public:
     char  ioiName[64];      // IOI binder producer name
-    char  m_shortName[64];  // IOI binder producer name
+    char  m_shortName[64];  // short name for display on console
     INT32 ioiChan;          // deos ioi channel id
     bool ioiValid;          // is the ioi opened
     bool ioiRunning;        // is the ioi being output on a regular basis
@@ -147,6 +147,15 @@ public:
     UINT32 m_validIoiIn;
     UINT32 m_writeError;
     UINT32 m_readError;
+
+    // received by ASE from the UUT
+    UINT32 m_ssXi; // rtc_io_wr_seconds - prob 19
+    UINT32 m_mmXi; // rtc_io_wr_minutes - prob 17
+    UINT32 m_hhXi; // rtc_io_wr_hour    - prob 16
+    UINT32 m_ddXi; // rtc_io_wr_date    - prob 14
+    UINT32 m_moXi; // rtc_io_wr_month   - prob 18
+    UINT32 m_yyXi; // rtc_io_wr_year    - prob 20
+
 };
 
 #endif
