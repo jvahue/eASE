@@ -9,6 +9,7 @@
 // NOTE: 
 //   This should be done with templates and that is left as an exercise for the reader
 //?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|?|
+#define MAX_STATIC_IOI 100
 
 // File: ioiProcess.h
 enum IoiStaticTypes {
@@ -102,7 +103,9 @@ public:
         : StaticIoiObj(name, isInput)
         , data(value)
         , bytes(size)
-    {}
+    {
+        memset(data, 0, bytes);
+    }
     virtual bool SetStaticIoiData(SecRequest& request);
     virtual bool GetStaticIoiData(IocResponse& m_response);
     virtual bool Update();
@@ -138,24 +141,15 @@ public:
     void ResetApatIoi();
     void UpdateStaticIoi();
 
-    StaticIoiObj* m_staticIoiOut[100];
+    StaticIoiObj* m_staticIoiOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;
-    StaticIoiObj* m_staticIoiIn[100];
+    StaticIoiObj* m_staticIoiIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
     UINT32 m_updateIndex;
     UINT32 m_validIoiOut;
     UINT32 m_validIoiIn;
     UINT32 m_writeError;
     UINT32 m_readError;
-
-    // received by ASE from the UUT
-    UINT32 m_ssXi; // rtc_io_wr_seconds - prob 19
-    UINT32 m_mmXi; // rtc_io_wr_minutes - prob 17
-    UINT32 m_hhXi; // rtc_io_wr_hour    - prob 16
-    UINT32 m_ddXi; // rtc_io_wr_date    - prob 14
-    UINT32 m_moXi; // rtc_io_wr_month   - prob 18
-    UINT32 m_yyXi; // rtc_io_wr_year    - prob 20
-
 };
 
 #endif
