@@ -99,13 +99,7 @@ public:
 class StaticIoiStr : public StaticIoiObj
 {
 public:
-    StaticIoiStr(char* name, char* value, int size, bool isInput=false)
-        : StaticIoiObj(name, isInput)
-        , data(value)
-        , bytes(size)
-    {
-        memset(data, 0, bytes);
-    }
+    StaticIoiStr(char* name, char* value, int size, bool isInput=false);
     virtual bool SetStaticIoiData(SecRequest& request);
     virtual bool GetStaticIoiData(IocResponse& m_response);
     virtual bool Update();

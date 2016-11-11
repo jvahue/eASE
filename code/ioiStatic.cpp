@@ -37,7 +37,7 @@
 //----------------------------------------------------------------------------/
 // Constant Data                                                             -/
 //----------------------------------------------------------------------------/
-#include "AseStaticIoiInfo.cpp"
+#include "AseStaticIoiInfo.h"
 
 #if MAX_STATIC_IOI <= ASE_IN_MAX
 #error Need to Increase MAX_STATIC_IOI to be greater than ASE_IN_MAX
@@ -317,11 +317,25 @@ bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
 //
 //}
 
+StaticIoiStr::StaticIoiStr(char* name, char* value, int size, bool isInput/*=false*/) 
+: StaticIoiObj(name, isInput)
+, data(value)
+, bytes(size)
+{
+    memset(data, 0, bytes);
+}
+
 //---------------------------------------------------------------------------------------------
 bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 {
-    strncpy(data, request.charData, request.charDataSize);
-    data[request.charDataSize] = '\0';
+    UINT32 offset = request.clearCfgRequest;
+
+    if (offset == 0)
+    {
+        memset(data, 0, bytes);
+    }
+
+    memcpy(&data[offset], request.charData, request.charDataSize);
     ioiRunning = ioiValid;
     Update();
     return true;
@@ -355,10 +369,15 @@ bool StaticIoiStr::Update()
 }
 
 //---------------------------------------------------------------------------------------------
+// To handle data larger than the response streamData we pass in the streamSize variable the
+// start offset given to us by PySte for eGetStaticIoi requests
 bool StaticIoiStr::GetStaticIoiData( IocResponse& m_response)
 {
-    strncpy(m_response.streamData, data, bytes);
-    m_response.streamSize = bytes;
+    UINT32 offset = m_response.streamSize;
+    UINT32 left = bytes - offset;
+
+    memcpy(m_response.streamData, &data[offset], left);
+    m_response.streamSize = left;
     return true;
 }
 
@@ -567,7 +586,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         tens = aseCommon.clocks[eClkRtc].m_time.tm_mon / 10;
         data = tens << 4 | ones;
         _rtc_io_rd_month[0] = data;
-        lastMo != aseCommon.clocks[eClkRtc].m_time.tm_mon;
+        lastMo = aseCommon.clocks[eClkRtc].m_time.tm_mon;
     }
 
     // year updated
@@ -725,6 +744,9 @@ bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
 {
     if (secComm.m_request.variableId < m_ioiStaticInCount)
     {
+        // here is a little trick we play for String types to big to fit into the streamData
+        secComm.m_response.streamSize = secComm.m_request.sigGenId;
+
         // get the value and return true
         m_staticIoiIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
         return true;
