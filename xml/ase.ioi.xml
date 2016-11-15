@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "1086820049"
-     fileDate = "Fri Nov 11 15:00:57 2016"
+     validityKey = "516281388"
+     fileDate = "Tue Nov 15 11:23:42 2016"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -69161,7 +69161,7 @@
       <producedItem
            name = "a664_to_ioc_eicas"
            productionRate = "50000"
-           messageForm = "1024I"
+           messageForm = "256I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"

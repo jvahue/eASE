@@ -91,7 +91,6 @@ IoiProcess::IoiProcess()
 , m_execFrame(0)
 , m_dateId(eAseMaxParams)
 , m_timeId(eAseMaxParams)
-
 {
     // clear out the paramInfo
     memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -296,6 +295,8 @@ void IoiProcess::HandlePowerOff()
 //---------------------------------------------------------------------------------------------
 // Function: UpdateIoi
 // Description: Update all of the "output" parameters from the ioi process
+//
+// Note: this function is called at 100Hz
 //
 void IoiProcess::UpdateIoi()
 {
@@ -643,13 +644,15 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
         break;
 
     case 1:
-        debug_str(Static, 1, 0, "Valid R/W(%d/%d)/(%d/%d) Error R/W(%d/%d) Valid Update: %d", 
+        debug_str(Static, 1, 0, "Valid R/W(%d|%d)/(%d|%d) Error R(%d|%d) W(%d|%d) UpdateX: %d", 
             m_ioiStatic.m_validIoiIn, 
             m_ioiStatic.m_ioiStaticInCount,
             m_ioiStatic.m_validIoiOut, 
             m_ioiStatic.m_ioiStaticOutCount,
             m_ioiStatic.m_readError,
+            m_ioiStatic.m_readError - m_ioiStatic.m_readErrorZ1,
             m_ioiStatic.m_writeError,
+            m_ioiStatic.m_writeError - m_ioiStatic.m_writeErrorZ1,
             m_ioiStatic.m_updateIndex);
         break;
 
@@ -841,8 +844,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
-    case eSetSdi:
+        //-------------------------------------------------------------------------------------
         {
             // [msb                 lsb]
             // [Spare | Bus | Lbl | Vlu] <= bytes in itemId
@@ -877,7 +879,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetSsm:
         {
             // [msb                 lsb]
@@ -917,7 +919,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetLabel:
         {
             // [msb                 lsb]
@@ -957,7 +959,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSendParamData:
         if (CollectParamInfo(request.variableId, request.sigGenId, request.charData))
         {
@@ -972,14 +974,14 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eInitParamData:
         InitIoi();
         secComm.m_response.successful = true;
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eDisplayParam:
         if (request.sigGenId < eIoiMaxDisplay)
         {
@@ -1005,7 +1007,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eResetIoi:
         // clear the paramInfo array
         memset((void*)m_paramInfo, 0, sizeof(m_paramInfo));
@@ -1016,7 +1018,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eDisplayState:
         if (request.variableId == (int)Ioi || request.variableId == (int)Params)
         {
@@ -1027,7 +1029,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         }
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eParamState:
         if (m_parameters[request.variableId].m_isValid)
         {
@@ -1041,35 +1043,36 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eParamIoState:
         m_paramIoRunning = request.variableId != 0;
         secComm.m_response.successful = true;
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetStaticIoi:
         if (request.sigGenId == 1)
         {
-            if (m_ioiStatic.SetStaticIoiData(request))
-            {
-                secComm.m_response.successful = true;
-            }
-            else
-            {
-                secComm.ErrorMsg("SetIoi: Invalid signal Id(%d)", request.variableId);
-                secComm.m_response.successful = false;
-            }
+            // make sure this is enabled for output
+            m_ioiStatic.SetNewState(request);
+            secComm.m_response.successful = m_ioiStatic.SetStaticIoiData(secComm);
+        }
+        else if (request.sigGenId == 2)
+        {   
+            // disable the IOI output
+            m_ioiStatic.SetNewState(request);
+            secComm.m_response.successful = true;
         }
         else
         {
-            m_ioiStatic.SetNewState(request);
+            secComm.ErrorMsg("SetStaticIoi: Invalid Mode (%d)", request.sigGenId);
+            secComm.m_response.successful = false;
         }
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eGetStaticIoi:
 
         if (m_ioiStatic.GetStaticIoiData(secComm))
@@ -1084,14 +1087,14 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetIoiDuration:
         m_maxProcDuration = request.variableId;
         serviced = TRUE;
 
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eGetRemoteTrig:
         // return the state of a local/remote report requested
         if (itemId >= 0 && itemId < 128)
@@ -1122,7 +1125,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetRemoteTrig:
         // set the state of a remote report requested
         if (itemId >= 0 && itemId < 128)
@@ -1147,7 +1150,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eSetShipTimeId:
         // item/varibaleID paramID for Date in the upper half of the word, time in lower half
         dateId = itemId >> 16;
@@ -1174,7 +1177,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
 
-        //-----------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     default:
         // we did not service this command - check our subordinates
         subserviced = m_ccdl.CheckCmd(secComm);

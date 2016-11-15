@@ -21,6 +21,7 @@ enum IoiStaticTypes {
     eStaticStr = 5,
 };
 
+//=============================================================================================
 class StaticIoiObj
 {
 public:
@@ -53,7 +54,7 @@ public:
     char* CompressName(char* src, int size);
 };
 
-
+//=============================================================================================
 class StaticIoiByte : public StaticIoiObj
 {
 public:
@@ -68,6 +69,7 @@ public:
     unsigned char data;
 };
 
+//=============================================================================================
 class StaticIoiInt : public StaticIoiObj
 {
 public:
@@ -82,6 +84,7 @@ public:
     int data;
 };
 
+//=============================================================================================
 class StaticIoiFloat : public StaticIoiObj
 {
 public:
@@ -96,6 +99,7 @@ public:
     float data;
 };
 
+//=============================================================================================
 class StaticIoiStr : public StaticIoiObj
 {
 public:
@@ -104,6 +108,7 @@ public:
     virtual bool GetStaticIoiData(IocResponse& m_response);
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
+    int displayAt;
     char* data;
     int bytes;
 };
@@ -121,6 +126,32 @@ public:
 };
 
 //=============================================================================================
+class A664Qar
+{
+public:
+    enum a664QarConst {
+        eSfCount = 4,
+        eBurstCount = 20,
+        eSfWordCount = 1024,
+    };
+    A664Qar(StaticIoiStr* buffer);
+    bool SetData(SecRequest& request);
+
+    void Update();
+    
+    StaticIoiStr* m_ioiBuffer;  // the IOI buffer sending the data
+
+    int m_sf;             // which sub-frame are we outputting
+    int m_burst;          // which block of the sub-frame are we sending
+    int m_burstSize[eBurstCount];  // the size of each of the 20 blocks being sent / SF
+
+    int m_ndo[eSfCount];
+
+    // four sub-frames worth of data
+    UINT16 m_words[eSfWordCount * 4];
+};
+
+//=============================================================================================
 class StaticIoiContainer
 {
 public:
@@ -128,22 +159,29 @@ public:
     void OpenIoi();
 
     //IocResponse GetStaticIoiData(SecRequest& request);
-    bool SetStaticIoiData(SecRequest& request);
+    void UpdateStaticIoi();
+    bool SetStaticIoiData(SecComm& secComm);
     bool GetStaticIoiData(SecComm& secComm);    
     void SetNewState(SecRequest& request);
     void Reset();
     void ResetApatIoi();
-    void UpdateStaticIoi();
 
     StaticIoiObj* m_staticIoiOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;
     StaticIoiObj* m_staticIoiIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
+
+    A664Qar m_a664Qar;
+
     UINT32 m_updateIndex;
     UINT32 m_validIoiOut;
     UINT32 m_validIoiIn;
     UINT32 m_writeError;
+    UINT32 m_writeErrorZ1;
     UINT32 m_readError;
+    UINT32 m_readErrorZ1;
+    UINT32 m_a664QarSched;  // used to schedule A664 QAR at 20Hz
+    UINT32 m_a664QarSF;     // used to schedule A664 QAR SF 0 .. 3
 };
 
 #endif

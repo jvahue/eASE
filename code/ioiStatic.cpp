@@ -25,6 +25,9 @@
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
 //----------------------------------------------------------------------------/
+#define TEN(x) ( ((x >> 4) & 0xF) * 10)
+#define ONE(x) (x & 0xF)
+#define VALUE(x) TEN(x) + ONE(x)
 
 //----------------------------------------------------------------------------/
 // Local Typedefs                                                            -/
@@ -174,7 +177,6 @@ void StaticIoiObj::SetRunState(bool newState)
 bool StaticIoiByte::SetStaticIoiData( SecRequest& request )
 {
     data = (unsigned char)request.resetRequest;
-    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -222,7 +224,6 @@ bool StaticIoiByte::Update()
 bool StaticIoiInt::SetStaticIoiData( SecRequest& request )
 {
     data = request.resetRequest;
-    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -272,7 +273,6 @@ bool StaticIoiInt::GetStaticIoiData(IocResponse& m_response)
 bool StaticIoiFloat::SetStaticIoiData( SecRequest& request )
 {
     data = request.value;
-    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -319,6 +319,7 @@ bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
 
 StaticIoiStr::StaticIoiStr(char* name, char* value, int size, bool isInput/*=false*/) 
 : StaticIoiObj(name, isInput)
+, displayAt(0)
 , data(value)
 , bytes(size)
 {
@@ -336,7 +337,6 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
     }
 
     memcpy(&data[offset], request.charData, request.charDataSize);
-    ioiRunning = ioiValid;
     Update();
     return true;
 }
@@ -344,14 +344,16 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 char* StaticIoiStr::Display( char* dest, UINT32 dix )
 {
+    unsigned int* dp = (unsigned int*)&data[displayAt];
     if (ioiRunning)
     {
-        sprintf(dest, "%2d:%s: %s", dix, m_shortName, data);
+        sprintf(dest, "%2d:%s: 0x%08x", dix, m_shortName, *dp);
     }
     else
     {
-        sprintf(dest, "xx:%s: %s", m_shortName, data);
+        sprintf(dest, "xx:%s: 0x%08x", m_shortName, *dp);
     }
+
     return dest;
 }
 
@@ -415,6 +417,91 @@ StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput
     data = value;
     bytes = size * sizeof(int);
 }
+
+
+//=============================================================================================
+A664Qar::A664Qar(StaticIoiStr* buffer)
+{
+    // which sub-frame are we outputting
+    m_sf = 0;         
+    // which block of the sub-frame are we sending
+    m_burst = 0;
+    for (int i=0; i < eBurstCount; ++i)
+    {
+        m_burstSize[i] = 51;
+    }
+    m_burstSize[4] = 52;
+    m_burstSize[9] = 52;
+    m_burstSize[14] = 52;
+    m_burstSize[19] = 52;
+
+    memset(m_ndo, 0, sizeof(m_ndo));
+
+    m_ioiBuffer = buffer;
+
+    memset(m_words, 0, sizeof(m_words));
+}
+
+//---------------------------------------------------------------------------------------------
+// This function allows for setting data values in the QAR data stream, additionally it can
+// be used to set the QAR SF data size and NDO SF identifier values
+// variableId = index for _a664_to_ioc_eicas_
+// sigGenId = set operation mode
+//   1: Set Data - we are in this mode to be here
+//   2: disable IOI output
+// charData: holds the data to be written UINT16 or UINT32
+// charSize: holds the number of bytes to move
+// clearCfgRequest: the byte offset into the data
+bool A664Qar::SetData(SecRequest& request)
+{
+    bool status = true;
+    UINT32 offset = request.clearCfgRequest;
+    UINT32 details = request.resetRequest;
+
+    if (offset == 0xffffffff)
+    {
+        // setting up the NDO values
+        UINT32* data = (UINT32*)request.charData;
+        // set the SF Word Count and NDO ID values
+        for (int i = 0; i < eSfCount; ++i)
+        {
+            m_ndo[i] = *data++;
+        }
+    }
+    else
+    {
+        // here we are moving data into out SF data array
+        UINT8* dest = (UINT8*)&m_words[0] + offset;
+        memcpy(dest, request.charData, request.charDataSize);
+    }
+}
+
+// This function fills in a bursts
+void A664Qar::Update()
+{
+    static UINT32 burstOffset = 0;
+
+    // Fill in the IOI buffer with content from the sf/block going out
+    UINT32 words = m_burstSize[m_burst];  // how many words are we sending this burst
+    UINT32 sfNdo = m_ndo[m_sf];
+    UINT32 dataOffset = (m_sf * eSfWordCount) + burstOffset;
+    UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
+
+    if (++m_burst >= eBurstCount)
+    {
+        m_burst = 0;
+        burstOffset = 0;
+    }
+
+    // Fill in the data for the sf/burst - compute offset into our local data
+    memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes);
+    for (int i = 0; i < words; ++i)
+    {
+        *(fillPtr++) = sfNdo;
+        *(fillPtr++) = (burstOffset++ << 20) | (m_words[dataOffset++] << 8) | m_sf;
+    }
+}
+
 //=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
 : m_ioiStaticOutCount(0)
@@ -422,13 +509,24 @@ StaticIoiContainer::StaticIoiContainer()
 , m_updateIndex(0)
 , m_validIoiOut(0)
 , m_validIoiIn(0)
-, m_readError(0)
 , m_writeError(0)
+, m_writeErrorZ1(0)
+, m_readError(0)
+, m_readErrorZ1(0)
+, m_a664QarSched(0)
+, m_a664Qar(&_a664_to_ioc_eicas_)
 {
+    // initialize a few values
+    _BatInputVdc_.data = 27.9f;
+    _BatSwOutVdc_.data = 28.2f;
+    _BrdTempDegC_.data = 10.0f;
+
     strcpy(_HMUSerialNumber, "0000999999");
     strcpy(_HMUPartNumber, "5316928SK01");
     strcpy(_UTASSwDwgNumber, "PY1022429-028");
     strcpy(_PWSwDwgNumber, "5318410-12SK01");
+
+
 
     // copy the object references into our container array (TBD: do we really need to do this?
     for (int i = 0; i < ASE_OUT_MAX; ++i)
@@ -439,13 +537,6 @@ StaticIoiContainer::StaticIoiContainer()
     m_ioiStaticOutCount = ASE_OUT_MAX;
     m_updateIndex = 0;
     m_validIoiOut = 0;
-
-    //memset(&_ADRF_FAULT_DATA,    0, sizeof(_ADRF_FAULT_DATA));
-    //memset(&_adrf_rtc_time,      0, sizeof(_adrf_rtc_time));
-    //memset(&_adrf_ships_time,    0, sizeof(_adrf_ships_time));
-    //memset(&_adrf_data_operator, 0, sizeof(_adrf_data_operator));
-    //memset(&_adrf_data_owner,    0, sizeof(_adrf_data_owner));
-    //memset(&_adrf_rtc_source,    0, sizeof(_adrf_rtc_source));
 
     for (int i = 0; i < ASE_IN_MAX; ++i)
     {
@@ -477,45 +568,11 @@ void StaticIoiContainer::OpenIoi()
 }
 
 //---------------------------------------------------------------------------------------------
-//IocResponse StaticIoiContainer::GetStaticIoiData( SecRequest& request )
-//{
-//
-//}
-
-//---------------------------------------------------------------------------------------------
-bool StaticIoiContainer::SetStaticIoiData( SecRequest& request )
-{
-    if (request.variableId < m_ioiStaticOutCount)
-    {
-        return m_staticIoiOut[request.variableId]->SetStaticIoiData(request);
-    }
-    else if (request.variableId == m_ioiStaticOutCount)
-    {
-        ResetApatIoi();
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-//---------------------------------------------------------------------------------------------
-// si13 => rtc_io_rd_day  1 - 7
-// si18 => rtc_io_rd_year
-// si16 => rtc_io_rd_month
-// si12 => rtc_io_rd_date
-// si14 => rtc_io_rd_hour
-// si15 => rtc_io_rd_minutes
-// si17 => rtc_io_rd_seconds
 void StaticIoiContainer::UpdateStaticIoi()
 {
-#define TEN(x) ( ((x >> 4) & 0xF) * 10)
-#define ONE(x) (x & 0xF)
-#define VALUE(x) TEN(x) + ONE(x)
-
-    // compute max count to provide a 2 Hz update rate 500ms/100ms => 5 frames
-    const int kMaxCount = (m_ioiStaticOutCount/5) + 1;
+    // compute max count to provide a 20 Hz update rate 50ms/10ms => 5 frames
+    // m_ioiStaticOutCount - 1: because we handle _a664_to_ioc_eicas_ directly
+    const int kMaxCount = ((m_ioiStaticOutCount - 1)/5) + 1;
 
     static unsigned int lastYrCnt  = 0;
     static unsigned int lastMoCnt  = 0;
@@ -536,13 +593,6 @@ void StaticIoiContainer::UpdateStaticIoi()
     unsigned char data;
 
     // copy the current time into the rtc_IOI when things change
-    //StaticIoiByte  si12("rtc_io_rd_date", 0);                      // 12
-    //StaticIoiByte  si13("rtc_io_rd_day", 0);                       // 13
-    //StaticIoiByte  si14("rtc_io_rd_hour", 0);                      // 14
-    //StaticIoiByte  si15("rtc_io_rd_minutes", 0);                   // 15
-    //StaticIoiByte  si16("rtc_io_rd_month", 0);                     // 16
-    //StaticIoiByte  si17("rtc_io_rd_seconds", 0);                   // 17
-    //StaticIoiByte  si18("rtc_io_rd_year", 0);                      // 18
     // seconds updated
     ones = aseCommon.clocks[eClkRtc].m_time.tm_sec % 10;
     tens = aseCommon.clocks[eClkRtc].m_time.tm_sec / 10;
@@ -599,21 +649,43 @@ void StaticIoiContainer::UpdateStaticIoi()
         lastYr = aseCommon.clocks[eClkRtc].m_time.tm_year;
     }
 
-    for (int i = 0; i < kMaxCount; ++i)
+    // specialized handling for _a664_to_ioc_eicas_ at 20Hz
+    if (++m_a664QarSched == 4)
     {
-        if (!m_staticIoiOut[m_updateIndex]->Update())
+        // update the burst data
+        m_a664Qar.Update();
+    }
+    else if (++m_a664QarSched == 5)
+    {
+        // send the burst data
+        m_a664QarSched = 0;
+        if (!_a664_to_ioc_eicas_.Update())
         {
             m_writeError += 1;
         }
+    }
 
-        m_updateIndex += 1;
-        if (m_updateIndex >= m_ioiStaticOutCount)
+    // set the UUT Input maintaining about a 2Hz update rate
+    m_writeErrorZ1 = m_writeError;
+    for (int i = 0; i < kMaxCount; ++i)
+    {
+        if (m_staticIoiOut[m_updateIndex] != &_a664_to_ioc_eicas_)
         {
-            m_updateIndex = 0;
+            if (!m_staticIoiOut[m_updateIndex]->Update())
+            {
+                m_writeError += 1;
+            }
+
+            m_updateIndex += 1;
+            if (m_updateIndex >= m_ioiStaticOutCount)
+            {
+                m_updateIndex = 0;
+            }
         }
     }
 
     // read all of the ADRF outputs
+    m_readErrorZ1 = m_readError;
     for (int i = 0; i < m_ioiStaticInCount; ++i)
     {
         if (!m_staticIoiIn[i]->Update())
@@ -623,12 +695,6 @@ void StaticIoiContainer::UpdateStaticIoi()
     }
 
     // update the RTC time based on what we received
-    //StaticIoiByte   so20("rtc_io_wr_year", 0, true);                    // 20
-    //StaticIoiByte   so18("rtc_io_wr_month", 0, true);                   // 18
-    //StaticIoiByte   so14("rtc_io_wr_date", 0, true);                    // 14
-    //StaticIoiByte   so16("rtc_io_wr_hour", 0, true);                    // 16
-    //StaticIoiByte   so17("rtc_io_wr_minutes", 0, true);                 // 17
-    //StaticIoiByte   so19("rtc_io_wr_seconds", 0, true);                 // 19
     if (lastYrCnt  != _rtc_io_wr_year_.m_updateCount    &&
         lastMoCnt  != _rtc_io_wr_month_.m_updateCount   &&
         lastDayCnt != _rtc_io_wr_day_.m_updateCount     &&
@@ -656,12 +722,58 @@ void StaticIoiContainer::UpdateStaticIoi()
 }
 
 //---------------------------------------------------------------------------------------------
+bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
+{
+    SecRequest request = secComm.m_request;
+    if (request.variableId < m_ioiStaticOutCount)
+    {
+        // catch set action directed at _a664_to_ioc_eicas_ and redirect to m_a664Qar
+        if (m_staticIoiOut[request.variableId] == &_a664_to_ioc_eicas_)
+        {
+            return m_a664Qar.SetData(request);
+        }
+        else
+        {
+            return m_staticIoiOut[request.variableId]->SetStaticIoiData(request);
+        }
+    }
+    else if (request.variableId == m_ioiStaticOutCount)
+    {
+        ResetApatIoi();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
+{
+    if (secComm.m_request.variableId < m_ioiStaticInCount)
+    {
+        // here is a little trick we play for String types to big to fit into the streamData
+        secComm.m_response.streamSize = secComm.m_request.sigGenId;
+
+        // get the value and return true
+        m_staticIoiIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
 void StaticIoiContainer::SetNewState( SecRequest& request)
 {
     if (request.variableId < m_ioiStaticOutCount)
     {
         // if not valid leave the running state at disabled
-        bool newState = (bool)request.sigGenId && m_staticIoiOut[request.variableId]->ioiValid;
+        bool newState = (request.sigGenId == 1) && 
+                        m_staticIoiOut[request.variableId]->ioiValid;
         m_staticIoiOut[request.variableId]->SetRunState(newState);
     }
 }
@@ -683,6 +795,7 @@ void StaticIoiContainer::Reset()
     ResetApatIoi();
 }
 
+//---------------------------------------------------------------------------------------------
 void StaticIoiContainer::ResetApatIoi()
 {
     // and values we want to reset if no script is running
@@ -740,19 +853,3 @@ void StaticIoiContainer::ResetApatIoi()
     _adrf_pat_udt_remain_b_.data = 0xffffff;
 }
 
-bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
-{
-    if (secComm.m_request.variableId < m_ioiStaticInCount)
-    {
-        // here is a little trick we play for String types to big to fit into the streamData
-        secComm.m_response.streamSize = secComm.m_request.sigGenId;
-
-        // get the value and return true
-        m_staticIoiIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}

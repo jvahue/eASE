@@ -69,7 +69,7 @@ char _8313856_1[240];
 char _8313856_16[240];
 char _8313864_20[240];
 char _8313864_35[240];
-char _a664_to_ioc_eicas[4096];
+char _a664_to_ioc_eicas[1024];
 
 StaticIoiInt                  _aircraft_id_1_("aircraft_id_1" , 0);                            // 0
 StaticIoiInt                  _aircraft_id_2_("aircraft_id_2" , 0);                            // 1
@@ -163,7 +163,7 @@ StaticIoiStr                      _8313856_1_("8313856_1", _8313856_1, 240);    
 StaticIoiStr                     _8313856_16_("8313856_16", _8313856_16, 240);                 // 89
 StaticIoiStr                     _8313864_20_("8313864_20", _8313864_20, 240);                 // 90
 StaticIoiStr                     _8313864_35_("8313864_35", _8313864_35, 240);                 // 91
-StaticIoiStr              _a664_to_ioc_eicas_("a664_to_ioc_eicas", _a664_to_ioc_eicas, 4096);  // 92
+StaticIoiStr              _a664_to_ioc_eicas_("a664_to_ioc_eicas", _a664_to_ioc_eicas, 1024);  // 92
 
 StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_aircraft_id_1_                ,  // 0
