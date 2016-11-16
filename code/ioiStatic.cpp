@@ -474,6 +474,8 @@ bool A664Qar::SetData(SecRequest& request)
         UINT8* dest = (UINT8*)&m_words[0] + offset;
         memcpy(dest, request.charData, request.charDataSize);
     }
+
+    return status;
 }
 
 // This function fills in a bursts
@@ -491,6 +493,12 @@ void A664Qar::Update()
     {
         m_burst = 0;
         burstOffset = 0;
+
+        m_sf += 1;
+        if (m_sf >= eSfCount)
+        {
+            m_sf = 0;
+        }
     }
 
     // Fill in the data for the sf/burst - compute offset into our local data
@@ -498,7 +506,8 @@ void A664Qar::Update()
     for (int i = 0; i < words; ++i)
     {
         *(fillPtr++) = sfNdo;
-        *(fillPtr++) = (burstOffset++ << 20) | (m_words[dataOffset++] << 8) | m_sf;
+        *(fillPtr++) = ((burstOffset + 1) << 20) | (m_words[dataOffset++] << 8) | (m_sf + 1);
+        burstOffset += 1;
     }
 }
 
@@ -650,12 +659,13 @@ void StaticIoiContainer::UpdateStaticIoi()
     }
 
     // specialized handling for _a664_to_ioc_eicas_ at 20Hz
-    if (++m_a664QarSched == 4)
+    m_a664QarSched += 1;
+    if (m_a664QarSched == 4)
     {
         // update the burst data
         m_a664Qar.Update();
     }
-    else if (++m_a664QarSched == 5)
+    else if (m_a664QarSched == 5)
     {
         // send the burst data
         m_a664QarSched = 0;
