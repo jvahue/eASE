@@ -685,12 +685,12 @@ void StaticIoiContainer::UpdateStaticIoi()
             {
                 m_writeError += 1;
             }
+        }
 
-            m_updateIndex += 1;
-            if (m_updateIndex >= m_ioiStaticOutCount)
-            {
-                m_updateIndex = 0;
-            }
+        m_updateIndex += 1;
+        if (m_updateIndex >= m_ioiStaticOutCount)
+        {
+            m_updateIndex = 0;
         }
     }
 
