@@ -422,10 +422,20 @@ StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput
 //=============================================================================================
 A664Qar::A664Qar(StaticIoiStr* buffer)
 {
+    m_ioiBuffer = buffer;  // the buffer associated with the IOI
+
+    Reset();
+}
+
+void A664Qar::Reset()
+{
     // which sub-frame are we outputting
-    m_sf = 0;         
-    // which block of the sub-frame are we sending
-    m_burst = 0;
+    m_sf = eSfCount;      // we pre-inc so we will wrap to 0
+    m_skipSf = m_sf + 1;  // don't skip any
+    m_sfWordIndex = 0;    // start sending from word index 0
+
+    // which burst of the sub-frame are we sending
+    m_burst = eBurstCount;  // we pre-inc so we will wrap to 0
     for (int i=0; i < eBurstCount; ++i)
     {
         m_burstSize[i] = 51;
@@ -435,23 +445,27 @@ A664Qar::A664Qar(StaticIoiStr* buffer)
     m_burstSize[14] = 52;
     m_burstSize[19] = 52;
 
-    memset(m_ndo, 0, sizeof(m_ndo));
+    // ensure these are not zero as that terminates processing in the UUT
+    m_ndo[0] = 1;
+    m_ndo[1] = 2;
+    m_ndo[2] = 3;
+    m_ndo[3] = 4;
+    m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
 
-    m_ioiBuffer = buffer;
-
-    memset(m_words, 0, sizeof(m_words));
+    // zero out all of the QAR data values all 4096 of them
+    memset(m_qarWords, 0, sizeof(m_qarWords));
 }
 
 //---------------------------------------------------------------------------------------------
 // This function allows for setting data values in the QAR data stream, additionally it can
-// be used to set the QAR SF data size and NDO SF identifier values
+// be used to set the NDO SF identifier values
 // variableId = index for _a664_to_ioc_eicas_
 // sigGenId = set operation mode
 //   1: Set Data - we are in this mode to be here
-//   2: disable IOI output
-// charData: holds the data to be written UINT16 or UINT32
+//   2: disable IOI output - handled in IoiProcess.CheckCmd level for eSetStaticIoi
+// charData: holds the data to be written UINT8 or UINT32 (NDO)
 // charSize: holds the number of bytes to move
-// clearCfgRequest: the byte offset into the data
+// clearCfgRequest: the byte offset into m_qarWords
 bool A664Qar::SetData(SecRequest& request)
 {
     bool status = true;
@@ -460,55 +474,116 @@ bool A664Qar::SetData(SecRequest& request)
 
     if (offset == 0xffffffff)
     {
+        m_nonNdo = 0;  // init recompute the nonNdo Id
+
         // setting up the NDO values
         UINT32* data = (UINT32*)request.charData;
         // set the SF Word Count and NDO ID values
         for (int i = 0; i < eSfCount; ++i)
         {
             m_ndo[i] = *data++;
+            m_nonNdo |= m_ndo[i];
         }
+
+        m_nonNdo += 1;  // after ORing these all together + 1 to make it a non-NDO
     }
     else
     {
-        // here we are moving data into out SF data array
-        UINT8* dest = (UINT8*)&m_words[0] + offset;
+        // here we are moving data into our SF data array
+        UINT8* dest = (UINT8*)&m_qarWords[0] + offset;
         memcpy(dest, request.charData, request.charDataSize);
     }
 
     return status;
 }
 
-// This function fills in a bursts
+//---------------------------------------------------------------------------------------------
+// This function fills in a bursts - the most data this will fill in is:
+// 52 QAR words in a burst + 60 random words or (52 + 60) * 8 = 896 of 1024 byte buffer
+// It provides the following capabilities for testing:
+// A. Fill in randomly placed non-QAR NDO and data, up to 50 extra intra QAR data + 10 post QAR
+// Error Injection
+// 1. Skip a SF
+// 2. Skip words in a burst
+// 3. ???
+
 void A664Qar::Update()
 {
-    static UINT32 burstOffset = 0;
-
-    // Fill in the IOI buffer with content from the sf/block going out
-    UINT32 words = m_burstSize[m_burst];  // how many words are we sending this burst
-    UINT32 sfNdo = m_ndo[m_sf];
-    UINT32 dataOffset = (m_sf * eSfWordCount) + burstOffset;
-    UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
-
+    // house keeping - this must be first to work with initialization where we max out for wrap
     if (++m_burst >= eBurstCount)
     {
         m_burst = 0;
-        burstOffset = 0;
+        m_sfWordIndex = 0;
 
         m_sf += 1;
+        // check error injection (1) skip sub-frame
+        if (m_sf == m_skipSf)
+        {
+            m_sf += 1;
+        }
         if (m_sf >= eSfCount)
         {
             m_sf = 0;
         }
     }
 
-    // Fill in the data for the sf/burst - compute offset into our local data
-    memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes);
-    for (int i = 0; i < words; ++i)
+    // Fill in the IOI buffer with content from the sf/burst going out
+    UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
+    UINT32 burstWords = 0;    // number of QAR words inserted for this burst
+    UINT32 burstSize = m_burstSize[m_burst];  // how many words are we sending this burst
+    UINT32 sfNdo = m_ndo[m_sf];
+    UINT32 qarWordOffset = (m_sf * eSfWordCount) + m_sfWordIndex;
+    UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
+
+    // Fill in the data for the sf/burst 
+    // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); ***see termination w/0 at end of func
+    while (burstWords < burstSize)
     {
-        *(fillPtr++) = sfNdo;
-        *(fillPtr++) = ((burstOffset + 1) << 20) | (m_words[dataOffset++] << 8) | (m_sf + 1);
-        burstOffset += 1;
+        // check random data insert
+        if (randomInsert < 50 && HsTimer() & 1)
+        {
+            // insert random data
+            *(fillPtr++) = m_nonNdo + randomInsert;
+            *(fillPtr++) = randomInsert;
+            randomInsert += 1;
+        }
+        else
+        {
+            // insert burst data
+            *(fillPtr++) = sfNdo;
+            *(fillPtr++) = ((m_sfWordIndex + 1) << 20) |
+                           (m_qarWords[qarWordOffset++] << 8) | 
+                           (m_sf + 1);
+            m_sfWordIndex += 1;
+            burstWords += 1;
+        }
     }
+
+    //-----------------------------------------------------------
+    // fill in a few more random based on how many we have done
+    if (randomInsert < 50)
+    {
+        // fill in until we have 50
+        while (randomInsert < 50)
+        {
+            *(fillPtr++) = m_nonNdo + randomInsert;
+            *(fillPtr++) = randomInsert;
+            randomInsert += 1;
+        }
+    }
+    else
+    {
+        // just fill in 10 more randoms
+        for (int i = 0; i < 10; ++i)
+        {
+            *(fillPtr++) = m_nonNdo + randomInsert;
+            *(fillPtr++) = randomInsert;
+            randomInsert += 1;
+        }
+    }
+
+    // terminate the data set (max 896 bytes + 4 here = 900 bytes of 1024) 
+    *(fillPtr++) = 0;    
 }
 
 //=============================================================================================
@@ -861,5 +936,8 @@ void StaticIoiContainer::ResetApatIoi()
 
     _adrf_pat_udt_remain_a_.data = 0xffffff;
     _adrf_pat_udt_remain_b_.data = 0xffffff;
+
+    // clear any error injection and reset data an NDO
+    m_a664Qar.Reset();
 }
 
