@@ -141,15 +141,15 @@ public:
 
     void Update();
     
-    StaticIoiStr* m_ioiBuffer;  // the IOI buffer sending the data
+    StaticIoiStr* m_ioiBuffer;     // the IOI buffer sending the data
 
-    int m_sf;               // which sub-frame are we outputting
-    int m_sfWordIndex = 0;  // word count of the 1024 words in a SF
-    int m_burst;            // which burst of the sub-frame are we sending
+    int m_sf;                      // which sub-frame are we outputting
+    int m_sfWordIndex;             // word count of the 1024 words in a SF
+    int m_burst;                   // which burst of the sub-frame are we sending
     int m_burstSize[eBurstCount];  // the size of each of the 20 bursts being sent / SF
 
     int m_ndo[eSfCount];
-    int m_nonNdo;          // a value that is not one of the 4 NDO values and not 0
+    int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
 
     // ERROR injection control
     int m_skipSf;  // which SF should we skip?

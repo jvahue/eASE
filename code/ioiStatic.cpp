@@ -446,10 +446,10 @@ void A664Qar::Reset()
     m_burstSize[19] = 52;
 
     // ensure these are not zero as that terminates processing in the UUT
-    m_ndo[0] = 1;
-    m_ndo[1] = 2;
-    m_ndo[2] = 3;
-    m_ndo[3] = 4;
+    m_ndo[0] = 9917960;
+    m_ndo[1] = 9917968;
+    m_ndo[2] = 9917976;
+    m_ndo[3] = 9917984;
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
 
     // zero out all of the QAR data values all 4096 of them
