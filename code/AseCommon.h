@@ -34,11 +34,13 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v0.9.5"  " " __DATE__ " " __TIME__
+# define version "v0.9.6"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+#define INC_WRAP( v, m)  (((v) >= ((m)-1)) ? 0 : ((v)+1))
 
 // Handy #defs for accessing fields in AseCommon
 #define GET_SYSTEM_TICK (*(m_pCommon->systemTickPtr))

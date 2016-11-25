@@ -130,6 +130,11 @@ class A664Qar
 {
 public:
     enum a664QarConst {
+        // Set Data Control Commands
+        eQarNdo = -1,
+        eQarSfSeq = -2,
+        eQarWordSeq = -3,
+
         eSfCount = 4,
         eBurstCount = 20,
         eSfWordCount = 1024,
@@ -152,7 +157,7 @@ public:
     int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
 
     // ERROR injection control
-    int m_skipSf;  // which SF should we skip?
+    int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
 
     // four sub-frames worth of data
     UINT16 m_qarWords[eSfWordCount * 4];
@@ -171,7 +176,7 @@ public:
     bool GetStaticIoiData(SecComm& secComm);    
     void SetNewState(SecRequest& request);
     void Reset();
-    void ResetApatIoi();
+    void ResetStaticIoi();
 
     StaticIoiObj* m_staticIoiOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;

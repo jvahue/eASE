@@ -229,7 +229,11 @@ void IoiProcess::RunSimulation()
     if (!m_pCommon->bScriptRunning)
     {
         m_sgRun = false;
-        m_ioiStatic.Reset();
+        if (remoteReset == false)
+        {
+            // just do this once
+            m_ioiStatic.Reset();
+        }
         remoteReset = true;
     }
     // when we first start running a script - reset the remote trigger requests

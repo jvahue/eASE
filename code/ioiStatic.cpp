@@ -431,7 +431,7 @@ void A664Qar::Reset()
 {
     // which sub-frame are we outputting
     m_sf = eSfCount;      // we pre-inc so we will wrap to 0
-    m_skipSf = m_sf + 1;  // don't skip any
+    m_skipSfMask = 0;     // don't skip any
     m_sfWordIndex = 0;    // start sending from word index 0
 
     // which burst of the sub-frame are we sending
@@ -446,10 +446,10 @@ void A664Qar::Reset()
     m_burstSize[19] = 52;
 
     // ensure these are not zero as that terminates processing in the UUT
-    m_ndo[0] = 9917960;
-    m_ndo[1] = 9917968;
-    m_ndo[2] = 9917976;
-    m_ndo[3] = 9917984;
+    m_ndo[0] = 9917960;  // 0x00975608
+    m_ndo[1] = 9917968;  // 0x00975610
+    m_ndo[2] = 9917976;  // 0x00975618
+    m_ndo[3] = 9917984;  // 0x00975620
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
 
     // zero out all of the QAR data values all 4096 of them
@@ -469,10 +469,10 @@ void A664Qar::Reset()
 bool A664Qar::SetData(SecRequest& request)
 {
     bool status = true;
-    UINT32 offset = request.clearCfgRequest;
+    SINT32 offset = (SINT32)request.clearCfgRequest;
     UINT32 details = request.resetRequest;
 
-    if (offset == 0xffffffff)
+    if (offset == eQarNdo)
     {
         m_nonNdo = 0;  // init recompute the nonNdo Id
 
@@ -486,6 +486,14 @@ bool A664Qar::SetData(SecRequest& request)
         }
 
         m_nonNdo += 1;  // after ORing these all together + 1 to make it a non-NDO
+    }
+    else if (offset == eQarSfSeq)
+    {
+        int* data = (int*)request.charData;
+        m_skipSfMask = *data;
+    }
+    else if (offset == eQarWordSeq)
+    {
     }
     else
     {
@@ -509,21 +517,21 @@ bool A664Qar::SetData(SecRequest& request)
 
 void A664Qar::Update()
 {
+#define MAX_RANDOM 50
     // house keeping - this must be first to work with initialization where we max out for wrap
     if (++m_burst >= eBurstCount)
     {
         m_burst = 0;
         m_sfWordIndex = 0;
 
-        m_sf += 1;
-        // check error injection (1) skip sub-frame
-        if (m_sf == m_skipSf)
+        m_sf = INC_WRAP(m_sf, eSfCount);
+        if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
         {
-            m_sf += 1;
-        }
-        if (m_sf >= eSfCount)
-        {
-            m_sf = 0;
+            // check error injection (1) skip sub-frame
+            while (!BIT(m_skipSfMask, m_sf))
+            {
+                m_sf = INC_WRAP(m_sf, eSfCount);
+            }
         }
     }
 
@@ -540,34 +548,38 @@ void A664Qar::Update()
     while (burstWords < burstSize)
     {
         // check random data insert
-        if (randomInsert < 50 && HsTimer() & 1)
+        if (randomInsert < MAX_RANDOM && HsTimer() & 1)
         {
             // insert random data
-            *(fillPtr++) = m_nonNdo + randomInsert;
-            *(fillPtr++) = randomInsert;
+            *(fillPtr++) = (m_nonNdo + randomInsert);
+            *(fillPtr++) = randomInsert << 16;  // insert in MSW
             randomInsert += 1;
         }
         else
         {
-            // insert burst data
-            *(fillPtr++) = sfNdo;
-            *(fillPtr++) = ((m_sfWordIndex + 1) << 20) |
-                           (m_qarWords[qarWordOffset++] << 8) | 
-                           (m_sf + 1);
-            m_sfWordIndex += 1;
+            // if we are not skipping every SF
+            if ( m_skipSfMask < 0xF)
+            {
+                // insert burst data
+                *(fillPtr++) = sfNdo;
+                *(fillPtr++) = ((m_sfWordIndex + 1) << 20) |
+                               (m_qarWords[qarWordOffset++] << 8) | 
+                               (m_sf + 1);
+                m_sfWordIndex += 1;
+            }
             burstWords += 1;
         }
     }
 
     //-----------------------------------------------------------
     // fill in a few more random based on how many we have done
-    if (randomInsert < 50)
+    if (randomInsert < MAX_RANDOM)
     {
         // fill in until we have 50
-        while (randomInsert < 50)
+        while (randomInsert < MAX_RANDOM)
         {
-            *(fillPtr++) = m_nonNdo + randomInsert;
-            *(fillPtr++) = randomInsert;
+            *(fillPtr++) = (m_nonNdo + randomInsert);
+            *(fillPtr++) = randomInsert << 16;  // insert in MSW
             randomInsert += 1;
         }
     }
@@ -576,8 +588,8 @@ void A664Qar::Update()
         // just fill in 10 more randoms
         for (int i = 0; i < 10; ++i)
         {
-            *(fillPtr++) = m_nonNdo + randomInsert;
-            *(fillPtr++) = randomInsert;
+            *(fillPtr++) = (m_nonNdo + randomInsert);
+            *(fillPtr++) = randomInsert << 16;  // insert in MSW
             randomInsert += 1;
         }
     }
@@ -824,7 +836,7 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
     }
     else if (request.variableId == m_ioiStaticOutCount)
     {
-        ResetApatIoi();
+        ResetStaticIoi();
         return true;
     }
     else
@@ -877,11 +889,11 @@ void StaticIoiContainer::Reset()
     _pat_scr_.data = 0;         // pat_scr = 0 : the main screen
     _pat_scr_button_.data = 0;  // pat_button = 0 : 0
 
-    ResetApatIoi();
+    ResetStaticIoi();
 }
 
 //---------------------------------------------------------------------------------------------
-void StaticIoiContainer::ResetApatIoi()
+void StaticIoiContainer::ResetStaticIoi()
 {
     // and values we want to reset if no script is running
     // use 0xffffff to indicate the value has not been updated
