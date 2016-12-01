@@ -446,11 +446,12 @@ void A664Qar::Reset()
     m_burstSize[19] = 52;
 
     // ensure these are not zero as that terminates processing in the UUT
-    m_ndo[0] = 9917960;  // 0x00975608
-    m_ndo[1] = 9917968;  // 0x00975610
-    m_ndo[2] = 9917976;  // 0x00975618
-    m_ndo[3] = 9917984;  // 0x00975620
+    m_ndo[0] = 0x97560801
+    m_ndo[1] = 0x97561002
+    m_ndo[2] = 0x97561803
+    m_ndo[3] = 0x97562004
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
+    m_frameCount = 0;
 
     // zero out all of the QAR data values all 4096 of them
     memset(m_qarWords, 0, sizeof(m_qarWords));
@@ -542,6 +543,8 @@ void A664Qar::Update()
     UINT32 sfNdo = m_ndo[m_sf];
     UINT32 qarWordOffset = (m_sf * eSfWordCount) + m_sfWordIndex;
     UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
+
+    *(fillPtr++) = m_frameCount++;
 
     // Fill in the data for the sf/burst 
     // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); ***see termination w/0 at end of func

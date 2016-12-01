@@ -155,6 +155,7 @@ public:
 
     int m_ndo[eSfCount];
     int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
+    int m_frameCount;              // how many frames have been sent since the last reset
 
     // ERROR injection control
     int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
