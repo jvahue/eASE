@@ -446,10 +446,10 @@ void A664Qar::Reset()
     m_burstSize[19] = 52;
 
     // ensure these are not zero as that terminates processing in the UUT
-    m_ndo[0] = 0x97560801
-    m_ndo[1] = 0x97561002
-    m_ndo[2] = 0x97561803
-    m_ndo[3] = 0x97562004
+    m_ndo[0] = 0x97560801;
+    m_ndo[1] = 0x97561002;
+    m_ndo[2] = 0x97561803;
+    m_ndo[3] = 0x97562004;
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
     m_frameCount = 0;
 
@@ -565,9 +565,9 @@ void A664Qar::Update()
             {
                 // insert burst data
                 *(fillPtr++) = sfNdo;
-                *(fillPtr++) = ((m_sfWordIndex + 1) << 20) |
-                               (m_qarWords[qarWordOffset++] << 8) | 
-                               (m_sf + 1);
+                *(fillPtr++) = (m_sfWordIndex << 20) |                // word index 0 .. 1023 
+                               (m_qarWords[qarWordOffset++] << 8) |   // word value
+                               (m_sf + 1);                            // SF 1 .. 4
                 m_sfWordIndex += 1;
             }
             burstWords += 1;
