@@ -1451,6 +1451,9 @@ void IoiProcess::InitIoi()
             }
         }
 
+        // make sure we start at the first parameter
+        m_scheduledX = m_minParamIndex;
+
         //----------------------------------
         //!!! MUST BE THE LAST STATEMENT !!!
         m_initParams = false;
