@@ -797,7 +797,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     // update the RTC time based on what we received
     if (lastYrCnt  != _rtc_io_wr_year_.m_updateCount    &&
         lastMoCnt  != _rtc_io_wr_month_.m_updateCount   &&
-        lastDayCnt != _rtc_io_wr_day_.m_updateCount     &&
+        lastDayCnt != _rtc_io_wr_date_.m_updateCount     &&
         lastHrCnt  != _rtc_io_wr_hour_.m_updateCount    &&
         lastMinCnt != _rtc_io_wr_minutes_.m_updateCount &&
         lastSecCnt != _rtc_io_wr_seconds_.m_updateCount
@@ -805,7 +805,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         lastYrCnt  = _rtc_io_wr_year_.m_updateCount   ;
         lastMoCnt  = _rtc_io_wr_month_.m_updateCount  ;
-        lastDayCnt = _rtc_io_wr_day_.m_updateCount    ;
+        lastDayCnt = _rtc_io_wr_date_.m_updateCount    ;
         lastHrCnt  = _rtc_io_wr_hour_.m_updateCount   ;
         lastMinCnt = _rtc_io_wr_minutes_.m_updateCount;
         lastSecCnt = _rtc_io_wr_seconds_.m_updateCount;
@@ -814,7 +814,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         // sec: data = tens << 4 | ones;
         aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(_rtc_io_wr_year[0]) + 2000;
         aseCommon.clocks[eClkRtc].m_time.tm_mon  = VALUE(_rtc_io_wr_month[0]);
-        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(_rtc_io_wr_day[0]);
+        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(_rtc_io_wr_date[0]);
         aseCommon.clocks[eClkRtc].m_time.tm_hour = VALUE(_rtc_io_wr_hour[0]);
         aseCommon.clocks[eClkRtc].m_time.tm_min  = VALUE(_rtc_io_wr_minutes[0]);
         aseCommon.clocks[eClkRtc].m_time.tm_sec  = VALUE(_rtc_io_wr_seconds[0]);
