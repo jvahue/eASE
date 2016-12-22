@@ -28,13 +28,12 @@ $Revision: $  $Date: $
 
 #include "TimeSrcObject.h"
 
-
 /**********************************************************************************************
 * Description: Common/Standard definitions for the ASE modules.
 *
 *
 */
-# define version "v0.9.6"  " " __DATE__ " " __TIME__
+# define version "v0.9.7"  " " __DATE__ " " __TIME__
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))

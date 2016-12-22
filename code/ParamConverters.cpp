@@ -230,28 +230,28 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         SetSdi( m_a429.sdBits);
 
         // set the SSM bits based on which one(s) are valid.
-        if (m_a429.validSSM == 0)
-        {
+        //if (m_a429.validSSM == 0)
+        //{
             m_a429.SSM = ExpectedSSM();
-        }
-        else
-        {
-            bool ssmSet = false;
-            int mask = 8;
-            while (!ssmSet && mask != 0)
-            {
-                if ( m_a429.validSSM & mask)
-                {
-                    m_a429.SSM = mask >> 1;
-                    m_a429.SSM = min(3, m_a429.SSM);
-                    ssmSet = true;
-                }
-                else
-                {
-                    mask >>= 1;
-                }
-            }
-        }
+        //}
+        //else
+        //{
+        //    bool ssmSet = false;
+        //    int mask = 8;
+        //    while (!ssmSet && mask != 0)
+        //    {
+        //        if ( m_a429.validSSM & mask)
+        //        {
+        //            m_a429.SSM = mask >> 1;
+        //            m_a429.SSM = min(3, m_a429.SSM);
+        //            ssmSet = true;
+        //        }
+        //        else
+        //        {
+        //            mask >>= 1;
+        //        }
+        //    }
+        //}
 
         SetSsm( m_a429.SSM);
 
