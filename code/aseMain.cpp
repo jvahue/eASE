@@ -36,22 +36,27 @@ $Revision: $  $Date: $
 
 // Battery Control Signals
 #define LEVEL_C_ON 1
-#define LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
 
 // Battery Status Signals
-#define LEVEL_A_ON 1
+#define LEVEL_A_ON   0x01
+#define LEVEL_C_FBL  0x02 // Local feedback signals
+#define LEVEL_C_FBC  0x04 // combined feedback signals - active low
+#define BUS_POWER_ON 0x20 // indicate the loss of Bus Power
+
 #define LVL_A_ENABLE  (batteryStsMirror |  LEVEL_A_ON)
 #define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
 
-#define LEVEL_C_FBL 2  // Local feedback signals
-#define LEVEL_C_FBC 4  // combined feedback signals - active low
 #define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVEL_C_FBL) & ~LEVEL_C_FBC)
 #define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVEL_C_FBL) |  LEVEL_C_FBC)
 
-#define BUS_POWER_ON 0x20  // indicate the loss of Bus Power
 #define SET_BUS_POWER_ON  (batteryStsMirror |  BUS_POWER_ON)
 #define SET_BUS_POWER_OFF (batteryStsMirror & ~BUS_POWER_ON)
-#define BUS_POWER_IS_ON   (batteryStsMirror &  BUS_POWER_ON)
+
+// Status Checks
+#define IS_BUS_POWER_ON  (batteryStsMirror & BUS_POWER_ON)
+#define IS_LVL_A_ON      (batteryStsMirror & LEVEL_A_ON)
+#define IS_LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
+#define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_LVL_C_ON_BATT)
 
 #define eDyHdr 0
 #define eDyASE 1
@@ -597,7 +602,7 @@ static void UpdateBattery()
         if (batteryState == eBattEnabled)
         {
             // track the battery control latch request
-            if (LVL_C_ON_BATT)
+            if (IS_LVL_C_ON_BATT)
             {
                 // ADRF requesting a battery latch, indicate we see it on
                 batteryStsMirror = LVL_C_BAT_LATCH;
@@ -633,7 +638,7 @@ static void PowerCtl()
     switch (aseCommon.asePowerState)
     {
     case ePsOff:
-        if (BUS_POWER_IS_ON)
+        if (IS_BUS_POWER_ON)
         {
             PowerOn();
         }
@@ -641,10 +646,14 @@ static void PowerCtl()
 
     case ePsOn:
         // check to see if we lost bus power
-        if (!BUS_POWER_IS_ON)
+        if (!IS_BUS_POWER_ON)
         {
             // see if the script is allowing battery latching
-            if (LVL_A_ENABLE)
+            if (IS_BATT_LATCH_EN)
+            {
+                aseCommon.asePowerState = ePsLatch;
+            }
+            if (IS_LVL_A_ON)
             {
                 _50MsTimer = _50msec;
                 aseCommon.asePowerState = ePs50;
@@ -658,11 +667,11 @@ static void PowerCtl()
 
     case ePs50:
         // if bus power comes back turn us on
-        if (BUS_POWER_IS_ON)
+        if (IS_BUS_POWER_ON)
         {
             PowerOn();
         }
-        else if (LVL_C_ON_BATT && _50MsTimer > 0)
+        else if (IS_BATT_LATCH_EN && _50MsTimer > 0)
         {
             _50MsTimer = 0;
             aseCommon.asePowerState = ePsLatch;
@@ -678,11 +687,11 @@ static void PowerCtl()
         break;
 
     case ePsLatch:
-        if (BUS_POWER_IS_ON)
+        if (IS_BUS_POWER_ON)
         {
             PowerOn();
         }
-        else if (!LVL_C_ON_BATT)
+        else if (!IS_BATT_LATCH_EN)  // SCR-322
         {
             PowerOff();
         }
@@ -732,7 +741,7 @@ static void PowerOff()
         adrfProcStatus =  processNotActive;
         adrfProcHndl   = NULL;
 
-        debug_str(AseMain, 6, 0, "PowerOff: Delete process %s returned: %d",
+        debug_str(AseMain, eDyAdrf, 0, "PowerOff: Delete process %s returned: %d",
             adrfName,
             adrfProcStatus);
     }
