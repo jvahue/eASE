@@ -524,6 +524,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             secComm.m_response.streamSize = strlen(version);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
+            break;
 
             //------------------------
         case eSetBatteryCtrl:

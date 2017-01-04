@@ -529,7 +529,7 @@ void A664Qar::Update()
         if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
         {
             // check error injection (1) skip sub-frame
-            while (!BIT(m_skipSfMask, m_sf))
+            while (BIT(m_skipSfMask, m_sf))
             {
                 m_sf = INC_WRAP(m_sf, eSfCount);
             }
