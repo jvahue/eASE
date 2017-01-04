@@ -4,7 +4,7 @@
 //
 //    File: ioiProcess.cpp
 //
-//    Description: The file implements the Parameter object processing.  It 
+//    Description: The file implements the Parameter object processing.  It
 //    handles all IOI processing
 //
 //-----------------------------------------------------------------------------
@@ -159,7 +159,7 @@ bool IoiProcess::SetChanId(int chanId)
 // Description: Set the channel Id and save it to the file and write it to the ioi
 //
 void IoiProcess::WriteChanId()
-{   
+{
     INT32 v;
     // No status check - what would we do on failure
     ioi_write(m_ioiChanId, &m_chanId);
@@ -312,7 +312,7 @@ void IoiProcess::UpdateIoi()
     Parameter* param;
 
     m_scheduled = 0; // need to see how many are really scheduled
-    m_ioiUpdated = 0;   // 
+    m_ioiUpdated = 0;   //
     m_elapsed = 0;
     m_loopCount = 0;
 
@@ -325,8 +325,8 @@ void IoiProcess::UpdateIoi()
         param = &m_parameters[m_scheduledX];
         // convert until we have gone though every param or timeout or we start to initIOI
         while ((!wrapAround ||
-            (wrapAround && m_scheduledX != startParam)) && 
-            !m_initParams && 
+            (wrapAround && m_scheduledX != startParam)) &&
+            !m_initParams &&
             m_elapsed < m_maxProcDuration)
         {
             m_loopCount += 1;
@@ -340,7 +340,7 @@ void IoiProcess::UpdateIoi()
                 {
                     scheduleZ1 = m_scheduled;
 
-                    // jam in the ships date/time 
+                    // jam in the ships date/time
                     if (m_scheduledX == m_dateId)
                     {
                         param->m_ioiValue = aseCommon.shipDate;
@@ -359,8 +359,8 @@ void IoiProcess::UpdateIoi()
                     else
                     {
                         // move data to xchan ioi slot
-                        // Note: all params with the same masterId will point to the same slot, 
-                        // but only the fast (or one of the fastest) will be processed as a 
+                        // Note: all params with the same masterId will point to the same slot,
+                        // but only the fast (or one of the fastest) will be processed as a
                         // parent and sent across during the IoiUpdate processing.
                         m_ccdl.m_txParamData.data[m_remoteX].id = param->m_ccdlId;
                         m_ccdl.m_txParamData.data[m_remoteX].val = param->m_ioiValue;
@@ -504,7 +504,7 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
             m_totalIoiTime,
             m_avgIoiTime,
             m_scheduledX,
-            m_elapsed, 
+            m_elapsed,
             m_maxProcDuration);
     }
     else
@@ -570,7 +570,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             baseIndex = (theLine - 2) * 2; // 2:0, 3:2, 4:4, 5:6 ... 21:38
             p1 = &m_parameters[m_displayIndex[baseIndex]];
             p2 = &m_parameters[m_displayIndex[baseIndex+1]];
-            if (m_displayIndex[baseIndex] != eAseMaxParams && 
+            if (m_displayIndex[baseIndex] != eAseMaxParams &&
                 m_displayIndex[baseIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%s %s", p1->Display(buf1), p2->Display(buf2));
@@ -599,7 +599,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             p1 = &m_parameters[m_displayIndex[rowIndex]];
             p2 = &m_parameters[m_displayIndex[rowIndex+1]];
 
-            if (m_displayIndex[rowIndex] != eAseMaxParams && 
+            if (m_displayIndex[rowIndex] != eAseMaxParams &&
                 m_displayIndex[rowIndex+1] != eAseMaxParams)
             {
                 debug_str(Params, theLine, 0, "%-39s %s",
@@ -612,7 +612,7 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
             }
             else if (m_displayIndex[rowIndex+1] != eAseMaxParams)
             {
-                debug_str(Params, theLine, 0, "%39s %s", " ", 
+                debug_str(Params, theLine, 0, "%39s %s", " ",
                     p2->ParamInfo(buf2, theLine-infoStarts));
             }
             else
@@ -648,10 +648,10 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
         break;
 
     case 1:
-        debug_str(Static, 1, 0, "Valid R/W(%d|%d)/(%d|%d) Error R(%d|%d) W(%d|%d) UpdateX: %d", 
-            m_ioiStatic.m_validIoiIn, 
+        debug_str(Static, 1, 0, "Valid R/W(%d|%d)/(%d|%d) Error R(%d|%d) W(%d|%d) UpdateX: %d",
+            m_ioiStatic.m_validIoiIn,
             m_ioiStatic.m_ioiStaticInCount,
-            m_ioiStatic.m_validIoiOut, 
+            m_ioiStatic.m_validIoiOut,
             m_ioiStatic.m_ioiStaticOutCount,
             m_ioiStatic.m_readError,
             m_ioiStatic.m_readError - m_ioiStatic.m_readErrorZ1,
@@ -667,15 +667,15 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
             if ((dix+1) < m_ioiStatic.m_ioiStaticOutCount)
             {
                 debug_str(Static, dLine, 0, "%-39s %s",
-                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix), 
+                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix),
                     m_ioiStatic.m_staticIoiOut[dix+1]->Display(buf2, dix+1));
-                dix += 2;            
+                dix += 2;
             }
             else
             {
                 debug_str(Static, dLine, 0, "%s",
                     m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix));
-                dix += 1;            
+                dix += 1;
             }
 
             if (dix >= m_ioiStatic.m_ioiStaticOutCount)
@@ -700,7 +700,7 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
     {
         // display the next page we are done ...
         nextPage = true;
-    }        
+    }
 
     theLine += 1;
 
@@ -795,7 +795,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             {
                 if (m_parameters[i].m_isValid)
                 {
-                    m_parameters[i].m_value = 
+                    m_parameters[i].m_value =
                         m_parameters[i].m_sigGen.Reset(m_parameters[i].m_value);
                 }
             }
@@ -806,7 +806,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             // if the parameter index is valid reset it
             if ( m_parameters[itemId].m_isValid)
             {
-                m_parameters[itemId].m_value = 
+                m_parameters[itemId].m_value =
                     m_parameters[itemId].m_sigGen.Reset(m_parameters[itemId].m_value);
                 secComm.m_response.successful = TRUE;
             }
@@ -1063,7 +1063,7 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             secComm.m_response.successful = m_ioiStatic.SetStaticIoiData(secComm);
         }
         else if (request.sigGenId == 2)
-        {   
+        {
             // disable the IOI output
             m_ioiStatic.SetNewState(request);
             secComm.m_response.successful = true;
@@ -1159,9 +1159,9 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         // item/varibaleID paramID for Date in the upper half of the word, time in lower half
         dateId = itemId >> 16;
         timeId = itemId & 0xffff;
-        if (m_parameters[dateId].m_isValid) 
+        if (m_parameters[dateId].m_isValid)
         {
-            if (m_parameters[timeId].m_isValid) 
+            if (m_parameters[timeId].m_isValid)
             {
                 m_dateId = dateId;
                 m_timeId = timeId;
@@ -1240,7 +1240,7 @@ protected methods for IoIProcess
 // Function: CollectParamInfo
 // Description: Receive the parameter info from ePySte for a Cfg to be loaded
 // paramSetCount: how many param info elements were sent down
-// paramCount: where are we in the list, a value <= PARAM_SET_SIZE means starting and clear out 
+// paramCount: where are we in the list, a value <= PARAM_SET_SIZE means starting and clear out
 //             local data
 // data: the current set of paramInfo being sent down from PySte
 //
@@ -1377,9 +1377,10 @@ void IoiProcess::InitIoi()
                 }
 
                 // if not a child or src'd from ccdl - open the IOI channel
-                if (!childRelationship && 
+                if (!childRelationship &&
                     m_parameters[index].m_src != PARAM_SRC_CROSS &&
                     m_parameters[index].m_src != PARAM_SRC_CALC &&
+                    m_parameters[index].m_src != PARAM_SRC_CYCLE &&
                     m_parameters[index].m_src != PARAM_SRC_HMU  // Remove this later
                     )
                 {

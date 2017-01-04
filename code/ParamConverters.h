@@ -30,6 +30,9 @@
 #define ARINC_MSG_VALID_BIT         ARINC_MSG_PARITY_BIT
 
 #define MASK1(s) ((1 << (s)) - 1)
+#ifdef FIELD
+#undef FIELD
+#endif
 #define FIELD(m,l) (MASK1((m+1)-(l)) << (l))
 
 #define A429_FldPutLabel(d,l) ((d & 0xFFFFFF00) | (l & 0xFF))

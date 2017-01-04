@@ -33,7 +33,17 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v0.9.8 RC2"  " " __DATE__ " " __TIME__
+# define version "v0.9.8 RC3"  " " __DATE__ " " __TIME__
+
+#ifdef ARRAY
+#undef ARRAY
+#endif
+#ifdef MIN
+#undef MIN
+#endif
+#ifdef MAX
+#undef MAX
+#endif
 
 #define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -50,7 +60,7 @@ $Revision: $  $Date: $
 
 // Flight Trigger History Constants
 #define HIST_TRIG_BUFF 86400 // Make this div by 1800 byte blks.  Current NVM size is 85496
-#define HIST_BLK_SIZE 1800 
+#define HIST_BLK_SIZE 1800
 #define HIST_BLK_MAX (HIST_TRIG_BUFF/HIST_BLK_SIZE)
 
 
@@ -100,6 +110,8 @@ PARAM_SRC_HMU,    // SRC from HMU interface - Inc data fmt of A492, A664
 PARAM_SRC_A429,   // SRC from A429 interface - Place Holder
 PARAM_SRC_A664,   // SRC from A664 interface - Place Holder
 PARAM_SRC_CROSS,  // SRC from cross channel interface
+PARAM_SRC_CALC,   // SRC from internally calculated data
+PARAM_SRC_CYCLE,  // SRC from cycle object, current cycle value
 PARAM_SRC_MAX
 } PARAM_SRC_ENUM;
 
