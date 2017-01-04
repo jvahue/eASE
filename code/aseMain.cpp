@@ -34,28 +34,28 @@ $Revision: $  $Date: $
 #define MAX_CMD_RSP 2
 #define _50msec 5
 
-// Battery Control Signals
-#define LEVEL_C_ON 1
+// Battery Control Signals mask bit
+#define LEVC_ADRF_BATT_CMD 1
 
 // Battery Status Signals
-#define LEVEL_A_ON   0x01
-#define LEVEL_C_FBL  0x02 // Local feedback signals
-#define LEVEL_C_FBC  0x04 // combined feedback signals - active low
-#define BUS_POWER_ON 0x20 // indicate the loss of Bus Power
+#define LEVA_BATT_IN_SW_MASTER_EN 0x01 // Level A has enabled Battery Latch
+#define LEVC_ADRF_BATT_CMD_WA     0x02 // Level C ADRF has enabled Battery Latch
+#define BATT_SW_ENA_N             0x04 // On Battery Power: active low
+#define LOSS_AF28V_N              0x20 // indicate the loss of Bus Power
 
-#define LVL_A_ENABLE  (batteryStsMirror |  LEVEL_A_ON)
-#define LVL_A_DISABLE (batteryStsMirror & ~LEVEL_A_ON)
+#define LVL_A_ENABLE  (batteryStsMirror |  LEVA_BATT_IN_SW_MASTER_EN)
+#define LVL_A_DISABLE (batteryStsMirror & ~LEVA_BATT_IN_SW_MASTER_EN)
 
-#define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVEL_C_FBL) & ~LEVEL_C_FBC)
-#define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVEL_C_FBL) |  LEVEL_C_FBC)
+#define LVL_C_BAT_LATCH   ((batteryStsMirror |  LEVC_ADRF_BATT_CMD_WA) & ~BATT_SW_ENA_N)
+#define LVL_C_BAT_UNLATCH ((batteryStsMirror & ~LEVC_ADRF_BATT_CMD_WA) |  BATT_SW_ENA_N)
 
-#define SET_BUS_POWER_ON  (batteryStsMirror |  BUS_POWER_ON)
-#define SET_BUS_POWER_OFF (batteryStsMirror & ~BUS_POWER_ON)
+#define SET_BUS_POWER_ON  (batteryStsMirror |  LOSS_AF28V_N)
+#define SET_BUS_POWER_OFF (batteryStsMirror & ~LOSS_AF28V_N)
 
 // Status Checks
-#define IS_BUS_POWER_ON  (batteryStsMirror & BUS_POWER_ON)
-#define IS_LVL_A_ON      (batteryStsMirror & LEVEL_A_ON)
-#define IS_LVL_C_ON_BATT (batteryCtlMirror & LEVEL_C_ON)
+#define IS_BUS_POWER_ON  (batteryStsMirror & LOSS_AF28V_N)
+#define IS_LVL_A_ON      (batteryStsMirror & LEVA_BATT_IN_SW_MASTER_EN)
+#define IS_LVL_C_ON_BATT (batteryCtlMirror & LEVC_ADRF_BATT_CMD)
 #define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_LVL_C_ON_BATT)
 
 #define eDyHdr 0
@@ -538,7 +538,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             }
             else
             {
-                secComm.ErrorMsg("Battery Control Error (%d)", request.variableId);
+                secComm.ErrorMsg("Battery Control Value Error (%d)", request.variableId);
                 secComm.m_response.successful = FALSE;
             }
             serviced = TRUE;
@@ -593,24 +593,36 @@ static void UpdateBattery()
     // Handle the Battery feedback logic
     if (batteryState == eBattDisabled)
     {
-        batteryStsMirror = LVL_A_DISABLE;     // level indicates battery is disabled
-        batteryStsMirror = LVL_C_BAT_UNLATCH;
+        batteryStsMirror = LVL_A_DISABLE;   // indicate level A battery is disabled
+        batteryStsMirror |= BATT_SW_ENA_N;  // NOT on Battery
+
+        // mirror LEVC_ADRF_BATT_CMD in Status word
+        if (IS_LVL_C_ON_BATT)
+        {
+            batteryStsMirror |= LEVC_ADRF_BATT_CMD_WA;
+        }
+        else
+        {
+            batteryStsMirror &= ~LEVC_ADRF_BATT_CMD_WA;
+        }
     }
     else
     {
+        // user requested that the battery latching be enabled by Level A
         batteryStsMirror = LVL_A_ENABLE;
 
+        // normal operation requested ?
         if (batteryState == eBattEnabled)
         {
             // track the battery control latch request
             if (IS_LVL_C_ON_BATT)
             {
-                // ADRF requesting a battery latch, indicate we see it on
+                // ADRF requesting a battery latch, indicate as expected
                 batteryStsMirror = LVL_C_BAT_LATCH;
             }
             else
             {
-                // ADRF is not requesting a battery latch, indicate we see it off
+                // ADRF is not requesting a battery latch, indicate as expected
                 batteryStsMirror = LVL_C_BAT_UNLATCH;
             }
         }
