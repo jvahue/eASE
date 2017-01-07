@@ -433,16 +433,18 @@ void A664Qar::Reset()
     m_sf = eSfCount;      // we pre-inc so we will wrap to 0
     m_skipSfMask = 0;     // don't skip any
     m_sfWordIndex = 0;    // start sending from word index 0
+    m_random = 50;        // 50 random words in a burst
 
     // which burst of the sub-frame are we sending
     m_burst = eBurstCount;  // we pre-inc so we will wrap to 0
-    for (int i=0; i < eBurstCount; ++i)
+    m_burstWord = 0;        // which word we are on, will be reset due to above in NextSf
+    for (int i=0; i < eBurstCount-4; ++i)
     {
         m_burstSize[i] = 51;
     }
-    m_burstSize[4] = 52;
-    m_burstSize[9] = 52;
-    m_burstSize[14] = 52;
+    m_burstSize[16] = 52;
+    m_burstSize[17] = 52;
+    m_burstSize[18] = 52;
     m_burstSize[19] = 52;
 
     // ensure these are not zero as that terminates processing in the UUT
@@ -452,6 +454,11 @@ void A664Qar::Reset()
     m_ndo[3] = 0x97562004;
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
     m_frameCount = 0;
+
+    m_wordSeqEnabled = 0;
+    memset(m_wordSeq, 0, sizeof(m_wordSeq));
+    m_repeatCount = -1;
+    m_repeatIndex = 0;
 
     // zero out all of the QAR data values all 4096 of them
     memset(m_qarWords, 0, sizeof(m_qarWords));
@@ -467,7 +474,7 @@ void A664Qar::Reset()
 // charData: holds the data to be written UINT8 or UINT32 (NDO)
 // charSize: holds the number of bytes to move
 // clearCfgRequest: the byte offset into m_qarWords
-bool A664Qar::SetData(SecRequest& request)
+bool A664Qar::TestControl(SecRequest& request)
 {
     bool status = true;
     SINT32 offset = (SINT32)request.clearCfgRequest;
@@ -495,11 +502,52 @@ bool A664Qar::SetData(SecRequest& request)
     }
     else if (offset == eQarWordSeq)
     {
+        // packed data is word index (corrected for SF) and cmd value
+        UINT16* index = (UINT16*)request.charData;
+        UINT16* cmdWord = (UINT16*)request.charData;
+        UINT16* dest = (UINT16*)&m_wordSeq[0][0];
+
+        cmdWord += 1;
+
+        while (*index != 0 && cmdWord != 0)
+        {
+            *(dest + *index) = *cmdWord;
+            index += 2;
+            cmdWord += 2;
+        }
+    }
+    else if (offset == eQarWordSeqState)
+    {
+        UINT16* dest = &m_wordSeqEnabled;
+        // here we are moving data into our SF data array
+        *dest = *(UINT16*)request.charData;
+        if (m_wordSeqEnabled == 2)
+        {
+            // reset the WSB
+            memset(m_wordSeq, 0, sizeof(m_wordSeq));
+            m_wordSeqEnabled = 0;
+        }
+
+        if (m_wordSeqEnabled == 1)
+        {
+            // disable random data insets
+            m_randomSave = m_random;
+            m_random = 0;
+        }
+        else
+        {
+            m_random = m_randomSave;
+        }
+    }
+    else if (offset == eQarRandom)
+    {
+        int* dest = &m_random;
+        *dest = *(int*)request.charData;
     }
     else
     {
         // here we are moving data into our SF data array
-        UINT8* dest = (UINT8*)&m_qarWords[0] + offset;
+        UINT8* dest = (UINT8*)&m_qarWords[0][0] + offset;
         memcpy(dest, request.charData, request.charDataSize);
     }
 
@@ -515,43 +563,28 @@ bool A664Qar::SetData(SecRequest& request)
 // 1. Skip a SF
 // 2. Skip words in a burst
 // 3. ???
-
 void A664Qar::Update()
 {
-#define MAX_RANDOM 50
-    // house keeping - this must be first to work with initialization where we max out for wrap
+    // house keeping - this must be 1st to work with initialization where we max out for wrap
     if (++m_burst >= eBurstCount)
     {
-        m_burst = 0;
-        m_sfWordIndex = 0;
-
-        m_sf = INC_WRAP(m_sf, eSfCount);
-        if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
-        {
-            // check error injection (1) skip sub-frame
-            while (BIT(m_skipSfMask, m_sf))
-            {
-                m_sf = INC_WRAP(m_sf, eSfCount);
-            }
-        }
+        NextSf();
     }
 
     // Fill in the IOI buffer with content from the sf/burst going out
     UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
-    UINT32 burstWords = 0;    // number of QAR words inserted for this burst
-    UINT32 burstSize = m_burstSize[m_burst];  // how many words are we sending this burst
     UINT32 sfNdo = m_ndo[m_sf];
-    UINT32 qarWordOffset = (m_sf * eSfWordCount) + m_sfWordIndex;
     UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
 
     *(fillPtr++) = m_frameCount++;
 
     // Fill in the data for the sf/burst 
-    // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); ***see termination w/0 at end of func
-    while (burstWords < burstSize)
+    // no need for the memset below ***see termination w/0 at end of func
+    // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); 
+    while (m_burstWord < m_burstSize[m_burst])
     {
         // check random data insert
-        if (randomInsert < MAX_RANDOM && HsTimer() & 1)
+        if (randomInsert < m_random && HsTimer() & 1)
         {
             // insert random data
             *(fillPtr++) = (m_nonNdo + randomInsert);
@@ -565,21 +598,20 @@ void A664Qar::Update()
             {
                 // insert burst data
                 *(fillPtr++) = sfNdo;
-                *(fillPtr++) = (m_sfWordIndex << 20) |                // word index 0 .. 1023 
-                               (m_qarWords[qarWordOffset++] << 8) |   // word value
-                               (m_sf + 1);                            // SF 1 .. 4
-                m_sfWordIndex += 1;
+                *(fillPtr++) = NextWord();
             }
-            burstWords += 1;
         }
     }
 
+    // we just finished a burst, reset for the next one
+    m_burstWord = 0;
+
     //-----------------------------------------------------------
     // fill in a few more random based on how many we have done
-    if (randomInsert < MAX_RANDOM)
+    if (randomInsert < m_random)
     {
         // fill in until we have 50
-        while (randomInsert < MAX_RANDOM)
+        while (randomInsert < m_random)
         {
             *(fillPtr++) = (m_nonNdo + randomInsert);
             *(fillPtr++) = randomInsert << 16;  // insert in MSW
@@ -599,6 +631,159 @@ void A664Qar::Update()
 
     // terminate the data set (max 896 bytes + 4 here = 900 bytes of 1024) 
     *(fillPtr++) = 0;    
+}
+
+//---------------------------------------------------------------------------------------------
+// Compute the next sub-frame to send, normally just cycle 1-4.  Use m_skipSfMask to indicate 
+// which SF to skip.  Reset Burst index and wordIndex to default next SF values.
+void A664Qar::NextSf()
+{
+    m_burst = 0;
+    m_burstWord = 0;
+    m_sfWordIndex = 0;
+
+    m_sf = INC_WRAP(m_sf, eSfCount);
+    if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
+    {
+        // check error injection (1) skip sub-frame
+        while (BIT(m_skipSfMask, m_sf))
+        {
+            m_sf = INC_WRAP(m_sf, eSfCount);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------------------------
+Compute the next word from the current SF to send.  This function implements the word 
+sequence command buffer that can be used to specify ways to screw up a standard data stream
+of QAR data.The word sequence buffer (WSB) is either enabled or disabled.  When disabled data 
+proceeds from word to word in each SF.  When the WSB is enabled it implements the following 
+commands on a word by word basis:
+
+  0. eWsbNop increment to next natural word number
+     only used to clear an existing entry on a word, otherwise don't use
+  1. eWsbGoto: skip N words and resume
+  2. eWsbRepeat: repeat a given word N times,
+                 repeat 1 is normal operation so repeat 2 causes it to repeat
+  3. eWsbSf: Send in a bad SF identifier for this word
+  4. eWsbWc: Send in a bad WC for this word
+
+The WSB consists of 4 x 1024 word that hold opcodes and data.  Opcode is in the least
+significant 3 bits allowing for 8 opcodes, of which we have used 3, the upper 13 bits are
+used for the operand. The word sequence buff is initialized to NOP for all words. To set it use 
+the provided functions
+---------------------------------------------------------------------------------------------*/
+UINT32 A664Qar::NextWord()
+{
+#define MAX_SMALL_BURST (16 * 51)
+    int opcode;
+    int operand;
+    int nextWord;
+    int wordStep;
+    int sfMove;
+    UINT32 wordValue;
+
+    int sfId = -1;
+    int wordId = -1;
+
+    // pre-fill this based on the m_sfWordIndex/sf before we change them
+    wordValue = (m_sfWordIndex << 20) |                  // word index 0 .. 1023
+                (m_qarWords[m_sf][m_sfWordIndex] << 8) | // word value
+                (m_sf + 1);                              // SF 1 .. 4
+
+    if (m_wordSeqEnabled)
+    {
+        // have we just finished repeatedly sending the same word, then move forward how times
+        // it was repeated
+        if (m_repeatCount == 0)
+        {
+            m_repeatCount = -1;
+            m_sfWordIndex += m_wordSeq[m_sf][m_sfWordIndex] >> 3;
+        }
+
+        // find out what we should be doing at this word position
+        opcode = m_wordSeq[m_sf][m_sfWordIndex] & 0x7;
+        operand =  m_wordSeq[m_sf][m_sfWordIndex] >> 3;
+
+        switch (opcode)
+        {
+        case 0: // NOP
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+
+        case 1: // Goto Word - offset from current word is in operand
+            sfMove = operand / eSfWordCount;  // how many SF are we moving max move 8191
+            wordStep = operand - (sfMove * eSfWordCount);
+            nextWord = m_sfWordIndex + wordStep;
+
+            for (int i = 0; i < sfMove; ++i) 
+            {
+                NextSf();
+            }
+
+            // we are in the same SF let's correct which burst we are in and the busrtWord
+            // there are 16 51 word busts followed by 4 52 word bursts
+            if (nextWord < MAX_SMALL_BURST)
+            {
+                m_burst = nextWord / 51;
+                m_burstWord = nextWord % 51;
+            }
+            else
+            {
+                m_burst = (nextWord - MAX_SMALL_BURST) / 52;
+                m_burstWord = (nextWord - MAX_SMALL_BURST) % 52;
+            }
+            m_sfWordIndex = nextWord;
+            break;
+
+        case 2: // Repeat Word n times
+            if (m_repeatCount == -1)
+            {
+                // initialize the repeat process
+                m_repeatCount = operand - 1;
+                m_repeatIndex = m_sfWordIndex;
+            }
+            else if (m_repeatCount > 0)
+            {
+                m_repeatCount -= 1;
+            }
+
+            m_burstWord += 1;
+            break;
+
+        case 3: // Send in a bad SF identifier for this word
+            sfId = operand;
+            break;
+
+        case 4: // Send in a bad word identifier for this word
+            wordId = operand;
+            break;
+
+        default:
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+        }
+    }
+    else
+    {
+        // move through the SF one word at a time
+        m_sfWordIndex += 1;
+        m_burstWord += 1;
+    }
+
+    if (sfId != -1)
+    {
+        wordValue = (wordValue & ~0xFF) | (sfId & 0xff);
+    }
+
+    if (wordId != -1)
+    {
+        wordValue = (wordValue & !(0xfff << 20)) | (wordId << 20);
+    }
+
+    return wordValue;
 }
 
 //=============================================================================================
@@ -830,7 +1015,7 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
         // catch set action directed at _a664_to_ioc_eicas_ and redirect to m_a664Qar
         if (m_staticIoiOut[request.variableId] == &_a664_to_ioc_eicas_)
         {
-            return m_a664Qar.SetData(request);
+            return m_a664Qar.TestControl(request);
         }
         else
         {

@@ -134,6 +134,8 @@ public:
         eQarNdo = -1,
         eQarSfSeq = -2,
         eQarWordSeq = -3,
+        eQarWordSeqState = -4,
+        eQarRandom = -5,
 
         eSfCount = 4,
         eBurstCount = 20,
@@ -142,7 +144,10 @@ public:
     A664Qar(StaticIoiStr* buffer);
     void Reset();
 
-    bool SetData(SecRequest& request);
+    bool TestControl(SecRequest& request);
+
+    void NextSf();      // compute the next SF to run
+    UINT32 NextWord();  // compute the next word in this sub-frame to send, returns busrtWord
 
     void Update();
     
@@ -151,7 +156,15 @@ public:
     int m_sf;                      // which sub-frame are we outputting
     int m_sfWordIndex;             // word count of the 1024 words in a SF
     int m_burst;                   // which burst of the sub-frame are we sending
+    int m_burstWord;               // which word in the bust we are on
     int m_burstSize[eBurstCount];  // the size of each of the 20 bursts being sent / SF
+    int m_random;                  // number of random values to put in 0-50, default 50
+    int m_randomSave;              // save the random value when running the WSB
+
+    UINT16 m_wordSeqEnabled;         // is the WSB enabled
+    UINT16 m_wordSeq[eSfCount][eSfWordCount]; // word sequence
+    int m_repeatCount;
+    int m_repeatIndex;
 
     int m_ndo[eSfCount];
     int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
@@ -161,7 +174,7 @@ public:
     int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
 
     // four sub-frames worth of data
-    UINT16 m_qarWords[eSfWordCount * 4];
+    UINT16 m_qarWords[eSfCount][eSfWordCount];
 };
 
 //=============================================================================================
