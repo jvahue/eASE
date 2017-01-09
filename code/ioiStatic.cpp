@@ -430,14 +430,14 @@ A664Qar::A664Qar(StaticIoiStr* buffer)
 void A664Qar::Reset()
 {
     // which sub-frame are we outputting
-    m_sf = eSfCount;      // we pre-inc so we will wrap to 0
-    m_skipSfMask = 0;     // don't skip any
-    m_sfWordIndex = 0;    // start sending from word index 0
-    m_random = 50;        // 50 random words in a burst
+    m_sf = 0;          // start sending from SF1
+    m_skipSfMask = 0;  // don't skip any
+    m_sfWordIndex = 0; // start sending from word index 0
+    m_random = 0;      // default 0 random words in a burst
 
     // which burst of the sub-frame are we sending
-    m_burst = eBurstCount;  // we pre-inc so we will wrap to 0
-    m_burstWord = 0;        // which word we are on, will be reset due to above in NextSf
+    m_burst = 0;       // start with the first burst group
+    m_burstWord = 0;   // which word we are on in the burst
     for (int i=0; i < eBurstCount-4; ++i)
     {
         m_burstSize[i] = 51;
@@ -565,23 +565,20 @@ bool A664Qar::TestControl(SecRequest& request)
 // 3. ???
 void A664Qar::Update()
 {
-    // house keeping - this must be 1st to work with initialization where we max out for wrap
-    if (++m_burst >= eBurstCount)
-    {
-        NextSf();
-    }
-
     // Fill in the IOI buffer with content from the sf/burst going out
+    UINT32 totalInsert = 0;   // number of "words"  insert NDO/DATA
     UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
     UINT32 sfNdo = m_ndo[m_sf];
     UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
 
     *(fillPtr++) = m_frameCount++;
 
+    m_endBurst = false;
+
     // Fill in the data for the sf/burst 
     // no need for the memset below ***see termination w/0 at end of func
     // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); 
-    while (m_burstWord < m_burstSize[m_burst])
+    while (totalInsert < eMaxBurstWords && !m_endBurst)
     {
         // check random data insert
         if (randomInsert < m_random && HsTimer() & 1)
@@ -601,10 +598,11 @@ void A664Qar::Update()
                 *(fillPtr++) = NextWord();
             }
         }
+        totalInsert += 1;
     }
 
-    // we just finished a burst, reset for the next one
-    m_burstWord = 0;
+    // ensure we cannot insert more than eMaxBurstWords
+    randomInsert = eMaxBurstWords - totalInsert;
 
     //-----------------------------------------------------------
     // fill in a few more random based on how many we have done
@@ -618,39 +616,9 @@ void A664Qar::Update()
             randomInsert += 1;
         }
     }
-    else
-    {
-        // just fill in 10 more randoms
-        for (int i = 0; i < 10; ++i)
-        {
-            *(fillPtr++) = (m_nonNdo + randomInsert);
-            *(fillPtr++) = randomInsert << 16;  // insert in MSW
-            randomInsert += 1;
-        }
-    }
 
     // terminate the data set (max 896 bytes + 4 here = 900 bytes of 1024) 
     *(fillPtr++) = 0;    
-}
-
-//---------------------------------------------------------------------------------------------
-// Compute the next sub-frame to send, normally just cycle 1-4.  Use m_skipSfMask to indicate 
-// which SF to skip.  Reset Burst index and wordIndex to default next SF values.
-void A664Qar::NextSf()
-{
-    m_burst = 0;
-    m_burstWord = 0;
-    m_sfWordIndex = 0;
-
-    m_sf = INC_WRAP(m_sf, eSfCount);
-    if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
-    {
-        // check error injection (1) skip sub-frame
-        while (BIT(m_skipSfMask, m_sf))
-        {
-            m_sf = INC_WRAP(m_sf, eSfCount);
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------------------------
@@ -675,7 +643,6 @@ the provided functions
 ---------------------------------------------------------------------------------------------*/
 UINT32 A664Qar::NextWord()
 {
-#define MAX_SMALL_BURST (16 * 51)
     int opcode;
     int operand;
     int nextWord;
@@ -724,15 +691,15 @@ UINT32 A664Qar::NextWord()
 
             // we are in the same SF let's correct which burst we are in and the busrtWord
             // there are 16 51 word busts followed by 4 52 word bursts
-            if (nextWord < MAX_SMALL_BURST)
+            if (nextWord < eTotalSmallBurstWords)
             {
-                m_burst = nextWord / 51;
-                m_burstWord = nextWord % 51;
+                m_burst = nextWord / eSmallBurstSize;
+                m_burstWord = nextWord % eSmallBurstSize;
             }
             else
             {
-                m_burst = (nextWord - MAX_SMALL_BURST) / 52;
-                m_burstWord = (nextWord - MAX_SMALL_BURST) % 52;
+                m_burst = (nextWord - eTotalSmallBurstWords) / eLargeBurstSize;
+                m_burstWord = (nextWord - eTotalSmallBurstWords) % eLargeBurstSize;
             }
             m_sfWordIndex = nextWord;
             break;
@@ -754,10 +721,14 @@ UINT32 A664Qar::NextWord()
 
         case 3: // Send in a bad SF identifier for this word
             sfId = operand;
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
             break;
 
         case 4: // Send in a bad word identifier for this word
             wordId = operand;
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
             break;
 
         default:
@@ -773,6 +744,17 @@ UINT32 A664Qar::NextWord()
         m_burstWord += 1;
     }
 
+    // check for the end of a burst and roll SF if needed
+    if (m_burstWord >= m_burstSize[m_burst])
+    {
+        m_burstWord = 0;
+        m_endBurst = true;
+        if (++m_burst >= eBurstCount)
+        {
+            NextSf();
+        }
+    }
+
     if (sfId != -1)
     {
         wordValue = (wordValue & ~0xFF) | (sfId & 0xff);
@@ -784,6 +766,26 @@ UINT32 A664Qar::NextWord()
     }
 
     return wordValue;
+}
+
+//---------------------------------------------------------------------------------------------
+// Compute the next sub-frame to send, normally just cycle 1-4.  Use m_skipSfMask to indicate 
+// which SF to skip.  Reset Burst index and wordIndex to default next SF values.
+void A664Qar::NextSf()
+{
+    m_burst = 0;
+    m_burstWord = 0;
+    m_sfWordIndex = 0;
+
+    m_sf = INC_WRAP(m_sf, eSfCount);
+    if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
+    {
+        // check error injection (1) skip sub-frame
+        while (BIT(m_skipSfMask, m_sf))
+        {
+            m_sf = INC_WRAP(m_sf, eSfCount);
+        }
+    }
 }
 
 //=============================================================================================

@@ -138,7 +138,11 @@ public:
         eQarRandom = -5,
 
         eSfCount = 4,
-        eBurstCount = 20,
+        eBurstCount = 20,        // 16 small bursts, 4 large bursts = 1024 words
+        eSmallBurstSize = 51,
+        eTotalSmallBurstWords = (16 * eSmallBurstSize),
+        eLargeBurstSize = 52,
+        eMaxBurstWords = 102,
         eSfWordCount = 1024,
     };
     A664Qar(StaticIoiStr* buffer);
@@ -158,6 +162,7 @@ public:
     int m_burst;                   // which burst of the sub-frame are we sending
     int m_burstWord;               // which word in the bust we are on
     int m_burstSize[eBurstCount];  // the size of each of the 20 bursts being sent / SF
+    bool m_endBurst;               // end of a burst of data words
     int m_random;                  // number of random values to put in 0-50, default 50
     int m_randomSave;              // save the random value when running the WSB
 
