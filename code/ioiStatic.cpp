@@ -568,7 +568,6 @@ void A664Qar::Update()
     // Fill in the IOI buffer with content from the sf/burst going out
     UINT32 totalInsert = 0;   // number of "words"  insert NDO/DATA
     UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
-    UINT32 sfNdo = m_ndo[m_sf];
     UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
 
     *(fillPtr++) = m_frameCount++;
@@ -594,7 +593,7 @@ void A664Qar::Update()
             if ( m_skipSfMask < 0xF)
             {
                 // insert burst data
-                *(fillPtr++) = sfNdo;
+                *(fillPtr++) = m_ndo[m_sf];
                 *(fillPtr++) = NextWord();
             }
         }
