@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2013-2016 Knowlogic Software Corp.
+//          Copyright (C) 2013-2017 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ccdl.cpp
@@ -207,7 +207,7 @@ BOOLEAN CCDL::CheckCmd( SecComm& secComm )
             switch (itemId)
             {
             case eCcdlIdSource:
-                if (itemId == eCcdlIdSource && 
+                if (itemId == eCcdlIdSource &&
                     request.sigGenId >= TIME_LOCAL_SRC && request.sigGenId < TIME_MAX_SRC)
                 {
                     m_eFastHold.srcTime = (EFAST_TIME_SRC)request.sigGenId;
@@ -507,14 +507,14 @@ void CCDL::SendParamRqst()
 // Function: PackRequestParams
 // Description: Pack our request for parameters, ask for all non xch data.  If param count is
 // greater than the ccdl take the first PARAM_XCH_BUFF_MAX.  The tester is responsible for
-// spreading the params out to ensure the ADRF code can send any parameter of its 3000 
+// spreading the params out to ensure the ADRF code can send any parameter of its 3000
 // parameters
 //
 // NOTE: this is called from InitIoi when we know we are doing a Reconfig - if ASE is restarted
 // you must Reconfig the target so ASE has some Param setup.
 //
 // TODO:
-// SCR-300 - make sure we request ccdl params like the adrf does, a single entry for each 
+// SCR-300 - make sure we request ccdl params like the adrf does, a single entry for each
 //           masterId
 //
 void CCDL::PackRequestParams( Parameter* parameters, UINT32 maxParamIndex)
@@ -570,8 +570,8 @@ void CCDL::GetParamData()
             // scatter the data to the param positions
             for (int x=0; x < m_rxParamData.num_params; ++x)
             {
-                pIndex = m_rqstParamMap.data[x].id;
-                if (!m_parameters[pIndex].m_isValid || 
+                pIndex = m_rqstParamIdMap[m_rqstParamMap.data[x].id];
+                if (!m_parameters[pIndex].m_isValid ||
                     m_parameters[pIndex].m_src == PARAM_SRC_CROSS)
                 {
                     paramsOk = false;
@@ -588,7 +588,7 @@ void CCDL::GetParamData()
         }
         else if (m_rxParamData.type == PARAM_XCH_RPT_HIST_DATA)
         {
-            // This is the only way that we ever get into this mode unless the test script 
+            // This is the only way that we ever get into this mode unless the test script
             // commands it (TBD) - that is we just react to the ADRF initiating the transfer
             m_mode = eCcdlRunHist;
 
@@ -602,10 +602,10 @@ void CCDL::GetParamData()
             memcpy(&HistTrigBuffRx[offset], m_rxParamData.data, HIST_BLK_SIZE);
             m_histPacketRx++;
 
-            if ((m_histPacketRx >= HIST_BLK_MAX) && 
+            if ((m_histPacketRx >= HIST_BLK_MAX) &&
                 (m_histPacketRx == m_rxParamData.num_params) )
             {
-                // we will take ourself out of Hist mode when the ADRF responds that it got 
+                // we will take ourself out of Hist mode when the ADRF responds that it got
                 // our data - here we tell the ADRF we got everything
                 Write(CC_PARAM_TRIG_HIST, &m_histPacketRx, sizeof(m_histPacketRx));
             }
@@ -623,7 +623,7 @@ void CCDL::GetParamData()
 // Function: ValidateRemoteSetup
 // Description: Verify the remote channel correctly built the request for us to Tx data to them
 //
-// SCR-300: Update this to scan down the list of parameters for each masterId seen 
+// SCR-300: Update this to scan down the list of parameters for each masterId seen
 //          Also verify that each masterId exists in the list received only once.
 //          We may have 5 params with cross as src, but only three entries in here.
 //
@@ -633,7 +633,7 @@ void CCDL::GetParamData()
 // Item 4. make sure the request has only one entry for each master id
 //
 // Note: all params with the same masterId will point to the same slot, but only the fast (or
-// one of the fastest) will be processed as a parent and sent across during the IoiUpdate 
+// one of the fastest) will be processed as a parent and sent across during the IoiUpdate
 // processing.
 //
 void CCDL::ValidateRemoteSetup()
@@ -722,9 +722,9 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
 
     if (theLine == baseLine)
     {
-        debug_str(Ioi, theLine, 0, 
+        debug_str(Ioi, theLine, 0,
             "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
-            m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode], 
+            m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode],
             m_histPacketTx, m_histPacketRx,
             m_rxCount, m_rxFailCount, stateStr[m_rxState],
             m_txCount, m_txFailCount, stateStr[m_txState]);
@@ -732,7 +732,7 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
     else if (theLine == (baseLine + 1))
     {
         debug_str(Ioi, theLine, 0, "CCDL: ParamRx(%d) ParamTx(%d) ParamRqst(%d)",
-            m_rxParamData.num_params, 
+            m_rxParamData.num_params,
             m_txParamData.num_params,
             m_rqstParamMap.num_params);
     }
@@ -794,19 +794,19 @@ void CCDL::UpdateEfast()
         m_eFastOut.dateTime = m_eFastHold.dateTime;
         m_eFastOut.sysElapsedTime = m_pCommon->remElapsedMif;
 
-        if (m_useCcdlItem[eCcdlIdSource]) 
+        if (m_useCcdlItem[eCcdlIdSource])
             m_eFastOut.srcTime = m_eFastHold.srcTime;
-        if (m_useCcdlItem[eCcdlIdElapsed]) 
+        if (m_useCcdlItem[eCcdlIdElapsed])
             m_eFastOut.sysElapsedTime = m_eFastHold.sysElapsedTime;
-        if (m_useCcdlItem[eCcdlIdLclFileCrc]) 
+        if (m_useCcdlItem[eCcdlIdLclFileCrc])
             m_eFastOut.lcFileCRC = m_eFastHold.lcFileCRC;
-        if (m_useCcdlItem[eCcdlIdCmbFileCrc]) 
+        if (m_useCcdlItem[eCcdlIdCmbFileCrc])
             m_eFastOut.combinedFileCRC = m_eFastHold.combinedFileCRC;
-        if (m_useCcdlItem[eCcdlIdLclXmlCrc]) 
+        if (m_useCcdlItem[eCcdlIdLclXmlCrc])
             m_eFastOut.lcXMLCRC = m_eFastHold.lcXMLCRC;
-        if (m_useCcdlItem[eCcdlIdAcidRx]) 
+        if (m_useCcdlItem[eCcdlIdAcidRx])
             m_eFastOut.bACIDRx = m_eFastHold.bACIDRx;
-        if (m_useCcdlItem[eCcdlIdAcidOk]) 
+        if (m_useCcdlItem[eCcdlIdAcidOk])
             m_eFastOut.bACIDOk = m_eFastHold.bACIDOk;
 
         Write(CC_EFAST_MGR, &m_eFastOut, sizeof(m_eFastOut));
@@ -814,9 +814,9 @@ void CCDL::UpdateEfast()
 }
 
 //---------------------------------------------------------------------------------------------
-// This function determines what data to send at run time.  It select either history or 
+// This function determines what data to send at run time.  It select either history or
 // parameter depending on the mode.  This function is called at 50Hz from the RunSimulation.
-// We return true when we send the param data so the IOI can clear its index into the CCDL 
+// We return true when we send the param data so the IOI can clear its index into the CCDL
 // Param buf
 bool CCDL::SendParamData()
 {
@@ -859,7 +859,7 @@ bool CCDL::SendParamData()
                 if (m_histPacketTx >= HIST_BLK_MAX)
                 {
                     // 510 ms timeout
-                    timeout = GET_SYSTEM_TICK + 51;                        
+                    timeout = GET_SYSTEM_TICK + 51;
                 }
             }
             else
