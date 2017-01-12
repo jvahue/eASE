@@ -570,7 +570,7 @@ void CCDL::GetParamData()
             // scatter the data to the param positions
             for (int x=0; x < m_rxParamData.num_params; ++x)
             {
-                pIndex = m_rqstParamIdMap[m_rqstParamMap.data[x].id];
+                pIndex = m_rqstParamIdMap[m_rxParamData.data[x].id];
                 if (!m_parameters[pIndex].m_isValid ||
                     m_parameters[pIndex].m_src == PARAM_SRC_CROSS)
                 {
