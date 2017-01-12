@@ -664,7 +664,7 @@ UINT32 A664Qar::NextWord()
         if (m_repeatCount == 0)
         {
             m_repeatCount = -1;
-            m_sfWordIndex += m_wordSeq[m_sf][m_sfWordIndex] >> 3;
+            m_sfWordIndex += (m_wordSeq[m_sf][m_sfWordIndex] >> 3) - 1;
         }
 
         // find out what we should be doing at this word position
