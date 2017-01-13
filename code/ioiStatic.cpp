@@ -50,6 +50,8 @@
 #error Need to Increase MAX_STATIC_IOI to be greater than ASE_OUT_MAX
 #endif
 
+UINT32 mirrorQarA664[A664Qar::eSfCount][A664Qar::eSfWordCount];
+
 //----------------------------------------------------------------------------/
 // Local Function Prototypes                                                 -/
 //----------------------------------------------------------------------------/
@@ -515,6 +517,9 @@ bool A664Qar::TestControl(SecRequest& request)
             index += 2;
             cmdWord += 2;
         }
+
+        // clear the QAR-A664 data mirror
+        memset(mirrorQarA664, 0, sizeof(mirrorQarA664));
     }
     else if (offset == eQarWordSeqState)
     {
@@ -565,6 +570,9 @@ bool A664Qar::TestControl(SecRequest& request)
 // 3. ???
 void A664Qar::Update()
 {
+    UINT32 lastSf;
+    UINT32 lastSfWord;
+    UINT32 wordValue;
     // Fill in the IOI buffer with content from the sf/burst going out
     UINT32 totalInsert = 0;   // number of "words"  insert NDO/DATA
     UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
@@ -580,7 +588,7 @@ void A664Qar::Update()
     while (totalInsert < eMaxBurstWords && !m_endBurst)
     {
         // check random data insert
-        if (randomInsert < m_random && HsTimer() & 1)
+        if (randomInsert < m_random && (HsTimer() & 1))
         {
             // insert random data
             *(fillPtr++) = (m_nonNdo + randomInsert);
@@ -594,7 +602,15 @@ void A664Qar::Update()
             {
                 // insert burst data
                 *(fillPtr++) = m_ndo[m_sf];
-                *(fillPtr++) = NextWord();
+
+                // save these because NextWord will update them
+                lastSf = m_sf;
+                lastSfWord = m_sfWordIndex;
+
+                wordValue = NextWord();
+                *(fillPtr++) = wordValue;
+
+                mirrorQarA664[lastSf][lastSfWord] = wordValue;
             }
         }
         totalInsert += 1;

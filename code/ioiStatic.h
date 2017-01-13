@@ -46,7 +46,7 @@ public:
     // streamData: String, IntegerPtr
     virtual bool GetStaticIoiData(IocResponse& m_response) {}
 
-    virtual bool Update() {}
+    virtual bool Update() {return true;}
     virtual bool WriteStaticIoi(void* data);
     virtual bool ReadStaticIoi(void* data);
     virtual char* Display(char* dest, UINT32 dix);

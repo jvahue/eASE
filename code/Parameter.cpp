@@ -67,7 +67,7 @@ Parameter::Parameter()
     Reset();
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Reset
 // Description: Reset the parameter values
 //
@@ -83,7 +83,7 @@ void Parameter::Reset()
     m_ioiValue = 0;            // current ioi value after Update
     m_rateHz = 0;              // ADRF update rate for the parameter in Hz
     m_updateMs = 0;
-    m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz
+    m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz*
     m_offset = 0;              // frame offset 0-90 step 10
     m_nextUpdate = 0;
     m_updateCount = 0;
@@ -99,7 +99,7 @@ void Parameter::Reset()
     m_sigGen.Reset(m_value);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: CompressName
 // Description: remove vowels from the end until strlen(src) <= size
 //
@@ -136,7 +136,7 @@ char* Parameter::CompressName(char* src, int size)
 }
 
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Init
 // Description: Initialize the parameter based on the configuration values
 //
@@ -173,7 +173,7 @@ void Parameter::Init(ParamCfg* paramInfo)
     m_ioiValid = false;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: IsChild
 // Description: Indicate if this parameter is a child of the other parameter.
 // If it is hook up this parameter to the other
@@ -237,7 +237,7 @@ bool Parameter::IsChild(Parameter& other)
     return childRelationship;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Update
 // Description: Update the parameter value
 // sysTick: what time is it now
@@ -290,7 +290,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 }
 
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: Display
 // Description: Display some info about the param
 //
@@ -300,7 +300,7 @@ char* Parameter::Display(char* buffer)
     return buffer;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: ParamInfo
 // Description: Display some info about the param
 // row = 0: param type, child, rate, etc.
