@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v0.9.8 RC4"  " " __DATE__ " " __TIME__
+# define version "v0.9.8 RC5"  " " __DATE__ " " __TIME__
 
 #ifdef ARRAY
 #undef ARRAY
@@ -89,6 +89,7 @@ enum SigGenEnum {
     eSG1Shot,      // one shot a signal (start, oneShotValue, frameIndex)
     eSGnShot,      // n-shot (baseline, nValue, frameIndex, nFrames)
     eSGpwm,        // PWM between two values (value1, value2) varying duty cycle
+    eSGpwm1,       // A better PWM - no period delay at the start
     eSGrandom,     // random values uniform dist (min, max)
     eMaxSensorMode
 };

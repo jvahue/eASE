@@ -38,6 +38,7 @@ static char* modeNames[eMaxSensorMode] = {
     "1-Shot  ",
     "N-Shot  ",
     "PWM     ",
+    "PWM1    ",
     "Random  "
 };
 
@@ -91,6 +92,9 @@ float SignalGenerator::Reset( float lastValue)
     case eSGsine:
         newValue = m_param3;  // set to the bias value
         break;
+    case eSGpwm1:
+        m_counter = (int)m_param3; // force PWM toggling right away
+        // Fall-through
     case eSGpwm:
         newValue = m_param2;  // set to the initial value
         break;
@@ -174,13 +178,18 @@ bool SignalGenerator::SetParams( int type, int updateMs,
     {
         // do nothing
     }
-    else if (m_type == eSGpwm)
+    else if ((m_type == eSGpwm) || (m_type == eSGpwm1))
     {
         m_param3 = param3 * (TimeBase/float(updateMs)); // total frames
-        m_param4 = m_param3 * param4/100.0f;           // frames high
+        m_param4 = m_param3 * param4/100.0f;            // frames high
         if ( m_param3 < 1.0f || m_param4 < 1.0f)
         {
             status = false;
+        }
+
+        if (m_type == eSGpwm1)
+        {
+            m_counter = (int)m_param3;
         }
     }
     else if (m_type == eSGrandom)
@@ -241,7 +250,7 @@ void SignalGenerator::GetParams( int updateMs,
         //param1 = ((m_param1 * 1000.0f)/float(updateMs))/360.0f;
         param1 = ((m_param1 * TimeBase))/360.0f;
     }
-    else if (m_type == eSGpwm)
+    else if ((m_type == eSGpwm) || (m_type == eSGpwm1))
     {
         param3 = (m_param3)/(TimeBase/float(updateMs));
         param4 = 100.0f * (m_param4/m_param3);
@@ -351,6 +360,7 @@ float SignalGenerator::Update( float oldValue, bool sgRun)
             break;
 
         case eSGpwm:
+        case eSGpwm1:
             ++m_counter;
             if ( m_counter >= int(m_param4) && m_counter < int(m_param3))
             {
@@ -420,6 +430,7 @@ void SignalGenerator::GetRepresentation(char* buffer) const
             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
         break;
     case eSGpwm:
+    case eSGpwm1:
         sprintf(buffer, "pwm(%.2f, %.2f, %.2f, %.2f)",
             m_orgParam1, m_orgParam2, m_orgParam3, m_orgParam4);
         break;
