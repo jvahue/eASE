@@ -1,7 +1,7 @@
 #ifndef CMAILBOX_H
 #define CMAILBOX_H
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        MailBox.h
@@ -29,6 +29,7 @@ public:
     // Constructor.
     MailBox(void);
     void Reset(void);
+    void Delete(void);
     char* GetStatusStr(void);
 
     // Receiver methods
@@ -38,9 +39,8 @@ public:
     BOOLEAN Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage = FALSE);
     BOOLEAN IsCreated()
     {
-        return (m_type == eRecv &&                    // mailbox initialized for receive
-            m_hMailBox != NULL &&                     // valid handle obtained
-            m_successfulGrantCnt == m_grantListSize); // all granted processes connected
+        return (m_type == eRecv &&                  // mailbox initialized for receive
+                m_hMailBox != NULL);                // valid handle obtained
     }
 
     // Sender methods
@@ -83,7 +83,7 @@ public:
 
     MailBoxType      m_type;
 
-    process_handle_t m_hProcess;
+    process_handle_t m_hProcess;            // Process handle for the receive mailbox owner
     processStatus    m_procStatus;
     ipcMailboxHandle m_hMailBox;
     ipcStatus        m_ipcStatus;

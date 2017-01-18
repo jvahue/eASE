@@ -1,7 +1,7 @@
 #ifndef SecComm_h
 #define SecComm_h
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        SecComm.h
@@ -64,6 +64,10 @@ enum SecCmds {
     eLogFileCrc     = 209,
     eFileExists     = 210,
 
+    // CmProc File Transfer
+    eEnableFileXfr  = 211,
+    eDisableFileXfr = 212,
+
     // CmProc Reconfig Controls
     eCmFileNameDelay = 250,
     eCmRecfgAckDelay = 251,
@@ -94,7 +98,7 @@ enum SecCmds {
     eParamIoState   = 415,
     eSetStaticIoi   = 416,
     eGetStaticIoi   = 417,  // Used to set value and pause/resume IOI updates
-    eSetIoiDuration = 418, 
+    eSetIoiDuration = 418,
     eGetRemoteTrig  = 419,
     eSetRemoteTrig  = 420,
     eSetShipTimeId  = 421,  // indicate which params are the ships date/time

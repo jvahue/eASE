@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2013-2016 Knowlogic Software Corp.
+//          Copyright (C) 2013-2017Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: CmProcess.cpp
@@ -65,7 +65,6 @@ CmProcess::CmProcess()
 , m_lastPowerState(true)
 , m_invalidSrc(0)
 {
-
     // TODO: remove after debugging
     memset( m_rqstFile, 0, sizeof(m_rqstFile));
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
@@ -86,7 +85,6 @@ protected methods for FxProc
 
 void CmProcess::Run()
 {
-
     // create alias for this process because adrf will be granting write access
     // to CMProcess, not ASE
     //processStatus ps = createProcessAlias( "CMProcess");
@@ -193,9 +191,15 @@ void CmProcess::RunSimulation()
         m_getFile.Close();
         m_putFile.Close();
 
-        // File Xfer - don't do anything here - this is reset on ADRF Power down as the ADRF
+        // File Xfer - make sure inbox is created. May be deleted during processing.
+        // .. otherwise, don't do anything here - this is reset on ADRF Power down as the ADRF
         // .. might have requested a file transfer and we have not done anything with it yet.
         // .. On Power down ADRf will restart all file transfers - see HandlePowerOff
+        if (!m_fileXferInBox.IsCreated())
+        {
+            // Set up mailboxes for processing log file msg from ADRF
+            m_fileXferInBox.Create("CM_FILE_TRANSFER_ADRF", 512, 2);
+        }
     }
 
     scriptStateZ = IS_SCRIPT_ACTIVE;
@@ -451,12 +455,41 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
         {
             if (m_getFile.GetFileError() != eFileNotFound)
             {
-                secComm.ErrorMsg("Failed File Exists Check Error(%d)", 
+                secComm.ErrorMsg("Failed File Exists Check Error(%d)",
                     m_getFile.GetFileError());
             }
             secComm.m_response.successful = FALSE;
         }
         m_getFile.Close();
+
+        serviced = TRUE;
+        break;
+
+    case eEnableFileXfr:
+        if (!m_fileXferInBox.IsCreated())
+        {
+            // Recreate mailbox for processing log file msg from ADRF
+            m_fileXferInBox.Create("CM_FILE_TRANSFER_ADRF", 512, 2);
+        }
+        else
+        {
+          secComm.ErrorMsg("File Xfr Mailbox already enabled");
+          secComm.m_response.successful = FALSE;
+        }
+
+        serviced = TRUE;
+        break;
+
+    case eDisableFileXfr:
+        if (m_fileXferInBox.IsCreated())
+        {
+          m_fileXferInBox.Delete();
+        }
+        else
+        {
+          secComm.ErrorMsg("File Xfr Mailbox already disabled");
+          secComm.m_response.successful = FALSE;
+        }
 
         serviced = TRUE;
         break;
@@ -512,7 +545,7 @@ bool CmProcess::PutFile( SecComm& secComm)
     {
         if (!m_putFile.IsOpen())
         {
-            m_putFile.Open( secComm.m_request.charData, 
+            m_putFile.Open( secComm.m_request.charData,
                 File::PartitionType(secComm.m_request.sigGenId), 'w');
             status = true;
 
@@ -581,7 +614,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             memset(m_rqstFile, 0, sizeof(m_rqstFile));
             memcpy(m_rqstFile, secComm.m_request.charData, secComm.m_request.charDataSize);
 
-            if (m_getFile.Open(m_rqstFile, 
+            if (m_getFile.Open(m_rqstFile,
                 File::PartitionType(secComm.m_request.sigGenId), 'r'))
             {
                 m_fileXfer.FileStatus(m_rqstFile, true);
@@ -600,7 +633,7 @@ bool CmProcess::GetFile( SecComm& secComm)
             else
             {
                 m_fileXfer.FileStatus(m_rqstFile, false);
-                secComm.ErrorMsg("GetFile: File not available(%d) <%s> ", 
+                secComm.ErrorMsg("GetFile: File not available(%d) <%s> ",
                     m_getFile.m_fileError, m_rqstFile);
             }
         }
@@ -632,7 +665,7 @@ bool CmProcess::GetFile( SecComm& secComm)
                     "GetFile: File Read Failed (bytesRead=%d). File State:\n"
                     "  Size:     %d, Offset:         %d\n"
                     "  NextRead: %d, PortBytesInUse: %d\n"
-                    "  EOF:      %s", 
+                    "  EOF:      %s",
                     bytesRead,
                     m_getFile.m_fileSize, m_getFile.m_physOffset,
                     m_getFile.m_nextRead, m_getFile.m_portBytesInUse,
@@ -696,7 +729,7 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 2:
-        debug_str(CmProc, theLine, 0, 
+        debug_str(CmProc, theLine, 0,
             "RxFifo - Gse:%d Mfd:%d ACARS:%d LiveData:%d Invalid:%d",
             m_rxStreamFifo[0].Used(), m_rxStreamFifo[1].Used(),
             m_rxStreamFifo[2].Used(), m_rxStreamFifo[3].Used(),
@@ -725,7 +758,7 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 5:
-        debug_str(CmProc, theLine, 0, 
+        debug_str(CmProc, theLine, 0,
             "Log Stats S/F/FL(%d/%d/%d) Bad/Crc:Snd-Rsp/Fmis(%d/%d-%d/%d)",
             m_fileXfer.m_fileXferSuccess,
             m_fileXfer.m_fileXferFailed,

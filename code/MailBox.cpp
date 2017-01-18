@@ -1,8 +1,8 @@
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
-File:        CMailBox.cpp
+File:        MailBox.cpp
 
 Description:
 
@@ -332,23 +332,28 @@ BOOLEAN MailBox::Connect(const char* procName, const char* mbName)
 ****************************************************************************/
 BOOLEAN MailBox::Receive(void* buff, UINT32 sizeBytes, BOOLEAN bWaitForMessage)
 {
-    ipcStatus status;
-    // If there were any sender processes which could not be granted access,
-    // try to connect them each time we do a read.
-    if (m_successfulGrantCnt < m_grantListSize )
-    {
-        OpenSenders();
-    }
+    ipcStatus status = ipcInvalidMailboxHandle;
 
-    // Read the mailbox
-    status = receiveMessage(m_hMailBox,
-        buff,
-        BYTES_TO_DWORDS(sizeBytes),
-        bWaitForMessage);
-
-    if ( status != ipcNoMessage)
+    // make sure mailbox exists first
+    if (IsCreated())
     {
-        m_ipcStatus = status;
+        // If there were any sender processes which could not be granted access,
+        // try to connect them each time we do a read.
+        if (m_successfulGrantCnt < m_grantListSize )
+        {
+            OpenSenders();
+        }
+
+        // Read the mailbox
+        status = receiveMessage(m_hMailBox,
+                                buff,
+                                BYTES_TO_DWORDS(sizeBytes),
+                                bWaitForMessage);
+
+        if ( status != ipcNoMessage)
+        {
+            m_ipcStatus = status;
+        }
     }
 
     return (status == ipcValid);
@@ -397,6 +402,61 @@ const char* MailBox::GetIpcStatusString()
 {
     return is_to_str(GetIpcStatus());
 }
+
+/*****************************************************************************
+* Function:     Delete
+*
+* Description:  Delete this mailbox and leave in an unconnected state
+*               based on type (send/recv)
+*
+* Parameters:   None
+*
+* Returns:      None
+*
+* Notes:        This method should be called when the owner is commanded
+*               to delete the mailbox. The mailbox must then be recreated
+*               if needed.
+*
+****************************************************************************/
+void MailBox::Delete()
+{
+    SIGNED32  i;
+    ipcStatus status;
+
+    // Reset my connections based on my config (sender/receiver)
+    // Leave set send-access process names for later connection
+    if (m_type == eRecv)
+    {
+        if (IsCreated())
+        {
+            status = deleteMailbox(m_hMailBox);
+        }
+
+        // Reset the grant flags.
+        for (i = 0; i < eMaxGrantsAllowed; ++i)
+        {
+            m_grantList[i].bConnected = FALSE;
+        }
+
+        m_successfulGrantCnt = 0;
+        m_ipcStatus  = ipcInvalidMailboxHandle;
+        m_procStatus = processNotActive;
+        m_hMailBox = NULL;
+    }
+    else
+    {
+        // send mailbox - just mark invalid and clear handles
+        if (m_hMailBox != NULL)
+        {
+            m_ipcStatus  = ipcInvalidMailboxHandle;
+            m_procStatus = processNotActive;
+            m_hMailBox = NULL;
+            m_hProcess = NULL;
+            m_connectAttempts = 0;
+        }
+    }
+}
+
 /*****************************************************************************
 * Function:     Reset
 *
@@ -438,7 +498,7 @@ void MailBox::Reset()
     case eSend:
         if (m_hMailBox != NULL)
         {
-            m_ipcStatus  = ipcInvalid;
+            m_ipcStatus  = ipcInvalidMailboxHandle;
             m_procStatus = processNotActive;
             m_hMailBox = NULL;
             m_hProcess = NULL;
@@ -512,7 +572,7 @@ void MailBox::OpenSenders(void)
             // Get a handle to the sender process
             m_procStatus = getProcessHandle(m_grantList[i].ProcName, &procHandle);
 
-            if(m_procStatus == processSuccess)
+            if (m_procStatus == processSuccess)
             {
                 ipcStat = grantMailboxAccess(m_hMailBox, procHandle, FALSE);
                 if (ipcStat == ipcValid)
