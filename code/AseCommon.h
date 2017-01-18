@@ -1,7 +1,7 @@
 #ifndef AseCommon_h
 #define AseCommon_h
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        AseCommon.h
@@ -147,6 +147,7 @@ typedef struct
 {
     AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active
     PowerState   asePowerState;  // Current Ase Power State
+    bool         scriptPowerOn;  // Script want ADRF power On/off
     UNSIGNED32   *systemTickPtr; // Pointer to the system tick value.
     bool         bConnected;     // ePySte Connection
     bool         bScriptRunning; // Is a script actively running

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2014-2016 Knowlogic Software Corp.
+//          Copyright (C) 2014-2017 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiStatic.cpp

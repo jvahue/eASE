@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        aseMain.cpp
@@ -35,6 +35,7 @@ $Revision: $  $Date: $
 #define _50msec 5
 
 // Battery Control Signals mask bit
+#define BATTERY_MAP_SIZE 4
 #define LEVC_ADRF_BATT_CMD 1
 
 // Battery Status Signals
@@ -53,9 +54,9 @@ $Revision: $  $Date: $
 #define SET_BUS_POWER_OFF (batteryStsMirror & ~LOSS_AF28V_N)
 
 // Status Checks
-#define IS_BUS_POWER_ON  (batteryStsMirror & LOSS_AF28V_N)
+#define IS_BUS_POWER_ON  (aseCommon.scriptPowerOn)
 #define IS_LVL_A_ON      (batteryStsMirror & LEVA_BATT_IN_SW_MASTER_EN)
-#define IS_LVL_C_ON_BATT (batteryCtlMirror & LEVC_ADRF_BATT_CMD)
+#define IS_LVL_C_ON_BATT (batteryStsMirror & LEVC_ADRF_BATT_CMD_WA)
 #define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_LVL_C_ON_BATT)
 
 #define eDyHdr 0
@@ -122,6 +123,17 @@ INT32 _50MsTimer;         // times out the 50ms holdup
 
 UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
 UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
+
+// Four Battery Control Tables for each mode of BatteryTestControlState are mapped into the 
+// batteyrSts word.  Each value in each tables represents the positive logic asserted state for 
+// PowerOn: bit 0, BattLatched: bit 1, LvlC_WA: bit 2
+// The Lookup key is based on Script Power: Bit 0 and LvlC_CMD: bit 1
+UINT8 batMapDisable[BATTERY_MAP_SIZE] = {0, 1, 4, 5};
+UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {0, 1, 3, 5};
+UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {2, 3, 6, 7};
+UINT8 batMapLow[BATTERY_MAP_SIZE]     = {0, 1, 4, 5};
+UINT8* batMapLookup[BATTERY_MAP_SIZE] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
+UINT8 batMapActive[BATTERY_MAP_SIZE];
 
 /*****************************************************************************/
 /* Global Variables                                                          */
@@ -254,11 +266,9 @@ int main(void)
 
     _50MsTimer = 0;
     aseCommon.asePowerState = ePsOff;
+    aseCommon.scriptPowerOn = true;
     batteryState = eBattDisabled;
-
-    batteryStsMirror = SET_BUS_POWER_ON;
-    batteryStsMirror = LVL_C_BAT_UNLATCH;
-    batteryStsMirror = LVL_A_DISABLE;
+    memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
 
     PowerCtl();
 
@@ -398,6 +408,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             SetTime(request);
             // reset the battery latch logic to default (i.e., no battery latching
             batteryState = eBattDisabled;
+            memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -417,7 +428,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case ePowerOn:
-            batteryStsMirror = SET_BUS_POWER_ON;
+            aseCommon.scriptPowerOn = true;
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -425,7 +436,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOff:
             // request the power off
-            batteryStsMirror = SET_BUS_POWER_OFF;
+            aseCommon.scriptPowerOn = false;
             SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
@@ -534,6 +545,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 request.variableId <= (INT32)eBattStuckHi)
             {
                 batteryState = BatteryTestControlState(request.variableId);
+                // update the active table map
+                memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
                 secComm.m_response.successful = TRUE;
             }
             else
@@ -587,56 +600,24 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 // UpdateBattery - This function Performs the IOI battery feedback logic based on battery state
 static void UpdateBattery()
 {
+    UINT8 batSts;
+
+    // create the key for our power sts map
+    UINT8 key = aseCommon.scriptPowerOn ? 1 : 0;
+
     // read battery control from the ADRF
     batteryCtlMirror =  *battCtlReg.address;
+    key |= IS_LVL_C_ON_BATT ? 2 : 0;
 
-    // Handle the Battery feedback logic
-    if (batteryState == eBattDisabled)
-    {
-        batteryStsMirror = LVL_A_DISABLE;   // indicate level A battery is disabled
-        batteryStsMirror |= BATT_SW_ENA_N;  // NOT on Battery
+    batSts = batMapActive[key];
 
-        // mirror LEVC_ADRF_BATT_CMD in Status word
-        if (IS_LVL_C_ON_BATT)
-        {
-            batteryStsMirror |= LEVC_ADRF_BATT_CMD_WA;
-        }
-        else
-        {
-            batteryStsMirror &= ~LEVC_ADRF_BATT_CMD_WA;
-        }
-    }
-    else
-    {
-        // user requested that the battery latching be enabled by Level A
-        batteryStsMirror = LVL_A_ENABLE;
-
-        // normal operation requested ?
-        if (batteryState == eBattEnabled)
-        {
-            // track the battery control latch request
-            if (IS_LVL_C_ON_BATT)
-            {
-                // ADRF requesting a battery latch, indicate as expected
-                batteryStsMirror = LVL_C_BAT_LATCH;
-            }
-            else
-            {
-                // ADRF is not requesting a battery latch, indicate as expected
-                batteryStsMirror = LVL_C_BAT_UNLATCH;
-            }
-        }
-        else if (batteryState == eBattStuckLo)
-        {
-            // we are stuck lo
-            batteryStsMirror = LVL_C_BAT_UNLATCH;
-        }
-        else if (batteryState == eBattStuckHi)
-        {
-            // We are stuck hi
-            batteryStsMirror = LVL_C_BAT_LATCH;
-        }
-    }
+    // clear the status mirror and rebuild it
+    batteryStsMirror = 0;
+    
+    batteryStsMirror |= batteryState != eBattDisabled ? LEVA_BATT_IN_SW_MASTER_EN : 0;  // LvlA
+    batteryStsMirror |= batSts & 4 ? LEVC_ADRF_BATT_CMD_WA : 0; // Lvl C WA
+    batteryStsMirror |= batSts & 2 ? 0 : BATT_SW_ENA_N;         // Battery Enable Asserted Low
+    batteryStsMirror |= batSts & 1 ? 0 : LOSS_AF28V_N;          // Power Loss Asserted Low
 
     // provide status
     *battStsReg.address = batteryStsMirror;
@@ -666,14 +647,10 @@ static void PowerCtl()
             {
                 aseCommon.asePowerState = ePsLatch;
             }
-            if (IS_LVL_A_ON)
+            else  // simulate Hold up CAP
             {
                 _50MsTimer = _50msec;
                 aseCommon.asePowerState = ePs50;
-            }
-            else
-            {
-                PowerOff();
             }
         }
         break;
@@ -740,7 +717,7 @@ static void PowerOn()
         aseCommon.asePowerState = ePsOn;
     }
 
-    batteryStsMirror = SET_BUS_POWER_ON;
+    //batteryStsMirror = SET_BUS_POWER_ON;
     _50MsTimer = 0;
 }
 
@@ -763,7 +740,7 @@ static void PowerOff()
     aseCommon.adrfState = eAdrfOff;
     aseCommon.asePowerState = ePsOff;
 
-    batteryStsMirror = SET_BUS_POWER_OFF;
+    //batteryStsMirror = SET_BUS_POWER_OFF;
     _50MsTimer = 0;
 }
 
