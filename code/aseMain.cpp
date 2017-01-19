@@ -78,7 +78,8 @@ enum BatteryTestControlState {
     eBattDisabled,  // No battery latching is available
     eBattEnabled,   // Battery Latching works as expected
     eBattStuckLo,   // Battery Never Latched
-    eBattStuckHi    // Battery Always Latched
+    eBattStuckHi,   // Battery Always Latched
+    eBattMax        // Max value
 };
 
 typedef struct
@@ -129,10 +130,11 @@ UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
 // PowerOn: bit 0, BattLatched: bit 1, LvlC_WA: bit 2
 // The Lookup key is based on Script Power: Bit 0 and LvlC_CMD: bit 1
 UINT8 batMapDisable[BATTERY_MAP_SIZE] = {0, 1, 4, 5};
-UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {0, 1, 3, 5};
+UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {0, 1, 6, 5};
 UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {2, 3, 6, 7};
 UINT8 batMapLow[BATTERY_MAP_SIZE]     = {0, 1, 4, 5};
-UINT8* batMapLookup[BATTERY_MAP_SIZE] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
+UINT8* batMapLookup[eBattMax] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
+
 UINT8 batMapActive[BATTERY_MAP_SIZE];
 
 /*****************************************************************************/
@@ -366,6 +368,13 @@ int main(void)
         {
             secComm.forceConnectionClosed = FALSE;
             cmdIdle = 0;
+
+            // general housekeeping
+            aseCommon.bScriptRunning = FALSE;
+            // reset the battery latch logic to default (i.e., no battery latching
+            batteryState = eBattDisabled;
+            memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
+
         }
 
         aseCommon.bConnected = secComm.IsConnected();
@@ -397,15 +406,15 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         switch (request.cmdId)
         {
         case eRunScript:
-            aseCommon.bScriptRunning = TRUE;
             SetTime(request);
+            aseCommon.bScriptRunning = TRUE;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case eScriptDone:
-            aseCommon.bScriptRunning = FALSE;
             SetTime(request);
+            aseCommon.bScriptRunning = FALSE;
             // reset the battery latch logic to default (i.e., no battery latching
             batteryState = eBattDisabled;
             memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
@@ -414,8 +423,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case eShutdown:
-            aseCommon.bScriptRunning = FALSE;
             SetTime(request);
+            aseCommon.bScriptRunning = FALSE;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -428,16 +437,16 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case ePowerOn:
-            aseCommon.scriptPowerOn = true;
             SetTime(request);
+            aseCommon.scriptPowerOn = true;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
         case ePowerOff:
+            SetTime(request);
             // request the power off
             aseCommon.scriptPowerOn = false;
-            SetTime(request);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -601,23 +610,25 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 static void UpdateBattery()
 {
     UINT8 batSts;
+    UINT8 lvlCOn;
 
     // create the key for our power sts map
     UINT8 key = aseCommon.scriptPowerOn ? 1 : 0;
 
     // read battery control from the ADRF
     batteryCtlMirror =  *battCtlReg.address;
-    key |= IS_LVL_C_ON_BATT ? 2 : 0;
+    lvlCOn = (batteryCtlMirror & LEVC_ADRF_BATT_CMD);
+    key |= lvlCOn ? 2 : 0;
 
     batSts = batMapActive[key];
 
     // clear the status mirror and rebuild it
     batteryStsMirror = 0;
     
-    batteryStsMirror |= batteryState != eBattDisabled ? LEVA_BATT_IN_SW_MASTER_EN : 0;  // LvlA
-    batteryStsMirror |= batSts & 4 ? LEVC_ADRF_BATT_CMD_WA : 0; // Lvl C WA
-    batteryStsMirror |= batSts & 2 ? 0 : BATT_SW_ENA_N;         // Battery Enable Asserted Low
-    batteryStsMirror |= batSts & 1 ? 0 : LOSS_AF28V_N;          // Power Loss Asserted Low
+    batteryStsMirror |= (batteryState != eBattDisabled) ? LEVA_BATT_IN_SW_MASTER_EN : 0; // A
+    batteryStsMirror |= (batSts & 4) ? LEVC_ADRF_BATT_CMD_WA : 0; // Lvl C WA
+    batteryStsMirror |= (batSts & 2) ? 0 : BATT_SW_ENA_N;         // Batt Enable Asserted Low
+    batteryStsMirror |= (batSts & 1) ? LOSS_AF28V_N : 0;          // Power Loss Asserted Low
 
     // provide status
     *battStsReg.address = batteryStsMirror;
