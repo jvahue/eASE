@@ -556,6 +556,14 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 batteryState = BatteryTestControlState(request.variableId);
                 // update the active table map
                 memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
+                if (request.charDataSize == 4)
+                {
+                    // override the default values
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        batMapActive[i] = (UINT8)request.charData[i];
+                    }
+                }
                 secComm.m_response.successful = TRUE;
             }
             else
