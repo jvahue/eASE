@@ -54,10 +54,12 @@ $Revision: $  $Date: $
 #define SET_BUS_POWER_OFF (batteryStsMirror & ~LOSS_AF28V_N)
 
 // Status Checks
-#define IS_BUS_POWER_ON  (aseCommon.scriptPowerOn)
+#define IS_BUS_POWER_ON  (aseCommon.scriptPowerOn & 0x1)
+#define IS_INVERT_POWER  (aseCommon.scriptPowerOn & 0x2)
 #define IS_LVL_A_ON      (batteryStsMirror & LEVA_BATT_IN_SW_MASTER_EN)
 #define IS_LVL_C_ON_BATT (batteryStsMirror & LEVC_ADRF_BATT_CMD_WA)
-#define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_LVL_C_ON_BATT)
+#define IS_BATT_EN       (~batteryStsMirror & BATT_SW_ENA_N)
+#define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_BATT_EN)
 
 #define eDyHdr 0
 #define eDyASE 1
@@ -250,7 +252,7 @@ int main(void)
     td = HsTimeDiff(start);
 
     // see CheckCmds - where this is updated
-    debug_str(AseMain, eDyLast, 0, "Last Cmd Id: 0");
+    debug_str(AseMain, eDyLast, 0, "Last Cmd Id: 0x");
 
     // POWER CONTROL SETUP
     status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
@@ -268,7 +270,7 @@ int main(void)
 
     _50MsTimer = 0;
     aseCommon.asePowerState = ePsOff;
-    aseCommon.scriptPowerOn = true;
+    aseCommon.scriptPowerOn = 1;  // Pon, no invert
     batteryState = eBattDisabled;
     memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
 
@@ -393,15 +395,19 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     BOOLEAN cmdSeen = FALSE;
     BOOLEAN serviced = FALSE;
     ResponseType rType = eRspNormal;
+    SecRequest request = secComm.m_request;
+
+    debug_str(AseMain, eDyLast, 0, 
+        "Last Cmd Id: %3d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d)", 
+              request.cmdId, 
+              batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
+              batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3]);
 
     if (secComm.IsCmdAvailable())
     {
         cmdSeen = TRUE;
-        SecRequest request = secComm.m_request;
 
         videoRedirect = (VID_DEFS)request.videoDisplay;
-
-        debug_str(AseMain, eDyLast, 0, "Last Cmd Id: %d        ", request.cmdId);
 
         switch (request.cmdId)
         {
@@ -438,7 +444,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOn:
             SetTime(request);
-            aseCommon.scriptPowerOn = true;
+            aseCommon.scriptPowerOn = secComm.m_request.variableId & 0x3;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -446,7 +452,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case ePowerOff:
             SetTime(request);
             // request the power off
-            aseCommon.scriptPowerOn = false;
+            aseCommon.scriptPowerOn = secComm.m_request.variableId & 0x3;
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -621,7 +627,7 @@ static void UpdateBattery()
     UINT8 lvlCOn;
 
     // create the key for our power sts map
-    UINT8 key = aseCommon.scriptPowerOn ? 1 : 0;
+    UINT8 key = (aseCommon.scriptPowerOn & 0x1) ? 1 : 0;
 
     // read battery control from the ADRF
     batteryCtlMirror =  *battCtlReg.address;
@@ -689,6 +695,11 @@ static void PowerCtl()
         {
             if (--_50MsTimer == 0)
             {
+                // we will default to latch state but of we really turn off because 
+                // !IS_IND_POWER_ON we will be ePsOff
+                _50MsTimer = 0;
+                aseCommon.asePowerState = ePsLatch;
+
                 // shut off as the ADRF has not latched the battery
                 PowerOff();
             }
@@ -714,37 +725,39 @@ static void PowerOn()
     // Create the ADRF process to simulate behavior during power on
     if ( adrfProcHndl == NULL)
     {
-        adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-        debug_str(AseMain, eDyAdrf, 0, "PowerOn: Create process %s returned: %d",
-            adrfName,
-            adrfProcStatus);
+        if (!IS_INVERT_POWER)
+        {
+            adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+            debug_str(AseMain, eDyAdrf, 0, "PowerOn: Create process %s returned: %d",
+                adrfName,
+                adrfProcStatus);
 
-        // Update the global state info
-        if (processSuccess == adrfProcStatus)
-        {
-            aseCommon.adrfState = eAdrfOn;
-            aseCommon.asePowerState = ePsOn;
-        }
-        else
-        {
-            aseCommon.adrfState = eAdrfOff;
-            aseCommon.asePowerState = ePsOff;
+            // Update the global state info
+            if (processSuccess == adrfProcStatus)
+            {
+                aseCommon.adrfState = eAdrfOn;
+                aseCommon.asePowerState = ePsOn;
+            }
+            else
+            {
+                aseCommon.adrfState = eAdrfOff;
+                aseCommon.asePowerState = ePsOff;
+            }
+
+            _50MsTimer = 0;
         }
     }
     else
     {
         aseCommon.asePowerState = ePsOn;
     }
-
-    //batteryStsMirror = SET_BUS_POWER_ON;
-    _50MsTimer = 0;
 }
 
 //---------------------------------------------------------------------------------------------
 static void PowerOff()
 {
     // Kill the ADRF process to simulate behavior during power off
-    if (adrfProcHndl != NULL)
+    if (adrfProcHndl != NULL && !IS_INVERT_POWER)
     {
         adrfProcStatus = deleteProcess( adrfProcHndl);
         adrfProcStatus =  processNotActive;
@@ -753,14 +766,13 @@ static void PowerOff()
         debug_str(AseMain, eDyAdrf, 0, "PowerOff: Delete process %s returned: %d",
             adrfName,
             adrfProcStatus);
+
+        // Update the global-shared data block
+        aseCommon.adrfState = eAdrfOff;
+        aseCommon.asePowerState = ePsOff;
+
+        _50MsTimer = 0;
     }
-
-    // Update the global-shared data block
-    aseCommon.adrfState = eAdrfOff;
-    aseCommon.asePowerState = ePsOff;
-
-    //batteryStsMirror = SET_BUS_POWER_OFF;
-    _50MsTimer = 0;
 }
 
 //---------------------------------------------------------------------------------------------

@@ -126,10 +126,13 @@ void CmdRspThread::RunSimulation()
 //
 int CmdRspThread::UpdateDisplay(VID_DEFS who, int theLine)
 {
+    char spi[4] = {'-', '+', 'v', '^'};
+
     //debug_str(who, 0, 0,"%s", m_blankLine);
     debug_str(who, theLine, 0,
-        "PySte:%s/%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
+        "PySte:%s/%c%s ADRF:%s MS:%s Scr:%s Frame:%d/%d %4d/%d/%d",
         IS_CONNECTED ? "Conn" : "NoConn",
+        spi[aseCommon.scriptPowerOn],
         asePower[m_pCommon->asePowerState],
         adrfState[m_pCommon->adrfState],
         IS_MS_ONLINE ? "On" : "Off",

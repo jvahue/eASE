@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v0.9.8"  " " __DATE__ " " __TIME__
+# define version "v0.9.9"  " " __DATE__ " " __TIME__
 
 #ifdef ARRAY
 #undef ARRAY
@@ -147,7 +147,7 @@ typedef struct
 {
     AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active
     PowerState   asePowerState;  // Current Ase Power State
-    bool         scriptPowerOn;  // Script want ADRF power On/off
+    BYTE         scriptPowerOn;  // Script want ADRF power On/off
     UNSIGNED32   *systemTickPtr; // Pointer to the system tick value.
     bool         bConnected;     // ePySte Connection
     bool         bScriptRunning; // Is a script actively running
