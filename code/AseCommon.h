@@ -143,7 +143,7 @@ enum AdrfState {
 };
 
 // Structure of control attributes for managing the UUT
-typedef struct
+typedef struct AseCommonTag
 {
     AdrfState    adrfState;      // Current state of UUT. off, on, rdy = gse connection active
     PowerState   asePowerState;  // Current Ase Power State

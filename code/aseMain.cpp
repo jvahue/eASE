@@ -68,10 +68,12 @@ $Revision: $  $Date: $
 #define eDyShip 4
 #define eDySec  5
 #define eDyCom  6
-#define eDyLast 7
-#define eDyErr  8
-#define eDyAdrf 9
-#define eDyShHx 10
+#define eDyBatt 7
+#define eDyLast 8
+#define eDyErr  9
+#define eDyAdrfOn 10
+#define eDyAdrfOff 11
+#define eDyShHx 12
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -107,8 +109,13 @@ IoiProcess ioiProc;
 // adrf.exe process control vars
 const char adrfName[] = "adrf";
 const char adrfTmplName[] = "adrf-template";
-processStatus    adrfProcStatus = processNotActive;
+processStatus adrfProcStatusOn = processNotActive;
+processStatus adrfProcStatusOff = processNotActive;
 process_handle_t adrfProcHndl = NULL;
+int adrfOnCount;
+int adrfOnCall;
+int adrfOffCount;
+int adrfOffCall;
 
 PLATFORM_UINT08 nvm;
 //static platformResourceHandle nvmHandle;
@@ -137,6 +144,7 @@ UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {2, 3, 6, 7};
 UINT8 batMapLow[BATTERY_MAP_SIZE]     = {0, 1, 4, 5};
 UINT8* batMapLookup[eBattMax] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
 
+UINT8 powerKey;
 UINT8 batMapActive[BATTERY_MAP_SIZE];
 
 /*****************************************************************************/
@@ -199,6 +207,7 @@ int main(void)
     platformResourceHandle hA;
     accessStyle access_style;
 
+    char batStsStr[5];
     UINT32 i;
     UINT32 start;
     UINT32 td;
@@ -274,6 +283,11 @@ int main(void)
     batteryState = eBattDisabled;
     memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
 
+    adrfOnCount = 0;
+    adrfOnCall = 0;
+    adrfOffCount = 0;
+    adrfOffCall = 0;
+
     PowerCtl();
 
     // The main thread goes into an infinite loop.
@@ -339,6 +353,25 @@ int main(void)
 
         debug_str(AseMain, eDyErr, 0, "%s", secComm.GetErrorMsg());
 
+        batStsStr[0] = (batteryStsMirror  & LOSS_AF28V_N) ? 'P' : ' ';
+        batStsStr[1] = (~batteryStsMirror & BATT_SW_ENA_N) ? 'B' : ' ';
+        batStsStr[2] = (batteryStsMirror  & LEVC_ADRF_BATT_CMD_WA) ? 'C' : ' ';
+        batStsStr[3] = (batteryStsMirror  & LEVA_BATT_IN_SW_MASTER_EN) ? 'A' : ' ';
+        batStsStr[4] = '\0';
+
+        debug_str(AseMain, eDyBatt, 0, 
+            "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s", 
+            aseCommon.scriptPowerOn,
+            batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
+            batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
+            powerKey, batMapActive[powerKey], batStsStr);
+
+        debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d): %d", 
+            adrfOnCount, adrfOnCall, adrfProcStatusOn);
+
+        debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d", 
+            adrfOffCount, adrfOffCall, adrfProcStatusOff);
+        
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
 
@@ -397,16 +430,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     ResponseType rType = eRspNormal;
     SecRequest request = secComm.m_request;
 
-    debug_str(AseMain, eDyLast, 0, 
-        "Last Cmd Id: %3d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d)", 
-              request.cmdId, 
-              batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
-              batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3]);
-
     if (secComm.IsCmdAvailable())
     {
+        debug_str(AseMain, eDyLast, 0, "Last Cmd Id: %3d", request.cmdId);
         cmdSeen = TRUE;
-
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
         switch (request.cmdId)
@@ -414,6 +441,12 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case eRunScript:
             SetTime(request);
             aseCommon.bScriptRunning = TRUE;
+            // reset the power counters
+            adrfOnCount = 0;
+            adrfOnCall = 0;
+            adrfOffCount = 0;
+            adrfOffCall = 0;
+
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -444,7 +477,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case ePowerOn:
             SetTime(request);
-            aseCommon.scriptPowerOn = secComm.m_request.variableId & 0x3;
+            aseCommon.scriptPowerOn = (secComm.m_request.variableId & 0x3);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -452,7 +485,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case ePowerOff:
             SetTime(request);
             // request the power off
-            aseCommon.scriptPowerOn = secComm.m_request.variableId & 0x3;
+            aseCommon.scriptPowerOn = (secComm.m_request.variableId & 0x3);
             secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
@@ -627,14 +660,14 @@ static void UpdateBattery()
     UINT8 lvlCOn;
 
     // create the key for our power sts map
-    UINT8 key = (aseCommon.scriptPowerOn & 0x1) ? 1 : 0;
+    powerKey = IS_BUS_POWER_ON ? 1 : 0;
 
     // read battery control from the ADRF
     batteryCtlMirror =  *battCtlReg.address;
     lvlCOn = (batteryCtlMirror & LEVC_ADRF_BATT_CMD);
-    key |= lvlCOn ? 2 : 0;
+    powerKey |= lvlCOn ? 2 : 0;
 
-    batSts = batMapActive[key];
+    batSts = batMapActive[powerKey];
 
     // clear the status mirror and rebuild it
     batteryStsMirror = 0;
@@ -695,8 +728,8 @@ static void PowerCtl()
         {
             if (--_50MsTimer == 0)
             {
-                // we will default to latch state but of we really turn off because 
-                // !IS_IND_POWER_ON we will be ePsOff
+                // we will default to latch state but if we really turn off because 
+                // !IS_INVERT_POWER we will be ePsOff
                 _50MsTimer = 0;
                 aseCommon.asePowerState = ePsLatch;
 
@@ -722,26 +755,26 @@ static void PowerCtl()
 //---------------------------------------------------------------------------------------------
 static void PowerOn()
 {
+    ++adrfOnCall;
     // Create the ADRF process to simulate behavior during power on
     if ( adrfProcHndl == NULL)
     {
         if (!IS_INVERT_POWER)
         {
-            adrfProcStatus = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
-            debug_str(AseMain, eDyAdrf, 0, "PowerOn: Create process %s returned: %d",
-                adrfName,
-                adrfProcStatus);
+            ++adrfOnCount;
+            adrfProcStatusOn = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
 
             // Update the global state info
-            if (processSuccess == adrfProcStatus)
+            if (processSuccess == adrfProcStatusOn)
             {
-                aseCommon.adrfState = eAdrfOn;
                 aseCommon.asePowerState = ePsOn;
+                aseCommon.adrfState = eAdrfOn;
             }
             else
             {
-                aseCommon.adrfState = eAdrfOff;
+
                 aseCommon.asePowerState = ePsOff;
+                aseCommon.adrfState = eAdrfOff;
             }
 
             _50MsTimer = 0;
@@ -750,26 +783,29 @@ static void PowerOn()
     else
     {
         aseCommon.asePowerState = ePsOn;
+        aseCommon.adrfState = eAdrfOn;
     }
 }
 
 //---------------------------------------------------------------------------------------------
 static void PowerOff()
 {
+    ++adrfOffCall;
+
     // Kill the ADRF process to simulate behavior during power off
     if (adrfProcHndl != NULL && !IS_INVERT_POWER)
     {
-        adrfProcStatus = deleteProcess( adrfProcHndl);
-        adrfProcStatus =  processNotActive;
-        adrfProcHndl   = NULL;
+        ++adrfOffCount;
+        adrfProcStatusOff = deleteProcess( adrfProcHndl);
 
-        debug_str(AseMain, eDyAdrf, 0, "PowerOff: Delete process %s returned: %d",
-            adrfName,
-            adrfProcStatus);
+        if (processSuccess == adrfProcStatusOff)
+        {
+            adrfProcHndl = NULL;
 
-        // Update the global-shared data block
-        aseCommon.adrfState = eAdrfOff;
-        aseCommon.asePowerState = ePsOff;
+            // Update the global-shared data block
+            aseCommon.asePowerState = ePsOff;
+            aseCommon.adrfState = eAdrfOff;
+        }
 
         _50MsTimer = 0;
     }
