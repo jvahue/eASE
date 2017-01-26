@@ -33,6 +33,7 @@ public:
 
     char m_boxOnTime[32];
     char m_rqstFile[128];  // filename requested for upload by ePySte
+    char m_adrfVersion[eGseCmdSize];  // the adrf version string
 
 protected:
     // Properties
@@ -52,7 +53,7 @@ protected:
     MailBox m_liveInBox;  // LiveData -> CMPRocess messages stream
 
     UINT32 m_lastGseSent; // when was the last gse cmd sent?
-    bool m_requestPing;   // request adrf status
+    bool m_requestVersion;   // request adrf status
 
     MailBox m_reConfigInBox;
     MailBox m_reConfigOutBox;

@@ -309,14 +309,15 @@ int main(void)
             aseCommon.isChannelA ? "A" : "B"
             );
 
-        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d ADRF: %s",
             aseCommon.clocks[eClkMs].m_time.tm_year,
             aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
             aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
             aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
             aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
             aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkMs].m_10ms);
+            aseCommon.clocks[eClkMs].m_10ms,
+            cmProc.m_adrfVersion);
 
         debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
             aseCommon.clocks[eClkRemote].m_time.tm_year,

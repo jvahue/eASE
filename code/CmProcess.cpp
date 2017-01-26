@@ -43,7 +43,7 @@ static const CHAR adrfProcessName[] = "adrf";
 static const CHAR cmReCfgMailboxName[]   = "CM_RECONFIG_ADRF";   // Comm Manager Mailbox
 static const CHAR adrfReCfgMailboxName[]  = "ADRF_RECONFIG_CM";  // Adrf Mailbox
 
-static const CHAR pingCmd[] = "efast";
+static const CHAR adrfVerCmd[] = "efast.status.hmu.appSwRev\n";
 
 static const char* gsePortNames[] = {
     "GSE",
@@ -57,7 +57,7 @@ static const char* gsePortNames[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 CmProcess::CmProcess()
-: m_requestPing(false)
+: m_requestVersion(false)
 , m_lastGseSent(0)
 , m_performAdrfOffload(false)
 , m_reconfig(&aseCommon)
@@ -70,6 +70,7 @@ CmProcess::CmProcess()
     memset( m_lastGseCmd, 0, sizeof(m_lastGseCmd));
     memset( m_boxOnTime, 0, sizeof(m_boxOnTime));
     memset( (void*)&m_txStreamCmd, 0, sizeof(m_txStreamCmd));
+    strcpy( m_adrfVersion, "v-Unknown");
 
     m_txStreamCmd[GSE_SOURCE_CM].gseVer = 1;
     m_txStreamCmd[GSE_SOURCE_CM].gseSrc = GSE_SOURCE_CM;
@@ -155,7 +156,6 @@ void CmProcess::RunSimulation()
     if (m_gseOutBox.GetIpcStatus() == ipcValid)
     {
         m_pCommon->adrfState = eAdrfReady;
-        m_requestPing = false;
     }
     // if the ADRF is on and we are not running a script see if the adrf is ready
     else if (m_pCommon->adrfState == eAdrfOn && !IS_SCRIPT_ACTIVE)
@@ -166,14 +166,20 @@ void CmProcess::RunSimulation()
             // if we are invalid
             if (m_gseOutBox.GetIpcStatus() != ipcValid)
             {
-                // after 120 sec reset the MB
+                // after 150 sec reset the MB
                 if (m_gseOutBox.m_connectAttempts < CmReconfig::eCmAdrfFactoryRestart)
                 {
-                    m_gseOutBox.Send((void*)pingCmd, sizeof(pingCmd));
+                    strncpy(m_txStreamCmd[GSE_SOURCE_CM].commandLine, 
+                            adrfVerCmd,
+                            strlen(adrfVerCmd));
+
+                    m_gseOutBox.Send(&m_txStreamCmd[GSE_SOURCE_CM], sizeof(m_txStreamCmd[0]));
 
                     // back off detecting a valid MB
                     m_lastGseSent = m_frames;
-                    m_requestPing = false;
+                    sprintf(m_adrfVersion, "v-Requested %d", m_gseOutBox.m_connectAttempts);
+                    
+                    m_requestVersion = true;
                 }
                 else
                 {
@@ -223,7 +229,22 @@ void CmProcess::ProcessGseMessages(MailBox& mb)
             int size = rsp.rspHdr.rspLen;
             if (rsp.rspHdr.gseSrc >= GSE_SOURCE_CM && rsp.rspHdr.gseSrc < GSE_SOURCE_MAX)
             {
-                m_rxStreamFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
+                char* cr;
+                if (m_requestVersion && rsp.rspHdr.gseSrc == GSE_SOURCE_CM)
+                {
+                    m_adrfVersion[0] = 'v';
+                    cr = strchr(rsp.rspMsg, '\r');
+                    if (cr != NULL)
+                    {
+                        *cr = '\0';
+                        strncpy(&m_adrfVersion[1], rsp.rspMsg, 15);
+                    }
+                    m_requestVersion = false;
+                }
+                else
+                {
+                    m_rxStreamFifo[rsp.rspHdr.gseSrc].Push(rsp.rspMsg, size);
+                }
             }
             else
             {
@@ -304,7 +325,6 @@ void CmProcess::HandlePowerOff()
     m_fileXferInBox.Reset();
     m_fileXferOutBox.Reset();
 
-    m_requestPing = false;
     m_lastGseSent = m_frames;  // when power comes back give ePySte time to send cmd
 
     m_fileXfer.ResetCounters();
@@ -337,19 +357,29 @@ BOOLEAN CmProcess::CheckCmd( SecComm& secComm)
                     request.charDataSize);
                 m_txStreamCmd[port].commandLine[request.charDataSize] = '\0';
 
+                secComm.m_response.successful = TRUE;
                 if (port == GSE_SOURCE_CM)
                 {
-                    m_gseOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
+                    // no commands from the PySte if we are requesting ADRF version locally
+                    // only done if script is not running
+                    if (!m_requestVersion)
+                    {
+                        m_gseOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
+                    }
+                    else
+                    {
+                        secComm.ErrorMsg("GSE Busy Fetching ADRF Version");
+                        secComm.m_response.successful = FALSE;
+                    }
                 }
                 else
                 {
                     m_mfdOutBox.Send(&m_txStreamCmd[port], sizeof(m_txStreamCmd[0]));
                 }
 
-                secComm.m_response.successful = TRUE;
 
                 // GSE Special
-                if ( port == GSE_SOURCE_CM)
+                if ( port == GSE_SOURCE_CM && secComm.m_response.successful)
                 {
                     // save the last cmd
                     strncpy(m_lastGseCmd, request.charData, eGseCmdSize);
