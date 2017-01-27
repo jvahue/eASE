@@ -251,6 +251,8 @@ int main(void)
     // default to Channel A
     aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
+    strcpy(aseCommon.adrfVer, "Unknown");
+
     // Attach to NVM
     status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
         &nvm.style, (void**)&nvm.address);
@@ -309,14 +311,15 @@ int main(void)
             aseCommon.isChannelA ? "A" : "B"
             );
 
-        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d ADRF: %s",
             aseCommon.clocks[eClkMs].m_time.tm_year,
             aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
             aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
             aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
             aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
             aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkMs].m_10ms);
+            aseCommon.clocks[eClkMs].m_10ms,
+            aseCommon.adrfVer);
 
         debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
             aseCommon.clocks[eClkRemote].m_time.tm_year,
@@ -624,6 +627,15 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 batteryStsMirror);
             secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
             secComm.m_response.successful = TRUE;
+            secComm.m_response.successful = FALSE;
+            serviced = TRUE;
+            break;
+
+        case eSetAdrfVersion:
+            memcpy(aseCommon.adrfVer, 
+                   secComm.m_request.charData, 
+                   secComm.m_request.charDataSize);
+            secComm.m_response.successful = FALSE;
             serviced = TRUE;
             break;
 

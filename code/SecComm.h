@@ -48,6 +48,7 @@ enum SecCmds {
     eGetAseVersion  = 12,
     eSetBatteryCtrl = 13,
     eGetBatterySts  = 14,
+    eSetAdrfVersion = 15,
 
     // Ase Enums 101-199
 

@@ -163,6 +163,7 @@ typedef struct AseCommonTag
     UINT32       newBaseTimeSrv;   // Number of remote clock updates serviced
     UINT32       remElapsedMif;    // number of elapsed MIF since base time
     BYTE         *nvmAddress;      // share this with the CCDL object
+    char         adrfVer[32];      // ADRF version
 } AseCommon;
 
 typedef BYTE FlightTriggerHistory[(HIST_TRIG_BUFF)];
