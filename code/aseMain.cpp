@@ -635,7 +635,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             memcpy(aseCommon.adrfVer, 
                    secComm.m_request.charData, 
                    secComm.m_request.charDataSize);
-            secComm.m_response.successful = FALSE;
+            secComm.m_response.successful = TRUE;
             serviced = TRUE;
             break;
 
