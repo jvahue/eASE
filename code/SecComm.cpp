@@ -256,7 +256,9 @@ void SecComm::CheckCmd(const char* buffer, const int size)
     memcpy( &m_bufRqst, buffer, size);
 
     // got some data, verify the contents
-    if ( m_bufRqst.header1 == eSecAseH1 && m_bufRqst.header2 == eSecAseH2 && m_bufRqst.size == size)
+    if (m_bufRqst.header1 == eSecAseH1 && 
+        m_bufRqst.header2 == eSecAseH2 && 
+        m_bufRqst.size == size)
     {
         UINT32 checksum = Checksum(&m_bufRqst, size);
 
