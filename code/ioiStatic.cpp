@@ -546,8 +546,13 @@ bool A664Qar::TestControl(SecRequest& request)
     }
     else if (offset == eQarRandom)
     {
+        // we limit this to 50 in PySte and add suspenders to our belt here
         int* dest = &m_random;
         *dest = *(int*)request.charData;
+        if (m_random > eMaxRandom)
+        {
+            m_random = eMaxRandom;
+        }
     }
     else
     {
@@ -616,14 +621,11 @@ void A664Qar::Update()
         totalInsert += 1;
     }
 
-    // ensure we cannot insert more than eMaxBurstWords
-    randomInsert = eMaxBurstWords - totalInsert;
-
     //-----------------------------------------------------------
     // fill in a few more random based on how many we have done
     if (randomInsert < m_random)
     {
-        // fill in until we have 50
+        // fill in until we have m_random
         while (randomInsert < m_random)
         {
             *(fillPtr++) = (m_nonNdo + randomInsert);

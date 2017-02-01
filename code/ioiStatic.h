@@ -139,6 +139,7 @@ public:
 
         eSfCount = 4,
         eBurstCount = 20,        // 16 small bursts, 4 large bursts = 1024 words
+        eMaxRandom = 50,
         eSmallBurstSize = 51,
         eTotalSmallBurstWords = (16 * eSmallBurstSize),
         eLargeBurstSize = 52,

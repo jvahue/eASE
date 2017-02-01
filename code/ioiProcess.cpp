@@ -847,8 +847,9 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         }
         serviced = TRUE;
         break;
-
+    
         //-------------------------------------------------------------------------------------
+    case eSetSdi:
         {
             // [msb                 lsb]
             // [Spare | Bus | Lbl | Vlu] <= bytes in itemId
@@ -1056,6 +1057,13 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
         //-------------------------------------------------------------------------------------
     case eSetStaticIoi:
+        // SecRequest params usage:
+        //   variableId <= parameter index
+        //   sigGenId <= run (1), hold (2) IOI updates
+        //   resetRequest <= integer values
+        //   value <= floating point values
+        //   charData/Size <= character data - multi-word packed data
+        //   clearCfgRequest: offset for large data byte writes
         if (request.sigGenId == 1)
         {
             // make sure this is enabled for output
