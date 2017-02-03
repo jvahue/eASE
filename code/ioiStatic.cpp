@@ -700,6 +700,11 @@ UINT32 A664Qar::NextWord()
             sfMove = operand / eSfWordCount;  // how many SF are we moving max move 8191
             wordStep = operand - (sfMove * eSfWordCount);
             nextWord = m_sfWordIndex + wordStep;
+            if (nextWord > eSfWordCount)
+            {
+                NextSf();
+                nextWord -= eSfWordCount;
+            }
 
             for (int i = 0; i < sfMove; ++i) 
             {
