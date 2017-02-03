@@ -779,7 +779,7 @@ UINT32 A664Qar::NextWord()
 
     if (wordId != -1)
     {
-        wordValue = (wordValue & !(0xfff << 20)) | (wordId << 20);
+        wordValue = (wordValue & ~(0xfff << 20)) | (wordId << 20);
     }
 
     return wordValue;
