@@ -22,9 +22,9 @@ $Revision: $  $Date: $
 /* Software Specific Includes                                                */
 /*****************************************************************************/
 #include "alt_basic.h"     // from adrf
-#include "alt_stdtypes.h"     // from adrf
+#include "alt_stdtypes.h"  // from adrf
 
-#include "ParamMgr.h"         // from adrf
+#include "ParamMgr.h"      // from adrf
 
 #include "TimeSrcObject.h"
 

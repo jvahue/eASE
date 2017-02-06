@@ -136,6 +136,7 @@ public:
         eQarWordSeq = -3,
         eQarWordSeqState = -4,
         eQarRandom = -5,
+        eQarStop = 0x0f0f,
 
         eSfCount = 4,
         eBurstCount = 20,        // 16 small bursts, 4 large bursts = 1024 words

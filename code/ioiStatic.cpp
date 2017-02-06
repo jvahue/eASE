@@ -511,12 +511,12 @@ bool A664Qar::TestControl(SecRequest& request)
 
         cmdWord += 1;
 
-        while (*index != 0 && cmdWord != 0)
+        do
         {
             *(dest + *index) = *cmdWord;
             index += 2;
             cmdWord += 2;
-        }
+        } while (!(*index == eQarStop && *cmdWord == eQarStop));
 
         // clear the QAR-A664 data mirror
         memset(mirrorQarA664, 0, sizeof(mirrorQarA664));
