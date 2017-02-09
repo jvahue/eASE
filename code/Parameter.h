@@ -36,21 +36,21 @@ public:
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
 
-    INT32    m_ioiChan;     // deos ioi channel id
-    UINT32   m_ioiValue;    // current ioi value after Update
-    StaticIoiObj* m_idl;    // if we attached to an IDL this will be non-NULL
+    INT32    m_ioiChan;    // deos ioi channel id
+    UINT32   m_ioiValue;   // current ioi value after Update
+    StaticIoiObj* m_idl;   // if we attached to an IDL this will be non-NULL
 
-    UINT32  m_rateHz;        // ADRF update rate for the parameter in Hz
-    UINT32  m_updateMs;      // ASE update rate for the parameter in Hz = 2x m_rateHz
+    UINT32  m_rateHz;      // ADRF update rate for the parameter in Hz
+    UINT32  m_updateMs;    // ASE update rate for the parameter in Hz = 2x m_rateHz
     UINT32  m_updateIntervalTicks; // ASE update rate for the parameter in Hz = 2x m_rateHz
-    UINT32  m_offset;        // frame offset 0-90 step 10
-    UINT32  m_nextUpdate;    // sys tick for next param update
-    UINT32  m_updateCount;   // how many times has this param been updated
-    UINT16  m_ccdlId;        // the Id used if this param is src=CROSS
+    UINT32  m_offset;      // frame offset 0-90 step 10
+    UINT32  m_nextUpdate;  // sys tick for next param update
+    UINT32  m_updateCount; // how many times has this param been updated
+    UINT16  m_ccdlId;      // the Id used if this param is src=CROSS
 
     // handle child relationships
-    Parameter* m_link;       // link to a child of this param
-    bool   m_isChild;        // indicates this is a child (no IOI required)
+    Parameter* m_link;     // link to a child of this param
+    bool   m_isChild;      // indicates this is a child (no IOI required)
     UINT32 m_childCount;
 
     SignalGenerator m_sigGen;       // the parameter's signal generator
