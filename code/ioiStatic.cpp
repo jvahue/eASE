@@ -64,13 +64,14 @@ UINT32 mirrorQarA664[A664Qar::eSfCount][A664Qar::eSfWordCount];
 // Class Definitions                                                         -/
 //----------------------------------------------------------------------------/
 StaticIoiObj::StaticIoiObj(char* name, bool isInput)
-: ioiChan(0)
-, ioiValid(false)
-, ioiRunning(true)
-, ioiIsInput(isInput)
+: m_ioiChan(0)
+, m_ioiValid(false)
+, m_ioiRunning(true)
+, m_isAseInput(isInput)
+, m_isParam(false)
 , m_updateCount(0)
 {
-    strcpy(ioiName, name);
+    strcpy(m_ioiName, name);
     strcpy(m_shortName, name);
     CompressName(m_shortName, 18);
 }
@@ -80,17 +81,17 @@ bool StaticIoiObj::OpenIoi()
 {
     ioiStatus openStatus;
 
-    if (ioiIsInput)
+    if (m_isAseInput)
     {
-        openStatus = ioi_open(ioiName, ioiReadPermission, (int*)&ioiChan);
+        openStatus = ioi_open(m_ioiName, ioiReadPermission, (int*)&m_ioiChan);
     }
     else
     {
-        openStatus = ioi_open(ioiName, ioiWritePermission, (int*)&ioiChan);
+        openStatus = ioi_open(m_ioiName, ioiWritePermission, (int*)&m_ioiChan);
     }
-    ioiValid = openStatus == ioiSuccess;
-    ioiRunning = ioiValid;
-    return ioiValid;
+    m_ioiValid = openStatus == ioiSuccess;
+    m_ioiRunning = m_ioiValid;
+    return m_ioiValid;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -99,12 +100,13 @@ bool StaticIoiObj::WriteStaticIoi(void* data)
 {
     ioiStatus writeStatus = ioiSuccess;
 
-    if (ioiValid && ioiRunning)
+    // if we are valid and running, and not being run by a parameter
+    if (m_ioiValid && m_ioiRunning && !m_isParam)
     {
-        writeStatus = ioi_write(ioiChan, data);
+        writeStatus = ioi_write(m_ioiChan, data);
     }
 
-    m_updateCount += (ioiValid && ioiRunning && writeStatus == ioiSuccess) ? 1 : 0;
+    m_updateCount += (m_ioiValid && m_ioiRunning && writeStatus == ioiSuccess) ? 1 : 0;
     return writeStatus == ioiSuccess;
 }
 
@@ -114,12 +116,12 @@ bool StaticIoiObj::ReadStaticIoi(void* data)
 {
     ioiStatus readStatus = ioiSuccess;
 
-    if (ioiValid && ioiRunning)
+    if (m_ioiValid && m_ioiRunning)
     {
-        readStatus = ioi_read(ioiChan, data);
+        readStatus = ioi_read(m_ioiChan, data);
     }
 
-    m_updateCount += (ioiValid && ioiRunning && readStatus == ioiSuccess) ? 1 : 0;
+    m_updateCount += (m_ioiValid && m_ioiRunning && readStatus == ioiSuccess) ? 1 : 0;
     return readStatus == ioiSuccess;
 }
 
@@ -166,7 +168,7 @@ char* StaticIoiObj::CompressName(char* src, int size)
 //---------------------------------------------------------------------------------------------
 void StaticIoiObj::SetRunState(bool newState)
 {
-    ioiRunning = newState;
+    m_ioiRunning = newState;
 }
 
 //=============================================================================================
@@ -175,46 +177,46 @@ void StaticIoiObj::SetRunState(bool newState)
 //
 //}
 
-//---------------------------------------------------------------------------------------------
-bool StaticIoiByte::SetStaticIoiData( SecRequest& request )
-{
-    data = (unsigned char)request.resetRequest;
-    Update();
-    return true;
-}
-
-//---------------------------------------------------------------------------------------------
-char* StaticIoiByte::Display( char* dest, UINT32 dix )
-{
-    if (ioiRunning)
-    {
-        sprintf(dest, "%2d:%s: 0x%02x", dix, m_shortName, data);
-    }
-    else
-    {
-        sprintf(dest, "xx:%s: 0x%02x", dix, m_shortName, data);
-    }
-    return dest;
-}
-
-//---------------------------------------------------------------------------------------------
-bool StaticIoiByte::GetStaticIoiData(IocResponse& m_response)
-{
-    m_response.streamSize = data;
-    return true;
-}
-
-bool StaticIoiByte::Update()
-{
-    if (ioiIsInput)
-    {
-        return ReadStaticIoi(&data);
-    }
-    else
-    {
-        return WriteStaticIoi(&data);
-    }
-}
+////---------------------------------------------------------------------------------------------
+//bool StaticIoiByte::SetStaticIoiData( SecRequest& request )
+//{
+//    data = (unsigned char)request.resetRequest;
+//    Update();
+//    return true;
+//}
+//
+////---------------------------------------------------------------------------------------------
+//char* StaticIoiByte::Display( char* dest, UINT32 dix )
+//{
+//    if (m_ioiRunning)
+//    {
+//        sprintf(dest, "%2d:%s: 0x%02x", dix, m_shortName, data);
+//    }
+//    else
+//    {
+//        sprintf(dest, "xx:%s: 0x%02x", dix, m_shortName, data);
+//    }
+//    return dest;
+//}
+//
+////---------------------------------------------------------------------------------------------
+//bool StaticIoiByte::GetStaticIoiData(IocResponse& m_response)
+//{
+//    m_response.streamSize = data;
+//    return true;
+//}
+//
+//bool StaticIoiByte::Update()
+//{
+//    if (m_ioiIsInput)
+//    {
+//        return ReadStaticIoi(&data);
+//    }
+//    else
+//    {
+//        return WriteStaticIoi(&data);
+//    }
+//}
 
 //=============================================================================================
 //IocResponse StaticIoiInt::GetStaticIoiData()
@@ -233,7 +235,7 @@ bool StaticIoiInt::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 char* StaticIoiInt::Display( char* dest, UINT32 dix )
 {
-    if ( ioiRunning)
+    if ( m_ioiRunning)
     {
         sprintf(dest, "%2d:%s: 0x%08x", dix, m_shortName, data);
     }
@@ -248,7 +250,7 @@ char* StaticIoiInt::Display( char* dest, UINT32 dix )
 //---------------------------------------------------------------------------------------------
 bool StaticIoiInt::Update()
 {
-    if (ioiIsInput)
+    if (m_isAseInput)
     {
         return ReadStaticIoi(&data);
     }
@@ -282,7 +284,7 @@ bool StaticIoiFloat::SetStaticIoiData( SecRequest& request )
 //---------------------------------------------------------------------------------------------
 char* StaticIoiFloat::Display( char* dest, UINT32 dix )
 {
-    if ( ioiRunning)
+    if ( m_ioiRunning)
     {
         sprintf(dest, "%2d:%s: %f", dix, m_shortName, data);
     }
@@ -296,7 +298,7 @@ char* StaticIoiFloat::Display( char* dest, UINT32 dix )
 //---------------------------------------------------------------------------------------------
 bool StaticIoiFloat::Update()
 {
-    if (ioiIsInput)
+    if (m_isAseInput)
     {
         return ReadStaticIoi(&data);
     }
@@ -347,7 +349,7 @@ bool StaticIoiStr::SetStaticIoiData( SecRequest& request )
 char* StaticIoiStr::Display( char* dest, UINT32 dix )
 {
     unsigned int* dp = (unsigned int*)&data[displayAt];
-    if (ioiRunning)
+    if (m_ioiRunning)
     {
         sprintf(dest, "%2d:%s: 0x%08x", dix, m_shortName, *dp);
     }
@@ -362,7 +364,7 @@ char* StaticIoiStr::Display( char* dest, UINT32 dix )
 //---------------------------------------------------------------------------------------------
 bool StaticIoiStr::Update()
 {
-    if (ioiIsInput)
+    if (m_isAseInput)
     {
         return ReadStaticIoi(data);
     }
@@ -385,40 +387,40 @@ bool StaticIoiStr::GetStaticIoiData( IocResponse& m_response)
     return true;
 }
 
-//---------------------------------------------------------------------------------------------
-bool StaticIoiIntPtr::Update()
-{
-    if (ioiIsInput)
-    {
-        return ReadStaticIoi(data);
-    }
-    else
-    {
-        return WriteStaticIoi(data);
-    }
-}
-
-//---------------------------------------------------------------------------------------------
-char* StaticIoiIntPtr::Display( char* dest, UINT32 dix )
-{
-    sprintf(dest, "%2d:?? Integers", dix);
-    return dest;
-}
-
-//---------------------------------------------------------------------------------------------
-bool StaticIoiIntPtr::GetStaticIoiData(IocResponse& m_response)
-{
-    memcpy(m_response.streamData, data, bytes);
-    m_response.streamSize = bytes;
-    return true;
-}
-
-StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput)
-: StaticIoiObj(name, isInput)
-{
-    data = value;
-    bytes = size * sizeof(int);
-}
+////---------------------------------------------------------------------------------------------
+//bool StaticIoiIntPtr::Update()
+//{
+//    if (m_isAseInput)
+//    {
+//        return ReadStaticIoi(data);
+//    }
+//    else
+//    {
+//        return WriteStaticIoi(data);
+//    }
+//}
+//
+////---------------------------------------------------------------------------------------------
+//char* StaticIoiIntPtr::Display( char* dest, UINT32 dix )
+//{
+//    sprintf(dest, "%2d:?? Integers", dix);
+//    return dest;
+//}
+//
+////---------------------------------------------------------------------------------------------
+//bool StaticIoiIntPtr::GetStaticIoiData(IocResponse& m_response)
+//{
+//    memcpy(m_response.streamData, data, bytes);
+//    m_response.streamSize = bytes;
+//    return true;
+//}
+//
+//StaticIoiIntPtr::StaticIoiIntPtr( char* name, int* value, int size, bool isInput)
+//: StaticIoiObj(name, isInput)
+//{
+//    data = value;
+//    bytes = size * sizeof(int);
+//}
 
 
 //=============================================================================================
@@ -839,7 +841,7 @@ StaticIoiContainer::StaticIoiContainer()
     // copy the object references into our container array (TBD: do we really need to do this?
     for (int i = 0; i < ASE_OUT_MAX; ++i)
     {
-        m_staticIoiOut[i] = aseIoiOut[i];
+        m_staticAseOut[i] = aseIoiOut[i];
     }
 
     m_ioiStaticOutCount = ASE_OUT_MAX;
@@ -848,7 +850,7 @@ StaticIoiContainer::StaticIoiContainer()
 
     for (int i = 0; i < ASE_IN_MAX; ++i)
     {
-        m_staticIoiIn[i] = aseIoiIn[i];
+        m_staticAseIn[i] = aseIoiIn[i];
     }
 
     m_ioiStaticInCount = ASE_IN_MAX;
@@ -860,7 +862,7 @@ void StaticIoiContainer::OpenIoi()
 {
     for (int i = 0; i < m_ioiStaticOutCount; ++i)
     {
-        if (m_staticIoiOut[i]->OpenIoi())
+        if (m_staticAseOut[i]->OpenIoi())
         {
             m_validIoiOut += 1;
         }
@@ -868,7 +870,7 @@ void StaticIoiContainer::OpenIoi()
 
     for (int i = 0; i < m_ioiStaticInCount; ++i)
     {
-        if (m_staticIoiIn[i]->OpenIoi())
+        if (m_staticAseIn[i]->OpenIoi())
         {
             m_validIoiIn += 1;
         }
@@ -978,9 +980,9 @@ void StaticIoiContainer::UpdateStaticIoi()
     m_writeErrorZ1 = m_writeError;
     for (int i = 0; i < kMaxCount; ++i)
     {
-        if (m_staticIoiOut[m_updateIndex] != &_a664_to_ioc_eicas_)
+        if (m_staticAseOut[m_updateIndex] != &_a664_to_ioc_eicas_)
         {
-            if (!m_staticIoiOut[m_updateIndex]->Update())
+            if (!m_staticAseOut[m_updateIndex]->Update())
             {
                 m_writeError += 1;
             }
@@ -997,7 +999,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     m_readErrorZ1 = m_readError;
     for (int i = 0; i < m_ioiStaticInCount; ++i)
     {
-        if (!m_staticIoiIn[i]->Update())
+        if (!m_staticAseIn[i]->Update())
         {
             m_readError += 1;
         }
@@ -1006,7 +1008,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     // update the RTC time based on what we received
     if (lastYrCnt  != _rtc_io_wr_year_.m_updateCount    &&
         lastMoCnt  != _rtc_io_wr_month_.m_updateCount   &&
-        lastDayCnt != _rtc_io_wr_date_.m_updateCount     &&
+        lastDayCnt != _rtc_io_wr_date_.m_updateCount    &&
         lastHrCnt  != _rtc_io_wr_hour_.m_updateCount    &&
         lastMinCnt != _rtc_io_wr_minutes_.m_updateCount &&
         lastSecCnt != _rtc_io_wr_seconds_.m_updateCount
@@ -1014,7 +1016,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         lastYrCnt  = _rtc_io_wr_year_.m_updateCount   ;
         lastMoCnt  = _rtc_io_wr_month_.m_updateCount  ;
-        lastDayCnt = _rtc_io_wr_date_.m_updateCount    ;
+        lastDayCnt = _rtc_io_wr_date_.m_updateCount   ;
         lastHrCnt  = _rtc_io_wr_hour_.m_updateCount   ;
         lastMinCnt = _rtc_io_wr_minutes_.m_updateCount;
         lastSecCnt = _rtc_io_wr_seconds_.m_updateCount;
@@ -1037,13 +1039,13 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
     if (request.variableId < m_ioiStaticOutCount)
     {
         // catch set action directed at _a664_to_ioc_eicas_ and redirect to m_a664Qar
-        if (m_staticIoiOut[request.variableId] == &_a664_to_ioc_eicas_)
+        if (m_staticAseOut[request.variableId] == &_a664_to_ioc_eicas_)
         {
             return m_a664Qar.TestControl(request);
         }
         else
         {
-            return m_staticIoiOut[request.variableId]->SetStaticIoiData(request);
+            return m_staticAseOut[request.variableId]->SetStaticIoiData(request);
         }
     }
     else if (request.variableId == m_ioiStaticOutCount)
@@ -1066,7 +1068,7 @@ bool StaticIoiContainer::GetStaticIoiData( SecComm& secComm )
         secComm.m_response.streamSize = secComm.m_request.sigGenId;
 
         // get the value and return true
-        m_staticIoiIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
+        m_staticAseIn[secComm.m_request.variableId]->GetStaticIoiData(secComm.m_response);
         return true;
     }
     else
@@ -1082,8 +1084,8 @@ void StaticIoiContainer::SetNewState( SecRequest& request)
     {
         // if not valid leave the running state at disabled
         bool newState = (request.sigGenId == 1) && 
-                        m_staticIoiOut[request.variableId]->ioiValid;
-        m_staticIoiOut[request.variableId]->SetRunState(newState);
+                        m_staticAseOut[request.variableId]->m_ioiValid;
+        m_staticAseOut[request.variableId]->SetRunState(newState);
     }
 }
 
@@ -1094,7 +1096,7 @@ void StaticIoiContainer::Reset()
     for (int i = 0; i < m_ioiStaticOutCount; ++i)
     {
         // do not reset the running state if it is invalid
-        m_staticIoiOut[i]->SetRunState(m_staticIoiOut[i]->ioiValid);
+        m_staticAseOut[i]->SetRunState(m_staticAseOut[i]->m_ioiValid);
     }
 
     // when the script is done reset these
@@ -1163,5 +1165,35 @@ void StaticIoiContainer::ResetStaticIoi()
 
     // clear any error injection and reset data an NDO
     m_a664Qar.Reset();
+}
+
+//---------------------------------------------------------------------------------------------
+// Any time we load a Cfg call this to disconnect the static IOI from param control
+void StaticIoiContainer::ResetStaticParams()
+{
+    for (int i = 0; i < m_ioiStaticOutCount; ++i)
+    {
+        // do not reset the running state if it is invalid
+        m_staticAseOut[i]->m_isParam = false;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+// Search through the ASE static IOI outputs for a particular name.  Return a pointer to the 
+// object when found, NULL otherwise
+StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
+{
+    for (int i = 0; i < m_ioiStaticOutCount; ++i)
+    {
+        // do not reset the running state if it is invalid
+        if (strncmp(name, m_staticAseOut[i]->m_ioiName, eAseParamNameSize) == 0)
+        {
+            // ok indicate that this IOI will be updated by a parameter
+            m_staticAseOut[i]->m_isParam = true;
+            return m_staticAseOut[i];
+        }
+    }
+
+    return NULL;
 }
 

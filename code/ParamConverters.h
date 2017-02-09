@@ -2,7 +2,7 @@
 #define ParamConverters_h
 
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2013-2016 Knowlogic Software Corp.
+//          Copyright (C) 2013-2017 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 // File: ParamConverters.h
@@ -113,7 +113,7 @@ struct ParamCfg {
     FLOAT32 scale;
 };
 
-//==================================================================================================
+//=============================================================================================
 class ParamConverter
 {
 public:
@@ -138,6 +138,9 @@ public:
 
     // A429 Parameter Attributes
     ARINC429_WORD_INFO m_a429;
+    
+    UINT16 a664Offset; // what is the bit offset into the IDL
+    UINT16 a664Size;   // how big is the A664 field
 
     void A429ParseGps();
     UINT32 ExpectedSSM();

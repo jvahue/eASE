@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2013-2016 Knowlogic Software Corp.
+//          Copyright (C) 2013-2017 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiProcess.cpp
@@ -411,12 +411,22 @@ void IoiProcess::UpdateIoi()
 void IoiProcess::WriteIoi(Parameter* param )
 {
     UINT32 start;
-    ioiStatus writeStatus;
+    ioiStatus writeStatus = ioiInvalidFileDescriptor;
 
     if (!m_initParams && param->m_ioiValid)
     {
         start = HsTimer();
-        writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+        if (param->m_idl != NULL)
+        {
+            if (param->m_idl->Update())
+            {
+                writeStatus = ioiSuccess;
+            }
+        }
+        else
+        {
+            writeStatus = ioi_write(param->m_ioiChan, &param->m_ioiValue);
+        }
         m_totalIoiTime += HsTimeDiff(start);
 
         if (writeStatus == ioiSuccess)
@@ -667,14 +677,14 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
             if ((dix+1) < m_ioiStatic.m_ioiStaticOutCount)
             {
                 debug_str(Static, dLine, 0, "%-39s %s",
-                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix),
-                    m_ioiStatic.m_staticIoiOut[dix+1]->Display(buf2, dix+1));
+                    m_ioiStatic.m_staticAseOut[dix]->Display(buf1, dix),
+                    m_ioiStatic.m_staticAseOut[dix+1]->Display(buf2, dix+1));
                 dix += 2;
             }
             else
             {
                 debug_str(Static, dLine, 0, "%s",
-                    m_ioiStatic.m_staticIoiOut[dix]->Display(buf1, dix));
+                    m_ioiStatic.m_staticAseOut[dix]->Display(buf1, dix));
                 dix += 1;
             }
 
@@ -1312,6 +1322,8 @@ void IoiProcess::InitIoi()
         m_dateId = eAseMaxParams;
         m_timeId = eAseMaxParams;
 
+        m_ioiStatic.ResetStaticParams();
+
         // clear the display
         m_displayCount = 0;
         for (i=0; i < eIoiMaxDisplay; ++i)
@@ -1365,7 +1377,7 @@ void IoiProcess::InitIoi()
                 m_paramLoopEnd = m_maxParamIndex + 1;
             }
 
-            m_parameters[index].Init(&m_paramInfo[i]);
+            m_parameters[index].Init(&m_paramInfo[i], m_ioiStatic);
 
             if (m_parameters[index].m_masterId != 0xFFFFFFFF)
             {

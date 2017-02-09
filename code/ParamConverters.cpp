@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (C) 2013-2016 Knowlogic Software Corp.
+Copyright (C) 2013-2017 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File: ParamConverters.cpp
@@ -61,32 +61,6 @@ ParamConverter::ParamConverter()
 }
 
 //-------------------------------------------------------------------------------------------------
-// Function: Convert
-// Description:
-//
-UINT32 ParamConverter::Convert(FLOAT32 value)
-{
-    UINT32 rawValue = 0;
-
-    if (m_type == PARAM_FMT_A429)
-    {
-        rawValue = A429Converter(value);
-    }
-    else if (m_type == PARAM_FMT_BIN_A664)
-    {
-        rawValue = A429Converter(value);
-    }
-    else if (m_type == PARAM_FMT_FLT_A664)
-    {
-        // just pack the float : what about moving it around inside and big data set?
-        UINT32 *data = (UINT32*)&value;
-        rawValue = *data;
-    }
-
-    return rawValue;
-}
-
-//-------------------------------------------------------------------------------------------------
 // Function: A429Converter
 // Description: Convert the value and pack it into a rawValue
 //
@@ -108,7 +82,244 @@ void ParamConverter::Reset()
     memset(&m_a429, 0, sizeof(m_a429));
 }
 
+//---------------------------------------------------------------------------------------------
+// Function: Init
+// Description: Initialize a converter with the paramter info
+//
+void ParamConverter::Init(ParamCfg* paramInfo)
+{
+    UINT32 rawLabel;
+
+    m_gpa = paramInfo->gpa;
+    m_gpb = paramInfo->gpb;
+    m_gpc = paramInfo->gpc;
+    m_src = paramInfo->src;
+    m_type = paramInfo->fmt;
+    m_masterId = paramInfo->masterId;
+    m_scale = paramInfo->scale;
+    m_maxValue = paramInfo->scale;
+
+    if (m_type == PARAM_FMT_A429)
+    {
+        A429ParseGps();
+
+        if (m_a429.format == eBNR)
+        {
+            m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
+        }
+        // TODO: other formats
+
+        // reverse the label
+        int ms = 0x01;
+        int md = 0x80;
+        int cnt = 8;
+
+        rawLabel = 0;
+        while (cnt > 0)
+        {
+            if (m_a429.label & ms)
+            {
+                rawLabel |= md;
+            }
+            ms <<= 1;
+            md >>= 1;
+            --cnt;
+        }
+
+        // construct the basic message without data
+        m_a429.a429Template = A429_FldPutLabel( 0, rawLabel);
+        SetSdi( m_a429.sdBits);
+
+        m_a429.SSM = ExpectedSSM();
+
+        SetSsm( m_a429.SSM);
+
+    }
+    else if (m_type == PARAM_FMT_BIN_A664)
+    {
+        // Turn this into a A429 DISCRETE and use its discrete packing code
+        a664Offset = m_gpa & 0xffff;
+        a664Size = (m_gpa >> 16) & 0x7fff; // clear PySte indication that this is an IDL
+    }
+    else if (m_type == PARAM_FMT_FLT_A664)
+    {
+        // Turn this into a A429 DISCRETE and use its discrete packing code
+        a664Offset = m_gpa & 0xffff;
+        a664Size = (m_gpa >> 16) & 0x7fff; // clear PySte indication that this is an IDL
+    }
+
+    SetIoiName();
+}
+
+//---------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiName()
+{
+    if ((m_src == PARAM_SRC_A429) || (m_src == PARAM_SRC_A429_A))
+    {
+        SetIoiA429Name();
+    }
+    else if (m_src == PARAM_SRC_A664)
+    {
+        SetIoiA664Name();
+    }
+    else if (m_src == PARAM_SRC_CROSS)
+    {
+        sprintf(m_ioiName, "CROSS");
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiA429Name()
+{
+    if (m_src == PARAM_SRC_A429)
+    {
+        UINT32 i;
+        UINT8 sdiMatch = m_a429.ignoreSDI ? A429_IOI_NAME_SDI_IGNORE_VAL : m_a429.sdBits;
+
+        for (i=0; ioiA429Names[i].name[0] != NULL; ++i)
+        {
+            if (m_a429.label == ioiA429Names[i].octal && sdiMatch == ioiA429Names[i].sdi)
+            {
+                strcpy( m_ioiName, ioiA429Names[i].name);
+                break;
+            }
+        }
+    }
+    else
+    {
+        char* sdiMap[] = { "00", "01", "10", "11", "XX" };
+        UINT8 sdi = m_a429.sdBits + (m_a429.ignoreSDI ? 1 : 0);
+        sprintf(m_ioiName, "%d_%03o_%s", m_a429.channel, m_a429.label, sdiMap[sdi]);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+void ParamConverter::SetIoiA664Name()
+{
+    UINT32 src;
+    UINT32 ndo;
+
+    src = m_masterId & 0xff;
+    ndo = (m_masterId >> 8) & 0xffffff;
+    sprintf(m_ioiName, "%d_%d", ndo, src);
+}
+
+//---------------------------------------------------------------------------------------------
+void ParamConverter::A429ParseGps()
+{
+    UINT32 gpA = m_gpa;
+    UINT32 gpB = m_gpb;
+
+    m_a429.format     = A429WordFormat((gpA >> 2)  & 0x03);
+    m_a429.discType   = A429DiscretTypes((gpA >> 18) & 0x03);
+    m_a429.wordSize   = (gpA >> 5)  & 0x1F;
+    m_a429.msb        = (gpA >> 13) & 0x1F;
+    m_a429.validSSM   = (gpA >> 20) & 0x0F;
+    m_a429.sdiAllCall = (gpA >> 24) & 0x01;
+    m_a429.label      = m_gpc & 0xff;
+
+    if (m_src == PARAM_SRC_A429)
+    {
+        m_a429.channel   = gpA & 0x3;
+        m_a429.sdBits    = (gpA >> 10) & 0x03;
+        m_a429.ignoreSDI = (gpA >> 12) & 0x01;
+    }
+    else if (m_src == PARAM_SRC_A429_A)
+    {
+        m_a429.channel   = (m_gpc >> 12) & 0xF;
+        m_a429.ignoreSDI = (m_gpc >> 10) & 0x1;
+        m_a429.sdBits    = (m_gpc >>  8) & 0x3;
+    }
+
+
+    if (m_a429.format == eBCD)
+    {
+        // MSB BCD is only 3 bits not 4
+        m_a429.lsb = (m_a429.msb)-(((m_a429.wordSize-1)*4)+2);
+    }
+    else if ( m_a429.format == eDisc)
+    {
+        m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
+        if (m_a429.wordSize == 1)
+        {
+            m_a429.msb += 1;
+        }
+    }
+    else // eBNR
+    {
+        m_a429.lsb = (m_a429.msb)-(m_a429.wordSize-1);
+    }
+
+    // Parse General Purpose B parameter
+    m_a429.dataLossTime = gpB;
+}
+
+//--------------------------------------------------------------------------------------------------
+UINT32 ParamConverter::ExpectedSSM()
+{
+#define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
+#define BCD_VALID_SSM   0x00 // -- valid positive
+#define DISC_VALID_SSM  0x00 //
+
+    unsigned int expected = BNR_VALID_SSM;
+
+    // Store the Default Valid SSM
+    switch (m_a429.format)
+    {
+    case eDisc:
+        switch (m_a429.discType)
+        {
+        case eDiscBNR:
+            expected = BNR_VALID_SSM;
+            break;
+        case eDiscBCD:
+            expected = BCD_VALID_SSM;
+            break;
+        case eDiscStandard:
+        default:
+            expected = DISC_VALID_SSM;
+            break;
+        }
+        break;
+    case eBCD:
+        expected = BCD_VALID_SSM;
+        break;
+    case eBNR:
+    default:
+        expected = BNR_VALID_SSM;
+        break;
+    }
+    return expected;
+}
+
 //-------------------------------------------------------------------------------------------------
+// Function: Convert
+// Description:
+//
+UINT32 ParamConverter::Convert(FLOAT32 value)
+{
+    UINT32 rawValue = 0;
+
+    if (m_type == PARAM_FMT_A429)
+    {
+        rawValue = A429Converter(value);
+    }
+    else if (m_type == PARAM_FMT_BIN_A664)
+    {
+        UINT32 data = (UINT32)value;
+        rawValue = data;
+    }
+    else if (m_type == PARAM_FMT_FLT_A664)
+    {
+        // just pack the float : what about moving it around inside and big data set?
+        UINT32 *data = (UINT32*)&value;
+        rawValue = *data;
+    }
+
+    return rawValue;
+}
+
+//---------------------------------------------------------------------------------------------
 // Function: A429Converter
 // Description: Convert the value and pack it into a rawValue
 //
@@ -181,233 +392,14 @@ UINT32 ParamConverter::A429Converter(float value)
     return rawValue;
 }
 
-//-------------------------------------------------------------------------------------------------
-// Function: Reset
-// Description:
-//
-void ParamConverter::Init(ParamCfg* paramInfo)
-{
-    UINT32 rawLabel;
-
-    m_gpa = paramInfo->gpa;
-    m_gpb = paramInfo->gpb;
-    m_gpc = paramInfo->gpc;
-    m_src = paramInfo->src;
-    m_type = paramInfo->fmt;
-    m_masterId = paramInfo->masterId;
-    m_scale = paramInfo->scale;
-    m_maxValue = paramInfo->scale;
-
-    if (m_type == PARAM_FMT_A429)
-    {
-        A429ParseGps();
-
-        if (m_a429.format == eBNR)
-        {
-            m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
-        }
-        // TODO: other formats
-
-        // reverse the label
-        int ms = 0x01;
-        int md = 0x80;
-        int cnt = 8;
-
-        rawLabel = 0;
-        while (cnt > 0)
-        {
-            if (m_a429.label & ms)
-            {
-                rawLabel |= md;
-            }
-            ms <<= 1;
-            md >>= 1;
-            --cnt;
-        }
-
-        // construct the basic message without data
-        m_a429.a429Template = A429_FldPutLabel( 0, rawLabel);
-        SetSdi( m_a429.sdBits);
-
-        // set the SSM bits based on which one(s) are valid.
-        //if (m_a429.validSSM == 0)
-        //{
-            m_a429.SSM = ExpectedSSM();
-        //}
-        //else
-        //{
-        //    bool ssmSet = false;
-        //    int mask = 8;
-        //    while (!ssmSet && mask != 0)
-        //    {
-        //        if ( m_a429.validSSM & mask)
-        //        {
-        //            m_a429.SSM = mask >> 1;
-        //            m_a429.SSM = min(3, m_a429.SSM);
-        //            ssmSet = true;
-        //        }
-        //        else
-        //        {
-        //            mask >>= 1;
-        //        }
-        //    }
-        //}
-
-        SetSsm( m_a429.SSM);
-
-    }
-    else if (m_type == PARAM_FMT_BIN_A664)
-    {
-        // Turn this into a A429 DISCRETE and use its discrete packing code
-        m_a429.format = eDisc;
-        m_a429.lsb = m_gpa & 0xFFFF;;
-        m_a429.msb = (m_a429.lsb + (m_gpa >> 16)) - 1;
-        m_a429.a429Template = 0;
-    }
-    else if (m_type == PARAM_FMT_FLT_A664)
-    {
-    }
-
-    SetIoiName();
-}
-
-//--------------------------------------------------------------------------------------------------
-void ParamConverter::SetIoiName()
-{
-    if (m_src == PARAM_SRC_A429)
-    {
-        SetIoiA429Name();
-    }
-    else if (m_src == PARAM_SRC_A664)
-    {
-        SetIoiA664Name();
-    }
-    else if (m_src == PARAM_SRC_CROSS)
-    {
-        sprintf(m_ioiName, "CROSS");
-    }
-}
-
-//--------------------------------------------------------------------------------------------------
-void ParamConverter::SetIoiA429Name()
-{
-    UINT32 i;
-    UINT8 sdiMatch = m_a429.ignoreSDI ? A429_IOI_NAME_SDI_IGNORE_VAL : m_a429.sdBits;
-
-    for (i=0; ioiA429Names[i].name[0] != NULL; ++i)
-    {
-        if (m_a429.label == ioiA429Names[i].octal && sdiMatch == ioiA429Names[i].sdi)
-        {
-            //ioiNameUsed[i] += 1;
-            //if (ioiNameUsed[i] == 1)
-            // {
-            strcpy( m_ioiName, ioiA429Names[i].name);
-            // }
-            //else
-            //{
-            //    sprintf( m_ioiName, "%s_%d", ioiA429Names[i].name, ioiNameUsed[i]);
-            //}
-            break;
-        }
-    }
-}
-
-//--------------------------------------------------------------------------------------------------
-void ParamConverter::SetIoiA664Name()
-{
-    UINT32 src;
-    UINT32 ndo;
-
-    src = m_masterId & 0xff;
-    ndo = (m_masterId >> 8) & 0xffffff;
-    sprintf(m_ioiName, "%d_%d", ndo, src);
-}
-
-//--------------------------------------------------------------------------------------------------
-void ParamConverter::A429ParseGps()
-{
-    UINT32 gpA = m_gpa;
-    UINT32 gpB = m_gpb;
-
-    m_a429.channel    = gpA & 0x3;
-    m_a429.format     = A429WordFormat((gpA >> 2)  & 0x03);
-    m_a429.discType   = A429DiscretTypes((gpA >> 18) & 0x03);
-    m_a429.wordSize   = (gpA >> 5)  & 0x1F;
-    m_a429.sdBits     = (gpA >> 10) & 0x03;
-    m_a429.ignoreSDI  = (gpA >> 12) & 0x01;
-    m_a429.msb        = ((gpA >> 13) & 0x1F);
-    m_a429.validSSM   = (gpA >> 20) & 0x0F;
-    m_a429.sdiAllCall = (gpA >> 24) & 0x01;
-    m_a429.label      = m_gpc;
-
-    if (m_a429.format == eBCD)
-    {
-        // MSB BCD is only 3 bits not 4
-        m_a429.lsb = (m_a429.msb)-(((m_a429.wordSize-1)*4)+2);
-    }
-    else if ( m_a429.format == eDisc)
-    {
-        m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
-        if (m_a429.wordSize == 1)
-        {
-            m_a429.msb += 1;
-        }
-    }
-    else // eBNR
-    {
-        m_a429.lsb = (m_a429.msb)-(m_a429.wordSize-1);
-    }
-
-    // Parse General Purpose B parameter
-    m_a429.dataLossTime = gpB;
-}
-
-//--------------------------------------------------------------------------------------------------
-UINT32 ParamConverter::ExpectedSSM()
-{
-#define BNR_VALID_SSM   0x03 // -- this value will be packed into the 2 bit SSM field
-#define BCD_VALID_SSM   0x00 // -- valid positive
-#define DISC_VALID_SSM  0x00 //
-
-    unsigned int expected = BNR_VALID_SSM;
-
-    // Store the Default Valid SSM
-    switch (m_a429.format)
-    {
-    case eDisc:
-        switch (m_a429.discType)
-        {
-        case eDiscBNR:
-            expected = BNR_VALID_SSM;
-            break;
-        case eDiscBCD:
-            expected = BCD_VALID_SSM;
-            break;
-        case eDiscStandard:
-        default:
-            expected = DISC_VALID_SSM;
-            break;
-        }
-        break;
-    case eBCD:
-        expected = BCD_VALID_SSM;
-        break;
-    case eBNR:
-    default:
-        expected = BNR_VALID_SSM;
-        break;
-    }
-    return expected;
-}
-
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 void ParamConverter::SetSdi( INT32 value)
 {
     m_a429.sdBits = value;
     m_a429.a429Template = A429_FldPutSDI( m_a429.a429Template, m_a429.sdBits);
 }
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 void ParamConverter::SetSsm( INT32 value)
 {
     m_a429.SSM = value;
@@ -415,14 +407,14 @@ void ParamConverter::SetSsm( INT32 value)
     m_a429.a429Template = A429_BCDPutSSM( m_a429.a429Template, m_a429.SSM);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Function: SetLabel
 // Description: Set the label for a A429 parameter
 //
-// Note: this function sets validity to allow the script to control sending the parameter to the
-// ADRF.  If the label is changed from the value the parameter was initialized with the parameter
-// is set to invalid so no updates occur via IOI.  When the label is restored to its original
-// value validity is restored.
+// Note: this function sets validity to allow the script to control sending the parameter to
+// the ADRF.  If the label is changed from the value the parameter was initialized with the
+// parameter is set to invalid so no updates occur via IOI.  When the label is restored to its
+// original value validity is restored.
 //
 void ParamConverter::SetLabel( INT32 value)
 {

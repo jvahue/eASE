@@ -25,22 +25,23 @@ enum IoiStaticTypes {
 class StaticIoiObj
 {
 public:
-    char  ioiName[64];      // IOI binder producer name
-    char  m_shortName[64];  // short name for display on console
-    INT32 ioiChan;          // deos ioi channel id
-    bool ioiValid;          // is the ioi opened
-    bool ioiRunning;        // is the ioi being output on a regular basis
-    bool ioiIsInput;
-    INT32 m_updateCount;    // how many times has the value been read/written
+    char  m_ioiName[64];   // IOI binder producer name
+    char  m_shortName[64]; // short name for display on console
+    INT32 m_ioiChan;       // deos ioi channel id
+    bool  m_ioiValid;      // is the ioi opened
+    bool  m_ioiRunning;    // is the ioi being output on a regular basis
+    bool  m_isAseInput;    // this signal is an input to ASE
+    bool  m_isParam;       // indicates this IDL is being run by a Parameter
+    INT32 m_updateCount;   // how many times has the value been read/written
 
     StaticIoiObj(char* name, bool isInput=false);
     bool OpenIoi();
     void SetRunState(bool newState);
-    void SetIO(bool isInput) {ioiIsInput = isInput;}
+    //void SetIO(bool isInput) {m_isAseInput = isInput;}
 
     // virtual functions
     //virtual IocResponse GetStaticIoiData() {;}
-    virtual bool SetStaticIoiData(SecRequest& request) {ioiRunning = true;}
+    virtual bool SetStaticIoiData(SecRequest& request) {m_ioiRunning = true;}
 
     // streamSize: Byte, Integer
     // streamData: String, IntegerPtr
@@ -52,22 +53,27 @@ public:
     virtual char* Display(char* dest, UINT32 dix);
 
     char* CompressName(char* src, int size);
+
+    virtual UINT8* Data(UINT8* destSize) {
+        destSize = 0;
+        return NULL;
+    }
 };
 
 //=============================================================================================
-class StaticIoiByte : public StaticIoiObj
-{
-public:
-    StaticIoiByte(char* name, unsigned char value, bool isInput=false)
-        : StaticIoiObj(name, isInput)
-        , data(value)
-    {}
-    virtual bool SetStaticIoiData(SecRequest& request);
-    virtual bool GetStaticIoiData(IocResponse& m_response);
-    virtual bool Update();
-    virtual char*  Display(char* dest, UINT32 dix);
-    unsigned char data;
-};
+//class StaticIoiByte : public StaticIoiObj
+//{
+//public:
+//    StaticIoiByte(char* name, unsigned char value, bool isInput=false)
+//        : StaticIoiObj(name, isInput)
+//        , data(value)
+//    {}
+//    virtual bool SetStaticIoiData(SecRequest& request);
+//    virtual bool GetStaticIoiData(IocResponse& m_response);
+//    virtual bool Update();
+//    virtual char*  Display(char* dest, UINT32 dix);
+//    unsigned char data;
+//};
 
 //=============================================================================================
 class StaticIoiInt : public StaticIoiObj
@@ -82,6 +88,10 @@ public:
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     int data;
+    virtual UINT8* Data(UINT8* destSize) {
+        *destSize = 4;
+        return (UINT8*)&data;
+    }
 };
 
 //=============================================================================================
@@ -97,6 +107,11 @@ public:
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     float data;
+    virtual UINT8* Data(UINT8* destSize) {
+        *destSize = 4;
+        return (UINT8*)&data;
+    }
+
 };
 
 //=============================================================================================
@@ -111,19 +126,24 @@ public:
     int displayAt;
     char* data;
     int bytes;
+    virtual UINT8* Data(UINT8* destSize) {
+        *destSize = bytes;
+        return (UINT8*)data;
+    }
+
 };
 
-class StaticIoiIntPtr : public StaticIoiObj
-{
-public:
-    StaticIoiIntPtr(char* name, int* value, int size, bool isInput=false);
-    //virtual bool SetStaticIoiData(SecRequest& request);
-    virtual bool GetStaticIoiData(IocResponse& m_response);
-    virtual bool Update();
-    virtual char*  Display(char* dest, UINT32 dix);
-    int* data;
-    int bytes;
-};
+//class StaticIoiIntPtr : public StaticIoiObj
+//{
+//public:
+//    StaticIoiIntPtr(char* name, int* value, int size, bool isInput=false);
+//    //virtual bool SetStaticIoiData(SecRequest& request);
+//    virtual bool GetStaticIoiData(IocResponse& m_response);
+//    virtual bool Update();
+//    virtual char*  Display(char* dest, UINT32 dix);
+//    int* data;
+//    int bytes;
+//};
 
 //=============================================================================================
 class A664Qar
@@ -198,10 +218,12 @@ public:
     void SetNewState(SecRequest& request);
     void Reset();
     void ResetStaticIoi();
+    void ResetStaticParams();
+    StaticIoiObj* FindIoi(char* name);
 
-    StaticIoiObj* m_staticIoiOut[MAX_STATIC_IOI];
+    StaticIoiObj* m_staticAseOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;
-    StaticIoiObj* m_staticIoiIn[MAX_STATIC_IOI];
+    StaticIoiObj* m_staticAseIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
 
     A664Qar m_a664Qar;

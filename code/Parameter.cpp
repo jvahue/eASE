@@ -1,5 +1,5 @@
 /******************************************************************************
-          Copyright (C) 2013-2016 Knowlogic Software Corp.
+          Copyright (C) 2013-2017 Knowlogic Software Corp.
          All Rights Reserved. Proprietary and Confidential.
 
     File: Parameter.cpp
@@ -74,22 +74,30 @@ Parameter::Parameter()
 void Parameter::Reset()
 {
     m_ioiValid = false;
-    m_ioiChan = -1;
     m_isRunning = true;        // parameter comes up running
+
+    m_name[0] = '\0';
+    m_shortName[0] = '\0';
+
     m_index = eAseMaxParams;
     m_nextIndex = eAseMaxParams;
     m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
+
+    m_ioiChan = -1;
     m_ioiValue = 0;            // current ioi value after Update
+    m_idl = NULL;
+
     m_rateHz = 0;              // ADRF update rate for the parameter in Hz
     m_updateMs = 0;
     m_updateIntervalTicks = 0; // ASE update rate for the parameter in Hz = 2x m_rateHz*
     m_offset = 0;              // frame offset 0-90 step 10
     m_nextUpdate = 0;
     m_updateCount = 0;
+    m_ccdlId = 0xffff;
+
     m_link = NULL;
     m_isChild = false;
-    m_name[0] = '\0';
     m_childCount = 0;
 
     ParamConverter::Reset();
@@ -140,7 +148,7 @@ char* Parameter::CompressName(char* src, int size)
 // Function: Init
 // Description: Initialize the parameter based on the configuration values
 //
-void Parameter::Init(ParamCfg* paramInfo)
+void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
 {
     //UINT32 at;
     //UINT32 dst;
@@ -167,6 +175,7 @@ void Parameter::Init(ParamCfg* paramInfo)
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
     ParamConverter::Init(paramInfo);
+    m_idl = ioiStatic.FindIoi(m_ioiName);
 
     m_isValid = true;
 
@@ -191,11 +200,15 @@ bool Parameter::IsChild(Parameter& other)
         }
         else if (m_type == PARAM_FMT_A429 && other.m_type == PARAM_FMT_A429)
         {
-            if (//m_a429.channel == other.m_a429.channel &&  // same channel
-                m_a429.label   == other.m_a429.label   &&  // same label
-                m_a429.sdBits  == other.m_a429.sdBits)     // same SDI
+            if (m_src == PARAM_SRC_A429_A)
             {
-                m_isChild = true;
+                m_isChild = m_gpc == other.m_gpc;
+            }
+            else
+            {
+                m_isChild = (//m_a429.channel == other.m_a429.channel &&  // same channel
+                    m_a429.label   == other.m_a429.label   &&  // same label
+                    m_a429.sdBits  == other.m_a429.sdBits);
             }
         }
 
@@ -278,7 +291,39 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         // Convert it to the raw ioi format
         m_rawValue = Convert(m_value);
 
-        m_ioiValue = m_rawValue | children;
+        if (m_idl)
+        {
+            // we need to position the data in the IDL m_rawValue holds the data which cannot
+            // be bigger than 32 bits for our purposes as a parameter
+            UINT8 sizeBias = (a664Size % 8) ? 1 : 0;
+            UINT8 byteCount = (a664Size / 8) + sizeBias;
+            UINT8 destByte = a664Offset / 8;
+            UINT8 destBit0 = a664Offset % 8;
+            UINT8 bitsMoved = (8 - destBit0);  // the first move will move n bits
+            UINT8 srcMask = (1 << bitsMoved) - 1;
+            UINT8 dstMask = ~srcMask & 0xff;
+            UINT8 rightShift = 0;
+            UINT8 destSize;
+            UINT8* dest = m_idl->Data(&destSize);
+
+            for (int x = 0; ((x < byteCount) && (destByte < destSize)); ++x)
+            {
+                UINT8 src = (m_rawValue >> (a664Size - bitsMoved)) & srcMask;
+                UINT8 dst = dest[destByte] & dstMask;
+                dest[destByte] = (dst | src) << rightShift;
+                destByte += 1;
+
+                UINT8 movSize = MIN(8, a664Size - bitsMoved);
+                bitsMoved += movSize;
+                srcMask = (1 << movSize) - 1;
+                dstMask = ~srcMask & 0xff;
+                rightShift = 8 - movSize;
+            }
+        }
+        else
+        {
+            m_ioiValue = m_rawValue | children;
+        }
 
         m_nextUpdate = sysTick + m_updateIntervalTicks;
         m_updateCount += 1;
