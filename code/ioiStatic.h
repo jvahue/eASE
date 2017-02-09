@@ -54,7 +54,7 @@ public:
 
     char* CompressName(char* src, int size);
 
-    virtual UINT8* Data(UINT8* destSize) {
+    virtual UINT8* Data(UINT16* destSize) {
         destSize = 0;
         return NULL;
     }
@@ -88,7 +88,7 @@ public:
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     int data;
-    virtual UINT8* Data(UINT8* destSize) {
+    virtual UINT8* Data(UINT16* destSize) {
         *destSize = 4;
         return (UINT8*)&data;
     }
@@ -107,7 +107,7 @@ public:
     virtual bool Update();
     virtual char*  Display(char* dest, UINT32 dix);
     float data;
-    virtual UINT8* Data(UINT8* destSize) {
+    virtual UINT8* Data(UINT16* destSize) {
         *destSize = 4;
         return (UINT8*)&data;
     }
@@ -126,8 +126,8 @@ public:
     int displayAt;
     char* data;
     int bytes;
-    virtual UINT8* Data(UINT8* destSize) {
-        *destSize = bytes;
+    virtual UINT8* Data(UINT16* destSize) {
+        *destSize = (UINT16)bytes;
         return (UINT8*)data;
     }
 

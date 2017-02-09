@@ -29,20 +29,17 @@
 #define ARINC_MSG_SIGN_DATA_BITS    (ARINC_MSG_SIGN_BIT | ARINC_MSG_DATA_BITS)
 #define ARINC_MSG_VALID_BIT         ARINC_MSG_PARITY_BIT
 
-#define MASK1(s) ((1 << (s)) - 1)
-#ifdef FIELD
-#undef FIELD
-#endif
-#define FIELD(m,l) (MASK1((m+1)-(l)) << (l))
+#define A429_MASK(s) ((1 << (s)) - 1)
+#define A429_FIELD(m,l) (A429_MASK((m+1)-(l)) << (l))
 
 #define A429_FldPutLabel(d,l) ((d & 0xFFFFFF00) | (l & 0xFF))
 #define A429_BNRPutSign(d,s)  ((d & 0x6FFFFFFF) | ((s & 1) << 28))
 #define A429_BCDPutSign(d,s)  ((d & 0x1FFFFFFF) | ((s & 3) << 29))
 #define A429_FldPutData(d,v)  (d | (v << 10))
 
-#define A429_BNRPutData(d,v,m,l) ((d & ~FIELD((m),(l))) | ((v & FIELD((m)-(l),0)) << (l)))
+#define A429_BNRPutData(d,v,m,l) ((d & ~A429_FIELD((m),(l))) | ((v & A429_FIELD((m)-(l),0)) << (l)))
 
-#define A429_BNRGetData(d,m,l) ((d >> l) & FIELD( m,l))
+#define A429_BNRGetData(d,m,l) ((d >> l) & A429_FIELD( m,l))
 
 #define A429_BCDPutSSM(d,s) ((d & 0x1fffffff) | ((s & 3) << 29))
 #define A429_FldPutSDI(d,s) ((d & ~0x300) | ((s & 3) << 8))

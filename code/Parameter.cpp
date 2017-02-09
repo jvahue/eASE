@@ -259,6 +259,22 @@ bool Parameter::IsChild(Parameter& other)
 //
 UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 {
+    int lsbSrc;
+    int lsbDst;
+
+    UINT8 destByte;
+    UINT8 destBit0;
+    UINT8 msbDst;
+    UINT8 moveSize;
+    UINT8 bitsMoved;  // the first move will move n bits
+    UINT8 dMask;
+    UINT8 src;
+    UINT8 insert;
+
+    UINT8* dest;
+
+    UINT16 destSize;
+
     UINT32 start;
     UINT32 count = 0;
     UINT32 children = 0;
@@ -293,31 +309,41 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 
         if (m_idl)
         {
-            // we need to position the data in the IDL m_rawValue holds the data which cannot
+            // we need to position the data in the IDL, m_rawValue holds the data which cannot
             // be bigger than 32 bits for our purposes as a parameter
-            UINT8 sizeBias = (a664Size % 8) ? 1 : 0;
-            UINT8 byteCount = (a664Size / 8) + sizeBias;
-            UINT8 destByte = a664Offset / 8;
-            UINT8 destBit0 = a664Offset % 8;
-            UINT8 bitsMoved = (8 - destBit0);  // the first move will move n bits
-            UINT8 srcMask = (1 << bitsMoved) - 1;
-            UINT8 dstMask = ~srcMask & 0xff;
-            UINT8 rightShift = 0;
-            UINT8 destSize;
-            UINT8* dest = m_idl->Data(&destSize);
+            destByte = a664Offset / 8;
+            destBit0 = a664Offset % 8;
+            msbDst = (8 - destBit0);
 
-            for (int x = 0; ((x < byteCount) && (destByte < destSize)); ++x)
+            moveSize = MIN(a664Size, msbDst);  // the first move will move n bits
+            lsbSrc = a664Size - moveSize;
+            lsbDst = msbDst - moveSize;
+
+            bitsMoved = 0;
+
+            dest = m_idl->Data(&destSize);
+
+            while (bitsMoved < a664Size)
             {
-                UINT8 src = (m_rawValue >> (a664Size - bitsMoved)) & srcMask;
-                UINT8 dst = dest[destByte] & dstMask;
-                dest[destByte] = (dst | src) << rightShift;
-                destByte += 1;
+                // clear the destination
+                dMask = MASK(lsbDst, moveSize);
+                dest[destByte] = RESET_BITS(dest[destByte], dMask);
+                // extract the insert bits and repositions them
+                src = EXTRACT(m_rawValue, lsbSrc, moveSize);
+                insert = FIELD(src, lsbDst, moveSize);
+                // set the destination bits
+                dest[destByte] = SET_BITS(dest[destByte], insert);
 
-                UINT8 movSize = MIN(8, a664Size - bitsMoved);
-                bitsMoved += movSize;
-                srcMask = (1 << movSize) - 1;
-                dstMask = ~srcMask & 0xff;
-                rightShift = 8 - movSize;
+                // compute next move
+                bitsMoved += moveSize;
+                moveSize = MIN(8, a664Size - bitsMoved);
+
+                lsbSrc = lsbSrc - moveSize;
+                lsbSrc += (lsbSrc < 0) ? 8 : 0;
+                lsbDst = lsbDst - moveSize;
+                lsbDst += (lsbDst < 0) ? 8 : 0;
+
+                destByte += 1;
             }
         }
         else

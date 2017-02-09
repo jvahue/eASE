@@ -101,7 +101,7 @@ bool StaticIoiObj::WriteStaticIoi(void* data)
     ioiStatus writeStatus = ioiSuccess;
 
     // if we are valid and running, and not being run by a parameter
-    if (m_ioiValid && m_ioiRunning && !m_isParam)
+    if (m_ioiValid && m_ioiRunning)
     {
         writeStatus = ioi_write(m_ioiChan, data);
     }
@@ -980,7 +980,8 @@ void StaticIoiContainer::UpdateStaticIoi()
     m_writeErrorZ1 = m_writeError;
     for (int i = 0; i < kMaxCount; ++i)
     {
-        if (m_staticAseOut[m_updateIndex] != &_a664_to_ioc_eicas_)
+        if (m_staticAseOut[m_updateIndex] != &_a664_to_ioc_eicas_ &&
+            !m_staticAseOut[m_updateIndex]->m_isParam)
         {
             if (!m_staticAseOut[m_updateIndex]->Update())
             {
