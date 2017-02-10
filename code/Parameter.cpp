@@ -75,12 +75,14 @@ void Parameter::Reset()
 {
     m_ioiValid = false;
     m_isRunning = true;        // parameter comes up running
+    m_useUint = false;
 
     m_name[0] = '\0';
     m_shortName[0] = '\0';
 
     m_index = eAseMaxParams;
     m_nextIndex = eAseMaxParams;
+    m_uintValue = 0;
     m_value = 0.0f;            // the current value for the parameter
     m_rawValue = 0;
 
@@ -301,11 +303,18 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             }
         }
 
-        // Update the value with the SigGen
-        m_value = m_sigGen.Update(m_value, sgRun);
+        if (m_useUint)
+        {
+            m_rawValue = m_uintValue;
+        }
+        else
+        {
+            // Update the value with the SigGen
+            m_value = m_sigGen.Update(m_value, sgRun);
 
-        // Convert it to the raw ioi format
-        m_rawValue = Convert(m_value);
+            // Convert it to the raw ioi format
+            m_rawValue = Convert(m_value);
+        }
 
         if (m_idl)
         {
@@ -313,7 +322,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             // be bigger than 32 bits for our purposes as a parameter
             destByte = a664Offset / 8;
             destBit0 = a664Offset % 8;
-            msbDst = (8 - destBit0);
+            msbDst = (8 - destBit0);           // re-align with little-endian bit addressing
 
             moveSize = MIN(a664Size, msbDst);  // the first move will move n bits
             lsbSrc = a664Size - moveSize;

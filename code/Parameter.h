@@ -28,11 +28,13 @@ public:
 
     bool m_ioiValid;    // ADRF update rate for the parameter in Hz
     bool m_isRunning;
+    bool m_useUint;     // if the user gaves us a UINT32 value and wants to use that do it
 
     ParameterName m_name;       // the parameter name
     ParameterName m_shortName;  // the short parameter name for the display
     UINT32  m_index;
     UINT32  m_nextIndex;   // the next valid parameter - for processing
+    UINT32  m_uintValue;   // in case the user passed down a UINT32 save the value here
     FLOAT32 m_value;       // the current value for the parameter
     UINT32  m_rawValue;    // binary image to send via IOI
 

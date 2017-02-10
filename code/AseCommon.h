@@ -91,6 +91,7 @@ enum SigGenEnum {
     eSGpwm,        // PWM between two values (value1, value2) varying duty cycle
     eSGpwm1,       // A better PWM - no period delay at the start
     eSGrandom,     // random values uniform dist (min, max)
+    eSGunit,       // value passed is a UINT32 - used when send full 32 bit values
     eMaxSensorMode
 };
 

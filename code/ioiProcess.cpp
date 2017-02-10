@@ -764,12 +764,22 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
             UINT32 sgType = request.sigGenId;
             if ( ARRAY( sgType, eMaxSensorMode))
             {
-                bool setResult;
+                bool setResult = false;
                 Parameter& theParam = m_parameters[itemId];
 
-                setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
-                    request.param1, request.param2,
-                    request.param3, request.param4);
+                if (sgType != eSGunit)
+                {
+                    setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
+                        request.param1, request.param2,
+                        request.param3, request.param4);
+                    theParam.m_useUint = false;
+                }
+                else
+                {
+                    theParam.m_uintValue = request.resetAll;
+                    theParam.m_useUint = true;
+                    setResult = true;
+                }
 
                 if (sgType == eSGmanual)
                 {
