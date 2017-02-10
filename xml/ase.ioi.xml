@@ -73856,7 +73856,7 @@
            bufferOptions = "queueDepth:1"
            comment = "86: 100 Hz"
       ></producedItem>
-   </producedItems>
+  </producedItems>
    <consumedItems>
       <consumedItem
            name = "8204050_32"
@@ -74362,7 +74362,7 @@
            name = "adrf_data_flt_leg"
            consumptionRate = "100000"
            minimumDataRate = "100000"
-           messageForm = "6B"
+           messageForm = "I"
            messageUnits = ""
            freshnessCheck = "none"
            comment = "hmu current flight leg"
@@ -74568,5 +74568,5 @@
            comment = "rtc io wr year"
            consumptionOptions = "lastProduced"
       ></consumedItem>
-   </consumedItems>
+  </consumedItems>
 </ioiConfig>

@@ -277,7 +277,6 @@ char _rtc_io_wr_minutes[1];
 char _rtc_io_wr_month[1];
 char _rtc_io_wr_seconds[1];
 char _rtc_io_wr_year[1];
-char _adrf_data_flt_leg[6];
 
 StaticIoiStr            _ADRF_FAULT_DATA_("ADRF_FAULT_DATA", _ADRF_FAULT_DATA, 52, true);        // 0
 StaticIoiInt              _adrf_apm_wrap_("adrf_apm_wrap", 0, true);                             // 1
@@ -349,7 +348,7 @@ StaticIoiInt                 _8204057_64_("8204057_64", 0, true);               
 StaticIoiInt                 _8204058_64_("8204058_64", 0, true);                                // 67
 StaticIoiInt      _adrf_pat_udt_remain_a_("adrf_pat_udt_remain_a", 0, true);                     // 68
 StaticIoiInt      _adrf_pat_udt_remain_b_("adrf_pat_udt_remain_b", 0, true);                     // 69
-StaticIoiStr          _adrf_data_flt_leg_("adrf_data_flt_leg", _adrf_data_flt_leg, 6, true);     // 70
+StaticIoiInt          _adrf_data_flt_leg_("adrf_data_flt_leg", 0, true);                         // 70
 
 StaticIoiObj* aseIoiIn[ASE_IN_MAX] = {
     &_ADRF_FAULT_DATA_            , // 0
