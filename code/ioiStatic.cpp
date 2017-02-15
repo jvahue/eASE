@@ -832,9 +832,9 @@ StaticIoiContainer::StaticIoiContainer()
     _BrdTempDegC_.data = 10.0f;
 
     strcpy(_HMUSerialNumber, "0000999999");
-    strcpy(_HMUPartNumber, "5316928SK01");
-    strcpy(_UTASSwDwgNumber, "PY1022429-028");
-    strcpy(_PWSwDwgNumber, "5318410-12SK01");
+    strcpy(_HMUPartNumber,   "5316928SK01");
+    strcpy(_UTASSwDwgNumber, "Y1022429-003");
+    strcpy(_PWSwDwgNumber,   "5318410-12SK01");
 
 
 
