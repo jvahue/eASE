@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-911622623"
-     fileDate = "Fri Feb 10 18:53:32 2017"
+     validityKey = "1186747563"
+     fileDate = "Thu Feb 16 15:37:38 2017"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -74018,7 +74018,7 @@
            bufferOptions = "queueDepth:1"
            comment = "86: 100 Hz"
       ></producedItem>
-  </producedItems>
+   </producedItems>
    <consumedItems>
       <consumedItem
            name = "8204050_32"
@@ -74730,5 +74730,5 @@
            comment = "rtc io wr year"
            consumptionOptions = "lastProduced"
       ></consumedItem>
-  </consumedItems>
+   </consumedItems>
 </ioiConfig>
