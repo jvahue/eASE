@@ -12,6 +12,51 @@
    >
    <producedItems>
       <producedItem
+           name = "0_000_00"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_000_00"
+      ></producedItem>
+      <producedItem
+           name = "0_000_01"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_000_01"
+      ></producedItem>
+      <producedItem
+           name = "0_000_10"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_000_10"
+      ></producedItem>
+      <producedItem
+           name = "0_000_11"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_000_11"
+      ></producedItem>
+      <producedItem
+           name = "0_000_XX"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_000_XX"
+      ></producedItem>
+      <producedItem
            name = "0_030_10"
            productionRate = "250000"
            messageForm = "I"
@@ -606,6 +651,15 @@
            comment = "0_356_XX"
       ></producedItem>
       <producedItem
+           name = "0_377_00"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_377_00"
+      ></producedItem>
+      <producedItem
            name = "0_377_01"
            productionRate = "1000000"
            messageForm = "I"
@@ -622,6 +676,24 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"
            comment = "0_377_10"
+      ></producedItem>
+      <producedItem
+           name = "0_377_11"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_377_11"
+      ></producedItem>
+      <producedItem
+           name = "0_377_XX"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "0_377_XX"
       ></producedItem>
       <producedItem
            name = "10349224_32"
@@ -18471,6 +18543,51 @@
            comment = "6_354_00"
       ></producedItem>
       <producedItem
+           name = "7_000_00"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_000_00"
+      ></producedItem>
+      <producedItem
+           name = "7_000_01"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_000_01"
+      ></producedItem>
+      <producedItem
+           name = "7_000_10"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_000_10"
+      ></producedItem>
+      <producedItem
+           name = "7_000_11"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_000_11"
+      ></producedItem>
+      <producedItem
+           name = "7_000_XX"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_000_XX"
+      ></producedItem>
+      <producedItem
            name = "7_203_10"
            productionRate = "62500"
            messageForm = "I"
@@ -18496,6 +18613,51 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"
            comment = "7_211_10"
+      ></producedItem>
+      <producedItem
+           name = "7_377_00"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_377_00"
+      ></producedItem>
+      <producedItem
+           name = "7_377_01"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_377_01"
+      ></producedItem>
+      <producedItem
+           name = "7_377_10"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_377_10"
+      ></producedItem>
+      <producedItem
+           name = "7_377_11"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_377_11"
+      ></producedItem>
+      <producedItem
+           name = "7_377_XX"
+           productionRate = "10000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "7_377_XX"
       ></producedItem>
       <producedItem
            name = "8182032_0"
@@ -73856,7 +74018,7 @@
            bufferOptions = "queueDepth:1"
            comment = "86: 100 Hz"
       ></producedItem>
-   </producedItems>
+  </producedItems>
    <consumedItems>
       <consumedItem
            name = "8204050_32"
@@ -74568,5 +74730,5 @@
            comment = "rtc io wr year"
            consumptionOptions = "lastProduced"
       ></consumedItem>
-   </consumedItems>
+  </consumedItems>
 </ioiConfig>
