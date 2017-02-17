@@ -128,7 +128,7 @@ bool StaticIoiObj::ReadStaticIoi(void* data)
 //---------------------------------------------------------------------------------------------
 char* StaticIoiObj::Display( char* dest, UINT32 dix )
 {
-    dest = '\0';
+    *dest = '\0';
     return dest;
 }
 

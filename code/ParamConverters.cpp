@@ -188,7 +188,7 @@ void ParamConverter::SetIoiA429Name()
     else
     {
         char* sdiMap[] = { "00", "01", "10", "11", "XX" };
-        UINT8 sdi = m_a429.sdBits + (m_a429.ignoreSDI ? 1 : 0);
+        UINT8 sdi = m_a429.ignoreSDI ? 4 : m_a429.sdBits;
         sprintf(m_ioiName, "%d_%03o_%s", m_a429.channel, m_a429.label, sdiMap[sdi]);
     }
 }

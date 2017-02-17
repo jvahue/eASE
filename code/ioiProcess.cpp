@@ -63,16 +63,20 @@ static const CHAR chanIdFileName[] = "chanId";
 /*****************************************************************************/
 IoiProcess::IoiProcess()
 : m_paramCount(0)
+, m_minParamIndex(0)
 , m_maxParamIndex(0)
 , m_paramLoopEnd(0)
 , m_paramInfoCount(0)
 , m_displayCount(0)
 , m_page(0)
 , m_paramDetails(0)
+, m_scheduledX(0)
+, m_remoteX(0)
 , m_scheduled(0)
 , m_ioiUpdated(0)
-, m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
+, m_loopCount(0)
 , m_initParams(false)
+, m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
 , m_ioiOpenFailCount(0)
 , m_ioiCloseFailCount(0)
 , m_ioiWriteFailCount(0)
@@ -83,10 +87,11 @@ IoiProcess::IoiProcess()
 , m_totalIoiTime(0)
 , m_ccdl(&aseCommon)
 , m_chanId(-1)
-, m_scheduledX(0)
-, m_remoteX(0)
-, m_elapsed(0)
+, m_ioiChanId(-1)
+, m_ioiChanId0(-1)
+, m_ioiChanId1(-1)
 , m_maxProcDuration(1100)
+, m_elapsed(0)
 , m_peak(0)
 , m_execFrame(0)
 , m_dateId(eAseMaxParams)
@@ -100,7 +105,6 @@ IoiProcess::IoiProcess()
 
     memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
     memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
-    m_peak = 0;
 
     memset((void*)m_localTriggers, 0, sizeof(m_localTriggers));
     memset((void*)m_remoteTriggers, 0, sizeof(m_remoteTriggers));
@@ -152,6 +156,8 @@ bool IoiProcess::SetChanId(int chanId)
 
     m_chanId = chanId;
     WriteChanId();
+
+    return true;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -309,6 +315,7 @@ void IoiProcess::UpdateIoi()
 
     UINT32 scheduleZ1 = 0;
     UINT32 startParam = m_scheduledX;
+    UINT32 scheduledX = m_scheduledX;  // local param so we can watch it in the great debugger
     Parameter* param;
 
     m_scheduled = 0; // need to see how many are really scheduled
@@ -316,18 +323,18 @@ void IoiProcess::UpdateIoi()
     m_elapsed = 0;
     m_loopCount = 0;
 
-    if (m_initStatus == ioiSuccess && !m_initParams && m_paramIoRunning)
+    if (m_initStatus == ioiSuccess && !m_initParams && m_paramIoRunning && m_paramCount > 0)
     {
         m_totalParamTime = 0;
         m_totalIoiTime = 0;
 
         start = HsTimer();
-        param = &m_parameters[m_scheduledX];
+        param = &m_parameters[scheduledX];
         // convert until we have gone though every param or timeout or we start to initIOI
         while ((!wrapAround ||
-            (wrapAround && m_scheduledX != startParam)) &&
-            !m_initParams &&
-            m_elapsed < m_maxProcDuration)
+               (wrapAround && scheduledX != startParam)) &&
+               !m_initParams &&
+               m_elapsed < m_maxProcDuration)
         {
             m_loopCount += 1;
             if (param->m_isValid && param->m_isRunning)
@@ -341,12 +348,12 @@ void IoiProcess::UpdateIoi()
                     scheduleZ1 = m_scheduled;
 
                     // jam in the ships date/time
-                    if (m_scheduledX == m_dateId)
+                    if (scheduledX == m_dateId)
                     {
                         param->m_ioiValue = aseCommon.shipDate;
                         param->m_rawValue = aseCommon.shipDate;
                     }
-                    else if (m_scheduledX == m_timeId)
+                    else if (scheduledX == m_timeId)
                     {
                         param->m_ioiValue = aseCommon.shipTime;
                         param->m_rawValue = aseCommon.shipTime;
@@ -371,20 +378,14 @@ void IoiProcess::UpdateIoi()
             }
 
             // go find the next valid parameter
-            if (m_scheduledX == m_maxParamIndex)
-            {
-                m_scheduledX = m_minParamIndex;
-                wrapAround = true;
-            }
-            else
-            {
-                m_scheduledX = param->m_nextIndex;
-            }
-
-            param = &m_parameters[m_scheduledX];
+            wrapAround = param->m_nextIndex <= scheduledX;
+            scheduledX = param->m_nextIndex;
+            param = &m_parameters[scheduledX];
 
             m_elapsed = HsTimeDiff(start);
         }
+
+        m_scheduledX = scheduledX;
 
         if (m_scheduled > m_peak)
         {
@@ -1319,10 +1320,11 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
 void IoiProcess::InitIoi()
 {
     bool childRelationship;
-    UINT32 i;
-    UINT32 i1;
     ioiStatus openStatus;
     ioiStatus closeStatus;
+
+    UINT32 i = 0;
+    UINT32 i1 = 0;
 
     if (m_initStatus == ioiSuccess)
     {
@@ -1341,6 +1343,7 @@ void IoiProcess::InitIoi()
             m_displayIndex[i] = eAseMaxParams;
         }
 
+        // clear all the fail open names and close fail names
         m_ioiOpenFailCount = 0;
         memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
 
@@ -1415,8 +1418,8 @@ void IoiProcess::InitIoi()
                     )
                 {
                     openStatus = ioi_open(m_parameters[index].m_ioiName,
-                        ioiWritePermission,
-                        (int*)&m_parameters[index].m_ioiChan);
+                                          ioiWritePermission,
+                                          (int*)&m_parameters[index].m_ioiChan);
 
                     if (openStatus == ioiSuccess)
                     {
@@ -1482,6 +1485,12 @@ void IoiProcess::InitIoi()
             }
         }
 
+        // wrap the end back to the front
+        if (m_parameters[i1].m_isValid)
+        {
+            m_parameters[i1].m_nextIndex = m_minParamIndex;
+        }
+
         // make sure we start at the first parameter
         m_scheduledX = m_minParamIndex;
 
@@ -1508,7 +1517,7 @@ void IoiProcess::ScheduleParameters()
     UINT32 _50HZ = 1;
     UINT32 simRate;
 
-    for (UINT32 i = 0; i < (UINT32)eAseMaxParams; ++i)
+    for (UINT32 i = 0; i < (UINT32)m_paramLoopEnd; ++i)
     {
         if (m_parameters[i].m_isValid)
         {
