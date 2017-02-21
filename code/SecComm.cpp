@@ -47,10 +47,10 @@ $Revision: $  $Date: $
 /* Constant Data                                                             */
 /*****************************************************************************/
 static const CHAR* conSts[] = {
-    "No Socket",
-    "Wait Conn",
-    "No Conn",
-    "Connected",
+    "NoSocket",
+    "WaitConn",
+    "NoConn",
+    "Conn",
 };
 
 /*****************************************************************************/

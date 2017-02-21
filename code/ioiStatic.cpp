@@ -816,7 +816,8 @@ void A664Qar::NextSf()
 StaticIoiContainer::StaticIoiContainer()
 : m_ioiStaticOutCount(0)
 , m_ioiStaticInCount(0)
-, m_updateIndex(0)
+, m_aseInIndex(0)
+, m_aseOutIndex(0)
 , m_validIoiOut(0)
 , m_validIoiIn(0)
 , m_writeError(0)
@@ -843,16 +844,15 @@ StaticIoiContainer::StaticIoiContainer()
     {
         m_staticAseOut[i] = aseIoiOut[i];
     }
-
+    m_aseOutIndex = 0;
     m_ioiStaticOutCount = ASE_OUT_MAX;
-    m_updateIndex = 0;
     m_validIoiOut = 0;
 
     for (int i = 0; i < ASE_IN_MAX; ++i)
     {
         m_staticAseIn[i] = aseIoiIn[i];
     }
-
+    m_aseInIndex  = 0;
     m_ioiStaticInCount = ASE_IN_MAX;
     m_validIoiIn = 0;
 }
@@ -880,9 +880,10 @@ void StaticIoiContainer::OpenIoi()
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
-    // compute max count to provide a 20 Hz update rate 50ms/10ms => 5 frames
+    // compute max count to provide a 5 Hz update rate 200ms/10ms => 20 frames
     // m_ioiStaticOutCount - 1: because we handle _a664_to_ioc_eicas_ directly
-    const int kMaxCount = ((m_ioiStaticOutCount - 1)/5) + 1;
+    const int kOutMaxCount = ((m_ioiStaticOutCount - 1)/20) + 1;
+    const int kInMaxCount  = (m_ioiStaticInCount/20) + 1;
 
     static unsigned int lastYrCnt  = 0;
     static unsigned int lastMoCnt  = 0;
@@ -976,33 +977,39 @@ void StaticIoiContainer::UpdateStaticIoi()
         }
     }
 
-    // set the UUT Input maintaining about a 2Hz update rate
+    // set the UUT Input maintaining about a 5Hz update rate
     m_writeErrorZ1 = m_writeError;
-    for (int i = 0; i < kMaxCount; ++i)
+    for (int i = 0; i < kOutMaxCount; ++i)
     {
-        if (m_staticAseOut[m_updateIndex] != &_a664_to_ioc_eicas_ &&
-            !m_staticAseOut[m_updateIndex]->m_isParam)
+        if (m_staticAseOut[m_aseOutIndex] != &_a664_to_ioc_eicas_ &&
+            !m_staticAseOut[m_aseOutIndex]->m_isParam)
         {
-            if (!m_staticAseOut[m_updateIndex]->Update())
+            if (!m_staticAseOut[m_aseOutIndex]->Update())
             {
                 m_writeError += 1;
             }
         }
 
-        m_updateIndex += 1;
-        if (m_updateIndex >= m_ioiStaticOutCount)
+        m_aseOutIndex += 1;
+        if (m_aseOutIndex >= m_ioiStaticOutCount)
         {
-            m_updateIndex = 0;
+            m_aseOutIndex = 0;
         }
     }
 
-    // read all of the ADRF outputs
+    // read the ADRF outputs at ~5Hz
     m_readErrorZ1 = m_readError;
-    for (int i = 0; i < m_ioiStaticInCount; ++i)
+    for (int i = 0; i < kInMaxCount; ++i)
     {
-        if (!m_staticAseIn[i]->Update())
+        if (!m_staticAseIn[m_aseInIndex]->Update())
         {
             m_readError += 1;
+        }
+
+        m_aseInIndex += 1;
+        if (m_aseInIndex >= m_ioiStaticInCount)
+        {
+            m_aseInIndex = 0;
         }
     }
 

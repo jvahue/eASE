@@ -668,7 +668,7 @@ int IoiProcess::PageStatic( int theLine, bool& nextPage )
             m_ioiStatic.m_readError - m_ioiStatic.m_readErrorZ1,
             m_ioiStatic.m_writeError,
             m_ioiStatic.m_writeError - m_ioiStatic.m_writeErrorZ1,
-            m_ioiStatic.m_updateIndex);
+            m_ioiStatic.m_aseOutIndex);
         break;
 
     default:

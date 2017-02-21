@@ -74,6 +74,12 @@ $Revision: $  $Date: $
 #define eDyAdrfOn 10
 #define eDyAdrfOff 11
 #define eDyShHx 12
+#define eDyMax 13
+
+#define kCmProc 0
+#define kIoiProc 1
+#define kAseMain 2
+#define kTotalRqst 3
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -159,10 +165,13 @@ FlightTriggerHistory HistTrigBuffRx; // Flight Trigger in NVM received Ref 2
 /* Constant Data                                                             */
 /*****************************************************************************/
 CmdRspThread* cmdRspThreads[] = {
-    &cmProc,
-    &ioiProc,
+    &cmProc,   // make sure kCmProc  = 0
+    &ioiProc,  // make sure kIoiProc = 1
     NULL
 };
+
+// 0 = ioiProc, 1 = cmProc, 2 = aseMain, 3 = total requests
+UINT32 cmdHandler[4] = {0, 0, 0, 0};
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -215,6 +224,7 @@ int main(void)
     UINT32 frames = 0;
     UINT32 cmdIdle = 0;
     UINT32 lastCmdAt = 0;
+    UINT32 updateDisplayLine = 0;
 
     debug_str_init();
     videoRedirect = AseMain;
@@ -260,7 +270,6 @@ int main(void)
     // overhead of timing
     start = HsTimer();
     td = HsTimeDiff(start);
-    td = HsTimeDiff(start);
 
     // see CheckCmds - where this is updated
     debug_str(AseMain, eDyLast, 0, "Last Cmd Id: 0x");
@@ -298,29 +307,37 @@ int main(void)
         // call the base class to display the first row
         cmdRspThreads[0]->CmdRspThread::UpdateDisplay(AseMain, eDyHdr);
 
-        debug_str(AseMain, eDyASE, 0, 
-            "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
-            aseCommon.clocks[eClkRtc].m_time.tm_year,
-            aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
-            aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
-            aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
-            aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
-            aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkRtc].m_10ms,
-            version,
-            aseCommon.isChannelA ? "A" : "B"
-            );
+        if (updateDisplayLine == eDyASE)
+        {
+            debug_str(AseMain, eDyASE, 0, 
+                "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
+                aseCommon.clocks[eClkRtc].m_time.tm_year,
+                aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
+                aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
+                aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
+                aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
+                aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
+                aseCommon.clocks[eClkRtc].m_10ms,
+                version,
+                aseCommon.isChannelA ? "A" : "B"
+                );
+        }
 
-        debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d ADRF: %s",
-            aseCommon.clocks[eClkMs].m_time.tm_year,
-            aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
-            aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
-            aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
-            aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
-            aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkMs].m_10ms,
-            aseCommon.adrfVer);
+        else if (updateDisplayLine == eDyMs)
+        {
+            debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d ADRF: %s",
+                aseCommon.clocks[eClkMs].m_time.tm_year,
+                aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
+                aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
+                aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
+                aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
+                aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
+                aseCommon.clocks[eClkMs].m_10ms,
+                aseCommon.adrfVer);
+        }
 
+        else if (updateDisplayLine == eDyRem)
+        {
         debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
             aseCommon.clocks[eClkRemote].m_time.tm_year,
             aseCommon.clocks[eClkRemote].m_time.tm_mon,   // month    0..11
@@ -329,52 +346,83 @@ int main(void)
             aseCommon.clocks[eClkRemote].m_time.tm_min,   // minutes  0..59
             aseCommon.clocks[eClkRemote].m_time.tm_sec,   // seconds  0..59
             aseCommon.clocks[eClkRemote].m_10ms);
+        }
 
-        debug_str(AseMain, eDyShip, 0, "SHP: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
-            aseCommon.clocks[eClkShips].m_time.tm_year,
-            aseCommon.clocks[eClkShips].m_time.tm_mon,   // month    0..11
-            aseCommon.clocks[eClkShips].m_time.tm_mday,  // day of the month  1..31
-            aseCommon.clocks[eClkShips].m_time.tm_hour,  // hours    0..23
-            aseCommon.clocks[eClkShips].m_time.tm_min,   // minutes  0..59
-            aseCommon.clocks[eClkShips].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkShips].m_10ms);
+        else if (updateDisplayLine == eDyShip)
+        {
+            debug_str(AseMain, eDyShip, 0, "SHP: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+                aseCommon.clocks[eClkShips].m_time.tm_year,
+                aseCommon.clocks[eClkShips].m_time.tm_mon,   // month    0..11
+                aseCommon.clocks[eClkShips].m_time.tm_mday,  // day of the month  1..31
+                aseCommon.clocks[eClkShips].m_time.tm_hour,  // hours    0..23
+                aseCommon.clocks[eClkShips].m_time.tm_min,   // minutes  0..59
+                aseCommon.clocks[eClkShips].m_time.tm_sec,   // seconds  0..59
+                aseCommon.clocks[eClkShips].m_10ms);
+        }
 
+        else if (updateDisplayLine == eDySec)
+        {
+            // Write the system tick value to video memory.
+            debug_str(AseMain, eDySec, 0, "SecComm(%s) %d - %d",
+                secComm.GetSocketInfo(),
+                frames, td);
+        }
 
-        // Write the system tick value to video memory.
-        debug_str(AseMain, eDySec, 0, "SecComm(%s) %d - %d",
-            secComm.GetSocketInfo(),
-            frames, td);
+        else if (updateDisplayLine == eDyCom)
+        {
+            debug_str(AseMain, eDyCom, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
+                secComm.GetRxCount(),
+                secComm.GetTxCount(),
+                secComm.isRxing ? "Yes" : "No ",
+                secComm.forceConnectionClosed ? "Yes" : "No",
+                cmdIdle+1,
+                MAX_IDLE_FRAMES
+                );
+        }
 
-        debug_str(AseMain, eDyCom, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
-            secComm.GetRxCount(),
-            secComm.GetTxCount(),
-            secComm.isRxing ? "Yes" : "No ",
-            secComm.forceConnectionClosed ? "Yes" : "No",
-            cmdIdle+1,
-            MAX_IDLE_FRAMES
-            );
+        else if (updateDisplayLine == eDyErr)
+        {
+            debug_str(AseMain, eDyErr, 0, "%s", secComm.GetErrorMsg());
+        }
 
-        debug_str(AseMain, eDyErr, 0, "%s", secComm.GetErrorMsg());
+        else if (updateDisplayLine == eDyBatt)
+        {
+            batStsStr[0] = (batteryStsMirror  & LOSS_AF28V_N) ? 'P' : ' ';
+            batStsStr[1] = (~batteryStsMirror & BATT_SW_ENA_N) ? 'B' : ' ';
+            batStsStr[2] = (batteryStsMirror  & LEVC_ADRF_BATT_CMD_WA) ? 'C' : ' ';
+            batStsStr[3] = (batteryStsMirror  & LEVA_BATT_IN_SW_MASTER_EN) ? 'A' : ' ';
+            batStsStr[4] = '\0';
+            debug_str(AseMain, eDyBatt, 0, 
+                "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s", 
+                aseCommon.scriptPowerOn,
+                batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
+                batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
+                powerKey, batMapActive[powerKey], batStsStr);
+        }
 
-        batStsStr[0] = (batteryStsMirror  & LOSS_AF28V_N) ? 'P' : ' ';
-        batStsStr[1] = (~batteryStsMirror & BATT_SW_ENA_N) ? 'B' : ' ';
-        batStsStr[2] = (batteryStsMirror  & LEVC_ADRF_BATT_CMD_WA) ? 'C' : ' ';
-        batStsStr[3] = (batteryStsMirror  & LEVA_BATT_IN_SW_MASTER_EN) ? 'A' : ' ';
-        batStsStr[4] = '\0';
+        else if (updateDisplayLine == eDyAdrfOn)
+        {
+            debug_str(AseMain, eDyAdrfOn, 0,  "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d", 
+                adrfOnCount, adrfOnCall, adrfProcStatusOn,
+                cmdHandler[kIoiProc], cmdHandler[kAseMain]);
+        }
 
-        debug_str(AseMain, eDyBatt, 0, 
-            "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s", 
-            aseCommon.scriptPowerOn,
-            batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
-            batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
-            powerKey, batMapActive[powerKey], batStsStr);
+        else if (updateDisplayLine == eDyAdrfOff)
+        {
+            UINT32 x = cmdHandler[kTotalRqst] - 
+                (cmdHandler[0] + cmdHandler[1] + cmdHandler[kAseMain]);
 
-        debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d): %d", 
-            adrfOnCount, adrfOnCall, adrfProcStatusOn);
+            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d  cm: %6d Ttl: %6d/%d", 
+                adrfOffCount, adrfOffCall, adrfProcStatusOff,
+                cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
+        }
 
-        debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d", 
-            adrfOffCount, adrfOffCall, adrfProcStatusOff);
-        
+        updateDisplayLine += 1;
+        if (eDyMax == updateDisplayLine)
+        {
+            updateDisplayLine = 0;
+        }
+       
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
 
@@ -429,7 +477,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
     UINT32 i;
     BOOLEAN cmdSeen = FALSE;
-    BOOLEAN serviced = FALSE;
+    BOOLEAN serviced = TRUE;
     ResponseType rType = eRspNormal;
     SecRequest request = secComm.m_request;
 
@@ -437,6 +485,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     {
         debug_str(AseMain, eDyLast, 0, "Last Cmd Id: %3d", request.cmdId);
         cmdSeen = TRUE;
+        cmdHandler[kTotalRqst] += 1; 
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
         switch (request.cmdId)
@@ -451,7 +500,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             adrfOffCall = 0;
 
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case eScriptDone:
@@ -461,28 +509,24 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             batteryState = eBattDisabled;
             memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case eShutdown:
             SetTime(request);
             aseCommon.bScriptRunning = FALSE;
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case ePing:
             // ping carries the current time and next time
             SetTime(request);
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case ePowerOn:
             SetTime(request);
             aseCommon.scriptPowerOn = (secComm.m_request.variableId & 0x3);
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case ePowerOff:
@@ -490,7 +534,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             // request the power off
             aseCommon.scriptPowerOn = (secComm.m_request.variableId & 0x3);
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         case eMsState:
@@ -505,7 +548,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 secComm.ErrorMsg("Ms State Error: Accept 0,1 - got %d", request.variableId);
                 secComm.m_response.successful = FALSE;
             }
-            serviced = TRUE;
             break;
 
             //---------------
@@ -516,7 +558,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             aseCommon.isChannelA = ioiProc.GetChanId() == 1;
 
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
             //---------------
@@ -561,7 +602,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 secComm.m_response.successful = FALSE;
             }
 
-            serviced = TRUE;
             break;
 
             //---------------
@@ -577,7 +617,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 secComm.m_response.successful = FALSE;
             }
 
-            serviced = TRUE;
             break;
 
             //------------------------
@@ -585,7 +624,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             strcpy(secComm.m_response.streamData, version);
             secComm.m_response.streamSize = strlen(version);
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
             //------------------------
@@ -613,7 +651,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 secComm.ErrorMsg("Battery Control Value Error (%d)", request.variableId);
                 secComm.m_response.successful = FALSE;
             }
-            serviced = TRUE;
             break;
 
             //------------------------
@@ -628,7 +665,6 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
             secComm.m_response.successful = TRUE;
             secComm.m_response.successful = FALSE;
-            serviced = TRUE;
             break;
 
         case eSetAdrfVersion:
@@ -637,10 +673,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                    secComm.m_request.charDataSize);
             aseCommon.adrfVer[secComm.m_request.charDataSize] = '\0';
             secComm.m_response.successful = TRUE;
-            serviced = TRUE;
             break;
 
         default:
+            serviced = FALSE;
             break;
         }
 
@@ -648,6 +684,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         {
             secComm.SetHandler("AseMain");
             secComm.IncCmdServiced(rType);
+            cmdHandler[kAseMain] += 1;
         }
         else
         {
@@ -656,6 +693,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             {
                 if (cmdRspThreads[i]->CheckCmd(secComm))
                 {
+                    cmdHandler[i] += 1;
                     break;
                 }
             }

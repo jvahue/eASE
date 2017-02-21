@@ -228,7 +228,8 @@ public:
 
     A664Qar m_a664Qar;
 
-    UINT32 m_updateIndex;
+    UINT32 m_aseInIndex;
+    UINT32 m_aseOutIndex;
     UINT32 m_validIoiOut;
     UINT32 m_validIoiIn;
     UINT32 m_writeError;
