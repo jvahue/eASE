@@ -880,10 +880,11 @@ void StaticIoiContainer::OpenIoi()
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
-    // compute max count to provide a 5 Hz update rate 200ms/10ms => 20 frames
+    // compute max count to provide a 10Hz update rate 100ms/10ms => 10 frames
     // m_ioiStaticOutCount - 1: because we handle _a664_to_ioc_eicas_ directly
-    const int kOutMaxCount = ((m_ioiStaticOutCount - 1)/20) + 1;
-    const int kInMaxCount  = (m_ioiStaticInCount/20) + 1;
+    const int kOutMaxCount = ((m_ioiStaticOutCount - 1)/10) + 1;
+    // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
+    const int kInMaxCount  = (m_ioiStaticInCount/5) + 1;
 
     static unsigned int lastYrCnt  = 0;
     static unsigned int lastMoCnt  = 0;
@@ -977,7 +978,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         }
     }
 
-    // set the UUT Input maintaining about a 5Hz update rate
+    // set the UUT Input maintaining about a 10Hz update rate
     m_writeErrorZ1 = m_writeError;
     for (int i = 0; i < kOutMaxCount; ++i)
     {
@@ -997,7 +998,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         }
     }
 
-    // read the ADRF outputs at ~5Hz
+    // read the ADRF outputs at 20Hz
     m_readErrorZ1 = m_readError;
     for (int i = 0; i < kInMaxCount; ++i)
     {
