@@ -77,8 +77,8 @@ const char* is_to_str(ipcStatus is)
         "ipcInvalidHandle",
         "ipcInvalidAccessType",
         "ipcInvalidProcessHndl",
-        "ipcInvalidMemoryObjectHndl",
-        "ipcInvalidMailboxHandle",
+        "ipcInvalidMemoryObjHndl",
+        "ipcInvalidMailboxHndl",
         "ipcInvalidEnvelopeHndl",
         "ipcEnvelopeInMailbox",
         "ipcQueueFull",
@@ -114,7 +114,8 @@ const char* is_to_str(ipcStatus is)
 ****************************************************************************/
 const char* ps_to_str(processStatus ps)
 {
-    const char* ps_strs[] = {   "processSuccess",
+    const char* ps_strs[] = {   
+        "procSuccess",
         "procInvalidHandle",
         "procInsufficientPrivilege",
         "procInvalidTemplate",
@@ -393,16 +394,6 @@ BOOLEAN MailBox::Send(void* buff, UINT32 sizeBytes, BOOLEAN bBlockOnQueueFull)
     return (m_ipcStatus == ipcValid);
 }
 
-const char* MailBox::GetProcessStatusString()
-{
-    return (const char*)ps_to_str(GetProcessStatus() );
-}
-
-const char* MailBox::GetIpcStatusString()
-{
-    return is_to_str(GetIpcStatus());
-}
-
 /*****************************************************************************
 * Function:     Delete
 *
@@ -600,14 +591,16 @@ char* MailBox::GetStatusStr(void)
 {
     if (m_type == eSend)
     {
-        sprintf( m_statusStr, "Out: %s/%s(%d)",
+        sprintf( m_statusStr, "O(%d): %s/%s(%d)",
+            m_hMailBox,
             GetProcessStatusString(),
             GetIpcStatusString(),
             m_connectAttempts);
     }
     else
     {
-        sprintf( m_statusStr, "In: %s(%d)/%s",
+        sprintf( m_statusStr, "I(%d): %s(%d)/%s",
+            m_hMailBox,
             GetProcessStatusString(),
             m_successfulGrantCnt,
             GetIpcStatusString());
@@ -615,3 +608,14 @@ char* MailBox::GetStatusStr(void)
 
     return m_statusStr;
 }
+
+const char* MailBox::GetProcessStatusString()
+{
+    return (const char*)ps_to_str(GetProcessStatus() );
+}
+
+const char* MailBox::GetIpcStatusString()
+{
+    return is_to_str(GetIpcStatus());
+}
+

@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v1.0.0"  " " __DATE__ " " __TIME__
+# define version "v1.0.1"  " " __DATE__ " " __TIME__
 
 #ifdef ARRAY
 #undef ARRAY
@@ -45,7 +45,7 @@ $Revision: $  $Date: $
 #undef MAX
 #endif
 
-#define ARRAY(i, ul) (((i) >=0 && (i) < (ul)))
+#define ARRAY(i, ul) (((i) >= 0 && (i) < (ul)))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
