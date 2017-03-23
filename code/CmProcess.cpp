@@ -821,7 +821,7 @@ int CmProcess::UpdateDisplay(VID_DEFS who, int theLine)
         break;
 
     case 15:
-        debug_str(CmProc, theLine, 0, "Live %s",
+        debug_str(CmProc, theLine, 0, "Liv %s",
             m_liveInBox.GetStatusStr());
         break;
 

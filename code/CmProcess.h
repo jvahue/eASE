@@ -49,7 +49,7 @@ protected:
     MailBox m_mfdInBox;   // MFD -> CMProcess message
     MailBox m_mfdOutBox;  // CMProcess -> MFD messages
 
-    MailBox m_liveInBox;  // LiveData -> CMPRocess messages stream
+    MailBox m_liveInBox;  // LiveData -> CMProcess messages stream
 
     UINT32 m_lastGseSent; // when was the last gse cmd sent?
     bool m_requestPing;   // request adrf status

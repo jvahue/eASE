@@ -54,51 +54,51 @@ $Revision:  $  $Date: 13-02-26 9:32a $
 * Notes:
 *
 ****************************************************************************/
-const char* is_to_str(ipcStatus is)
+const char* IpcSts2Str(ipcStatus is)
 {
     const char* is_strs[] = {
-        "ipcValid",
-        "ipcInvalidThrd",
-        "ipcInvalid",
-        "ipcNoSuchProduceItem",
-        "ipcInvalidSize",
-        "ipcNoPrevProducerToCopy",
-        "ipcNoSuchConsumeItem",
-        "ipcCouldNotAttachToProducer",
-        "ipcQuotaExceeded",
-        "ipcNoSuchMemoryObject",
-        "ipcInsufficientVirtualAddrSpace",
-        "ipcNoDataFromProducer",
-        "ipcInvalidMessage",
-        "ipcInvalidMessageLength",
-        "ipcStaleMessage",
-        "ipcOutOfMemory",
-        "ipcInsufficientPriv",
-        "ipcInvalidHandle",
-        "ipcInvalidAccessType",
-        "ipcInvalidProcessHndl",
-        "ipcInvalidMemoryObjHndl",
-        "ipcInvalidMailboxHndl",
-        "ipcInvalidEnvelopeHndl",
-        "ipcEnvelopeInMailbox",
-        "ipcQueueFull",
-        "ipcNoMessage",
-        "ipcEnvelopeQuotaExceeded",
-        "ipcHandleMismatch",
-        "ipcInsufficientEnvelopePriv",
-        "ipcAddressNotPageAligned",
-        "ipcOffsetNotPageAligned",
-        "ipcDuplicateAlias",
-        "ipcAnonymousProcessCantCreateMemoryObj",
-        "ipcAbortedByException",
-        "ipcMailboxDeleted",
-        "ipcInsufficientRAM",
-        "ipcAddressWrapAround",
-        "ipcInvalidExtParSize",
-        "ipcInvalidTimeoutSpecifier",
-        "ipcInsufficientTime"
+        "Valid",
+        "InvalidThrd",
+        "Invalid",
+        "NoSuchProduceItem",
+        "InvalidSize",
+        "NoPrevProducerToCopy",
+        "NoSuchConsumeItem",
+        "CouldNotAttachToProducer",
+        "QuotaExceeded",
+        "NoSuchMemoryObject",
+        "InsufficientVirtualAddrSpace",
+        "NoDataFromProducer",
+        "InvalidMessage",
+        "InvalidMessageLength",
+        "StaleMessage",
+        "OutOfMemory",
+        "InsufficientPriv",
+        "InvalidHandle",
+        "InvalidAccessType",
+        "InvalidProcessHndl",
+        "InvalidMemoryObjHndl",
+        "InvalidMailboxHndl",
+        "InvalidEnvelopeHndl",
+        "EnvelopeInMailbox",
+        "QueueFull",
+        "NoMessage",
+        "EnvelopeQuotaExceeded",
+        "HandleMismatch",
+        "InsufficientEnvelopePriv",
+        "AddressNotPageAligned",
+        "OffsetNotPageAligned",
+        "DuplicateAlias",
+        "AnonymousProcessCantCreateMemoryObj",
+        "AbortedByException",
+        "MailboxDeleted",
+        "InsufficientRAM",
+        "AddressWrapAround",
+        "InvalidExtParSize",
+        "InvalidTimeoutSpecifier",
+        "InsufficientTime"
     };
-    return is <= ipcInsufficientTime ? is_strs[is] : "WTF?";
+    return (is <= ipcInsufficientTime) ? is_strs[is] : "PROC?";
 }
 /*****************************************************************************
 * Function:    ps_to_str
@@ -112,51 +112,51 @@ const char* is_to_str(ipcStatus is)
 * Notes:
 *
 ****************************************************************************/
-const char* ps_to_str(processStatus ps)
+const char* ProcSts2Str(processStatus ps)
 {
     const char* ps_strs[] = {   
-        "procSuccess",
-        "procInvalidHandle",
-        "procInsufficientPrivilege",
-        "procInvalidTemplate",
-        "procInsufficientResourcesObsolete",
-        "procNotActive",
-        "procInvalidName",
-        "procInsufficientSystemQuota",
-        "procSourceAddressWrapAround",
-        "procDestinationAddressWrapAround",
-        "procSourcePageNotPresent",
-        "procDestinationPageNotPresent",
-        "procInsufficientProcessQuota",
-        "procInsufficientBudget",
-        "procInsufficientRAM",
-        "procInsufficientThreadQuota",
-        "procInsufficientMutexQuota",
-        "procInsufficientEventQuota",
-        "procInsufficientSemaphoreQuota",
-        "procInsufficientMOQuota",
-        "procInsufficientAMOQuota",
-        "procInsufficientEnvelopeQuota",
-        "procInsufficientMailboxQuota",
-        "procInsufficientNameQuota",
-        "procInsufficientPlatformResourceQuota",
-        "procAMOSizeLargerThanParent",
-        "procThreadStackLargerThanParent",
-        "procScheduleBeforePeriodMismatch",
-        "procDestinationPageDeleted",
-        "procInsufficientRetainedBudget",
-        "procNotMemoryAddress",
-        "procArgumentNotOnStack",
-        "procInsufficientArgumentQuota",
-        "procArgumentVectorAllocationError",
-        "procArgumentStringAllocationError",
-        "procArgumentVectorCopyError",
-        "procArgumentStringCopyError",
-        "procWindowActivatedThreadMainPeriodMismatch", /* Reserved for WAT */
-        "procNotZeroMainBudget",                       /* Reserved for WAT */
-        "procInsufficientMainBudget"                   /* Reserved for WAT */
+        "Success",
+        "InvalidHandle",
+        "InsufficientPrivilege",
+        "InvalidTemplate",
+        "InsufficientResourcesObsolete",
+        "NotActive",
+        "InvalidName",
+        "InsufficientSystemQuota",
+        "SourceAddressWrapAround",
+        "DestinationAddressWrapAround",
+        "SourcePageNotPresent",
+        "DestinationPageNotPresent",
+        "InsufficientProcessQuota",
+        "InsufficientBudget",
+        "InsufficientRAM",
+        "InsufficientThreadQuota",
+        "InsufficientMutexQuota",
+        "InsufficientEventQuota",
+        "InsufficientSemaphoreQuota",
+        "InsufficientMOQuota",
+        "InsufficientAMOQuota",
+        "InsufficientEnvelopeQuota",
+        "InsufficientMailboxQuota",
+        "InsufficientNameQuota",
+        "InsufficientPlatformResourceQuota",
+        "AMOSizeLargerThanParent",
+        "ThreadStackLargerThanParent",
+        "ScheduleBeforePeriodMismatch",
+        "DestinationPageDeleted",
+        "InsufficientRetainedBudget",
+        "NotMemoryAddress",
+        "ArgumentNotOnStack",
+        "InsufficientArgumentQuota",
+        "ArgumentVectorAllocationError",
+        "ArgumentStringAllocationError",
+        "ArgumentVectorCopyError",
+        "ArgumentStringCopyError",
+        "WindowActivatedThreadMainPeriodMismatch", /* Reserved for WAT */
+        "NotZeroMainBudget",                       /* Reserved for WAT */
+        "InsufficientMainBudget"                   /* Reserved for WAT */
     };
-    return ps <= processInsufficientMainBudget ? ps_strs[ps] : "WTF?";
+    return (ps <= processInsufficientMainBudget) ? ps_strs[ps] : "IPC?";
 }
 /*****************************************************************************
 * Function:    Mailbox
@@ -591,7 +591,7 @@ char* MailBox::GetStatusStr(void)
 {
     if (m_type == eSend)
     {
-        sprintf( m_statusStr, "O(%d): %s/%s(%d)",
+        sprintf( m_statusStr, "O(0x%08x): %s/%s(%d)",
             m_hMailBox,
             GetProcessStatusString(),
             GetIpcStatusString(),
@@ -599,7 +599,7 @@ char* MailBox::GetStatusStr(void)
     }
     else
     {
-        sprintf( m_statusStr, "I(%d): %s(%d)/%s",
+        sprintf( m_statusStr, "I(0x%08x): %s(%d)/%s",
             m_hMailBox,
             GetProcessStatusString(),
             m_successfulGrantCnt,
@@ -611,11 +611,11 @@ char* MailBox::GetStatusStr(void)
 
 const char* MailBox::GetProcessStatusString()
 {
-    return (const char*)ps_to_str(GetProcessStatus() );
+    return (const char*)ProcSts2Str(GetProcessStatus() );
 }
 
 const char* MailBox::GetIpcStatusString()
 {
-    return is_to_str(GetIpcStatus());
+    return IpcSts2Str(GetIpcStatus());
 }
 
