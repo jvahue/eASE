@@ -826,6 +826,7 @@ static void PowerOn()
 
                 aseCommon.asePowerState = ePsOff;
                 aseCommon.adrfState = eAdrfOff;
+                adrfProcHndl = NULL;
             }
 
             _50MsTimer = 0;
