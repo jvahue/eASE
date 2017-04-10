@@ -426,7 +426,9 @@ bool StaticIoiStr::GetStaticIoiData( IocResponse& m_response)
 //=============================================================================================
 A664Qar::A664Qar(StaticIoiStr* buffer)
 {
+#define kBusrtBytes  ((52 * 8) - 4)
     m_ioiBuffer = buffer;  // the buffer associated with the IOI
+    m_kMaxRandom = (_a664_to_ioc_eicas_.bytes - kBusrtBytes) / 8;
 
     Reset();
 }
@@ -438,6 +440,9 @@ void A664Qar::Reset()
     m_skipSfMask = 0;  // don't skip any
     m_sfWordIndex = 0; // start sending from word index 0
     m_random = 0;      // default 0 random words in a burst
+
+    m_garbageSet = 0;
+    m_garbageCnt = 0;
 
     // which burst of the sub-frame are we sending
     m_burst = 0;       // start with the first burst group
@@ -551,10 +556,21 @@ bool A664Qar::TestControl(SecRequest& request)
         // we limit this to 50 in PySte and add suspenders to our belt here
         int* dest = &m_random;
         *dest = *(int*)request.charData;
-        if (m_random > eMaxRandom)
+        if (m_random > m_kMaxRandom)
         {
-            m_random = eMaxRandom;
+            m_random = m_kMaxRandom;
         }
+    }
+    else if (offset == eQarGarbage)
+    {
+        // we limit this to 50 in PySte and add suspenders to our belt here
+        int* dest = &m_garbageSet;
+        *dest = *(int*)request.charData;
+        if (m_garbageSet > 2)
+        {
+            m_garbageSet = 2;
+        }
+        m_garbageCnt = m_garbageSet;
     }
     else
     {
@@ -565,6 +581,7 @@ bool A664Qar::TestControl(SecRequest& request)
 
     return status;
 }
+
 
 //---------------------------------------------------------------------------------------------
 // This function fills in a bursts - the most data this will fill in is:
@@ -638,6 +655,21 @@ void A664Qar::Update()
 
     // terminate the data set (max 896 bytes + 4 here = 900 bytes of 1024) 
     *(fillPtr++) = 0;    
+}
+
+//---------------------------------------------------------------------------------------------
+void A664Qar::Garbage()
+{
+    UINT32* fillPtr = (UINT32*)m_ioiBuffer->data;    // where the data is going
+
+    *(fillPtr++) = m_frameCount++;
+
+    // now fill in 400 words of garbage
+    for (int i = 0; i < 400; ++i)
+    {
+        *(fillPtr++) = (i * 2) + 1;
+        *(fillPtr++) = (i * 2) + 1;
+    }
 }
 
 /*---------------------------------------------------------------------------------------------
@@ -963,12 +995,31 @@ void StaticIoiContainer::UpdateStaticIoi()
 
     // specialized handling for _a664_to_ioc_eicas_ at 20Hz
     m_a664QarSched += 1;
-    if (m_a664QarSched == 4)
+    if (m_a664QarSched < 4)
+    {
+        if (m_a664Qar.m_garbageCnt == 0)
+        {
+            m_a664Qar.m_garbageCnt = m_a664Qar.m_garbageSet;
+        }
+
+        if (m_a664Qar.m_garbageCnt > 0)
+        {
+            m_a664Qar.m_garbageCnt -= 1;
+            // send total garbage until 
+            m_a664Qar.Garbage();
+            if (!_a664_to_ioc_eicas_.Update())
+            {
+                m_writeError += 1;
+            }
+        }
+    }
+    
+    if (m_a664QarSched == 3)
     {
         // update the burst data
         m_a664Qar.Update();
     }
-    else if (m_a664QarSched == 5)
+    else if (m_a664QarSched == 4)  // send data at 20Hz
     {
         // send the burst data
         m_a664QarSched = 0;

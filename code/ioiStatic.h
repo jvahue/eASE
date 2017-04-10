@@ -156,11 +156,11 @@ public:
         eQarWordSeq = -3,
         eQarWordSeqState = -4,
         eQarRandom = -5,
+        eQarGarbage = -6,
         eQarStop = 0x0f0f,
 
         eSfCount = 4,
         eBurstCount = 20,        // 16 small bursts, 4 large bursts = 1024 words
-        eMaxRandom = 50,
         eSmallBurstSize = 51,
         eTotalSmallBurstWords = (16 * eSmallBurstSize),
         eLargeBurstSize = 52,
@@ -176,6 +176,7 @@ public:
     UINT32 NextWord();  // compute the next word in this sub-frame to send, returns busrtWord
 
     void Update();
+    void Garbage();
     
     StaticIoiStr* m_ioiBuffer;     // the IOI buffer sending the data
 
@@ -186,7 +187,10 @@ public:
     int m_burstSize[eBurstCount];  // the size of each of the 20 bursts being sent / SF
     bool m_endBurst;               // end of a burst of data words
     int m_random;                  // number of random values to put in 0-50, default 50
+    int m_kMaxRandom;              // maximum number of random words
     int m_randomSave;              // save the random value when running the WSB
+    int m_garbageSet;              // number of total garbage bursts to send
+    int m_garbageCnt;              // remaining count of garbage
 
     UINT16 m_wordSeqEnabled;         // is the WSB enabled
     UINT16 m_wordSeq[eSfCount][eSfWordCount]; // word sequence
@@ -199,6 +203,7 @@ public:
 
     // ERROR injection control
     int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
+
 
     // four sub-frames worth of data
     UINT16 m_qarWords[eSfCount][eSfWordCount];
