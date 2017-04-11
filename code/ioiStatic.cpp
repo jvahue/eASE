@@ -995,7 +995,7 @@ void StaticIoiContainer::UpdateStaticIoi()
 
     // specialized handling for _a664_to_ioc_eicas_ at 20Hz
     m_a664QarSched += 1;
-    if (m_a664QarSched < 4)
+    if (m_a664QarSched < 5)
     {
         if (m_a664Qar.m_garbageCnt == 0)
         {
@@ -1014,12 +1014,12 @@ void StaticIoiContainer::UpdateStaticIoi()
         }
     }
     
-    if (m_a664QarSched == 3)
+    if (m_a664QarSched == 4)
     {
         // update the burst data
         m_a664Qar.Update();
     }
-    else if (m_a664QarSched == 4)  // send data at 20Hz
+    else if (m_a664QarSched == 5)  // send data at 20Hz
     {
         // send the burst data
         m_a664QarSched = 0;
