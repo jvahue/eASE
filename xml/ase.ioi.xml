@@ -72768,7 +72768,7 @@
            comment = "UTAS SW Dwd Number send out during init"
       ></producedItem>
       <producedItem
-           name = "a664_to_ioc_eicas"
+           name = "a664_fr_eicas2_fdr"
            productionRate = "50000"
            messageForm = "3208B"
            messageUnits = ""

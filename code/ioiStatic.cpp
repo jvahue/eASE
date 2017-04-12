@@ -428,7 +428,7 @@ A664Qar::A664Qar(StaticIoiStr* buffer)
 {
 #define kBusrtBytes  ((52 * 8) - 4)
     m_ioiBuffer = buffer;  // the buffer associated with the IOI
-    m_kMaxRandom = (_a664_to_ioc_eicas_.bytes - kBusrtBytes) / 8;
+    m_kMaxRandom = (_a664_fr_eicas2_fdr_.bytes - kBusrtBytes) / 8;
 
     Reset();
 }
@@ -857,7 +857,7 @@ StaticIoiContainer::StaticIoiContainer()
 , m_readError(0)
 , m_readErrorZ1(0)
 , m_a664QarSched(0)
-, m_a664Qar(&_a664_to_ioc_eicas_)
+, m_a664Qar(&_a664_fr_eicas2_fdr_)
 {
     // initialize a few values
     _BatInputVdc_.data = 27.9f;
@@ -1007,7 +1007,7 @@ void StaticIoiContainer::UpdateStaticIoi()
             m_a664Qar.m_garbageCnt -= 1;
             // send total garbage until 
             m_a664Qar.Garbage();
-            if (!_a664_to_ioc_eicas_.Update())
+            if (!_a664_fr_eicas2_fdr_.Update())
             {
                 m_writeError += 1;
             }
@@ -1023,7 +1023,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     {
         // send the burst data
         m_a664QarSched = 0;
-        if (!_a664_to_ioc_eicas_.Update())
+        if (!_a664_fr_eicas2_fdr_.Update())
         {
             m_writeError += 1;
         }
@@ -1033,7 +1033,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     m_writeErrorZ1 = m_writeError;
     for (int i = 0; i < kOutMaxCount; ++i)
     {
-        if (m_staticAseOut[m_aseOutIndex] != &_a664_to_ioc_eicas_ &&
+        if (m_staticAseOut[m_aseOutIndex] != &_a664_fr_eicas2_fdr_ &&
             !m_staticAseOut[m_aseOutIndex]->m_isParam)
         {
             if (!m_staticAseOut[m_aseOutIndex]->Update())
@@ -1099,7 +1099,7 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
     if (request.variableId < m_ioiStaticOutCount)
     {
         // catch set action directed at _a664_to_ioc_eicas_ and redirect to m_a664Qar
-        if (m_staticAseOut[request.variableId] == &_a664_to_ioc_eicas_)
+        if (m_staticAseOut[request.variableId] == &_a664_fr_eicas2_fdr_)
         {
             return m_a664Qar.TestControl(request);
         }
