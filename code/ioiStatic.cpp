@@ -1160,8 +1160,8 @@ void StaticIoiContainer::Reset()
     }
 
     // when the script is done reset these
-    _pat_scr_.data = 0;         // pat_scr = 0 : the main screen
-    _pat_scr_button_.data = 0;  // pat_button = 0 : 0
+    _OMS_PAGEID_.data = 0;         // pat_scr = 0 : the main screen
+    _OMS_BUTTON_.data = 0;  // pat_button = 0 : 0
 
     ResetStaticIoi();
 }
@@ -1172,56 +1172,56 @@ void StaticIoiContainer::ResetStaticIoi()
     // and values we want to reset if no script is running
     // use 0xffffff to indicate the value has not been updated
 
-    _8204050_32_.data = 0xffffff;
-    _8204051_32_.data = 0xffffff;
-    _8204052_32_.data = 0xffffff;
-    _8204053_32_.data = 0xffffff;
-    _8204054_32_.data = 0xffffff;
-    _8204055_32_.data = 0xffffff;
-    _8204056_32_.data = 0xffffff;
-    _8204059_32_.data = 0xffffff;
-    _8204060_32_.data = 0xffffff;
-    _8204061_32_.data = 0xffffff;
-    _8204062_32_.data = 0xffffff;
-    _8204063_32_.data = 0xffffff;
-    _8204064_32_.data = 0xffffff;
-    _8204065_32_.data = 0xffffff;
-    _8204066_32_.data = 0xffffff;
-    _8204067_32_.data = 0xffffff;
-    _8204068_32_.data = 0xffffff;
-    _8204069_32_.data = 0xffffff;
-    _8204070_32_.data = 0xffffff;
-    _8204071_32_.data = 0xffffff;
-    _8204072_32_.data = 0xffffff;
-    _8204057_32_.data = 0xffffff;
-    _8204058_32_.data = 0xffffff;
+	memset(_8204050_32, 0xff, sizeof(_8204050_32));
+    memset(_8204051_32, 0xff, sizeof(_8204051_32));
+    memset(_8204052_32, 0xff, sizeof(_8204052_32));
+    memset(_8204053_32, 0xff, sizeof(_8204053_32));
+    memset(_8204054_32, 0xff, sizeof(_8204054_32));
+    memset(_8204055_32, 0xff, sizeof(_8204055_32));
+    memset(_8204056_32, 0xff, sizeof(_8204056_32));
+    memset(_8204059_32, 0xff, sizeof(_8204059_32));
+    memset(_8204060_32, 0xff, sizeof(_8204060_32));
+    memset(_8204061_32, 0xff, sizeof(_8204061_32));
+    memset(_8204062_32, 0xff, sizeof(_8204062_32));
+    memset(_8204063_32, 0xff, sizeof(_8204063_32));
+    memset(_8204064_32, 0xff, sizeof(_8204064_32));
+    memset(_8204065_32, 0xff, sizeof(_8204065_32));
+    memset(_8204066_32, 0xff, sizeof(_8204066_32));
+    memset(_8204067_32, 0xff, sizeof(_8204067_32));
+    memset(_8204068_32, 0xff, sizeof(_8204068_32));
+    memset(_8204069_32, 0xff, sizeof(_8204069_32));
+    memset(_8204070_32, 0xff, sizeof(_8204070_32));
+    memset(_8204071_32, 0xff, sizeof(_8204071_32));
+    memset(_8204072_32, 0xff, sizeof(_8204072_32));
+    memset(_8204057_32, 0xff, sizeof(_8204057_32));
+    memset(_8204058_32, 0xff, sizeof(_8204058_32));
 
-    _8204050_64_.data = 0xffffff;
-    _8204051_64_.data = 0xffffff;
-    _8204052_64_.data = 0xffffff;
-    _8204053_64_.data = 0xffffff;
-    _8204054_64_.data = 0xffffff;
-    _8204055_64_.data = 0xffffff;
-    _8204056_64_.data = 0xffffff;
-    _8204059_64_.data = 0xffffff;
-    _8204060_64_.data = 0xffffff;
-    _8204061_64_.data = 0xffffff;
-    _8204062_64_.data = 0xffffff;
-    _8204063_64_.data = 0xffffff;
-    _8204064_64_.data = 0xffffff;
-    _8204065_64_.data = 0xffffff;
-    _8204066_64_.data = 0xffffff;
-    _8204067_64_.data = 0xffffff;
-    _8204068_64_.data = 0xffffff;
-    _8204069_64_.data = 0xffffff;
-    _8204070_64_.data = 0xffffff;
-    _8204071_64_.data = 0xffffff;
-    _8204072_64_.data = 0xffffff;
-    _8204057_64_.data = 0xffffff;
-    _8204058_64_.data = 0xffffff;
+    memset(_8204050_64, 0xff, sizeof(_8204050_64));
+    memset(_8204051_64, 0xff, sizeof(_8204051_64));
+    memset(_8204052_64, 0xff, sizeof(_8204052_64));
+    memset(_8204053_64, 0xff, sizeof(_8204053_64));
+    memset(_8204054_64, 0xff, sizeof(_8204054_64));
+    memset(_8204055_64, 0xff, sizeof(_8204055_64));
+    memset(_8204056_64, 0xff, sizeof(_8204056_64));
+    memset(_8204059_64, 0xff, sizeof(_8204059_64));
+    memset(_8204060_64, 0xff, sizeof(_8204060_64));
+    memset(_8204061_64, 0xff, sizeof(_8204061_64));
+    memset(_8204062_64, 0xff, sizeof(_8204062_64));
+    memset(_8204063_64, 0xff, sizeof(_8204063_64));
+    memset(_8204064_64, 0xff, sizeof(_8204064_64));
+    memset(_8204065_64, 0xff, sizeof(_8204065_64));
+    memset(_8204066_64, 0xff, sizeof(_8204066_64));
+    memset(_8204067_64, 0xff, sizeof(_8204067_64));
+    memset(_8204068_64, 0xff, sizeof(_8204068_64));
+    memset(_8204069_64, 0xff, sizeof(_8204069_64));
+    memset(_8204070_64, 0xff, sizeof(_8204070_64));
+    memset(_8204071_64, 0xff, sizeof(_8204071_64));
+    memset(_8204072_64, 0xff, sizeof(_8204072_64));
+    memset(_8204057_64, 0xff, sizeof(_8204057_64));
+    memset(_8204058_64, 0xff, sizeof(_8204058_64));
 
-    _adrf_pat_udt_remain_a_.data = 0xffffff;
-    _adrf_pat_udt_remain_b_.data = 0xffffff;
+    memset(_adrf_pat_udt_remain_a, 0xff, sizeof(_adrf_pat_udt_remain_a));
+    memset(_adrf_pat_udt_remain_b, 0xff, sizeof(_adrf_pat_udt_remain_b));
 
     // clear any error injection and reset data an NDO
     m_a664Qar.Reset();
