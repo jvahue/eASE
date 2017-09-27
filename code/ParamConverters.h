@@ -98,16 +98,17 @@ struct ARINC429_WORD_INFO
 
 // Parameter Configuration info
 struct ParamCfg {
+    ParameterName name;
     UINT32 index;
     UINT32 masterId;
-    ParameterName name;
     UINT32 rateHz;
     PARAM_SRC_ENUM src;
     PARAM_FMT_ENUM fmt;
+    FLOAT32 scale;
     UINT32 gpa;
     UINT32 gpb;
     UINT32 gpc;
-    FLOAT32 scale;
+    UINT32 gpe;
 };
 
 //=============================================================================================
@@ -125,6 +126,7 @@ public:
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
+    UINT32  m_gpe;
     PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
     FLOAT32 m_scale;       // the current value for the parameter

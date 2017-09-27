@@ -74786,26 +74786,6 @@
    </producedItems>
    <consumedItems>
       <consumedItem
-           name = "8204050_32"
-           consumptionRate = "100000"
-           minimumDataRate = "100000"
-           messageForm = "21I"
-           messageUnits = ""
-           freshnessCheck = "none"
-           comment = "PAT_IA1"
-           consumptionOptions = "lastProduced"
-      ></consumedItem>
-      <consumedItem
-           name = "8204050_64"
-           consumptionRate = "100000"
-           minimumDataRate = "100000"
-           messageForm = "21I"
-           messageUnits = ""
-           freshnessCheck = "none"
-           comment = "PAT_IA1"
-           consumptionOptions = "lastProduced"
-      ></consumedItem>
-      <consumedItem
            name = "8204051_32"
            consumptionRate = "100000"
            minimumDataRate = "100000"
@@ -74863,26 +74843,6 @@
            messageUnits = ""
            freshnessCheck = "none"
            comment = "PAT_SDTD"
-           consumptionOptions = "lastProduced"
-      ></consumedItem>
-      <consumedItem
-           name = "8204054_32"
-           consumptionRate = "100000"
-           minimumDataRate = "100000"
-           messageForm = "21I"
-           messageUnits = ""
-           freshnessCheck = "none"
-           comment = "PAT_WSK"
-           consumptionOptions = "lastProduced"
-      ></consumedItem>
-      <consumedItem
-           name = "8204054_64"
-           consumptionRate = "100000"
-           minimumDataRate = "100000"
-           messageForm = "21I"
-           messageUnits = ""
-           freshnessCheck = "none"
-           comment = "PAT_WSK"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem

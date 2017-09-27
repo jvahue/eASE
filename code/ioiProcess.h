@@ -87,8 +87,8 @@ protected:
     bool m_initParams;
     ioiStatus m_initStatus;
 
-    UINT32 m_ioiOpenFailCount;
-    UINT32 m_ioiCloseFailCount;
+    UINT32 m_paramOpenFailCount;
+    UINT32 m_paramCloseFailCount;
     UINT32 m_ioiWriteFailCount;
 
     ParameterName m_openFailNames[eIoiFailDisplay];
