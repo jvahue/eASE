@@ -51,6 +51,9 @@ const char* a429Fmt5[] = {
     "Other"
 };
 
+static FlexSeq1Tbl flexSeq1Table[MAX_FLEX_SEQ1_TBLS];
+static bool flexSeq1TblsInit = false;
+
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
@@ -63,8 +66,20 @@ const char* a429Fmt5[] = {
 /* Class Definitions                                                         */
 /*****************************************************************************/
 Parameter::Parameter()
+    : m_flexDataTbl(-1)
 {
     Reset();
+
+    if (!flexSeq1TblsInit)
+    {
+        for (int t = 0; t < MAX_FLEX_SEQ1_TBLS; ++t)
+        {
+            flexSeq1Table[t].assignIndex = -1;
+            memset(flexSeq1Table[t].data, 0, sizeof(FlexSeq1Data));
+        }
+
+        flexSeq1TblsInit = true;
+    }
 }
 
 //---------------------------------------------------------------------------------------------
@@ -101,6 +116,20 @@ void Parameter::Reset()
     m_link = NULL;
     m_isChild = false;
     m_childCount = 0;
+
+    if (m_flexDataTbl != -1)
+    {
+        // clear assignments
+        flexSeq1Table[m_flexDataTbl].assignIndex = -1;
+        memset(&flexSeq1Table[m_flexDataTbl].data, 0, sizeof(FlexSeq1Data));
+    }
+    // flex roots
+    m_flexType = eFlexNone;
+    m_flexDataTbl = -1;
+    // flex children
+    m_flexParentIndex = -1;
+    m_flexSeq = -1;
+    m_flexParent = NULL;
 
     ParamConverter::Reset();
 
@@ -145,6 +174,15 @@ char* Parameter::CompressName(char* src, int size)
     return src;
 }
 
+//---------------------------------------------------------------------------------------------
+// Set the raw data field portion of the <index> word in the sequence
+void Parameter::SetFlex(UINT32 rawValue, int index)
+{
+    if (m_flexDataTbl != -1)
+    {
+        flexSeq1Table[m_flexDataTbl].data[index] = rawValue;
+    }
+}
 
 //---------------------------------------------------------------------------------------------
 // Function: Init
@@ -154,6 +192,7 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
 {
     //UINT32 at;
     //UINT32 dst;
+    bool status = true;
     UINT32 extraMs;
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);
@@ -161,17 +200,54 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     CompressName(m_shortName, eParamShort);
 
     m_index = paramInfo->index;
-
     m_rateHz = paramInfo->rateHz;
 
-    if (paramInfo->src != PARAM_SRC_CROSS)
+    // check for FLEX params root and child
+    if (paramInfo->src == PARAM_SRC_FLEX)
     {
-        m_updateMs = 1000 / (paramInfo->rateHz * 2);
+        // ok we have a flex child - get its seq #, caller will link the parent (m_flexParent)
+        m_flexParentIndex = m_gpe & 0xffff;
+        m_flexSeq = (m_gpe >> 16) & 0xff;
     }
-    else
+    else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) || 
+             (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
+    {
+        if (paramInfo->gpe & 0xFF == eFlexSeq1)
+        {
+            // we need to allocate a seq word table, scan our tables and find an open one
+            for (int t = 0; t < MAX_FLEX_SEQ1_TBLS; ++t)
+            {
+                if (flexSeq1Table[t].assignIndex == -1)
+                {
+                    flexSeq1Table[t].assignIndex = t;
+                    m_flexDataTbl = t;
+                    m_flexSeq = 0;  // start by transmitting on the 0th word
+                    break;
+                }
+            }
+
+            if (m_flexDataTbl == -1)
+            {
+                // too many FLEX roots
+                status = false;
+            }
+        }
+        else if (paramInfo->gpe & 0xFF != 0)
+        {
+            // invalid type fail 
+            status = false;
+        }
+    }
+
+    if (paramInfo->src == PARAM_SRC_CROSS || m_flexDataTbl != -1)
     {
         m_updateMs = 1000 / paramInfo->rateHz;
     }
+    else
+    {
+        m_updateMs = 1000 / (paramInfo->rateHz * 2);
+    }
+
     extraMs = m_updateMs % 10;
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
@@ -179,7 +255,7 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     ParamConverter::Init(paramInfo);
     m_idl = ioiStatic.FindIoi(m_ioiName);
 
-    m_isValid = true;
+    m_isValid = status;
 
     m_ioiValid = false;
 }
@@ -213,12 +289,17 @@ bool Parameter::IsChild(Parameter& other)
                     m_a429.sdBits  == other.m_a429.sdBits);
             }
         }
+        else if (m_src == PARAM_SRC_FLEX)
+        {
+            // see if this is the same root parameter and seq index
+            m_isChild = ((m_gpe & 0xFFFFFF) == (other.m_gpe & 0xFFFFFF));
+        }
 
         if (m_isChild)
         {
             childRelationship = true;
 
-            // If we run faster than the parent we become the parent
+            // If we run faster than the other we become the parent
             if (m_rateHz > other.m_rateHz)
             {
                 // reset the parent/child indicators
@@ -307,6 +388,25 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         {
             m_rawValue = m_uintValue;
         }
+
+        else if (m_flexType == eFlexSeq1)
+        {
+            UINT32 seqX = (m_flexSeq & 0xF) << 24 ;
+            m_rawValue = flexSeq1Table[m_flexDataTbl].data[m_flexSeq];
+
+            // pack the seq index
+            m_rawValue |= seqX;
+            m_rawValue |= m_a429.a429Template;
+
+            if (m_type == PARAM_FMT_A429)
+            {
+                m_rawValue |= 0x80000000;
+            }
+
+            // move to the next word
+            m_flexSeq = INC_WRAP(m_flexSeq, MAX_FLEX_SEQ1_WORDS);
+        }
+
         else
         {
             // Update the value with the SigGen
@@ -358,6 +458,12 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         else
         {
             m_ioiValue = m_rawValue | children;
+        }
+
+        // for FLEX, move the final value over to the FLEX Table
+        if (m_src == PARAM_SRC_FLEX)
+        {
+            m_flexParent->SetFlex(m_rawValue, m_flexSeq);
         }
 
         m_nextUpdate = sysTick + m_updateIntervalTicks;

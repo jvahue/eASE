@@ -77,8 +77,8 @@ IoiProcess::IoiProcess()
 , m_loopCount(0)
 , m_initParams(false)
 , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
-, m_ioiOpenFailCount(0)
-, m_ioiCloseFailCount(0)
+, m_paramOpenFailCount(0)
+, m_paramCloseFailCount(0)
 , m_ioiWriteFailCount(0)
 , m_sgRun(false)               // sig gen comes up on hold
 , m_paramIoRunning(true)       // IO comes up running
@@ -359,7 +359,7 @@ void IoiProcess::UpdateIoi()
                         param->m_rawValue = aseCommon.shipTime;
                     }
 
-                    if (param->m_src != PARAM_SRC_CROSS)
+                    if (param->m_ioiChan != -1) //param->m_src != PARAM_SRC_CROSS)
                     {
                         WriteIoi(param);
                     }
@@ -508,9 +508,9 @@ int IoiProcess::PageIoiStatus(int theLine, bool& nextPage)
     {
         debug_str(Ioi, theLine, 0,
             "oErr:%d wErr:%d cErr:%d TotP:%5d IoiT:%4d IoiA:%2d SchedX:%4d %4d/%d",
-            m_ioiOpenFailCount,
+            m_paramOpenFailCount,
             m_ioiWriteFailCount,
-            m_ioiCloseFailCount,
+            m_paramCloseFailCount,
             m_totalParamTime,
             m_totalIoiTime,
             m_avgIoiTime,
@@ -1334,6 +1334,9 @@ void IoiProcess::InitIoi()
         m_dateId = eAseMaxParams;
         m_timeId = eAseMaxParams;
 
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // clear existing IOI mappings and all configuration info
+        ///////////////////////////////////////////////////////////////////////////////////////
         m_ioiStatic.ResetStaticParams();
 
         // clear the display
@@ -1344,10 +1347,10 @@ void IoiProcess::InitIoi()
         }
 
         // clear all the fail open names and close fail names
-        m_ioiOpenFailCount = 0;
+        m_paramOpenFailCount = 0;
         memset((void*)m_openFailNames, 0, sizeof(m_openFailNames));
 
-        m_ioiCloseFailCount = 0;
+        m_paramCloseFailCount = 0;
         memset((void*)m_closeFailNames, 0, sizeof(m_closeFailNames));
 
         // reset write fail counter
@@ -1362,18 +1365,22 @@ void IoiProcess::InitIoi()
                 if (closeStatus != ioiSuccess)
                 {
                     // DEBUG: copy name for display
-                    if (m_ioiCloseFailCount < (int)eIoiFailDisplay)
+                    if (m_paramCloseFailCount < (int)eIoiFailDisplay)
                     {
-                        strncpy(m_closeFailNames[m_ioiCloseFailCount],
+                        strncpy(m_closeFailNames[m_paramCloseFailCount],
                             m_parameters[i].m_name, (int)eAseParamNameSize);
                     }
-                    m_ioiCloseFailCount += 1;
+                    m_paramCloseFailCount += 1;
                 }
             }
 
             // reset all parameters
             m_parameters[i].Reset();
         }
+
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // re-initialize the system with the new configuration information
+        ///////////////////////////////////////////////////////////////////////////////////////
 
         m_paramCount = 0;
         m_maxParamIndex = 0;
@@ -1392,65 +1399,82 @@ void IoiProcess::InitIoi()
 
             m_parameters[index].Init(&m_paramInfo[i], m_ioiStatic);
 
-            if (m_parameters[index].m_masterId != 0xFFFFFFFF)
+            // check if this is a FLEX child and link its parent to it
+            if (m_parameters[index].m_src == PARAM_SRC_FLEX)
             {
-                // check to see if this parameter is a child of any existing parameters
-                for (i1=0; i1 < m_paramLoopEnd; ++i1)
-                {
-                    // if the param is valid and its not me
-                    if (m_parameters[i1].m_isValid &&
-                        !m_parameters[i1].m_isChild && i1 != index)
-                    {
-                        childRelationship = m_parameters[index].IsChild(m_parameters[i1]);
-                        if (childRelationship)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                // if not a child or src'd from ccdl - open the IOI channel
-                if (!childRelationship &&
-                    m_parameters[index].m_src != PARAM_SRC_CROSS &&
-                    m_parameters[index].m_src != PARAM_SRC_CALC &&
-                    m_parameters[index].m_src != PARAM_SRC_CYCLE &&
-                    m_parameters[index].m_src != PARAM_SRC_HMU  // Remove this later
-                    )
-                {
-                    openStatus = ioi_open(m_parameters[index].m_ioiName,
-                                          ioiWritePermission,
-                                          (int*)&m_parameters[index].m_ioiChan);
-
-                    if (openStatus == ioiSuccess)
-                    {
-                        m_parameters[index].m_ioiValid = true;
-                    }
-                    else
-                    {
-                        // copy name for display
-                        if (m_ioiOpenFailCount < (int)eIoiFailDisplay)
-                        {
-                            strncpy(m_openFailNames[m_ioiOpenFailCount],
-                                m_parameters[index].m_name, (int)eAseParamNameSize);
-                        }
-                        m_ioiOpenFailCount += 1;
-                        m_parameters[index].m_isValid = false;
-                    }
-                }
-                // TODO: SCR-300 add logic to pick the fastest rate masterId when the
-                //       same masterId is tagged in multiple cross chan params
-                else if (m_parameters[index].m_src == PARAM_SRC_CROSS)
-                {
-                }
+                m_parameters[index].m_flexParent = 
+                    &m_parameters[m_parameters[index].m_flexParentIndex];
             }
-            else
+
+            if (m_parameters[index].m_isValid)
             {
-                // this is a CIC type parameter which we really don't support in ASE it
-                // is done in the Cfg by sending individual params in for each of the CIC
-                // masterId in this param, just turn off any update for this param.
-                // -- We create it so we can convert the name to a Cfg param index
-                m_parameters[index].m_ioiValid = true;
-                m_parameters[index].m_isRunning = false;
+                if (m_parameters[index].m_masterId != 0xFFFFFFFF)
+                {
+                    // check to see if this parameter is a child of any existing parameters
+                    for (i1=0; i1 < m_paramLoopEnd; ++i1)
+                    {
+                        // scan for siblings, skip the current param
+                        if (m_parameters[i1].m_isValid && !m_parameters[i1].m_isChild && 
+                            i1 != index)
+                        {
+                            childRelationship = m_parameters[index].IsChild(m_parameters[i1]);
+                            if (childRelationship)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    // if not a child or src'd from ccdl - open the IOI channel
+                    if (!childRelationship &&
+                        m_parameters[index].m_src != PARAM_SRC_CROSS &&
+                        m_parameters[index].m_src != PARAM_SRC_CALC &&
+                        m_parameters[index].m_src != PARAM_SRC_CYCLE &&
+                        m_parameters[index].m_src != PARAM_SRC_HMU  &&
+                        m_parameters[index].m_src != PARAM_SRC_FLEX
+                       )
+                    {
+                        openStatus = ioi_open(m_parameters[index].m_ioiName,
+                                              ioiWritePermission,
+                                              (int*)&m_parameters[index].m_ioiChan);
+
+                        if (openStatus == ioiSuccess)
+                        {
+                            m_parameters[index].m_ioiValid = true;
+                        }
+                        else
+                        {
+                            m_parameters[index].m_isValid = false;
+                        }
+                    }
+                    // TODO: SCR-300 add logic to pick the fastest rate masterId when the
+                    //       same masterId is tagged in multiple cross chan params
+                    else if (m_parameters[index].m_src == PARAM_SRC_CROSS)
+                    {
+                    }
+                }
+                else
+                {
+                    // this is a CIC type parameter which we really don't support in ASE it
+                    // is done in the Cfg by sending individual params in for each of the CIC
+                    // masterId in this param, just turn off any update for this param.
+                    // -- We create it so we can convert the name to a Cfg param index
+                    m_parameters[index].m_ioiValid = true;
+                    m_parameters[index].m_isRunning = false;
+                }
+
+            }
+
+            // track failed param creation
+            if (!m_parameters[index].m_isValid)
+            {
+                // copy name for display
+                if (m_paramOpenFailCount < (int)eIoiFailDisplay)
+                {
+                    strncpy(m_openFailNames[m_paramOpenFailCount],
+                            m_parameters[index].m_name, (int)eAseParamNameSize);
+                }
+                m_paramOpenFailCount += 1;
             }
 
             // default the display to the first eIoiMaxDisplay parameters created
@@ -1461,6 +1485,10 @@ void IoiProcess::InitIoi()
             }
         }
 
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Final configuration and checks before system ready
+        ///////////////////////////////////////////////////////////////////////////////////////
+         
         // prep the CCDL request buffer
         m_ccdl.PackRequestParams(m_parameters, m_paramLoopEnd);
 
@@ -1469,23 +1497,51 @@ void IoiProcess::InitIoi()
         m_maxProcDuration = 850;  // 1000 - 150us overhead
         m_peak = 0;
 
-        // compute the min/max param indexes and offset to next parameter
+        // Swing through all the parameters and ...
+        // 1. Verify all FLEX params point to an existing FLEX root param
+        // 2. Compute the min/max param indexes and link valid parameter for conversion
         m_minParamIndex = m_maxParamIndex;
+        i1 = 0;
         for (i = 0; i < m_paramLoopEnd; ++i)
         {
-            if (m_minParamIndex == m_maxParamIndex && m_parameters[i].m_isValid)
+            if (m_parameters[i].m_isValid)
             {
-                m_minParamIndex = i;
-                i1 = i;
-            }
-            else if (m_parameters[i].m_isValid)
-            {
-                m_parameters[i1].m_nextIndex = i;
-                i1 = i;
+                // Item 1: check FLEX child params have valid parents
+                if (m_parameters[i].m_src == PARAM_SRC_FLEX)
+                {
+                    // verify the root is declared and valid
+                    if (!(m_parameters[i].m_flexParent->m_isValid || 
+                          m_parameters[i].m_flexParent->m_flexDataTbl == -1))
+                    {
+                        // copy name for display
+                        if (m_paramOpenFailCount < (int)eIoiFailDisplay)
+                        {
+                            strncpy(m_openFailNames[m_paramOpenFailCount],
+                                    m_parameters[i].m_name, (int)eAseParamNameSize);
+                        }
+                        m_paramOpenFailCount += 1;
+
+                        // continue - do not include this in the parameter linked list
+                        m_parameters[i].m_isValid = false;
+                        continue;
+                    }
+                }
+
+                // Item 2: create a linked list of valid parameters
+                if (m_minParamIndex == m_maxParamIndex)
+                {
+                    m_minParamIndex = i;
+                    i1 = i;
+                }
+                else
+                {
+                    m_parameters[i1].m_nextIndex = i;
+                    i1 = i;
+                }
             }
         }
 
-        // wrap the end back to the front
+        // wrap the end back to the front of the parameter "linked-list"
         if (m_parameters[i1].m_isValid)
         {
             m_parameters[i1].m_nextIndex = m_minParamIndex;
@@ -1499,7 +1555,6 @@ void IoiProcess::InitIoi()
         m_initParams = false;
         //----------------------------------
     }
-
 }
 
 //---------------------------------------------------------------------------------------------

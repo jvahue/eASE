@@ -71,6 +71,7 @@ void ParamConverter::Reset()
     m_gpa = 0;
     m_gpb = 0;
     m_gpc = 0;
+    m_gpe = 0;
     m_src = PARAM_SRC_MAX;
     m_type = PARAM_FMT_NONE;
     m_scale = 0.0f;       
@@ -84,7 +85,7 @@ void ParamConverter::Reset()
 
 //---------------------------------------------------------------------------------------------
 // Function: Init
-// Description: Initialize a converter with the paramter info
+// Description: Initialize a converter with the parameter info
 //
 void ParamConverter::Init(ParamCfg* paramInfo)
 {
@@ -93,8 +94,11 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     m_gpa = paramInfo->gpa;
     m_gpb = paramInfo->gpb;
     m_gpc = paramInfo->gpc;
+    m_gpe = paramInfo->gpe;
+
     m_src = paramInfo->src;
     m_type = paramInfo->fmt;
+
     m_masterId = paramInfo->masterId;
     m_scale = paramInfo->scale;
     m_maxValue = paramInfo->scale;
