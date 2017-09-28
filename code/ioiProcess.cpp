@@ -760,54 +760,41 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         break;
 
     case eSetSensorSG:
-        if ( m_parameters[itemId].m_isValid)
+    {
+        SensorSetup ss;
+
+        // copy data into structure
+        ss.index = itemId;
+        ss.sgType = request.sigGenId;
+        ss.unitValue = request.resetAll;
+        ss.p1 = request.param1;
+        ss.p2 = request.param2;
+        ss.p3 = request.param3;
+        ss.p4 = request.param4;
+
+        SetSensor(&ss, secComm);
+        serviced = TRUE;
+        break;
+    }
+
+    case eSetMultiSG:
+    {
+        SensorSetup* mSensor = (SensorSetup*)request.charData;
+
+        for (int p = 0; p < request.variableId; ++p)
         {
-            UINT32 sgType = request.sigGenId;
-            if ( ARRAY( sgType, eMaxSensorMode))
+            if (SetSensor(mSensor, secComm))
             {
-                bool setResult = false;
-                Parameter& theParam = m_parameters[itemId];
-
-                if (sgType != eSGunit)
-                {
-                    setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
-                        request.param1, request.param2,
-                        request.param3, request.param4);
-                    theParam.m_useUint = false;
-                }
-                else
-                {
-                    theParam.m_uintValue = request.resetAll;
-                    theParam.m_useUint = true;
-                    setResult = true;
-                }
-
-                if (sgType == eSGmanual)
-                {
-                    theParam.m_value = request.param1;
-                }
-
-                // Init the value
-                theParam.m_value = theParam.m_sigGen.Reset(theParam.m_value);
-                secComm.m_response.successful = setResult;
-                if (!setResult)
-                {
-                    secComm.ErrorMsg("Unable to complete parameter setup");
-                }
+                ++mSensor;
             }
             else
             {
-                secComm.ErrorMsg("Ioi: Invalid SG Type <%d>", sgType);
-                secComm.m_response.successful = FALSE;
+                break;
             }
-        }
-        else
-        {
-            secComm.ErrorMsg("Ioi: Invalid Param Index <%d>", itemId);
-            secComm.m_response.successful = FALSE;
         }
         serviced = TRUE;
         break;
+    }
 
     case eResetSG:
         if ( request.resetAll)
@@ -1291,16 +1278,19 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
     {
         for (i=0; i < (UINT32)paramSetCount; ++i)
         {
-            m_paramInfo[i+m_paramInfoCount].index    = pCfg->index;
-            m_paramInfo[i+m_paramInfoCount].masterId = pCfg->masterId;
             strncpy(m_paramInfo[i+m_paramInfoCount].name, pCfg->name, (int)eAseParamNameSize);
-            m_paramInfo[i+m_paramInfoCount].rateHz = pCfg->rateHz;
-            m_paramInfo[i+m_paramInfoCount].src = pCfg->src;
-            m_paramInfo[i+m_paramInfoCount].fmt = pCfg->fmt;
-            m_paramInfo[i+m_paramInfoCount].gpa = pCfg->gpa;
-            m_paramInfo[i+m_paramInfoCount].gpb = pCfg->gpb;
-            m_paramInfo[i+m_paramInfoCount].gpc = pCfg->gpc;
-            m_paramInfo[i+m_paramInfoCount].scale = pCfg->scale;
+            m_paramInfo[i + m_paramInfoCount].index = pCfg->index;
+
+            m_paramInfo[i + m_paramInfoCount].masterId = pCfg->masterId;
+            m_paramInfo[i + m_paramInfoCount].rateHz = pCfg->rateHz;
+            m_paramInfo[i + m_paramInfoCount].src = pCfg->src;
+            m_paramInfo[i + m_paramInfoCount].fmt = pCfg->fmt;
+            m_paramInfo[i + m_paramInfoCount].scale = pCfg->scale;
+
+            m_paramInfo[i + m_paramInfoCount].gpa = pCfg->gpa;
+            m_paramInfo[i + m_paramInfoCount].gpb = pCfg->gpb;
+            m_paramInfo[i + m_paramInfoCount].gpc = pCfg->gpc;
+            m_paramInfo[i + m_paramInfoCount].gpe = pCfg->gpe;
             ++pCfg;
         }
 
@@ -1616,5 +1606,60 @@ void IoiProcess::ScheduleParameters()
             }
         }
     }
+}
+
+//---------------------------------------------------------------------------------------------
+bool IoiProcess::SetSensor(SensorSetup* sensorData, SecComm& secComm)
+{
+    UINT32 itemId = sensorData->index;
+    bool setResult = false;
+
+    if (m_parameters[itemId].m_isValid)
+    {
+        UINT32 sgType = sensorData->sgType; // request.sigGenId;
+        if (ARRAY(sgType, eMaxSensorMode))
+        {
+            Parameter& theParam = m_parameters[itemId];
+
+            if (sgType != eSGunit)
+            {
+                setResult = theParam.m_sigGen.SetParams(sgType, theParam.m_updateMs,
+                                                        sensorData->p1, sensorData->p2,
+                                                        sensorData->p3, sensorData->p4);
+                theParam.m_useUint = false;
+            }
+            else
+            {
+                theParam.m_uintValue = sensorData->unitValue;
+                theParam.m_useUint = true;
+                setResult = true;
+            }
+
+            if (sgType == eSGmanual)
+            {
+                theParam.m_value = sensorData->p1;
+            }
+
+            // Init the value
+            theParam.m_value = theParam.m_sigGen.Reset(theParam.m_value);
+            secComm.m_response.successful = setResult;
+            if (!setResult)
+            {
+                secComm.ErrorMsg("Unable to complete parameter setup P(%d)", itemId);
+            }
+        }
+        else
+        {
+            secComm.ErrorMsg("Ioi: Invalid SG Type <%d> P(%d)", sgType, itemId);
+            secComm.m_response.successful = FALSE;
+        }
+    }
+    else
+    {
+        secComm.ErrorMsg("Ioi: Invalid Param Index P(%d)", itemId);
+        secComm.m_response.successful = FALSE;
+    }
+
+    return setResult;
 }
 

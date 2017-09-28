@@ -190,10 +190,10 @@ void Parameter::SetFlex(UINT32 rawValue, int index)
 //
 void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
 {
-    //UINT32 at;
-    //UINT32 dst;
-    bool status = true;
     UINT32 extraMs;
+    bool status = true;
+
+    ParamConverter::Init(paramInfo);
 
     strncpy(m_name, paramInfo->name, eAseParamNameSize);
     strncpy(m_shortName, paramInfo->name, eAseParamNameSize);
@@ -212,8 +212,10 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) || 
              (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
     {
-        if (paramInfo->gpe & 0xFF == eFlexSeq1)
+        if ((paramInfo->gpe & 0xFF) == eFlexSeq1)
         {
+            m_flexType = eFlexSeq1;
+
             // we need to allocate a seq word table, scan our tables and find an open one
             for (int t = 0; t < MAX_FLEX_SEQ1_TBLS; ++t)
             {
@@ -232,7 +234,10 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
                 status = false;
             }
         }
-        else if (paramInfo->gpe & 0xFF != 0)
+        // ADD new FLEX protocols here
+
+        // if not a known FLEX protocol it better be 0
+        else if ((paramInfo->gpe & 0xFF) != 0)
         {
             // invalid type fail 
             status = false;
@@ -252,7 +257,6 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     m_updateIntervalTicks = m_updateMs - extraMs;
     m_updateIntervalTicks /= 10;  // turn this into system ticks
 
-    ParamConverter::Init(paramInfo);
     m_idl = ioiStatic.FindIoi(m_ioiName);
 
     m_isValid = status;
@@ -276,6 +280,13 @@ bool Parameter::IsChild(Parameter& other)
         {
             m_isChild = m_masterId == other.m_masterId;
         }
+
+        else if (m_src == PARAM_SRC_FLEX)
+        {
+            // see if this is the same root parameter and seq index
+            m_isChild = ((m_gpe & 0xFFFFFF) == (other.m_gpe & 0xFFFFFF));
+        }
+
         else if (m_type == PARAM_FMT_A429 && other.m_type == PARAM_FMT_A429)
         {
             if (m_src == PARAM_SRC_A429_A)
@@ -288,11 +299,6 @@ bool Parameter::IsChild(Parameter& other)
                     m_a429.label   == other.m_a429.label   &&  // same label
                     m_a429.sdBits  == other.m_a429.sdBits);
             }
-        }
-        else if (m_src == PARAM_SRC_FLEX)
-        {
-            // see if this is the same root parameter and seq index
-            m_isChild = ((m_gpe & 0xFFFFFF) == (other.m_gpe & 0xFFFFFF));
         }
 
         if (m_isChild)
@@ -461,9 +467,9 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         }
 
         // for FLEX, move the final value over to the FLEX Table
-        if (m_src == PARAM_SRC_FLEX)
+        if (m_src == PARAM_SRC_FLEX && !m_isChild)
         {
-            m_flexParent->SetFlex(m_rawValue, m_flexSeq);
+            m_flexParent->SetFlex(m_ioiValue, m_flexSeq);
         }
 
         m_nextUpdate = sysTick + m_updateIntervalTicks;

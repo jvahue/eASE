@@ -1172,11 +1172,11 @@ void StaticIoiContainer::ResetStaticIoi()
     // and values we want to reset if no script is running
     // use 0xffffff to indicate the value has not been updated
 
-	memset(_8204050_32, 0xff, sizeof(_8204050_32));
+	//memset(_8204050_32, 0xff, sizeof(_8204050_32));
     memset(_8204051_32, 0xff, sizeof(_8204051_32));
     memset(_8204052_32, 0xff, sizeof(_8204052_32));
     memset(_8204053_32, 0xff, sizeof(_8204053_32));
-    memset(_8204054_32, 0xff, sizeof(_8204054_32));
+    //memset(_8204054_32, 0xff, sizeof(_8204054_32));
     memset(_8204055_32, 0xff, sizeof(_8204055_32));
     memset(_8204056_32, 0xff, sizeof(_8204056_32));
     memset(_8204059_32, 0xff, sizeof(_8204059_32));
@@ -1196,11 +1196,11 @@ void StaticIoiContainer::ResetStaticIoi()
     memset(_8204057_32, 0xff, sizeof(_8204057_32));
     memset(_8204058_32, 0xff, sizeof(_8204058_32));
 
-    memset(_8204050_64, 0xff, sizeof(_8204050_64));
+    //memset(_8204050_64, 0xff, sizeof(_8204050_64));
     memset(_8204051_64, 0xff, sizeof(_8204051_64));
     memset(_8204052_64, 0xff, sizeof(_8204052_64));
     memset(_8204053_64, 0xff, sizeof(_8204053_64));
-    memset(_8204054_64, 0xff, sizeof(_8204054_64));
+    //memset(_8204054_64, 0xff, sizeof(_8204054_64));
     memset(_8204055_64, 0xff, sizeof(_8204055_64));
     memset(_8204056_64, 0xff, sizeof(_8204056_64));
     memset(_8204059_64, 0xff, sizeof(_8204059_64));

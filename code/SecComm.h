@@ -106,6 +106,7 @@ enum SecCmds {
     eSetCcdlItem    = 422,  // Set/Clear a value used in eFAST CCDL
     eSetCcdlState   = 423,  // Enable/Disable CCDL activity
     eGetCcdlValue   = 424,  // Read the raw value sent across the CCDL
+    eSetMultiSG     = 425,  // Set multiple sensors
 
     //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF

@@ -12,6 +12,17 @@
 
 // File: ioiProcess.h
 
+struct SensorSetup {
+    UINT16 index;
+    UINT8  sgType;
+    UINT8  spare;
+    UINT32 unitValue;
+    FLOAT32 p1;
+    FLOAT32 p2;
+    FLOAT32 p3;
+    FLOAT32 p4;
+};
+
 /******************************************************************************
 * Description: Implements the ASE thread connecting to the ADRF for testing
 *              IOI behavior.
@@ -50,6 +61,8 @@ protected:
     // Send the sensor names to ePySte
     void FillSensorNames(INT32 start, SensorNames& m_snsNames) const;
     void ScheduleParameters();
+
+    bool SetSensor(SensorSetup* sensorData, SecComm& secComm);
 
     bool CollectParamInfo(int paramSetCount, UINT32 paramCount, char* data);
     void InitIoi();
