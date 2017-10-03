@@ -107,7 +107,7 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     {
         A429ParseGps();
 
-        if (m_a429.format == eBNR)
+        if (m_a429.format == eBNR || m_a429.format == eBNR1)
         {
             m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
         }
@@ -214,7 +214,7 @@ void ParamConverter::A429ParseGps()
     UINT32 gpA = m_gpa;
     UINT32 gpB = m_gpb;
 
-    m_a429.format     = A429WordFormat((gpA >> 2)  & 0x03);
+    m_a429.format     = A429WordFormat(gpA & 0x0F);
     m_a429.discType   = A429DiscretTypes((gpA >> 18) & 0x03);
     m_a429.wordSize   = (gpA >> 5)  & 0x1F;
     m_a429.msb        = (gpA >> 13) & 0x1F;
@@ -249,7 +249,7 @@ void ParamConverter::A429ParseGps()
             m_a429.msb += 1;
         }
     }
-    else // eBNR
+    else // eBNR, eBNR1
     {
         m_a429.lsb = (m_a429.msb)-(m_a429.wordSize-1);
     }
@@ -289,6 +289,7 @@ UINT32 ParamConverter::ExpectedSSM()
         expected = BCD_VALID_SSM;
         break;
     case eBNR:
+    case eBNR1:
     default:
         expected = BNR_VALID_SSM;
         break;
@@ -332,7 +333,7 @@ UINT32 ParamConverter::A429Converter(float value)
     float bias = 0.5f;
     UINT32 rawValue = 0;
 
-    if (m_a429.format == eBNR)
+    if (m_a429.format == eBNR || m_a429.format == eBNR1)
     {
         if (m_scaleLsb > 0)  // based on 429 format
         {
@@ -347,7 +348,14 @@ UINT32 ParamConverter::A429Converter(float value)
 
             if (value < 0.0f)
             {
-                rawValue = A429_BNRPutSign(rawValue, 1);
+                if (m_a429.format == eBNR1)
+                {
+                    rawValue = A429_BNRPutSign(rawValue, 1);
+                }
+                else // eBNR
+                {
+                    rawValue = SetBit(rawValue, (m_a429.msb + 1));
+                }
                 bias = -0.5f;
             }
 

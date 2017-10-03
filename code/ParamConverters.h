@@ -44,14 +44,17 @@
 #define A429_BCDPutSSM(d,s) ((d & 0x1fffffff) | ((s & 3) << 29))
 #define A429_FldPutSDI(d,s) ((d & ~0x300) | ((s & 3) << 8))
 
+#define SetBit(v, b) ((v) | (1 << b))
+
 //----------------------------------------------------------------------------/
 // Local Typedefs                                                            -/
 //----------------------------------------------------------------------------/
 enum A429WordFormat {
-    eBNR   = 0,
-    eBCD   = 1,
-    eDisc  = 2,
-    eOther = 3
+    eBNR   = 0x00,  // contiguous sign and data BNR
+    eBNR1  = 0x01,  // sign bit #28, data wherever
+    eBCD   = 0x04,  // BCD value - assumed in upper bits of word
+    eDisc  = 0x08,  // Discrete bits - anywhere
+    eOther = 0x0C   // Not in Use
 };
 
 enum A429DiscretTypes {
