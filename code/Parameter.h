@@ -73,11 +73,11 @@ public:
     ParamFlex  m_flexType;        // for flex roots, what type is this
     SINT32     m_flexDataTbl;     // Which seq table is this root associated with
     // flex children
-    SINT32     m_flexParentIndex; // for sequential flex the index
+    SINT32     m_flexRootIdx;     // for sequential flex the index
     SINT32     m_flexSeq;         // param seq index/root TX index
-    Parameter* m_flexParent;      // for flex children and pointer to their parent
+    Parameter* m_flexRoot;        // for flex children and pointer to their parent
 
-    SignalGenerator m_sigGen;       // the parameter's signal generator
+    SignalGenerator m_sigGen;     // the parameter's signal generator
     UINT32 m_updateDuration;
 };
 

@@ -363,7 +363,7 @@ void IoiProcess::UpdateIoi()
                     {
                         WriteIoi(param);
                     }
-                    else
+                    else if (param->m_src == PARAM_SRC_CROSS)
                     {
                         // move data to xchan ioi slot
                         // Note: all params with the same masterId will point to the same slot,
@@ -1392,8 +1392,9 @@ void IoiProcess::InitIoi()
             // check if this is a FLEX child and link its parent to it
             if (m_parameters[index].m_src == PARAM_SRC_FLEX)
             {
-                m_parameters[index].m_flexParent = 
-                    &m_parameters[m_parameters[index].m_flexParentIndex];
+                // No check that the SeqTypes are the same for ASE ...
+                m_parameters[index].m_flexRoot =
+                    &m_parameters[m_parameters[index].m_flexRootIdx];
             }
 
             if (m_parameters[index].m_isValid)
@@ -1500,8 +1501,8 @@ void IoiProcess::InitIoi()
                 if (m_parameters[i].m_src == PARAM_SRC_FLEX)
                 {
                     // verify the root is declared and valid
-                    if (!(m_parameters[i].m_flexParent->m_isValid || 
-                          m_parameters[i].m_flexParent->m_flexDataTbl == -1))
+                    if (!(m_parameters[i].m_flexRoot->m_isValid || 
+                          m_parameters[i].m_flexRoot->m_flexDataTbl == -1))
                     {
                         // copy name for display
                         if (m_paramOpenFailCount < (int)eIoiFailDisplay)

@@ -127,9 +127,9 @@ void Parameter::Reset()
     m_flexType = eFlexNone;
     m_flexDataTbl = -1;
     // flex children
-    m_flexParentIndex = -1;
+    m_flexRootIdx = -1;
     m_flexSeq = -1;
-    m_flexParent = NULL;
+    m_flexRoot = NULL;
 
     ParamConverter::Reset();
 
@@ -206,8 +206,8 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     if (paramInfo->src == PARAM_SRC_FLEX)
     {
         // ok we have a flex child - get its seq #, caller will link the parent (m_flexParent)
-        m_flexParentIndex = m_gpe & 0xffff;
-        m_flexSeq = (m_gpe >> 16) & 0xff;
+        m_flexRootIdx = (m_gpe >> 16) & 0xffff;
+        m_flexSeq = (m_gpe >> 8) & 0xff;
     }
     else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) || 
              (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
@@ -234,7 +234,7 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
                 status = false;
             }
         }
-        // ADD new FLEX protocols here
+        // ADD new FLEX protocols (like eFlexSeq1) here
 
         // if not a known FLEX protocol it better be 0
         else if ((paramInfo->gpe & 0xFF) != 0)
@@ -284,7 +284,7 @@ bool Parameter::IsChild(Parameter& other)
         else if (m_src == PARAM_SRC_FLEX)
         {
             // see if this is the same root parameter and seq index
-            m_isChild = ((m_gpe & 0xFFFFFF) == (other.m_gpe & 0xFFFFFF));
+            m_isChild = (m_gpe == other.m_gpe);
         }
 
         else if (m_type == PARAM_FMT_A429 && other.m_type == PARAM_FMT_A429)
@@ -469,7 +469,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         // for FLEX, move the final value over to the FLEX Table
         if (m_src == PARAM_SRC_FLEX && !m_isChild)
         {
-            m_flexParent->SetFlex(m_ioiValue, m_flexSeq);
+            m_flexRoot->SetFlex(m_ioiValue, m_flexSeq);
         }
 
         m_nextUpdate = sysTick + m_updateIntervalTicks;
