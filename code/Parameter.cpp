@@ -209,7 +209,7 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         m_flexRootIdx = (m_gpe >> 16) & 0xffff;
         m_flexSeq = (m_gpe >> 8) & 0xff;
     }
-    else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) || 
+    else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) ||
              (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
     {
         if ((paramInfo->gpe & 0xFF) == eFlexSeq1)
@@ -239,14 +239,18 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         // if not a known FLEX protocol it better be 0
         else if ((paramInfo->gpe & 0xFF) != 0)
         {
-            // invalid type fail 
+            // invalid type fail
             status = false;
         }
     }
 
-    if (paramInfo->src == PARAM_SRC_CROSS || m_flexDataTbl != -1)
+    if (m_flexDataTbl != -1)
     {
-        m_updateMs = 1000 / paramInfo->rateHz;
+        m_updateMs = 10000 / ((paramInfo->rateHz * 10) / 2);
+    }
+    else if (paramInfo->src == PARAM_SRC_CROSS)
+    {
+      m_updateMs = 1000 / paramInfo->rateHz;
     }
     else
     {
@@ -372,7 +376,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     // see if it is time for an update
     if (m_nextUpdate <= sysTick)
     {
-        // only the 'root' parent collects the children's data 
+        // only the 'root' parent collects the children's data
         if (!m_isChild && m_link != NULL)
         {
             // compute the children of this parameter
@@ -382,7 +386,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             while (cp != NULL)
             {
                 m_childCount += 1;
-                // each param updates itself at it's rate 
+                // each param updates itself at it's rate
                 // here we just pick up the value
                 //count += cp->Update(sysTick, sgRun);
                 children |= cp->m_rawValue;
