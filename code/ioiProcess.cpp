@@ -30,6 +30,12 @@
 #define CC_TX_MBOX_NAME_ASE "ADRF_MBOX_RX"
 #define CHAN_A 1
 
+//-----------------------------------------------------------------------------
+// see IoiThreadTemplate.budget in ase.pd.xml, actual max value = 2900
+#define MAX_IO_TIME_BUDGET 2900 // leave a little so we don't overrun
+#define IO_TIME_MARGIN     150  // reduce MAX by this amount 4 no overruns
+#define IO_TIME_BUDGET     (MAX_IO_TIME_BUDGET - IO_TIME_MARGIN)
+
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
@@ -90,7 +96,7 @@ IoiProcess::IoiProcess()
 , m_ioiChanId(-1)
 , m_ioiChanId0(-1)
 , m_ioiChanId1(-1)
-, m_maxProcDuration(1100)
+, m_maxProcDuration(IO_TIME_BUDGET)
 , m_elapsed(0)
 , m_peak(0)
 , m_execFrame(0)
@@ -318,8 +324,8 @@ void IoiProcess::UpdateIoi()
     UINT32 scheduledX = m_scheduledX;  // local param so we can watch it in the great debugger
     Parameter* param;
 
-    m_scheduled = 0; // need to see how many are really scheduled
-    m_ioiUpdated = 0;   //
+    m_scheduled = 0;    // need to see how many are really scheduled
+    m_ioiUpdated = 0;   // 
     m_elapsed = 0;
     m_loopCount = 0;
 
@@ -1485,7 +1491,6 @@ void IoiProcess::InitIoi()
 
         ScheduleParameters();
         m_execFrame = 0;
-        m_maxProcDuration = 850;  // 1000 - 150us overhead
         m_peak = 0;
 
         // Swing through all the parameters and ...
