@@ -162,7 +162,7 @@
            name = "IoiThreadTemplate"
            budget = "2900"
            instanceCount = "1"
-           slackEnabled = "no"
+           slackEnabled = "yes"
            stackSizeInPages = "5"
            period = "fastest"
            namesOfMutexesLocked = ""

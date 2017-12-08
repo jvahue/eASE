@@ -33,8 +33,8 @@
 //-----------------------------------------------------------------------------
 // see IoiThreadTemplate.budget in ase.pd.xml, actual max value = 2900
 #define MAX_IO_TIME_BUDGET 2900 // leave a little so we don't overrun
-#define IO_TIME_MARGIN     150  // reduce MAX by this amount 4 no overruns
-#define IO_TIME_BUDGET     (MAX_IO_TIME_BUDGET - IO_TIME_MARGIN)
+#define IO_TIME_BUDGET     2300 // max for no overruns
+#define DEF_IO_TIME_BUDGET 1500 // default setting
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -96,7 +96,7 @@ IoiProcess::IoiProcess()
 , m_ioiChanId(-1)
 , m_ioiChanId0(-1)
 , m_ioiChanId1(-1)
-, m_maxProcDuration(IO_TIME_BUDGET)
+, m_maxProcDuration(DEF_IO_TIME_BUDGET)
 , m_elapsed(0)
 , m_peak(0)
 , m_execFrame(0)
