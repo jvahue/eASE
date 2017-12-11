@@ -14,7 +14,6 @@
 */
 #define MAX_FLEX_SEQ1_WORDS 16
 #define MAX_FLEX_SEQ1_TBLS  8
-#define PARAM_SRC_FLEX 8   // TODO remove SRC from Flex Label interface
 
 typedef UINT32 FlexSeq1Data[MAX_FLEX_SEQ1_WORDS];
 typedef struct FlexSeq1TblTag

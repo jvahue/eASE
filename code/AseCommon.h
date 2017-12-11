@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v1.1.0"  " " __DATE__ " " __TIME__
+# define version "v2.0.0"  " " __DATE__ " " __TIME__
 
 #ifdef ARRAY
 #undef ARRAY
