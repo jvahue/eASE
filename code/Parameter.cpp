@@ -476,7 +476,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             m_flexRoot->SetFlex(m_ioiValue, m_flexSeq);
         }
 
-        m_nextUpdate = sysTick + m_updateIntervalTicks;
+        m_nextUpdate += m_updateIntervalTicks;
         m_updateCount += 1;
         count += 1;
     }

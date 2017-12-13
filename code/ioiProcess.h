@@ -91,11 +91,22 @@ protected:
     UINT32 m_page;
     UINT32 m_paramDetails;
 
+
+
+
+
+
+
+
+
     UINT32 m_scheduledX;
     UINT32 m_remoteX;
     UINT32 m_scheduled;
     UINT32 m_ioiUpdated;
     UINT32 m_loopCount;
+    UINT32 m_timeout;     // how many times have we exited IoiUpdate 4 timeout
+
+    UINT32 m_allSlackEnd;   // what was the tick count when we start allSlack mode
 
     bool m_initParams;
     ioiStatus m_initStatus;
@@ -130,9 +141,9 @@ protected:
     INT32 m_ioiChanId1; 
 
     UINT32 m_maxProcDuration;
+    UINT32 m_restoreDuration;
     UINT32 m_elapsed;
     UINT32 m_peak;
-    UINT32 m_execFrame;
 
     UINT32 m_dateId;
     UINT32 m_timeId;
