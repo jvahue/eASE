@@ -424,6 +424,7 @@ bool CCDL::Transmit(MailBox& out)
     if (!m_inhibit)
     {
         result = out.Send(m_outBuffer, sizeof(m_outBuffer)) == TRUE;
+        m_txCount += result ? 1 : 0;
     }
 
     if (result)
@@ -434,7 +435,6 @@ bool CCDL::Transmit(MailBox& out)
             UINT16* size_ptr = (UINT16*)&m_outBuffer[m_slotInfo[i].offset];
             *size_ptr = 0;
         }
-        m_txCount += 1;
     }
     else
     {
@@ -722,12 +722,13 @@ int CCDL::PageCcdl(int theLine, bool& nextPage, MailBox& in, MailBox& out)
 
     if (theLine == baseLine)
     {
-        debug_str(Ioi, theLine, 0,
-            "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
-            m_ccdlCalls, chanStr[m_actingChan], modeStr[m_mode],
-            m_histPacketTx, m_histPacketRx,
-            m_rxCount, m_rxFailCount, stateStr[m_rxState],
-            m_txCount, m_txFailCount, stateStr[m_txState]);
+        debug_str(Ioi, theLine, 0, 
+                  "CCDL(%d) is %s: Mode(%s/t%d/r%d) Rx(%d/%d/%s) Tx(%d/%d/%s)",
+                  m_ccdlCalls, chanStr[m_actingChan], 
+                  m_inhibit ? modeStr[eCcdlHold] : modeStr[m_mode],
+                  m_histPacketTx, m_histPacketRx,
+                  m_rxCount, m_rxFailCount, stateStr[m_rxState],
+                  m_txCount, m_txFailCount, stateStr[m_txState]);
     }
     else if (theLine == (baseLine + 1))
     {
