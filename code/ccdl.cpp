@@ -71,7 +71,7 @@ static const CHAR* modeStr[] = {
     "StartRx",
     "Run",
     "RunHist",
-    "Hold"
+    "TxHold"
 };
 
 static const CHAR* stateStr[] = {
