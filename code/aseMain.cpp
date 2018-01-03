@@ -493,6 +493,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case eRunScript:
             SetTime(request);
             aseCommon.bScriptRunning = TRUE;
+            aseCommon.bMsOnline = true;  // turn MS on after the script ends
+
             // reset the power counters
             adrfOnCount = 0;
             adrfOnCall = 0;
@@ -504,7 +506,10 @@ static BOOLEAN CheckCmds(SecComm& secComm)
 
         case eScriptDone:
             SetTime(request);
+
             aseCommon.bScriptRunning = FALSE;
+            aseCommon.bMsOnline = true;  // turn MS on after the script ends
+
             // reset the battery latch logic to default (i.e., no battery latching
             batteryState = eBattDisabled;
             memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
