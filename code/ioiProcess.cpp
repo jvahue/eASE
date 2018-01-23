@@ -466,11 +466,13 @@ void IoiProcess::WriteIoi(Parameter* param )
         if (writeStatus == ioiSuccess)
         {
             m_ioiUpdated += 1; // count how many we updated
+            param->m_ioiWrSucc += 1; // successful write to IOI
         }
         else
         {
             // TODO : what else, anything?
             m_ioiWriteFailCount += 1;
+            param->m_ioiWrFail += 1; // failed write to IOI
         }
     }
 }
@@ -1232,6 +1234,35 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
 
         serviced = TRUE;
         break;
+
+        //-------------------------------------------------------------------------------------
+    case eGetParamStatus:
+        // get stats for a param update counts, etc.
+    {
+        Parameter* param = &m_parameters[request.variableId];
+        if (param->m_isValid)
+        {
+            sprintf(secComm.m_response.streamData,
+                    "%d,%s,%.3f,%x,%d,%d,%d,%d,%d",
+                    param->m_index,
+                    param->m_name,
+                    param->m_value,
+                    param->m_rawValue,
+                    param->m_ioiChan,
+                    param->m_ioiValue,
+                    param->m_ioiWrSucc,
+                    param->m_ioiWrFail,
+                    param->m_nextIndex);
+            secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
+            secComm.m_response.successful = true;
+        }
+        else
+        {
+            secComm.ErrorMsg("Parameter[%d] is not valid", request.variableId);
+        }
+        serviced = TRUE;
+        break;
+    }
 
         //-------------------------------------------------------------------------------------
     default:

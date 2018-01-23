@@ -111,6 +111,8 @@ void Parameter::Reset()
     m_offset = 0;              // frame offset 0-90 step 10
     m_nextUpdate = 0;
     m_updateCount = 0;
+    m_ioiWrSucc = 0;
+    m_ioiWrFail = 0;
     m_ccdlId = 0xffff;
 
     m_link = NULL;
