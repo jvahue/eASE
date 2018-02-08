@@ -346,17 +346,28 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            if (value < 0.0f)
+            if (value < 0.0f) 
             {
-                if (m_a429.format == eBNR1)
-                {
-                    rawValue = A429_BNRPutSign(rawValue, 1);
+                if (-value > m_scaleLsb)
+                { 
+                    if (m_a429.format == eBNR1)
+                    {
+                        rawValue = A429_BNRPutSign(rawValue, 1);
+                    }
+                    else // eBNR
+                    {
+                        rawValue = SetBit(rawValue, (m_a429.msb + 1));
+                    }
+                    bias = -0.5f;
                 }
-                else // eBNR
+                else
                 {
-                    rawValue = SetBit(rawValue, (m_a429.msb + 1));
+                    value = 0.0f;
                 }
-                bias = -0.5f;
+            }
+            else if (value < m_scaleLsb)
+            {
+                value = 0.0f;
             }
 
             m_data = UINT32( (value / m_scaleLsb) + bias);

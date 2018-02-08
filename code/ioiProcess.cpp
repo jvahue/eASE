@@ -1243,10 +1243,11 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         if (param->m_isValid)
         {
             sprintf(secComm.m_response.streamData,
-                    "%d,%s,%.3f,%x,%d,%d,%d,%d,%d",
+                    "%d,%s,%.3f,%s,%x,%d,%d,%d,%d,%d",
                     param->m_index,
                     param->m_name,
                     param->m_value,
+                    param->m_isRunning ? "Yes" : "No",
                     param->m_rawValue,
                     param->m_ioiChan,
                     param->m_ioiValue,
