@@ -41,7 +41,10 @@ const char* paramType5[] = {
     "None ",
     "A664B",
     "A664F",
-    "A429 "
+    "A429 ",
+    "Int  ",
+    "Float",
+    "DISC "
 };
 
 const char* a429Fmt5[] = {

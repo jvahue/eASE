@@ -309,12 +309,12 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     {
         rawValue = A429Converter(value);
     }
-    else if (m_type == PARAM_FMT_BIN_A664)
+    else if (m_type == PARAM_FMT_BIN_A664 || m_type == PARAM_FMT_INTEGER)
     {
         UINT32 data = (UINT32)value;
         rawValue = data;
     }
-    else if (m_type == PARAM_FMT_FLT_A664)
+    else if (m_type == PARAM_FMT_FLT_A664 || m_type == PARAM_FMT_FLOAT32)
     {
         // just pack the float : what about moving it around inside and big data set?
         UINT32 *data = (UINT32*)&value;
