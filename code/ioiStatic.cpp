@@ -845,6 +845,130 @@ void A664Qar::NextSf()
 }
 
 //=============================================================================================
+A717Qar::A717Qar(StaticIoiStr* pBuffer, int sfIdx, int barker)
+{
+    m_pIOIStr    = pBuffer;  // the buffer associated with the IOI
+    m_mySFNum    = sfIdx;
+    m_mySfMask   = (1 << (sfIdx - 1));
+    m_frameSize  = 64;      // default SF size in UINT32 words
+    m_barker    = barker;
+    Reset();
+}
+//---------------------------------------------------------------------------------------------
+void A717Qar::Reset()
+{
+    m_crntTick = 0;
+    m_bStartup = true;
+    m_writeErrCnt = 0;
+    m_skipSfMask = 0;
+    memset(m_qarWords, 0, sizeof(m_qarWords));
+}
+//---------------------------------------------------------------------------------------------
+void A717Qar::Update()
+{
+    // Transfer my SF local to the static IOI Str's buffer for outputting
+    UINT32* fillPtr = (UINT32*)m_pIOIStr->data;    // where the data is going
+
+    // Clear the entire dest buffer...
+    memset(m_pIOIStr->data, 0, m_pIOIStr->bytes);
+
+    // If my SF is not in the disable mask, copy my local image to the output buff
+    // for the number of entries configured.
+    if ( !(m_skipSfMask & m_mySfMask))
+    {
+        memcpy( m_pIOIStr->data, (UINT8*)&m_qarWords[0], (m_frameSize * 4));
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+// publishing the buffer associated with this SF's IOI on its schedule
+
+void A717Qar::UpdateIOI()
+{
+    // Figure out when 'this' SF is scheduled to be sent; On start-up, send the SF
+    // based on our offset from SF1. After that, we send them at 4 sec intervals.
+    // This func is called at 10 mSecs so 4 secs == 400 ticks
+
+    if (0 == m_crntTick)
+    {
+        if (m_bStartup)
+        {
+            // On startup each Obj will send its it first buffer offset by its SF #
+            // SF1 @ tick = 2 SF2 @ tick = 402, Sf3 @ tick = 802 Sf4 @ tick = 1202
+            // Add two ticks so SF #1 gets enough time to prep the buffer.
+            m_sendTimeTick = 2 + ( (m_mySFNum -1) * A717Qar::eNUM_SUBFRAMES) *
+                              A717Qar::eTICKS_PER_SEC;
+            m_bStartup = false;
+        }
+        else // Once we have sent the first frame, wait 4 secs before sending again
+        {
+            m_sendTimeTick = eSEND_TICK;
+        }
+    }
+    // Update the tick count
+    m_crntTick += 1;
+
+
+    //  If this is one tick before the send time, set-up the output
+    if (m_crntTick == (m_sendTimeTick -1))
+    {
+        // transfer the local SF buffer to the StaticIOIStr objs buffer area.
+        Update();
+    }
+    else if(m_crntTick >= m_sendTimeTick)  //send data at 1/4Hz
+    {
+        // send my SF data via its StaticIOIStr.
+        if (false == m_pIOIStr->Update())
+        {
+          m_writeErrCnt += 1;
+        }
+        m_crntTick = 0;
+    }
+
+}
+//---------------------------------------------------------------------------------------------
+// Process input received from the Script Execution Control
+// This function is called by StaticIoiContainer::SetStaticIoiData for the specified IOI
+//
+bool A717Qar::TestControl(SecRequest& request)
+{
+    bool status = true;
+    SINT32 offset = (SINT32)request.clearCfgRequest; // cmd-id or Byte-offset into dest buffer
+    UINT16* inPtr;
+    UINT32* destPtr;
+
+    // A negative offset value indicates a cmd-id  otherwise a Byte-offset into dest buffer
+
+    // Process command to skip/suspend one or more SubFrames
+    if (eQARSkipSF == offset)
+    {
+        // Save the mask of subframes to skip processing. This will be checked against
+        // 'this' subframe's mask
+        int* data = (int*)request.charData;
+        m_skipSfMask = *data;
+        memset(m_qarWords, 0, sizeof(m_qarWords));
+    }
+    else if(eQARSetSize == offset)
+    {
+        int* data = (int*)request.charData;
+        m_frameSize = *data;
+    }
+    // ----------- Add other SF command processing "else if"  above this line
+    else // just updating the SF's data content...
+    {
+        inPtr   = (UINT16*)request.charData;
+        destPtr = (UINT32*)&m_qarWords + (offset/2);
+        // move data from SEC into our local SF data array
+        // input is an array of SINT16, dest is UINT32
+        for (int i = 0; i < request.charDataSize/2; ++i)
+        {
+          *(destPtr++) = *(inPtr++);
+        }
+    }
+    return status;
+}
+
+//=============================================================================================
 StaticIoiContainer::StaticIoiContainer()
 : m_ioiStaticOutCount(0)
 , m_ioiStaticInCount(0)
@@ -858,6 +982,10 @@ StaticIoiContainer::StaticIoiContainer()
 , m_readErrorZ1(0)
 , m_a664QarSched(0)
 , m_a664Qar(&_a664_fr_eicas2_fdr_)
+, m_a717QarSf1(&_A717Subframe1_,1,0x0247)
+, m_a717QarSf2(&_A717Subframe2_,2,0x05b8)
+, m_a717QarSf3(&_A717Subframe3_,3,0x0a47)
+, m_a717QarSf4(&_A717Subframe4_,4,0x0db8)
 {
     // initialize a few values
     _BatInputVdc_.data = 27.9f;
@@ -868,7 +996,6 @@ StaticIoiContainer::StaticIoiContainer()
     strcpy(_HMUPartNumber,   "5316928SK01");
     strcpy(_UTASSwDwgNumber, "Y1022429-003");
     strcpy(_PWSwDwgNumber,   "5318410-12SK01");
-
 
 
     // copy the object references into our container array (TBD: do we really need to do this?
@@ -913,8 +1040,9 @@ void StaticIoiContainer::OpenIoi()
 void StaticIoiContainer::UpdateStaticIoi()
 {
     // compute max count to provide a 10Hz update rate 100ms/10ms => 10 frames
-    // m_ioiStaticOutCount - 1: because we handle _a664_to_ioc_eicas_ directly
-    const int kOutMaxCount = ((m_ioiStaticOutCount - 1)/10) + 1;
+    // m_ioiStaticOutCount - 5: because we directly handle 1x _a664_fr_eicas2_fdr
+    //                                                  +  4x  _a717SubFrameX
+    const int kOutMaxCount = ((m_ioiStaticOutCount - 5)/10) + 1;
     // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
     const int kInMaxCount  = (m_ioiStaticInCount/5) + 1;
 
@@ -923,7 +1051,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     static unsigned int lastDayCnt = 0;
     static unsigned int lastHrCnt  = 0;
     static unsigned int lastMinCnt = 0;
-    static unsigned int lastSecCnt  = 0;
+    static unsigned int lastSecCnt = 0;
 
     static unsigned char lastMin = 0;
     static unsigned char lastHr  = 0;
@@ -993,6 +1121,7 @@ void StaticIoiContainer::UpdateStaticIoi()
         lastYr = aseCommon.clocks[eClkRtc].m_time.tm_year;
     }
 
+    // A664QAR
     // specialized handling for _a664_to_ioc_eicas_ at 20Hz
     m_a664QarSched += 1;
     if (m_a664QarSched < 5)
@@ -1028,6 +1157,15 @@ void StaticIoiContainer::UpdateStaticIoi()
             m_writeError += 1;
         }
     }
+    // A717QAR
+    // specialized handling for checking timing and sending each _A717QarSubFrameX_ @ 0.25Hz
+    // The unique behavior is encapsulated in each UpdateIOI method.
+    // (Each SF is sent every 4 secs, in order based on index
+
+    m_a717QarSf1.UpdateIOI();
+    m_a717QarSf2.UpdateIOI();
+    m_a717QarSf3.UpdateIOI();
+    m_a717QarSf4.UpdateIOI();
 
     // set the UUT Input maintaining about a 10Hz update rate
     m_writeErrorZ1 = m_writeError;
@@ -1102,6 +1240,22 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
         if (m_staticAseOut[request.variableId] == &_a664_fr_eicas2_fdr_)
         {
             return m_a664Qar.TestControl(request);
+        }
+        else if (m_staticAseOut[request.variableId] == &_A717Subframe1_)
+        {
+          return m_a717QarSf1.TestControl(request);
+        }
+        else if (m_staticAseOut[request.variableId] == &_A717Subframe2_)
+        {
+          return m_a717QarSf2.TestControl(request);
+        }
+        else if (m_staticAseOut[request.variableId] == &_A717Subframe3_)
+        {
+          return m_a717QarSf3.TestControl(request);
+        }
+        else if (m_staticAseOut[request.variableId] == &_A717Subframe4_)
+        {
+          return m_a717QarSf4.TestControl(request);
         }
         else
         {
@@ -1225,6 +1379,13 @@ void StaticIoiContainer::ResetStaticIoi()
 
     // clear any error injection and reset data an NDO
     m_a664Qar.Reset();
+
+    // Reset the data in each of the A717 IOI handers.
+    m_a717QarSf1.Reset();
+    m_a717QarSf2.Reset();
+    m_a717QarSf3.Reset();
+    m_a717QarSf4.Reset();
+
 }
 
 //---------------------------------------------------------------------------------------------
