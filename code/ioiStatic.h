@@ -210,6 +210,42 @@ public:
 };
 
 //=============================================================================================
+class A717Qar
+{
+  public:
+    enum a717QarConst
+    {
+        eQARSkipSF     = -1, // mask of SF to not transmit/simulate error
+        eQARSetSize    = -2, // Set the sf size in words, 64,128,256,512,1024
+        eNUM_SUBFRAMES = 4,
+        eTICKS_PER_SEC = 100, // Object is invoked every 10 mSecs
+        eSEND_TICK = (eNUM_SUBFRAMES * eTICKS_PER_SEC), // Send a SF every 4 secs
+        eSfWordCount   = 1024,
+    };
+    UINT32 m_writeErrCnt;
+    StaticIoiStr* m_pIOIStr; // ptr to IOI buffer for outputting this SF's data
+
+    A717Qar(StaticIoiStr* pBuffer, int sfIdx, int barker);
+    void Reset();
+    void UpdateIOI();
+    bool TestControl(SecRequest& request);
+
+  protected:
+    int m_frameSize;  // Number of 32 bit words in the subframe
+    int m_mySFNum;    // my object's SF number, 1..4
+    int m_mySfMask;   // My SF mask to identify commands to this SF-obj
+    int m_barker;     // Barker code for this SF. UTAS A717 barker cannot be configured!
+
+    int m_crntTick;  // My current tick to control prep and sending SF buffers. 1 tick = 10mSec
+    int m_sendTimeTick;  // The tick cnt value at which this SF will send it's buffer
+    bool m_bStartup; // Flag to control timing when this sf will be sent on startup.
+    UINT32 m_skipSfMask;// Broadcast to all A717 obj. SF to be bypassed for updating. Set by Pyste/SEC
+
+    UINT32 m_qarWords[eSfWordCount]; // 1024L = 4096Bytes
+    void Update();   // Perform ops on my SF data before handing off to IOI.
+};
+
+//=============================================================================================
 class StaticIoiContainer
 {
 public:
@@ -232,6 +268,12 @@ public:
     UINT32 m_ioiStaticInCount;
 
     A664Qar m_a664Qar;
+
+    // Objects to handle each A717 subframe IOI
+    A717Qar m_a717QarSf1;
+    A717Qar m_a717QarSf2;
+    A717Qar m_a717QarSf3;
+    A717Qar m_a717QarSf4;
 
     UINT32 m_aseInIndex;
     UINT32 m_aseOutIndex;
