@@ -9,7 +9,7 @@
 #include "ioiStatic.h"
 
 #define ASE_IN_MAX 67
-#define ASE_OUT_MAX 97
+#define ASE_OUT_MAX 93
 
 // ------------------- U U T   I N P U T S ---------------------------
 // -------------------- ASE Produced - ADRf Consumed -----------------
@@ -70,10 +70,6 @@ char _8313856_16[240];
 char _8313864_20[240];
 char _8313864_35[240];
 char _a664_fr_eicas2_fdr[3208];
-char _A717Subframe1[4096];
-char _A717Subframe2[4096];
-char _A717Subframe3[4096];
-char _A717Subframe4[4096];
 
 StaticIoiInt                  _aircraft_id_1_("aircraft_id_1" , 0);                              // 0
 StaticIoiInt                  _aircraft_id_2_("aircraft_id_2" , 0);                              // 1
@@ -168,10 +164,6 @@ StaticIoiStr                     _8313864_35_("8313864_35", _8313864_35, 240);  
 StaticIoiStr             _a664_fr_eicas2_fdr_("a664_fr_eicas2_fdr", _a664_fr_eicas2_fdr, 3208);  // 90
 StaticIoiInt                     _OMS_BUTTON_("OMS_BUTTON" , 0);                                 // 91
 StaticIoiInt                     _OMS_PAGEID_("OMS_PAGEID" , 0);                                 // 92
-StaticIoiStr                  _A717Subframe1_("A717Subframe1", _A717Subframe1, 4096);            // 93
-StaticIoiStr                  _A717Subframe2_("A717Subframe2", _A717Subframe2, 4096);            // 94
-StaticIoiStr                  _A717Subframe3_("A717Subframe3", _A717Subframe3, 4096);            // 95
-StaticIoiStr                  _A717Subframe4_("A717Subframe4", _A717Subframe4, 4096);            // 96
 
 StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_aircraft_id_1_                ,  // 0
@@ -267,11 +259,6 @@ StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_a664_fr_eicas2_fdr_           ,  // 90
     &_OMS_BUTTON_                   ,  // 91
     &_OMS_PAGEID_                   ,  // 92
-    &_A717Subframe1_                ,  // 93
-    &_A717Subframe2_                ,  // 94
-    &_A717Subframe3_                ,  // 95
-    &_A717Subframe4_                ,  // 96
-
 };
 
 // -------------------- U U T   O U T P U T S ------------------------
