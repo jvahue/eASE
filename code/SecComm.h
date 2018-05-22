@@ -112,6 +112,7 @@ enum SecCmds {
     eSetQarState    = 428,  // Enable / Disable / A717 QAR
     eSetQarData     = 429,  // Set the data values in the specified Subframe
     eGetQarState    = 430,  // Get status  of A717 QAR object.
+    eResetBarker    = 431,  // Reset the Barker code for the designated QARs to cfg'ed default.
 
     //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF

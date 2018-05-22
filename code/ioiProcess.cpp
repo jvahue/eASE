@@ -1271,15 +1271,16 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     case eSetQarData:
       // Process command to update a SF with data value(s)s starting at the given offset.
       // func Params:
-      //  variableId - SF mask
-      //  value      - byte-offset into dest buffer
-      // charData    - SF Data value(s)
-      // charDataSize- size of charData in bytes.
+      // variableId   - SF mask
+      // value        - byte-offset into dest buffer
+      // charData     - SF Data value(s)
+      // charDataSize - size of charData in bytes.
 
       m_A717Qar.SetQarData( ((UINT8)(request.variableId & 0xF)),
-                            (UINT32) request.value,
+                            (UINT32)request.value,
                             (UINT8*) request.charData,
                             request.charDataSize);
+      secComm.m_response.successful = true;
       serviced = TRUE;
       break;
 
@@ -1287,18 +1288,26 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
     case eSetQarState:
       // Process command to set the runstate of the QAR
       m_A717Qar.SetRunState( (QAR_RUN_STATE) request.variableId );
+      secComm.m_response.successful = true;
       serviced = TRUE;
       break;
 
-      //-------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
     case eGetQarState:
       secComm.m_response.streamSize = m_A717Qar.GetRunState();
       secComm.m_response.successful = true;
       serviced = TRUE;
       break;
 
-
       //-------------------------------------------------------------------------------------
+    case eResetBarker:
+      // Process cmd to use the native barker code for the indicated subframes passed in
+      // request.variableId     
+      m_A717Qar.ResetBarkers( ((UINT8)(request.variableId & 0xF)));
+      secComm.m_response.successful = true;
+      serviced = TRUE;
+      break;
+     //-------------------------------------------------------------------------------------
     default:
         // we did not service this command - check our subordinates
         subserviced = m_ccdl.CheckCmd(secComm);
