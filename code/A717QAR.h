@@ -6,7 +6,8 @@ All Rights Reserved. Proprietary and Confidential.
 
 File:        A717QAR.h
 
-Description: This file declares test control object for the UTAS Physical A717 QAR
+Description: This file declares test control object for the UTAS Physical A717 
+QAR and the sub-frame (SF) data and status.
 
 
 VERSION
@@ -25,7 +26,6 @@ $Revision: $  $Date: $
 #include <ioiapi.h>
 #include "SecComm.h"
 
-
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
@@ -42,6 +42,7 @@ $Revision: $  $Date: $
 #define RCV_ACTY_MASK     0x00000100   // Receiver Activity - Latched
 #define TST_MODE_ACT_MASK 0x00000200   // Test Mode Active
 #define SYNC_MOD_ACT_MASK 0x00000C00   // selected/active low level SYNC module 0->3 (1..4)
+
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
@@ -52,7 +53,7 @@ enum
   eNUM_SUBFRAMES =  4,
   eTICKS_PER_SEC = 100, // Object is invoked every 10 mSecs
   eSEND_TICK     = (eNUM_SUBFRAMES * eTICKS_PER_SEC), // Send a SF every 4 secs
-  MAX_QAR_WORDS  = 1024,  // max # of 32 bit words per subframe.
+  MAX_QAR_WORDS  = 1024,  // max # of 32 bit words per SF.
 };
 
 // Note: keep QAR_FORMAT in sync ParamSrcA717QAR.h <-> Ase/A717QAR.h 
@@ -85,16 +86,16 @@ typedef struct
 {
   UINT8 bDisabled;              // Indicates whether the QAR Module is disabled.
   QAR_RUN_STATE qarRunState;    // RUNNING, NO_VALID_CFG,ERR_CBIT, ERR_PBIT
-  UINT8 subframeID;             // 1–4 indicating the latest subframe written to IOI, 0 if no data
+  UINT8 subframeID;             // 1–4 indicating the latest SF written to IOI, 0 if no data
   BOOLEAN bRevSync;             // Flag indicating barker codes are bit-reversed
                                 // 0: Regular sync pattern, 1: Reversed sync pattern 
-  UINT16 numWords;              // # of 32-bits words per subframe: 64,128,256,512 or 1024
+  UINT16 numWords;              // # of 32-bits words per SF: 64,128,256,512 or 1024
   UINT32 fmt;                   // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
   UINT32 statusRegister;        // Echo of current AR717 RX Status Register
 }QAR_MODULE_STATUS;
 #pragma pack()
 
-// TEST Control is where cmds from Test Env are stored.
+// TEST Control is where cmds from Test Environment are stored.
 // These are used to affect processing flow
 
 typedef struct
@@ -126,11 +127,11 @@ typedef struct
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* Forward Decls                                                             */
+/* Forward Declaration                                                       */
 /*****************************************************************************/
 
 //=============================================================================================
-// A717Subframe encapsulates the behavior and properties of one of the 4 subframes
+// A717Subframe encapsulates the behavior and properties of one of the 4 SF
 // managed by the A717QAR
 class A717Subframe
 {
@@ -148,14 +149,14 @@ class A717Subframe
     BOOLEAN UpdateIoi();  // write the SF content to the IOI    
 
   protected:    
-    A717_IOI_STRUCT   m_ioiObj;  // This subframes output IOI buffer and file desc.
+    A717_IOI_STRUCT   m_ioiObj;  // This SF output IOI buffer and file desc.
 
-    int m_frameSize;    // Number of 32 bit words in the subframe
-    int m_mySFNum;      // my object's SF number, 1..4
-    int m_mySfMask;     // My SF mask to identify commands to this SF-obj
-    INT16 m_stdBarker;  // The normal Barker code for this SF.
-    INT16 m_revBarker;  // The reverse Barker code for this SF.
-    INT16 m_bDefaultBarker; // Use default barker unless tester specified  a value passed in buffer[0].
+    int m_frameSize;        // Number of 32 bit words in the SF
+    int m_mySFNum;          // my object's SF number, 1..4
+    int m_mySfMask;         // My SF mask to identify commands to this SF-obj
+    INT16 m_stdBarker;      // The normal Barker code for this SF.
+    INT16 m_revBarker;      // The reverse Barker code for this SF.
+    INT16 m_bDefaultBarker; // Use default barker unless tester specified a value
     int m_writeErrCnt;
 
     UINT32 m_qarWords[MAX_QAR_WORDS]; // 1024L = 4096Bytes
@@ -188,8 +189,8 @@ class A717Qar
     void SetWordSize( UINT32 wordSize );
 
   protected:
-    BOOLEAN m_bInit;         // Used to complete initialization tasks not possible during construction
-    BOOLEAN m_bInitSFOutput; // QAR object is in startup/restart mode. needs to send SF sequence starting with 1
+    BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
+    BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
 
     TEST_CONTROL m_testCtrl; // Structure holding the state of cmd setting from the test env
 
@@ -198,17 +199,17 @@ class A717Qar
     //int m_sendTimeTick; // The tick cnt value at which this SF will send it's buffer
     int m_crntTick;     // The current tick value. Incremented when ioiProcess calls UpdateIoi.
     UINT8 m_nextSfIdx;  // The idx into m_pSF array of the next sf to send.
-    int m_writeErrCnt;  // total write error cnts
+    int m_writeErrCnt;  // total write error counts
 
-    // Objects to handle each A717 subframe IOI
-    A717Subframe m_a717QarSf1;
-    A717Subframe m_a717QarSf2;
+    // Objects to handle each A717 SF IOI
+    A717Subframe m_a717QarSf1;           // why not A717Subframe m_a717QarSf[4]; ?
+    A717Subframe m_a717QarSf2;           
     A717Subframe m_a717QarSf3;
     A717Subframe m_a717QarSf4;
-    A717Subframe* m_pSF[eNUM_SUBFRAMES]; // convenience array of ptr to the sf objs 
+    A717Subframe* m_pSF[eNUM_SUBFRAMES]; // convenience array of ptr to the SF obj
 
     // UTAS Status msg to HMU listeners
-    // It is is written at 1Hz regardless of whether the QAR is enabled or synced    
+    // It is written at 1Hz regardless of whether the QAR is enabled or synced    
     QAR_MODULE_STATUS m_qarModStatus;    // msg struct of UTAS A717 Module status
     A717_IOI_STRUCT   m_moduleStatusIoi; // output IOI for the 1Hz QAR status broadcast    
     BOOLEAN           m_statusIoiValid;  // status validity for the status ioi
