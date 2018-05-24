@@ -6,7 +6,7 @@ All Rights Reserved. Proprietary and Confidential.
 
 File:        A717QAR.h
 
-Description: This file declares test control object for the UTAS Physical A717 
+Description: This file declares test control object for the UTAS Physical A717
 QAR and the sub-frame (SF) data and status.
 
 
@@ -48,34 +48,34 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 enum
 {
-  eQARSkipSF     = -1, // mask of SF to not transmit/simulate error
-  eQARSetSize    = -2, // Set the sf size in words, 64,128,256,512,1024
-  eNUM_SUBFRAMES =  4,
-  eTICKS_PER_SEC = 100, // Object is invoked every 10 mSecs
-  eSEND_TICK     = (eNUM_SUBFRAMES * eTICKS_PER_SEC), // Send a SF every 4 secs
-  MAX_QAR_WORDS  = 1024,  // max # of 32 bit words per SF.
+    eQARSkipSF = -1, // mask of SF to not transmit/simulate error
+    eQARSetSize = -2, // Set the sf size in words, 64,128,256,512,1024
+    eNUM_SUBFRAMES = 4,
+    eTICKS_PER_SEC = 100, // Object is invoked every 10 mSecs
+    eSEND_TICK = (eNUM_SUBFRAMES * eTICKS_PER_SEC), // Send a SF every 4 secs
+    MAX_QAR_WORDS = 1024,  // max # of 32 bit words per SF.
 };
 
 // Note: keep QAR_FORMAT in sync ParamSrcA717QAR.h <-> Ase/A717QAR.h 
 typedef enum
 {
-  QAR_BIPOLAR_RETURN_ZERO, // (default)
-  QAR_HARVARD_BIPHASE,
+    QAR_BIPOLAR_RETURN_ZERO, // (default)
+    QAR_HARVARD_BIPHASE,
 }QAR_FORMAT;
 
 // Note: keep QAR_RUN_STATE in sync ParamSrcA717QAR.h <-> Ase/A717QAR.h
-typedef enum 
+typedef enum
 {
-  eRUNNING = 0,
-  eNO_VALID_CFG,
-  eERR_CBIT,
-  eERR_PBIT,
+    eRUNNING = 0,
+    eNO_VALID_CFG,
+    eERR_CBIT,
+    eERR_PBIT,
 } QAR_RUN_STATE;
 
 typedef struct
 {
-  UINT32* pdata;     // ptr to memory buffer for IOI read/write
-  int     fd;        // ioi file descriptor returned from ioiOpen. 
+    UINT32* pdata;     // ptr to memory buffer for IOI read/write
+    int     fd;        // ioi file descriptor returned from ioiOpen. 
 } A717_IOI_STRUCT, *A717_QAR_DATA_PTR;
 
 
@@ -84,14 +84,14 @@ typedef struct
 #pragma pack(1)
 typedef struct
 {
-  UINT8 bDisabled;              // Indicates whether the QAR Module is disabled.
-  QAR_RUN_STATE qarRunState;    // RUNNING, NO_VALID_CFG,ERR_CBIT, ERR_PBIT
-  UINT8 subframeID;             // 1–4 indicating the latest SF written to IOI, 0 if no data
-  BOOLEAN bRevSync;             // Flag indicating barker codes are bit-reversed
-                                // 0: Regular sync pattern, 1: Reversed sync pattern 
-  UINT16 numWords;              // # of 32-bits words per SF: 64,128,256,512 or 1024
-  UINT32 fmt;                   // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
-  UINT32 statusRegister;        // Echo of current AR717 RX Status Register
+    UINT8 bDisabled;              // Indicates whether the QAR Module is disabled.
+    QAR_RUN_STATE qarRunState;    // RUNNING, NO_VALID_CFG,ERR_CBIT, ERR_PBIT
+    UINT8 subframeID;             // 1–4 indicating the latest SF written to IOI, 0 if no data
+    BOOLEAN bRevSync;             // Flag indicating barker codes are bit-reversed
+                                  // 0: Regular sync pattern, 1: Reversed sync pattern 
+    UINT16 numWords;              // # of 32-bits words per SF: 64,128,256,512 or 1024
+    UINT32 fmt;                   // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
+    UINT32 statusRegister;        // Echo of current AR717 RX Status Register
 }QAR_MODULE_STATUS;
 #pragma pack()
 
@@ -100,10 +100,10 @@ typedef struct
 
 typedef struct
 {
-  BOOLEAN m_bSynced;      // Simulate the QAR modules being in or out sync.
-  BOOLEAN m_bQarEnabled;  // The module is enabled and will generate output based on settings.
-  BOOLEAN m_acceptCfgReq; // Accept/Reject cfg request from ADRF
-  QAR_RUN_STATE qarRunState; // The commanded state to be in
+    BOOLEAN m_bSynced;      // Simulate the QAR modules being in or out sync.
+    BOOLEAN m_bQarEnabled;  // Module is enabled and will generate output based on settings.
+    BOOLEAN m_acceptCfgReq; // Accept/Reject cfg request from ADRF
+    QAR_RUN_STATE qarRunState; // The commanded state to be in
 } TEST_CONTROL;
 
 /*****************************************************************************/
@@ -135,20 +135,20 @@ typedef struct
 // managed by the A717QAR
 class A717Subframe
 {
-  public:
+public:
     ioiStatus   m_ioiStatusSf;   // The most recent ioi Status for this SF
     bool        m_ioiValid;      // Status of the SF ioi for this A717Subframe
     const CHAR* m_pIoiName;      // ptr to ioi name for outputting this SF's data
 
-    A717Subframe( const CHAR* pIoiName, int sfIdx, int barker );
-    void InitIoi();    
+    A717Subframe(const CHAR* pIoiName, int sfIdx, int barker);
+    void InitIoi();
     void Reset();
     void ResetBarker();
-    bool UpdateBuffer( UINT32 offset, UINT8* pBuffer, UINT32 byteCnt );
+    bool UpdateBuffer(UINT32 offset, UINT8* pBuffer, UINT32 byteCnt);
 
     BOOLEAN UpdateIoi();  // write the SF content to the IOI    
 
-  protected:    
+protected:
     A717_IOI_STRUCT   m_ioiObj;  // This SF output IOI buffer and file desc.
 
     int m_frameSize;        // Number of 32 bit words in the SF
@@ -173,7 +173,7 @@ class A717Subframe
 
 class A717Qar
 {
-  public:
+public:
     A717Qar();
 
     // Methods called by ioiProcess
@@ -182,13 +182,13 @@ class A717Qar
     void InitIoi();
 
     // SEC command handlers.
-    void SetRunState( QAR_RUN_STATE newState);
-    QAR_RUN_STATE GetRunState()   { return m_qarModStatus.qarRunState;}
-    void SetQarData( UINT8 sfMask, UINT32 offset, UINT8* pBuffer, UINT32 byteCnt );
-    void ResetBarkers( UINT8 sfMask );
-    void SetWordSize( UINT32 wordSize );
+    void SetRunState(QAR_RUN_STATE newState);
+    QAR_RUN_STATE GetRunState() { return m_qarModStatus.qarRunState; }
+    void SetQarData(UINT8 sfMask, UINT32 offset, UINT8* pBuffer, UINT32 byteCnt);
+    void ResetBarkers(UINT8 sfMask);
+    void SetWordSize(UINT32 wordSize);
 
-  protected:
+protected:
     BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
     BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
 
@@ -203,7 +203,7 @@ class A717Qar
 
     // Objects to handle each A717 SF IOI
     A717Subframe m_a717QarSf1;           // why not A717Subframe m_a717QarSf[4]; ?
-    A717Subframe m_a717QarSf2;           
+    A717Subframe m_a717QarSf2;
     A717Subframe m_a717QarSf3;
     A717Subframe m_a717QarSf4;
     A717Subframe* m_pSF[eNUM_SUBFRAMES]; // convenience array of ptr to the SF obj
@@ -219,7 +219,7 @@ class A717Qar
     // Config request/response IOIs
     A717_IOI_STRUCT m_reqCfgIoi; // input  IOI to handle cfg requests from ADRF
     A717_IOI_STRUCT m_rspCfgIoi; // input  IOI to handle cfg requests from ADRF 
-        
+
     void Initialize();
     void WriteQarStatusMsg(UINT8 subframeID);
 };

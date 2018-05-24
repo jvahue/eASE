@@ -107,12 +107,13 @@ enum SecCmds {
     eSetCcdlState   = 423,  // Enable/Disable CCDL activity
     eGetCcdlValue   = 424,  // Read the raw value sent across the CCDL
     eSetMultiSG     = 425,  // Set multiple sensors
-    eGetParamStatus = 426,  // Get a param's status as a string
+    eGetParamStatus = 426,  // Get a parameter's status as a string
+
     eResetQar       = 427,  // Put QAR in initialized state
     eSetQarState    = 428,  // Enable / Disable / A717 QAR
-    eSetQarData     = 429,  // Set the data values in the specified Subframe
+    eSetQarData     = 429,  // Set the data values in the specified Sub-frame
     eGetQarState    = 430,  // Get status  of A717 QAR object.
-    eResetBarker    = 431,  // Reset the Barker code for the designated QARs to cfg'ed default.
+    eResetBarker    = 431,  // Reset the Barker code for the designated QARs to defaults
 
     //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF
