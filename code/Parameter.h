@@ -79,6 +79,17 @@ public:
     SINT32     m_flexSeq;         // param seq index/root TX index
     Parameter* m_flexRoot;        // for flex children and pointer to their parent
 
+    // QAR Parameter stuff
+    UINT8   m_qarSfMask;   // Sub-frame mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
+    UINT8   m_qarRateHz;   // actual QAR rate Hz 1, 2, 4, 8, 16, 32, 64 (ONLY)
+                           // MIF = 10ms/100Hz so we cannot update anything above 100Hz
+    UINT32  m_qarIndex;    // which slot are we computing 0 .. (m_qarRateHz-1)
+    UINT16  m_gpaMask;     // field mask for value (or LSB)
+    UINT16  m_gpaWord;     // base index for value (or LSB)
+    UINT16  m_gpeMask;     // field mask for MSB
+    UINT16  m_gpeWord;     // base index for MSB
+    FLOAT32 m_qarPeriod;   // actual QAR period (1.0/Hz)
+
     SignalGenerator m_sigGen;     // the parameter's signal generator
     UINT32 m_updateDuration;
 };

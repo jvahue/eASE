@@ -263,7 +263,6 @@ void IoiProcess::RunSimulation()
 
     UpdateIoi();
     m_ioiStatic.UpdateStaticIoi();
-    m_A717Qar.UpdateIoi();
 
     // at 50 Hz pack the CCDL message and send it out
     if ((m_systemTick & 1) == 1)
@@ -1278,7 +1277,7 @@ BOOLEAN IoiProcess::CheckCmd(SecComm& secComm)
       // charDataSize - size of charData in bytes.
 
         m_A717Qar.SetQarData(((UINT8)(request.variableId & 0xF)),
-            (UINT32)request.value,
+                             (UINT32)request.value,
                              (UINT8*)request.charData,
                              request.charDataSize);
         secComm.m_response.successful = true;

@@ -20,7 +20,7 @@
 //----------------------------------------------------------------------------/
 #include "AseCommon.h"
 #include "alt_basic.h"
-#include "A717QAR.h"
+#include "ioiStaticCls.h"
 
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
@@ -112,10 +112,6 @@ BOOLEAN OpenIoi(const CHAR* pIoiName, A717_IOI_STRUCT* pIOIStruct,
 //=============================================================================================
 
 A717Qar::A717Qar()
-    : m_a717QarSf1(ioiSfName[0], 1, 0x0247)
-    , m_a717QarSf2(ioiSfName[1], 2, 0x05b8)
-    , m_a717QarSf3(ioiSfName[2], 3, 0x0a47)
-    , m_a717QarSf4(ioiSfName[3], 4, 0x0db8)
     , m_bInit(FALSE) // flag to do post construct init
     , m_nextSfIdx(0)
     , m_crntTick(0)
@@ -133,21 +129,22 @@ A717Qar::A717Qar()
     m_testCtrl.qarRunState = eRUNNING;
 }
 
+void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts, 
+                    StaticIoiObj* sf1, StaticIoiObj* sf2, 
+                    StaticIoiObj* sf3, StaticIoiObj* sf4)
+{
+
+}
+
 //---------------------------------------------------------------------------------------------
 void A717Qar::InitIoi()
 {
     // Initialize the cfg and status IOI's. Tell the subframe objs to do likewise
     Initialize();
 
-    // Open the status IOI
-    OpenIoi(QAR_A717_STATUS_NAME,
-            &m_moduleStatusIoi, (void*)&m_qarModStatus, sizeof(m_qarModStatus),
-            &m_statusIoiValid, ioiWritePermission);
-
     // TODO OpenIOi for recfg Req
     // TODO OpenIOi for recfg Resp
-
-
+    
     for (int i = 0; i < eNUM_SUBFRAMES; ++i)
     {
         m_pSF[i]->InitIoi();
@@ -155,7 +152,7 @@ void A717Qar::InitIoi()
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::UpdateIoi()
+int A717Qar::UpdateIoi()
 {
     // This function is called at 100Hz
     // Determine if it is time to send out a 1Hz SF/status update, etc...
@@ -209,7 +206,9 @@ void A717Qar::UpdateIoi()
         WriteQarStatusMsg(subFrameID);
 
         m_crntTick = 0;
-    }  
+    } 
+
+    return 0;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -307,7 +306,8 @@ void A717Qar::SetWordSize(UINT32 wordSize)
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::Reset()
+void Reset(StaticIoiStr* cfgRqst, StaticIoiStr* cfgRsp, StaticIoiStr* sts,
+           StaticIoiStr* sf1, StaticIoiStr* sf2, StaticIoiStr* sf3, StaticIoiStr* sf4);
 {
     for (int i = 0; i < eNUM_SUBFRAMES; ++i)
     {

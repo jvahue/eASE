@@ -170,6 +170,7 @@ void ParamConverter::SetIoiName()
     {
         sprintf(m_ioiName, "CROSS");
     }
+    // TODOjv: Add QAR_A664/A717 types here to find and associated SF buffers in IOI static
 }
 
 //---------------------------------------------------------------------------------------------

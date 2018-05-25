@@ -249,13 +249,17 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         }
     }
 
+    // TODOjv and QAR_A664/717
+    // for QAR set m_updateIntervalTicks = 0
+    // and compute next frame during the actual update see Parameter::Update
     if (m_flexDataTbl != -1)
     {
+        // reduce the rate by a factor of 2 for flex so we don't overwrite the flex data
         m_updateMs = 10000 / ((paramInfo->rateHz * 10) / 2);
     }
     else if (paramInfo->src == PARAM_SRC_CROSS)
     {
-      m_updateMs = 1000 / paramInfo->rateHz;
+        m_updateMs = 1000 / paramInfo->rateHz;
     }
     else
     {
@@ -305,8 +309,8 @@ bool Parameter::IsChild(Parameter& other)
             else
             {
                 m_isChild = (//m_a429.channel == other.m_a429.channel &&  // same channel
-                    m_a429.label   == other.m_a429.label   &&  // same label
-                    m_a429.sdBits  == other.m_a429.sdBits);
+                             m_a429.label == other.m_a429.label   &&  // same label
+                             m_a429.sdBits == other.m_a429.sdBits);
             }
         }
 
@@ -406,7 +410,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 
         else if (m_flexType == eFlexSeq1)
         {
-            UINT32 seqX = (m_flexSeq & 0xF) << 24 ;
+            UINT32 seqX = (m_flexSeq & 0xF) << 24;
             m_rawValue = flexSeq1Table[m_flexDataTbl].data[m_flexSeq];
 
             // pack the seq index
@@ -513,26 +517,26 @@ char* Parameter::ParamInfo(char* buffer, int row)
 
     if (m_type == PARAM_FMT_A429)
     {
-        if ( row == 0)
+        if (row == 0)
         {
             //               #   Type(Fmt) Rate Child SigGen
             //               0   5  11  18      25     31  34
             //               v   v  v   v       v      v   v
             sprintf(buffer, "%4d:%s(%s) %2dHz - %2d in %2d %s",
-                m_index,
-                paramType5[m_type],
-                a429Fmt5[m_a429.format],
-                m_rateHz,
-                m_childCount+1, m_updateDuration,
-                m_isChild ? "Kid" : ""
+                    m_index,
+                    paramType5[m_type],
+                    a429Fmt5[m_a429.format],
+                    m_rateHz,
+                    m_childCount + 1, m_updateDuration,
+                    m_isChild ? "Kid" : ""
             );
         }
-        else if ( row == 1)
+        else if (row == 1)
         {
             sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
             buffer[39] = '\0';
         }
-        else if ( row == 2)
+        else if (row == 2)
         {
             m_sigGen.GetRepresentation(sgRep);
             sprintf(buffer, "     %s", sgRep);
@@ -544,25 +548,25 @@ char* Parameter::ParamInfo(char* buffer, int row)
     }
     else
     {
-        if ( row == 0)
+        if (row == 0)
         {
             //               #   Type(Fmt) Rate Child SigGen
             //               0   5  11  18      25     31  34
             //               v   v  v   v       v      v   v
             sprintf(buffer, "%4d:%s %2dHz - %2d in %2d %s",
-                m_index,
-                paramType5[m_type],
-                m_rateHz,
-                m_childCount+1, m_updateDuration,
-                m_isChild ? "Kid" : ""
-                );
+                    m_index,
+                    paramType5[m_type],
+                    m_rateHz,
+                    m_childCount + 1, m_updateDuration,
+                    m_isChild ? "Kid" : ""
+            );
         }
-        else if ( row == 1)
+        else if (row == 1)
         {
             sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
             buffer[39] = '\0';
         }
-        else if ( row == 2)
+        else if (row == 2)
         {
             m_sigGen.GetRepresentation(sgRep);
             sprintf(buffer, "     %s", sgRep);

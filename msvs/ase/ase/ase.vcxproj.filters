@@ -90,7 +90,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\A717QAR.h">
+    <ClInclude Include="..\..\..\code\ioiStaticCls.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -155,7 +155,7 @@
     <ClCompile Include="..\..\..\code\video.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\A717QAR.cpp">
+    <ClCompile Include="..\..\..\code\ioiStaticCls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

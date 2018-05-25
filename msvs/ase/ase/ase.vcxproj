@@ -89,7 +89,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\A717QAR.h" />
+    <ClInclude Include="..\..\..\code\ioiStaticCls.h" />
     <ClInclude Include="..\..\..\code\AseCommon.h" />
     <ClInclude Include="..\..\..\code\AseStaticIoiInfo.h" />
     <ClInclude Include="..\..\..\code\AseThread.h" />
@@ -117,7 +117,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\A717QAR.cpp" />
+    <ClCompile Include="..\..\..\code\ioiStaticCls.cpp" />
     <ClCompile Include="..\..\..\code\aseMain.cpp" />
     <ClCompile Include="..\..\..\code\AseThread.cpp" />
     <ClCompile Include="..\..\..\code\ccdl.cpp" />

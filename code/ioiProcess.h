@@ -9,7 +9,6 @@
 #include "MailBox.h"
 #include "Parameter.h"
 #include "ccdl.h" // this needs to be after CmdRspThread.h so it get video.h
-#include "A717QAR.h"  // Used to implement a UTAS QAR object
 
 // File: ioiProcess.h
 
@@ -92,14 +91,6 @@ protected:
     UINT32 m_page;
     UINT32 m_paramDetails;
 
-
-
-
-
-
-
-
-
     UINT32 m_scheduledX;
     UINT32 m_remoteX;
     UINT32 m_scheduled;
@@ -134,7 +125,6 @@ protected:
     char m_localTriggers[eMaxTriggerSize];
     char m_remoteTriggers[eMaxTriggerSize];
 
-
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;
     INT32 m_ioiChanId; 
@@ -153,9 +143,6 @@ protected:
     // Static IOI Data
     StaticIoiContainer m_ioiStatic;
 
-    //------------------------------------------
-    // UTAS A717Qar - 4x SF IOI, 2x Cfg IOIs, 1 status IOI
-    A717Qar m_A717Qar;
 };
 
 #endif
