@@ -1,8 +1,6 @@
 #ifndef IOISTATIC_H
 #define IOISTATIC_H
 
-#include <ioiapi.h>
-
 #include "ioiStaticCls.h"  // Used to implement a UTAS QAR object
 #include "SecComm.h"
 
@@ -27,6 +25,8 @@ public:
 
     //IocResponse GetStaticIoiData(SecRequest& request);
     void UpdateStaticIoi();
+
+    void UpdateRtcClock();
     bool SetStaticIoiData(SecComm& secComm);
     bool GetStaticIoiData(SecComm& secComm);
     void SetNewState(SecRequest& request);
@@ -40,9 +40,6 @@ public:
     StaticIoiObj* m_staticAseIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
 
-    A664Qar m_a664Qar;
-    A717Qar m_a717Qar;
-
     UINT32 m_aseInIndex;
     UINT32 m_aseOutIndex;
     UINT32 m_validIoiOut;
@@ -51,6 +48,10 @@ public:
     UINT32 m_writeErrorZ1;
     UINT32 m_readError;
     UINT32 m_readErrorZ1;
+
+    // Smart Handlers for Static IOIs with behavior
+    A664Qar m_a664Qar;
+    A717Qar m_a717Qar;
 };
 
 #endif

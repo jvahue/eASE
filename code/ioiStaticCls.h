@@ -91,7 +91,7 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN m_bSynced;      // Simulate the QAR modules being in or out sync.
+    BOOLEAN m_bSynced;      // Simulate the QAR modules being in or out of sync.
     BOOLEAN m_bQarEnabled;  // Module is enabled and will generate output based on settings.
     BOOLEAN m_acceptCfgReq; // Accept/Reject cfg request from ADRF
     QAR_RUN_STATE qarRunState; // The commanded state to be in
@@ -209,7 +209,7 @@ public:
 };
 
 //=============================================================================================
-class A664Qar : public StaticIoiObj
+class A664Qar
 {
 public:
     enum a664QarConst {
@@ -240,6 +240,7 @@ public:
 
     virtual int UpdateIoi();
     virtual bool Update();
+    virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
     virtual bool TestControl(SecRequest& request);
 
     StaticIoiStr* m_idl;     // the IOI buffer sending the data
@@ -276,24 +277,21 @@ public:
 };
 
 //=============================================================================================
-class A717Qar : A664Qar
+class A717Qar : public A664Qar
 {
 public:
     A717Qar();
 
-    // Methods called by ioiProcess
+    // Methods called by the IOI Static container
+    void InitIoi();
     void Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts,
                StaticIoiObj* sf1, StaticIoiObj* sf2, StaticIoiObj* sf3, StaticIoiObj* sf4);
-    void InitIoi();
 
     // SEC command handlers.
-    void SetQarData(UINT8 sfMask, UINT32 offset, UINT8* pBuffer, UINT32 byteCnt);
-    void ResetBarkers(UINT8 sfMask);
-    void SetWordSize(UINT32 wordSize);
-
     virtual int UpdateIoi();
+    virtual bool TestControl(SecRequest& request);
+    virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
-protected:
     BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
     BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
 
@@ -318,7 +316,6 @@ protected:
     StaticIoiStr* m_status;       // status IOI
     StaticIoiStr* m_sf[eSfCount]; // SF IOIs
 
-    void Initialize();
     void WriteQarStatusMsg(UINT8 subframeID);
 };
 

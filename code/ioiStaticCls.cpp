@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2014-2017 Knowlogic Software Corp.
+//          Copyright (C) 2014-2018 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
-//    File: A717QAR.cpp
+//    File: ioiStaticCls.cpp
 //
 //    Description: Implements test control object for the UTAS A717 Module
 //
@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <ioiapi.h>
+
 //----------------------------------------------------------------------------/
 // Software Specific Includes                                                -/
 //----------------------------------------------------------------------------/
@@ -25,12 +27,15 @@
 //----------------------------------------------------------------------------/
 // Local Defines                                                             -/
 //----------------------------------------------------------------------------/
+#define QAR_A717_CFG_RQST_NAME "ADRF_A717_CONFIG_REQ"
+#define QAR_A717_CFG_RSP_NAME "A717_ADRF_CONFIG_ACK"
+#define QAR_A717_STATUS_NAME "A717_STATUS_MSG"
+
 #define QAR_A717_IOI_NAME1 "A717Subframe1"
 #define QAR_A717_IOI_NAME2 "A717Subframe2"
 #define QAR_A717_IOI_NAME3 "A717Subframe3"
 #define QAR_A717_IOI_NAME4 "A717Subframe4"
 
-#define QAR_A717_STATUS_NAME "A717Status"
 //----------------------------------------------------------------------------/
 // Local Typedefs                                                            -/
 //----------------------------------------------------------------------------/
@@ -38,15 +43,7 @@
 //----------------------------------------------------------------------------/
 // Local Variables                                                           -/
 //----------------------------------------------------------------------------/
-
-// Cfg Mode settings.
-
-// Written by A717QAR, READ-ONLY by A717Subframe
-BOOLEAN     g_bReverse;     // Use reverse barker id 0 = normal, 1 = reverse
-UINT16      g_frameSize;    // Number of 32 bit words in the subframe
-QAR_FORMAT  g_fmt;          // 
-
-
+UINT32 mirrorQarA664[A664Qar::eSfCount][A664Qar::eSfWordCount];
 
 //----------------------------------------------------------------------------/
 // Constant Data                                                             -/
@@ -60,6 +57,7 @@ const CHAR* ioiSfName[] = { QAR_A717_IOI_NAME1,
 
 const CHAR* ioiStatusName = QAR_A717_STATUS_NAME;
 
+//---------------------------------------------------------------------------------------------
 UINT16 ReverseBarker(UINT16 barker)
 {
 
@@ -80,75 +78,782 @@ UINT16 ReverseBarker(UINT16 barker)
     return revBarker;
 }
 
-//---------------------------------------------------------------------------------------------
-// General function used to open Ioi controlled by the A717Qar object directly
-BOOLEAN OpenIoi(const CHAR* pIoiName, A717_IOI_STRUCT* pIOIStruct,
-                void* pMsgBuffer, UINT32 buffSize, BOOLEAN* pIoiValid,
-                ioiPermissionType permission)
-{
-  // Init  QAR_STATUS IOI
-  // Open the output IOI for this subframes data
-    ioiStatus openStatus;
-    ioiStatus closeStatus;
-    memset(pMsgBuffer, 0, buffSize);
-    pIOIStruct->pdata = (UINT32*)pMsgBuffer;
-    if (*pIoiValid)
-    {
-        closeStatus = ioi_close(pIOIStruct->fd);
-    }
-    if (closeStatus == ioiSuccess)
-    {
-        *pIoiValid = FALSE;
-    }
-    openStatus = ioi_open(pIoiName, permission, &pIOIStruct->fd);
-    if (openStatus == ioiSuccess)
-    {
-        *pIoiValid = TRUE;
-    }
-    return *pIoiValid;
-}
 //=============================================================================================
 // Public interfaces
 //=============================================================================================
+StaticIoiObj::StaticIoiObj(char* name, bool isInput)
+    : m_ioiChan(0)
+    , m_ioiValid(false)
+    , m_ioiRunning(true)
+    , m_isAseInput(isInput)
+    , m_isParam(false)
+    , m_updateCount(0)
+{
+    strcpy(m_ioiName, name);
+    strcpy(m_shortName, name);
+    CompressName(m_shortName, 18);
+}
 
+//---------------------------------------------------------------------------------------------
+bool StaticIoiObj::OpenIoi()
+{
+    ioiStatus openStatus;
+
+    if (m_isAseInput)
+    {
+        openStatus = ioi_open(m_ioiName, ioiReadPermission, (int*)&m_ioiChan);
+    }
+    else
+    {
+        openStatus = ioi_open(m_ioiName, ioiWritePermission, (int*)&m_ioiChan);
+    }
+    m_ioiValid = openStatus == ioiSuccess;
+    m_ioiRunning = m_ioiValid;
+    return m_ioiValid;
+}
+
+//---------------------------------------------------------------------------------------------
+// Return the status of an actual IOI write.  For params we skip just return success
+bool StaticIoiObj::WriteStaticIoi(void* data)
+{
+    ioiStatus writeStatus = ioiSuccess;
+
+    // if we are valid and running, [and not being run by a parameter?]
+    if (m_ioiValid && m_ioiRunning)
+    {
+        writeStatus = ioi_write(m_ioiChan, data);
+    }
+
+    m_updateCount += (m_ioiValid && m_ioiRunning && writeStatus == ioiSuccess) ? 1 : 0;
+    return writeStatus == ioiSuccess;
+}
+
+//---------------------------------------------------------------------------------------------
+// Return the status of an actual IOI write.  For params we skip just return success
+bool StaticIoiObj::ReadStaticIoi(void* data)
+{
+    ioiStatus readStatus = ioiSuccess;
+
+    if (m_ioiValid && m_ioiRunning)
+    {
+        readStatus = ioi_read(m_ioiChan, data);
+    }
+
+    m_updateCount += (m_ioiValid && m_ioiRunning && readStatus == ioiSuccess) ? 1 : 0;
+    return readStatus == ioiSuccess;
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiObj::Display(char* dest, UINT32 dix)
+{
+    *dest = '\0';
+    return dest;
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiObj::CompressName(char* src, int size)
+{
+    char* vowel;
+    char* from;
+    char* to;
+    int at = strlen(src) - 1;
+
+    // remove vowels from the back until less than 24 chars long
+    while (strlen(src) > size && at >= 0)
+    {
+        vowel = strpbrk(&src[at], "aeiouAEIOU");
+        if (vowel != NULL)
+        {
+            to = vowel;
+            from = ++vowel;
+            while (*from != NULL && from != &src[at])
+            {
+                *to++ = *from++;
+            }
+            *to = '\0';
+        }
+        at -= 1;
+    }
+
+    if (strlen(src) > size)
+    {
+        src[size] = '\0';
+    }
+
+    return src;
+}
+
+//---------------------------------------------------------------------------------------------
+void StaticIoiObj::SetRunState(bool newState)
+{
+    m_ioiRunning = newState;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiInt::SetStaticIoiData(SecRequest& request)
+{
+    data = request.resetRequest;
+    Update();
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiInt::Display(char* dest, UINT32 dix)
+{
+    if (m_ioiRunning)
+    {
+        sprintf(dest, "%2d:%s: 0x%08x", dix, m_shortName, data);
+    }
+    else
+    {
+        sprintf(dest, "xx:%s: 0x%08x", m_shortName, data);
+
+    }
+    return dest;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiInt::Update()
+{
+    if (m_isAseInput)
+    {
+        return ReadStaticIoi(&data);
+    }
+    else
+    {
+        return WriteStaticIoi(&data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiInt::GetStaticIoiData(IocResponse& m_response)
+{
+    m_response.streamSize = data;
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiFloat::SetStaticIoiData(SecRequest& request)
+{
+    data = request.value;
+    Update();
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiFloat::Display(char* dest, UINT32 dix)
+{
+    if (m_ioiRunning)
+    {
+        sprintf(dest, "%2d:%s: %f", dix, m_shortName, data);
+    }
+    else
+    {
+        sprintf(dest, "xx:%s: %f", m_shortName, data);
+    }
+    return dest;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiFloat::Update()
+{
+    if (m_isAseInput)
+    {
+        return ReadStaticIoi(&data);
+    }
+    else
+    {
+        return WriteStaticIoi(&data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiFloat::GetStaticIoiData(IocResponse& m_response)
+{
+    m_response.value = data;
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+StaticIoiStr::StaticIoiStr(char* name, char* value, int size, bool isInput/*=false*/)
+    : StaticIoiObj(name, isInput)
+    , displayAt(0)
+    , data(value)
+    , bytes(size)
+{
+    memset(data, 0, bytes);
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiStr::SetStaticIoiData(SecRequest& request)
+{
+    UINT32 offset = request.clearCfgRequest;
+
+    if (offset == 0)
+    {
+        memset(data, 0, bytes);
+    }
+
+    memcpy(&data[offset], request.charData, request.charDataSize);
+    Update();
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+char* StaticIoiStr::Display(char* dest, UINT32 dix)
+{
+    unsigned int* dp = (unsigned int*)&data[displayAt];
+    if (m_ioiRunning)
+    {
+        sprintf(dest, "%2d:%s: 0x%08x", dix, m_shortName, *dp);
+    }
+    else
+    {
+        sprintf(dest, "xx:%s: 0x%08x", m_shortName, *dp);
+    }
+
+    return dest;
+}
+
+//---------------------------------------------------------------------------------------------
+bool StaticIoiStr::Update()
+{
+    if (m_isAseInput)
+    {
+        return ReadStaticIoi(data);
+    }
+    else
+    {
+        return WriteStaticIoi(data);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+// To handle data larger than the response streamData we pass in the streamSize variable the
+// start offset given to us by PySte for eGetStaticIoi requests
+bool StaticIoiStr::GetStaticIoiData(IocResponse& m_response)
+{
+    UINT32 offset = m_response.streamSize;
+    UINT32 left = bytes - offset;
+
+    memcpy(m_response.streamData, &data[offset], left);
+    m_response.streamSize = left;
+    return true;
+}
+
+//=============================================================================================
+A664Qar::A664Qar()
+{
+}
+
+void A664Qar::Reset(StaticIoiObj* buffer)
+{
+#define kBusrtBytes  ((52 * 8) - 4)
+    m_idl = static_cast<StaticIoiStr*>(buffer);  // the buffer associated with the IOI
+    m_kMaxRandom = (m_idl->bytes - kBusrtBytes) / 8;
+
+    // which sub-frame are we outputting
+    m_sf = 0;          // start sending from SF1
+    m_skipSfMask = 0;  // don't skip any
+    m_sfWordIndex = 0; // start sending from word index 0
+    m_random = 0;      // default 0 random words in a burst
+
+    m_garbageSet = 0;
+    m_garbageCnt = 0;
+
+    // which burst of the sub-frame are we sending
+    m_burst = 0;       // start with the first burst group
+    m_burstWord = 0;   // which word we are on in the burst
+    for (int i = 0; i < eBurstCount - 4; ++i)
+    {
+        m_burstSize[i] = 51;
+    }
+    m_burstSize[16] = 52;
+    m_burstSize[17] = 52;
+    m_burstSize[18] = 52;
+    m_burstSize[19] = 52;
+
+    // ensure these are not zero as that terminates processing in the UUT
+    m_ndo[0] = 0x97560801;
+    m_ndo[1] = 0x97561002;
+    m_ndo[2] = 0x97561803;
+    m_ndo[3] = 0x97562004;
+    m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
+    m_frameCount = 0;
+
+    m_wordSeqEnabled = 0;
+    memset(m_wordSeq, 0, sizeof(m_wordSeq));
+    m_repeatCount = -1;
+    m_repeatIndex = 0;
+
+    // zero out all of the QAR data values all 4096 of them
+    memset(m_qarWords, 0, sizeof(m_qarWords));
+}
+
+//---------------------------------------------------------------------------------------------
+// This function allows for setting data values in the QAR data stream, additionally it can
+// be used to set the NDO SF identifier values
+// variableId = index for _a664_to_ioc_eicas_
+// sigGenId = set operation mode
+//   1: Set Data - we are in this mode to be here
+//   2: disable IOI output - handled in IoiProcess.CheckCmd level for eSetStaticIoi
+// charData: holds the data to be written UINT8 or UINT32 (NDO)
+// charSize: holds the number of bytes to move
+// clearCfgRequest: the byte offset into m_qarWords
+bool A664Qar::TestControl(SecRequest& request)
+{
+    bool status = true;
+    SINT32 offset = (SINT32)request.clearCfgRequest;
+    UINT32 details = request.resetRequest;
+
+    if (offset == eQarNdo)
+    {
+        m_nonNdo = 0;  // init recompute the nonNdo Id
+
+                       // setting up the NDO values
+        UINT32* data = (UINT32*)request.charData;
+        // set the SF Word Count and NDO ID values
+        for (int i = 0; i < eSfCount; ++i)
+        {
+            m_ndo[i] = *data++;
+            m_nonNdo |= m_ndo[i];
+        }
+
+        m_nonNdo += 1;  // after ORing these all together + 1 to make it a non-NDO
+    }
+    else if (offset == eQarSfSeq)
+    {
+        int* data = (int*)request.charData;
+        m_skipSfMask = *data;
+    }
+    else if (offset == eQarWordSeq)
+    {
+        // packed data is word index (corrected for SF) and cmd value
+        UINT16* index = (UINT16*)request.charData;
+        UINT16* cmdWord = (UINT16*)request.charData;
+        UINT16* dest = (UINT16*)&m_wordSeq[0][0];
+
+        cmdWord += 1;
+
+        do
+        {
+            *(dest + *index) = *cmdWord;
+            index += 2;
+            cmdWord += 2;
+        } while (!(*index == eQarStop && *cmdWord == eQarStop));
+
+        // clear the QAR-A664 data mirror
+        memset(mirrorQarA664, 0, sizeof(mirrorQarA664));
+    }
+    else if (offset == eQarWordSeqState)
+    {
+        UINT16* dest = &m_wordSeqEnabled;
+        // here we are moving data into our SF data array
+        *dest = *(UINT16*)request.charData;
+        if (m_wordSeqEnabled == 2)
+        {
+            // reset the WSB
+            memset(m_wordSeq, 0, sizeof(m_wordSeq));
+            m_wordSeqEnabled = 0;
+        }
+
+        if (m_wordSeqEnabled == 1)
+        {
+            // disable random data insets
+            m_randomSave = m_random;
+            m_random = 0;
+        }
+        else
+        {
+            m_random = m_randomSave;
+        }
+    }
+    else if (offset == eQarRandom)
+    {
+        // we limit this to 50 in PySte and add suspenders to our belt here
+        int* dest = &m_random;
+        *dest = *(int*)request.charData;
+        if (m_random > m_kMaxRandom)
+        {
+            m_random = m_kMaxRandom;
+        }
+    }
+    else if (offset == eQarGarbage)
+    {
+        // send multiple sets of garbage data - not used during testing 5/25/18
+        int* dest = &m_garbageSet;
+        *dest = *(int*)request.charData;
+        if (m_garbageSet > 2)
+        {
+            m_garbageSet = 2;
+        }
+        m_garbageCnt = m_garbageSet;
+    }
+    else
+    {
+        // here we are moving data into our SF data array
+        UINT8* dest = (UINT8*)&m_qarWords[0][0] + offset;
+        memcpy(dest, request.charData, request.charDataSize);
+    }
+
+    return status;
+}
+
+//---------------------------------------------------------------------------------------------
+// This function handles all the processing associated with the A664 QAR object
+int A664Qar::UpdateIoi()
+{
+    int writeErr = 0;
+
+    // specialized handling for _a664_to_ioc_eicas_ at 20Hz
+    m_schedule += 1;
+
+    // --------------------------------------------------------------------------
+    // BUGjv: This code make me nervous as it seems we might try to 
+    //        write garbage and data in the same MIF 
+    // scripts do not use the eQarGarbage cmd as of 5/25/18 so this is inactive
+    if (m_schedule < 5)
+    {
+        if (m_garbageCnt == 0)
+        {
+            m_garbageCnt = m_garbageSet;
+        }
+
+        if (m_garbageCnt > 0)
+        {
+            m_garbageCnt -= 1;
+            // send total garbage until 
+            Garbage();
+            if (!m_idl->Update())
+            {
+                writeErr = 1;
+            }
+        }
+    }
+
+    if (m_schedule == 4)
+    {
+        // update the burst data
+        Update();
+    }
+    else if (m_schedule == 5)  // send data at 20Hz
+    {
+        // send the burst data
+        m_schedule = 0;
+        if (!m_idl->Update())
+        {
+            writeErr = 1;
+        }
+    }
+
+    return writeErr;
+}
+
+//---------------------------------------------------------------------------------------------
+// This function fills in a bursts - the most data this will fill in is:
+// 52 QAR words in a burst + 60 random words or (52 + 60) * 8 = 896 of 1024 byte buffer
+// It provides the following capabilities for testing:
+// A. Fill in randomly placed non-QAR NDO and data, up to 50 extra intra QAR data + 10 post QAR
+// Error Injection
+// 1. Skip a SF
+// 2. Skip words in a burst
+// 3. ???
+bool A664Qar::Update()
+{
+    UINT32 lastSf;
+    UINT32 lastSfWord;
+    UINT32 wordValue;
+    // Fill in the IOI buffer with content from the sf/burst going out
+    UINT32 totalInsert = 0;   // number of "words"  insert NDO/DATA
+    UINT32 randomInsert = 0;  // number of randomly insert NDO/DATA
+    UINT32* fillPtr = (UINT32*)m_idl->data;    // where the data is going
+
+    *(fillPtr++) = m_frameCount++;
+
+    m_endBurst = false;
+
+    // Fill in the data for the sf/burst 
+    // no need for the memset below ***see termination w/0 at end of func
+    // memset(m_ioiBuffer->data, 0, m_ioiBuffer->bytes); 
+    while (totalInsert < eMaxBurstWords && !m_endBurst)
+    {
+        // check random data insert
+        if (randomInsert < m_random && (HsTimer() & 1))
+        {
+            // insert random data
+            *(fillPtr++) = (m_nonNdo + randomInsert);
+            *(fillPtr++) = randomInsert << 16;  // insert in MSW
+            randomInsert += 1;
+        }
+        else
+        {
+            // if we are not skipping every SF
+            if (m_skipSfMask < 0xF)
+            {
+                // insert burst data
+                *(fillPtr++) = m_ndo[m_sf];
+
+                // save these because NextWord will update them
+                lastSf = m_sf;
+                lastSfWord = m_sfWordIndex;
+
+                wordValue = NextWord();
+                *(fillPtr++) = wordValue;
+
+                mirrorQarA664[lastSf][lastSfWord] = wordValue;
+            }
+        }
+        totalInsert += 1;
+    }
+
+    //-----------------------------------------------------------
+    // fill in a few more random based on how many we have done
+    if (randomInsert < m_random)
+    {
+        // fill in until we have m_random
+        while (randomInsert < m_random)
+        {
+            *(fillPtr++) = (m_nonNdo + randomInsert);
+            *(fillPtr++) = randomInsert << 16;  // insert in MSW
+            randomInsert += 1;
+        }
+    }
+
+    // terminate the data set (max 896 bytes + 4 here = 900 bytes of 1024) 
+    *(fillPtr++) = 0;
+
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------
+// determine if this set ioi is targeted to this object
+bool A664Qar::HandleRequest(StaticIoiObj* targetIoi)
+{
+    return targetIoi == m_idl;
+}
+
+//---------------------------------------------------------------------------------------------
+// send garbage data to the ADRF
+void A664Qar::Garbage()
+{
+    UINT32* fillPtr = (UINT32*)m_idl->data;    // where the data is going
+
+    *(fillPtr++) = m_frameCount++;
+
+    // now fill in 400 words of garbage
+    for (int i = 0; i < 400; ++i)
+    {
+        *(fillPtr++) = (i * 2) + 1;
+        *(fillPtr++) = (i * 2) + 1;
+    }
+}
+
+/*---------------------------------------------------------------------------------------------
+Compute the next word from the current SF to send.  This function implements the word
+sequence command buffer that can be used to specify ways to screw up a standard data stream
+of QAR data.The word sequence buffer (WSB) is either enabled or disabled.  When disabled data
+proceeds from word to word in each SF.  When the WSB is enabled it implements the following
+commands on a word by word basis:
+
+0. eWsbNop increment to next natural word number
+only used to clear an existing entry on a word, otherwise don't use
+1. eWsbGoto: skip N words and resume
+2. eWsbRepeat: repeat a given word N times,
+repeat 1 is normal operation so repeat 2 causes it to repeat
+3. eWsbSf: Send in a bad SF identifier for this word
+4. eWsbWc: Send in a bad WC for this word
+
+The WSB consists of 4 x 1024 word that hold opcodes and data.  Opcode is in the least
+significant 3 bits allowing for 8 opcodes, of which we have used 3, the upper 13 bits are
+used for the operand. The word sequence buff is initialized to NOP for all words. To set it use
+the provided functions
+---------------------------------------------------------------------------------------------*/
+UINT32 A664Qar::NextWord()
+{
+    int opcode;
+    int operand;
+    int nextWord;
+    int wordStep;
+    int sfMove;
+    UINT32 wordValue;
+
+    int sfId = -1;
+    int wordId = -1;
+
+    // pre-fill this based on the m_sfWordIndex/sf before we change them
+    wordValue = (m_sfWordIndex << 20) |                  // word index 0 .. 1023
+        (m_qarWords[m_sf][m_sfWordIndex] << 8) | // word value
+        (m_sf + 1);                              // SF 1 .. 4
+
+    if (m_wordSeqEnabled)
+    {
+        // have we just finished repeatedly sending the same word, then move forward how times
+        // it was repeated
+        if (m_repeatCount == 0)
+        {
+            m_repeatCount = -1;
+            m_sfWordIndex += (m_wordSeq[m_sf][m_sfWordIndex] >> 3) - 1;
+        }
+
+        // find out what we should be doing at this word position
+        opcode = m_wordSeq[m_sf][m_sfWordIndex] & 0x7;  // 7 actions and a NOP
+        operand = m_wordSeq[m_sf][m_sfWordIndex] >> 3;  // 13 bits
+
+        switch (opcode)
+        {
+        case 0: // NOP = just pack the word and move to the next word
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+
+        case 1: // Goto Word - offset from current word is in operand
+            sfMove = operand / eSfWordCount;  // how many SF are we moving max move 8191
+            wordStep = operand - (sfMove * eSfWordCount);
+            nextWord = m_sfWordIndex + wordStep;
+            if (nextWord > eSfWordCount)
+            {
+                NextSf();
+                nextWord -= eSfWordCount;
+            }
+
+            for (int i = 0; i < sfMove; ++i)
+            {
+                NextSf();
+            }
+
+            // we are in the same SF let's correct which burst we are in and the busrtWord
+            // there are 16 51 word busts followed by 4 52 word bursts
+            if (nextWord < eTotalSmallBurstWords)
+            {
+                m_burst = nextWord / eSmallBurstSize;
+                m_burstWord = nextWord % eSmallBurstSize;
+            }
+            else
+            {
+                m_burst = (nextWord - eTotalSmallBurstWords) / eLargeBurstSize;
+                m_burstWord = (nextWord - eTotalSmallBurstWords) % eLargeBurstSize;
+            }
+            m_sfWordIndex = nextWord;
+            break;
+
+        case 2: // Repeat Word n times
+            if (m_repeatCount == -1)
+            {
+                // initialize the repeat process
+                m_repeatCount = operand - 1;
+                m_repeatIndex = m_sfWordIndex;
+            }
+            else if (m_repeatCount > 0)
+            {
+                m_repeatCount -= 1;
+            }
+
+            m_burstWord += 1;
+            break;
+
+        case 3: // Send in a bad SF identifier for this word
+            sfId = operand;
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+
+        case 4: // Send in a bad word identifier for this word
+            wordId = operand;
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+
+        default:  // see NOP (0)
+            m_sfWordIndex += 1;
+            m_burstWord += 1;
+            break;
+        }
+    }
+    else
+    {
+        // move through the SF one word at a time
+        m_sfWordIndex += 1;
+        m_burstWord += 1;
+    }
+
+    // check for the end of a burst and roll SF if needed
+    if (m_burstWord >= m_burstSize[m_burst])
+    {
+        m_burstWord = 0;
+        m_endBurst = true;
+        if (++m_burst >= eBurstCount)
+        {
+            NextSf();
+        }
+    }
+
+    if (sfId != -1)
+    {
+        wordValue = (wordValue & ~0xFF) | (sfId & 0xff);
+    }
+
+    if (wordId != -1)
+    {
+        wordValue = (wordValue & ~(0xfff << 20)) | (wordId << 20);
+    }
+
+    return wordValue;
+}
+
+//---------------------------------------------------------------------------------------------
+// Compute the next sub-frame to send, normally just cycle 1-4.  Use m_skipSfMask to indicate 
+// which SF to skip.  Reset Burst index and wordIndex to default next SF values.
+void A664Qar::NextSf()
+{
+    m_burst = 0;
+    m_burstWord = 0;
+    m_sfWordIndex = 0;
+
+    m_sf = INC_WRAP(m_sf, eSfCount);
+    if (m_skipSfMask > 0 && m_skipSfMask < 0xF)
+    {
+        // check error injection (1) skip sub-frame
+        while (BIT(m_skipSfMask, m_sf))
+        {
+            m_sf = INC_WRAP(m_sf, eSfCount);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+//                                 QAR A717
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 A717Qar::A717Qar()
+    : A664Qar()
     , m_bInit(FALSE) // flag to do post construct init
     , m_nextSfIdx(0)
     , m_crntTick(0)
     , m_writeErrCnt(0)
-    //, m_startTime(0)
-    //, m_elapsedTime( 0 )
 {
-    g_frameSize = 64;     // Set the default frame size
-    g_bReverse = FALSE;  // default to normal barker sync
-    g_fmt = QAR_BIPOLAR_RETURN_ZERO;
-
     m_testCtrl.m_acceptCfgReq = TRUE;
     m_testCtrl.m_bQarEnabled = TRUE;
     m_testCtrl.m_bSynced = TRUE;
     m_testCtrl.qarRunState = eRUNNING;
 }
 
+//---------------------------------------------------------------------------------------------
 void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts, 
                     StaticIoiObj* sf1, StaticIoiObj* sf2, 
                     StaticIoiObj* sf3, StaticIoiObj* sf4)
 {
+    m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
+    m_cfgRsp = static_cast<StaticIoiStr*>(cfgRsp);
+    m_status = static_cast<StaticIoiStr*>(sts);
 
-}
+    m_sf[0] = static_cast<StaticIoiStr*>(sf1);
+    m_sf[1] = static_cast<StaticIoiStr*>(sf2);
+    m_sf[2] = static_cast<StaticIoiStr*>(sf3);
+    m_sf[3] = static_cast<StaticIoiStr*>(sf4);
 
-//---------------------------------------------------------------------------------------------
-void A717Qar::InitIoi()
-{
-    // Initialize the cfg and status IOI's. Tell the subframe objs to do likewise
-    Initialize();
-
-    // TODO OpenIOi for recfg Req
-    // TODO OpenIOi for recfg Resp
-    
-    for (int i = 0; i < eNUM_SUBFRAMES; ++i)
-    {
-        m_pSF[i]->InitIoi();
-    }
+    m_nextSfIdx = 0;
+    m_crntTick = eTICKS_PER_SEC;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -159,47 +864,32 @@ int A717Qar::UpdateIoi()
     // Check if QAR is enabled for this configuration
     UINT8 subFrameID;
 
-    if (m_bInitSFOutput)
-    {
-        // On startup the "next" SF will be  #1 (index 0).
-        // send it during this processing frame
-        m_nextSfIdx = 0;
-        m_crntTick = eTICKS_PER_SEC;
-        m_bInitSFOutput = FALSE;
-    }
-    else
-    {
-        // Update the tick count
-        m_crntTick += 1;
-    }
+    // Update the tick count
+    m_crntTick += 1;
 
     // Is it time to send a SF - do this every 1Hz?
     // Output the next SF (if QAR active) and the status msg.
     if (m_crntTick >= eTICKS_PER_SEC)  
     {
+        // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
+        subFrameID = 0;
+
         // If enabled and running, send the next expected subframe...
         if (m_testCtrl.m_bQarEnabled && m_testCtrl.qarRunState == eRUNNING)
         {
             // send next SF data via its IOI
-            if (false == m_pSF[m_nextSfIdx]->UpdateIoi())
+            if (m_sf[m_nextSfIdx]->Update())
             {
-                m_writeErrCnt += 1;
+                // a subframe was written indicate this in the status msg
+                subFrameID = m_nextSfIdx + 1;  // 0 .. 3 to 1 .. 4
             }
             else
             {
-                subFrameID = m_nextSfIdx + 1;
+                m_writeErrCnt += 1;
             }
 
             // Set up next SF to go out in 1 sec.      
             m_nextSfIdx = INC_WRAP(m_nextSfIdx, eNUM_SUBFRAMES);
-        }
-        else
-        {
-            // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
-            // TBDjv: maybe this should default to this and only increment when 
-            // m_pSF[m_nextSfIdx]->UpdateIoi() is true - do we need to set = 0 when UpdateIoi 
-            // fails? not doing this
-            subFrameID = 0;
         }
 
         // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state
@@ -209,6 +899,25 @@ int A717Qar::UpdateIoi()
     } 
 
     return 0;
+}
+
+bool A717Qar::TestControl(SecRequest& request)
+{
+
+}
+
+//---------------------------------------------------------------------------------------------
+bool A717Qar::HandleRequest(StaticIoiObj* targetIoi)
+{
+    bool status = (targetIoi == m_cfgRqst || targetIoi == m_status);
+
+    // if no match yet, check if the targetIoi is a SF
+    for (int ix = 0; !status && ix < eNUM_SUBFRAMES; ++ix)
+    {
+        status = targetIoi == m_sf[ix];
+    }
+
+    return status;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -222,9 +931,6 @@ void A717Qar::WriteQarStatusMsg(UINT8 subframeID)
 
     m_qarModStatus.qarRunState = m_testCtrl.qarRunState;
     m_qarModStatus.subframeID = subframeID;
-    m_qarModStatus.bRevSync = g_bReverse;
-    m_qarModStatus.numWords = g_frameSize;
-    m_qarModStatus.fmt = (UINT32)g_fmt;
 
     // Set the overall sync status to match the high level flag in status msg
     UINT32 syncStatus = (m_testCtrl.m_bSynced) ? 1 : 0;
@@ -234,235 +940,10 @@ void A717Qar::WriteQarStatusMsg(UINT8 subframeID)
 
     if (m_statusIoiValid)
     {
-        ioiStat = ioi_write(m_moduleStatusIoi.fd, m_moduleStatusIoi.pdata);
-        m_statusIoiValid = (ioiStat == ioiSuccess);
-    }
-
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::SetRunState(QAR_RUN_STATE newState)
-{
-    // Put the QAR in a specific mode so we can do some mischief.
-    if (newState != m_qarModStatus.qarRunState)
-    {
-        switch (newState)
-        {
-        case eRUNNING:
-            // Init the output logic to send data starting with first SF
-            m_bInitSFOutput = TRUE;
-            break;
-
-            // fall-through these for now...
-        case eNO_VALID_CFG:
-        case eERR_CBIT:
-        case eERR_PBIT:
-            break;
-
-        default:
-            break;
-
-        } // switch QAR_RUN_STATE
-        m_qarModStatus.qarRunState = newState;
-    } // mode changed 
-    return;
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::SetQarData(UINT8 sfMask, UINT32 offset, UINT8* pBuffer, UINT32 byteCnt)
-{
-    // For each SF indicated in the sfMask, update the Subframes' buffer with the content
-    for (int i = 0; i < eNUM_SUBFRAMES; ++i)
-    {
-        if ((sfMask >> i) & 0x01)
-        {
-            m_pSF[i]->UpdateBuffer(offset, pBuffer, byteCnt);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::ResetBarkers(UINT8 sfMask)
-{
-    // For each SF indicated in the sfMask, tell the SF to use it's native barker code.
-    for (int i = 0; i < eNUM_SUBFRAMES; ++i)
-    {
-        if ((sfMask >> i) & 0x01)
-        {
-            m_pSF[i]->ResetBarker();
-        }
+        m_status->Update();
     }
 }
 
 //=============================================================================================
 // Protected methods
 //=============================================================================================
-
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::SetWordSize(UINT32 wordSize)
-{
-    g_frameSize = wordSize;
-}
-
-//---------------------------------------------------------------------------------------------
-void Reset(StaticIoiStr* cfgRqst, StaticIoiStr* cfgRsp, StaticIoiStr* sts,
-           StaticIoiStr* sf1, StaticIoiStr* sf2, StaticIoiStr* sf3, StaticIoiStr* sf4);
-{
-    for (int i = 0; i < eNUM_SUBFRAMES; ++i)
-    {
-        m_pSF[i]->Reset();
-    }
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::Initialize()
-{
-    if (!m_bInit)
-    {
-        // Init the table
-        m_pSF[0] = &m_a717QarSf1;
-        m_pSF[1] = &m_a717QarSf2;
-        m_pSF[2] = &m_a717QarSf3;
-        m_pSF[3] = &m_a717QarSf4;
-
-        Reset();
-        m_bInitSFOutput = TRUE;
-        m_bInit = TRUE;
-    }
-
-}
-
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-A717Subframe::A717Subframe(const CHAR* pIoiName, int sfIdx, int barker)
-{
-    m_pIoiName = pIoiName;
-    m_mySFNum = sfIdx;
-    m_mySfMask = (1 << (sfIdx - 1));
-    m_stdBarker = barker;
-    m_revBarker = ReverseBarker(barker);
-    m_bDefaultBarker = true;
-    m_ioiObj.pdata = m_qarWords;
-    m_writeErrCnt = 0;
-    Reset();
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Subframe::Reset()
-{
-    m_ioiValid = false;
-    m_ioiStatusSf = ioiNoSuchItem;
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Subframe::InitIoi()
-{
-  // Open the output IOI for this subframes data
-    ioiStatus openStatus;
-    ioiStatus closeStatus;
-
-    memset(m_qarWords, 0, sizeof(m_qarWords));
-
-    if (m_ioiValid)
-    {
-        closeStatus = ioi_close(m_ioiObj.fd);
-    }
-
-    if (closeStatus == ioiSuccess)
-    {
-        m_ioiValid = FALSE;
-        m_ioiStatusSf = closeStatus;
-    }
-
-    openStatus = ioi_open(m_pIoiName, ioiWritePermission, &m_ioiObj.fd);
-    if (openStatus == ioiSuccess)
-    {
-        m_ioiValid = TRUE;
-        m_ioiStatusSf = openStatus;
-    }
-}
-
-//---------------------------------------------------------------------------------------------
-// Signal the default barker code for this SF should be sent
-void A717Subframe::ResetBarker()
-{
-    m_bDefaultBarker = true;
-}
-
-//---------------------------------------------------------------------------------------------
-// publishing the buffer associated with this SF's IOI on its schedule
-
-BOOLEAN A717Subframe::UpdateIoi()
-{
-    m_ioiStatusSf = ioiSuccess;
-
-    // if we are valid and running, and not being run by a parameter
-    if (m_ioiValid)
-    {
-        // If the tester indicated a custom barker code in the call to UpdateBuffer,
-        // then m_bDefaultBarker would be false.
-        // leave SF buffer[0] alone as a custom value for testing.
-
-        // Note: m_ioiObj.pdata points to m_qarWords[]
-
-        if (m_bDefaultBarker) // TBD: why are we doing this repeatedly - why not in reset
-        {
-            m_qarWords[0] = g_bReverse ? (UINT32)m_revBarker : (UINT32)m_stdBarker;
-        }
-        else
-        {
-            // The  m_qarWords[0] has a user defined value for test. Leave it alone
-        }
-
-        m_ioiStatusSf = ioi_write(m_ioiObj.fd, m_ioiObj.pdata);
-        m_ioiValid = (m_ioiStatusSf == ioiSuccess);
-    }
-
-    return m_ioiStatusSf == ioiSuccess;
-}
-
-//---------------------------------------------------------------------------------------------
-// Process input received from the Script Execution Control
-// This function is called by 
-//
-bool A717Subframe::UpdateBuffer(UINT32 offset, UINT8* pBuffer, UINT32 byteCnt)
-{
-    bool status = true;
-    UINT32  wordCnt;    // Number of words (really 'slots') needed
-    UINT32  wordOffset; // offset into the SF buffer to put the new data values
-    UINT16* inPtr = (UINT16*)pBuffer;
-    UINT32* destPtr;
-
-    // If the tester has specified any value at offset zero, they are setting/clearing a
-    // custom barker code. Don't use the default barker until the tester has called 
-    // ResetQarBarker for this SF.
-    if (0 == offset)
-    {
-        m_bDefaultBarker = false;
-    }
-
-    // move data from SEC into our objects SF data array
-
-    // Make sure the data will fit in the SF buffer based on offset and byteCnt.
-    // Limit the move to what is available from offset.
-    wordCnt = (byteCnt / 2);
-    wordOffset = (offset / 2);
-
-    if (wordCnt > (g_frameSize - wordOffset))
-    {
-        wordCnt = (g_frameSize - wordOffset);
-    }
-
-    // input is an array of SINT16, dest is UINT32
-    //inPtr   = (UINT16*)pBuffer;
-    destPtr = (UINT32*)&m_qarWords + wordOffset;
-
-    for (int i = 0; i < wordCnt; ++i)
-    {
-        *(destPtr++) = *(inPtr++);
-    }
-
-    return status;
-}
