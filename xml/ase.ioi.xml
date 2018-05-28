@@ -73407,21 +73407,12 @@
            comment = "FR_IOC4_HMU_DATA1, Configuration Data Version"
       ></producedItem>
       <producedItem
-           name = "A717Status"
-           productionRate = "1000000"
-           messageForm = "64B"
-           messageUnits = ""
-           bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
-           comment = "UTAS A717 Module Status Msg"
-      ></producedItem>
-      <producedItem
            name = "A717Subframe1"
            productionRate = "1000000"
            messageForm = "1024L"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
+           bufferOptions = "queueDepth:1"
            comment = "64, 128, 256, 512 or 1024 words depending on A717 rate"
       ></producedItem>
       <producedItem
@@ -73430,7 +73421,7 @@
            messageForm = "1024L"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
+           bufferOptions = "queueDepth:1"
            comment = "64, 128, 256, 512 or 1024 words depending on A717 rate"
       ></producedItem>
       <producedItem
@@ -73439,7 +73430,7 @@
            messageForm = "1024L"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
+           bufferOptions = "queueDepth:1"
            comment = "64, 128, 256, 512 or 1024 words depending on A717 rate"
       ></producedItem>
       <producedItem
@@ -73448,8 +73439,26 @@
            messageForm = "1024L"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
-           bufferOptions = "queueDepth:automatic"
+           bufferOptions = "queueDepth:1"
            comment = "64, 128, 256, 512 or 1024 words depending on A717 rate"
+      ></producedItem>
+      <producedItem
+           name = "A717_ADRF_CONFIG_ACK"
+           productionRate = "aperiodic"
+           messageForm = "4B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "A717 Manager to ADRF Response for Reconfiguraiton"
+      ></producedItem>
+      <producedItem
+           name = "A717_STATUS_MSG"
+           productionRate = "1000000"
+           messageForm = "8B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "A717 Manager to ADRF Status Message"
       ></producedItem>
       <producedItem
            name = "BatInputVdc"
@@ -75248,6 +75257,16 @@
            messageUnits = ""
            freshnessCheck = "none"
            comment = "PAT_WF_LIM_MAX"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "ADRF_A717_CONFIG_REQ"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "10000"
+           messageForm = "4B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "ADRF to A717 Manager Request for Reconfiguraiton"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem
