@@ -1129,7 +1129,6 @@ BOOLEAN IoiProcess::CheckCmd(SecComm& secComm)
 
     //-------------------------------------------------------------------------------------
     case eGetStaticIoi:
-
         if (m_ioiStatic.GetStaticIoiData(secComm))
         {
             secComm.m_response.successful = true;

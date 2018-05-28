@@ -292,6 +292,8 @@ public:
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
+    UINT32  m_qarSfWordCount; // number of wrods we are configured to send
+
     BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
     BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
 

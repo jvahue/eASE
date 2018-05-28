@@ -336,6 +336,8 @@ bool StaticIoiContainer::GetStaticIoiData(SecComm& secComm)
     if (secComm.m_request.variableId < m_ioiStaticInCount)
     {
         // here is a little trick we play for String types to big to fit into the streamData
+        // PySte passes us where to start in the request object, we move it over into the 
+        // response object so the StaticIoiStr know what offset to start at
         secComm.m_response.streamSize = secComm.m_request.sigGenId;
 
         // get the value and return true
@@ -354,8 +356,8 @@ void StaticIoiContainer::SetNewState(SecRequest& request)
     if (request.variableId < m_ioiStaticOutCount)
     {
         // if not valid leave the running state at disabled
-        bool newState = (request.sigGenId == 1) &&
-            m_staticAseOut[request.variableId]->m_ioiValid;
+        bool newState = ((request.sigGenId == 1) 
+                         && m_staticAseOut[request.variableId]->m_ioiValid);
         m_staticAseOut[request.variableId]->SetRunState(newState);
     }
 }

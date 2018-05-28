@@ -877,6 +877,15 @@ int A717Qar::UpdateIoi()
         // If enabled and running, send the next expected subframe...
         if (m_testCtrl.m_bQarEnabled && m_testCtrl.qarRunState == eRUNNING)
         {
+            // copy the local SF image to the IOI 16 -> 32 bits
+            UINT16* src = m_qarWords[m_nextSfIdx];
+            UINT32* dst = (UINT32*)&m_sf[m_nextSfIdx]->data[0];
+
+            for (int i = 0; i < m_qarSfWordCount; ++i)
+            {
+                *dst++ = *src++;
+            }
+
             // send next SF data via its IOI
             if (m_sf[m_nextSfIdx]->Update())
             {
