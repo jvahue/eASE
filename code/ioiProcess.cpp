@@ -344,7 +344,9 @@ void IoiProcess::UpdateIoi()
         while ((!wrapAround || (wrapAround && scheduledX != startParam)) && !m_initParams)
         {
             m_loopCount += 1;
-            if (param->m_isValid && param->m_isRunning)
+            // change here to always update the parameter, and keep it in sync with other data
+            // but if it is "not running" don't send the data
+            if (param->m_isValid)
             {
                 m_scheduled += param->Update(GET_SYSTEM_TICK, m_sgRun);
                 m_totalParamTime += param->m_updateDuration;
@@ -366,20 +368,25 @@ void IoiProcess::UpdateIoi()
                         param->m_rawValue = aseCommon.shipTime;
                     }
 
-                    if (param->m_ioiChan != -1) //param->m_src != PARAM_SRC_CROSS)
+                    // ONLY output the parameter if it is running
+                    if (param->m_isRunning)
                     {
-                        WriteIoi(param);
-                    }
-                    else if (param->m_src == PARAM_SRC_CROSS)
-                    {
-                        // move data to xchan ioi slot
-                        // Note: all params with the same masterId will point to the same slot,
-                        // but only the fast (or one of the fastest) will be processed as a
-                        // parent and sent across during the IoiUpdate processing.
-                        m_ccdl.m_txParamData.data[m_remoteX].id = param->m_ccdlId;
-                        m_ccdl.m_txParamData.data[m_remoteX].val = param->m_ioiValue;
-                        m_remoteX += 1;
-                        m_ccdl.m_txParamData.num_params = m_remoteX;
+                        if (param->m_ioiChan != -1) //param->m_src != PARAM_SRC_CROSS)
+                        {
+                            WriteIoi(param);
+                        }
+                        else if (param->m_src == PARAM_SRC_CROSS)
+                        {
+                            // move data to xchan ioi slot
+                            // Note: all params with the same masterId will point to the same
+                            // slot, but only the fast (or one of the fastest) will be
+                            // processed as a parent and sent across during the IoiUpdate
+                            // processing.
+                            m_ccdl.m_txParamData.data[m_remoteX].id = param->m_ccdlId;
+                            m_ccdl.m_txParamData.data[m_remoteX].val = param->m_ioiValue;
+                            m_remoteX += 1;
+                            m_ccdl.m_txParamData.num_params = m_remoteX;
+                        }
                     }
                 }
             }

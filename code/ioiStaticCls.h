@@ -232,6 +232,9 @@ public:
     };
     A664Qar();
     void Reset(StaticIoiObj* buffer);
+    void SetWordCount(UINT32 wordCount) {
+        m_qarSfWordCount = wordCount;
+    }
 
     void NextSf();      // compute the next SF to run
     UINT32 NextWord();  // compute the next word in this sub-frame to send, returns busrtWord
@@ -243,7 +246,12 @@ public:
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
     virtual bool TestControl(SecRequest& request);
 
-    StaticIoiStr* m_idl;     // the IOI buffer sending the data
+    void SetData(UINT16 value,
+                 UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index);
+
+    StaticIoiStr* m_idl;     // the IOI buffer sending the QAR A664 data
+
+    UINT32  m_qarSfWordCount;      // number of words we are configured to send
 
     int m_sf;                      // which sub-frame are we outputting
     int m_sfWordIndex;             // word count of the 1024 words in a SF
@@ -283,7 +291,6 @@ public:
     A717Qar();
 
     // Methods called by the IOI Static container
-    void InitIoi();
     void Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts,
                StaticIoiObj* sf1, StaticIoiObj* sf2, StaticIoiObj* sf3, StaticIoiObj* sf4);
 
@@ -291,8 +298,6 @@ public:
     virtual int UpdateIoi();
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
-
-    UINT32  m_qarSfWordCount; // number of wrods we are configured to send
 
     BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
     BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
@@ -302,8 +307,7 @@ public:
                              // These properties represent the register values in m_qarStatus.register.
 
                              //int m_sendTimeTick; // The tick cnt value at which this SF will send it's buffer
-    int m_crntTick;     // The current tick value. Incremented when ioiProcess calls UpdateIoi.
-    UINT8 m_nextSfIdx;  // The idx into m_pSF array of the next sf to send.
+    int m_sfSchedTick;     // The current tick value. Incremented when ioiProcess calls UpdateIoi.
     int m_writeErrCnt;  // total write error counts
 
                         // UTAS Status msg to HMU listeners
@@ -316,7 +320,7 @@ public:
     StaticIoiStr* m_cfgRqst;      // cfg rqst IOI
     StaticIoiStr* m_cfgRsp;       // cfg rsp IOI
     StaticIoiStr* m_status;       // status IOI
-    StaticIoiStr* m_sf[eSfCount]; // SF IOIs
+    StaticIoiStr* m_sfObjs[eSfCount]; // SF IOIs
 
     void WriteQarStatusMsg(UINT8 subframeID);
 };

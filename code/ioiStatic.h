@@ -26,6 +26,10 @@ public:
     //IocResponse GetStaticIoiData(SecRequest& request);
     void UpdateStaticIoi();
 
+    void ProcessAdrfStaticOutput();
+
+    void ProcessAdrfStaticInput();
+
     void UpdateRtcClock();
     bool SetStaticIoiData(SecComm& secComm);
     bool GetStaticIoiData(SecComm& secComm);

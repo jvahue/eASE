@@ -25,6 +25,7 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define _10msTick(period, step) int(((period) * (step)) / 10.0)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -136,6 +137,21 @@ void Parameter::Reset()
     m_flexSeq = -1;
     m_flexRoot = NULL;
 
+    // QAR Data stream parameters
+    m_qar = NULL;        // this can either be a A664 or A717 QAR pointer
+    m_qarSfMask = 0;     // Sub-frame mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
+    m_qarRateHz = 0;     // actual QAR rate Hz 1, 2, 4, 8, 16, 32, 64 (ONLY)
+    m_qarIndex = 0;      // which slot are we computing 0 .. (m_qarRateHz-1)
+    m_qarLenA = 0;
+    m_qarLsbA = 0;
+    m_gpaMask = 0;       // field mask for value (or LSB)
+    m_gpaWord = 0;       // base index for value (or LSB)
+    m_qarLenE = 0;
+    m_qarLsbE = 0;
+    m_gpeMask = 0;       // field mask for MSB
+    m_gpeWord = 0;       // base index for MSB
+    m_qarPeriod_ms = 0.0f;  // actual QAR period (1.0/Hz)
+
     ParamConverter::Reset();
 
     // clear out the SigGen
@@ -191,7 +207,11 @@ void Parameter::SetFlex(UINT32 rawValue, int index)
 
 //---------------------------------------------------------------------------------------------
 // Function: Init
-// Description: Initialize the parameter based on the configuration values
+// Description: Initialize the parameter based on the configuration values.  Params are mostly
+// organized by their source.  Each source should handle all the setup required for the 
+// parameter to 
+//   1. updates its value in its value stream IOI, FLEX, QAR, etc
+//   2. compute the rate to send the value (i.e., it m_updateIntervalTicks
 //
 void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
 {
@@ -213,6 +233,43 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         // ok we have a flex child - get its seq #, caller will link the parent (m_flexParent)
         m_flexRootIdx = (m_gpe >> 16) & 0xffff;
         m_flexSeq = (m_gpe >> 8) & 0xff;
+    }
+    else if ((paramInfo->src == PARAM_SRC_QAR_A664) || (paramInfo->src == PARAM_SRC_QAR_A717))
+    {
+        UINT8 wordSize;
+        UINT8 msb;
+
+        m_qarLenA = EXTRACT(paramInfo->gpa, 0, 4);
+        m_qarLsbA = EXTRACT(paramInfo->gpa, 4, 4) - (m_qarLenA - 1);
+        m_gpaMask = ~MASK(m_qarLsbA, wordSize);        // field mask for LSdata
+        m_gpaWord = EXTRACT(paramInfo->gpa, 16, 10);   // base index for LSdata
+
+        m_qarLenE = EXTRACT(paramInfo->gpe, 0, 4);
+        if (m_qarLenE > 0)
+        {
+            m_qarLsbE = EXTRACT(paramInfo->gpe, 4, 4) - (m_qarLenE - 1);
+            m_gpeMask = ~MASK(m_qarLsbE, wordSize);       // field mask for MSdata
+            m_gpeWord = EXTRACT(paramInfo->gpa, 16, 10);  // base index for MSdata
+        }
+        else
+        {
+            m_qarLsbE = 0;
+            m_gpeMask = 0;       // field mask for MSdata = 0 does not exist
+            m_gpeWord = 0xffff;  // base index for MSdata
+        }
+
+        // items associated with the parameter's update rate
+        m_qarSfMask = EXTRACT(paramInfo->gpa, 8, 4); // mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
+        m_qarRateHz = 1 << EXTRACT(paramInfo->gpe, 28, 4);
+
+        // limit this to 1Hz even if the value only appears in one or two SF for 0.25|0.5 Hz
+        m_qarPeriod_ms = 1000.0/(float)m_qarRateHz;  // actual QAR period (1.0/Hz) 
+        m_qarIndex = 0;  // slot are we computing 0 .. (m_qarRateHz-1)
+
+        // attach the parameter to the QAR data stream
+        m_qar = (paramInfo->src == PARAM_SRC_QAR_A664
+                 ? &ioiStatic.m_a664Qar 
+                 : &ioiStatic.m_a717Qar);
     }
     else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) ||
              (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
@@ -250,25 +307,40 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     }
 
     // TODOjv and QAR_A664/717
-    // for QAR set m_updateIntervalTicks = 0
-    // and compute next frame during the actual update see Parameter::Update
-    if (m_flexDataTbl != -1)
+    if ((paramInfo->src == PARAM_SRC_QAR_A664) || (paramInfo->src == PARAM_SRC_QAR_A717))
     {
-        // reduce the rate by a factor of 2 for flex so we don't overwrite the flex data
-        m_updateMs = 10000 / ((paramInfo->rateHz * 10) / 2);
-    }
-    else if (paramInfo->src == PARAM_SRC_CROSS)
-    {
-        m_updateMs = 1000 / paramInfo->rateHz;
+        // for some update rate (i.e., 8, 16, 32, 64) we have uneven update intervals
+        // for QAR set m_updateIntervalTicks = 0
+        // .. and compute next frame during the actual update see Parameter::Update
+        m_updateIntervalTicks = 0;
+
+        // 1, 2, and 4 Hz are ok to handle normally
+        if (m_qarRateHz <= 4)
+        {
+            m_updateMs = 1000 / m_qarRateHz;
+            m_updateIntervalTicks /= 10;  // turn this into system ticks
+        }
     }
     else
     {
-        m_updateMs = 1000 / (paramInfo->rateHz * 2);
-    }
+        if (m_flexDataTbl != -1)
+        {
+            // reduce the rate by a factor of 2 for flex so we don't overwrite the flex data
+            m_updateMs = 10000 / ((paramInfo->rateHz * 10) / 2);
+        }
+        else if (paramInfo->src == PARAM_SRC_CROSS)
+        {
+            m_updateMs = 1000 / paramInfo->rateHz;
+        }
+        else
+        {
+            m_updateMs = 1000 / (paramInfo->rateHz * 2);
+        }
 
-    extraMs = m_updateMs % 10;
-    m_updateIntervalTicks = m_updateMs - extraMs;
-    m_updateIntervalTicks /= 10;  // turn this into system ticks
+        extraMs = m_updateMs % 10;
+        m_updateIntervalTicks = m_updateMs - extraMs;
+        m_updateIntervalTicks /= 10;  // turn this into system ticks
+    }
 
     m_idl = ioiStatic.FindIoi(m_ioiName);
 
@@ -398,7 +470,10 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
                 // each param updates itself at it's rate
                 // here we just pick up the value
                 //count += cp->Update(sysTick, sgRun);
-                children |= cp->m_rawValue;
+                if (cp->m_isRunning)
+                {
+                    children |= cp->m_rawValue;
+                }
                 cp = cp->m_link;
             }
         }
@@ -435,13 +510,43 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             m_rawValue = Convert(m_value);
         }
 
-        if (m_idl)
+        if (m_qar)
         {
-            // we need to position the data in the IDL, m_rawValue holds the data which cannot
-            // be bigger than 32 bits for our purposes as a parameter
+            UINT16 value;
+
+            static int lastSf = 0xff;
+            if (lastSf != m_qar->m_sf)
+            {
+                lastSf = m_qar->m_sf;
+                // a new SF is starting re-sync m_qarIndex if not at 0
+                if (m_qarIndex > 0)
+                {
+                    m_qarIndex = 0;
+                }
+            }
+
+            // write new data to the SF data buffer
+            // Get the value or the LS part
+            value = FIELD(EXTRACT(m_rawValue, 0, m_qarLenA), m_qarLsbA, m_qarLenA);
+            m_qar->SetData(value, m_gpaMask, m_qarSfMask, m_qarRateHz, m_gpaWord, m_qarIndex);
+            if (m_qarLenE > 0)
+            {
+                // get the MSdat part
+                value = FIELD(EXTRACT(m_rawValue, m_qarLenA, m_qarLenE), 
+                              m_qarLsbE, m_qarLenE);
+                m_qar->SetData(value, 
+                               m_gpeMask, m_qarSfMask, m_qarRateHz, m_gpeWord, m_qarIndex);
+            }
+
+            m_qarIndex = INC_WRAP(m_qarIndex, m_qarRateHz);
+        }
+        else if (m_idl)
+        {
+            // we need to position the data in the IDL, m_rawValue holds the data which
+            // cannot be bigger than 32 bits for our purposes as a parameter
             destByte = a664Offset / 8;
             destBit0 = a664Offset % 8;
-            msbDst = (8 - destBit0);           // re-align with little-endian bit addressing
+            msbDst = (8 - destBit0);         // re-align with little-endian bit addressing
 
             moveSize = MIN(a664Size, msbDst);  // the first move will move n bits
             lsbSrc = a664Size - moveSize;
@@ -485,7 +590,19 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             m_flexRoot->SetFlex(m_ioiValue, m_flexSeq);
         }
 
-        m_nextUpdate += m_updateIntervalTicks;
+        if (m_updateIntervalTicks > 0)
+        {
+            m_nextUpdate += m_updateIntervalTicks;
+        }
+        else
+        {
+            // we are a QAR and need to handle varying intervals for rates > 4Hz
+            UINT32 delta = (_10msTick(m_qarPeriod_ms, m_qarIndex + 1)
+                            - _10msTick(m_qarPeriod_ms, m_qarIndex));
+
+            m_nextUpdate = sysTick + delta;
+        }
+
         m_updateCount += 1;
         count += 1;
     }

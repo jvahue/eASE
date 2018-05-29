@@ -144,25 +144,25 @@ void StaticIoiContainer::OpenIoi()
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
-    // compute max count to provide a 10Hz update rate 100ms/10ms => 10 frames
-
-    const int kOutMaxCount = ((m_ioiStaticOutCount) / 10) + 1;
-    // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
-    const int kInMaxCount = (m_ioiStaticInCount / 5) + 1;
-
-    static unsigned int lastYrCnt = 0;
-    static unsigned int lastMoCnt = 0;
-    static unsigned int lastDayCnt = 0;
-    static unsigned int lastHrCnt = 0;
-    static unsigned int lastMinCnt = 0;
-    static unsigned int lastSecCnt = 0;
-
-    UpdateRtcClock();
-
+    // Run the Smart Static IOI objects
     // A664QAR
     m_writeError += m_a664Qar.UpdateIoi();
+
     // A664QAR
     m_writeError += m_a717Qar.UpdateIoi();
+
+    ProcessAdrfStaticInput();
+
+    ProcessAdrfStaticOutput();
+}
+
+//---------------------------------------------------------------------------------------------
+void StaticIoiContainer::ProcessAdrfStaticInput()
+{
+    // compute max count to provide a 10Hz update rate 100ms/10ms => 10 frames
+    const int kOutMaxCount = ((m_ioiStaticOutCount) / 10) + 1;
+
+    UpdateRtcClock();
 
     // set the UUT Input maintaining about a 10Hz update rate
     m_writeErrorZ1 = m_writeError;
@@ -181,48 +181,6 @@ void StaticIoiContainer::UpdateStaticIoi()
         {
             m_aseOutIndex = 0;
         }
-    }
-
-    // read the ADRF outputs at 20Hz
-    m_readErrorZ1 = m_readError;
-    for (int i = 0; i < kInMaxCount; ++i)
-    {
-        if (!m_staticAseIn[m_aseInIndex]->Update())
-        {
-            m_readError += 1;
-        }
-
-        m_aseInIndex += 1;
-        if (m_aseInIndex >= m_ioiStaticInCount)
-        {
-            m_aseInIndex = 0;
-        }
-    }
-
-    // update the RTC time based on what we received
-    if (lastYrCnt != _rtc_io_wr_year_.m_updateCount    &&
-        lastMoCnt != _rtc_io_wr_month_.m_updateCount   &&
-        lastDayCnt != _rtc_io_wr_date_.m_updateCount    &&
-        lastHrCnt != _rtc_io_wr_hour_.m_updateCount    &&
-        lastMinCnt != _rtc_io_wr_minutes_.m_updateCount &&
-        lastSecCnt != _rtc_io_wr_seconds_.m_updateCount
-        )
-    {
-        lastYrCnt = _rtc_io_wr_year_.m_updateCount;
-        lastMoCnt = _rtc_io_wr_month_.m_updateCount;
-        lastDayCnt = _rtc_io_wr_date_.m_updateCount;
-        lastHrCnt = _rtc_io_wr_hour_.m_updateCount;
-        lastMinCnt = _rtc_io_wr_minutes_.m_updateCount;
-        lastSecCnt = _rtc_io_wr_seconds_.m_updateCount;
-
-        // Move the new values into RTC time
-        // sec: data = tens << 4 | ones;
-        aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(_rtc_io_wr_year[0]) + 2000;
-        aseCommon.clocks[eClkRtc].m_time.tm_mon = VALUE(_rtc_io_wr_month[0]);
-        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(_rtc_io_wr_date[0]);
-        aseCommon.clocks[eClkRtc].m_time.tm_hour = VALUE(_rtc_io_wr_hour[0]);
-        aseCommon.clocks[eClkRtc].m_time.tm_min = VALUE(_rtc_io_wr_minutes[0]);
-        aseCommon.clocks[eClkRtc].m_time.tm_sec = VALUE(_rtc_io_wr_seconds[0]);
     }
 }
 
@@ -300,6 +258,62 @@ void StaticIoiContainer::UpdateRtcClock()
 }
 
 //---------------------------------------------------------------------------------------------
+void StaticIoiContainer::ProcessAdrfStaticOutput()
+{
+    // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
+    const int kInMaxCount = (m_ioiStaticInCount / 5) + 1;
+
+    static unsigned int lastYrCnt = 0;
+    static unsigned int lastMoCnt = 0;
+    static unsigned int lastDayCnt = 0;
+    static unsigned int lastHrCnt = 0;
+    static unsigned int lastMinCnt = 0;
+    static unsigned int lastSecCnt = 0;
+
+    // read the ADRF outputs at 20Hz
+    m_readErrorZ1 = m_readError;
+    for (int i = 0; i < kInMaxCount; ++i)
+    {
+        if (!m_staticAseIn[m_aseInIndex]->Update())
+        {
+            m_readError += 1;
+        }
+
+        m_aseInIndex += 1;
+        if (m_aseInIndex >= m_ioiStaticInCount)
+        {
+            m_aseInIndex = 0;
+        }
+    }
+
+    // update the RTC time based on what we received
+    if (lastYrCnt != _rtc_io_wr_year_.m_updateCount    &&
+        lastMoCnt != _rtc_io_wr_month_.m_updateCount   &&
+        lastDayCnt != _rtc_io_wr_date_.m_updateCount    &&
+        lastHrCnt != _rtc_io_wr_hour_.m_updateCount    &&
+        lastMinCnt != _rtc_io_wr_minutes_.m_updateCount &&
+        lastSecCnt != _rtc_io_wr_seconds_.m_updateCount
+        )
+    {
+        lastYrCnt = _rtc_io_wr_year_.m_updateCount;
+        lastMoCnt = _rtc_io_wr_month_.m_updateCount;
+        lastDayCnt = _rtc_io_wr_date_.m_updateCount;
+        lastHrCnt = _rtc_io_wr_hour_.m_updateCount;
+        lastMinCnt = _rtc_io_wr_minutes_.m_updateCount;
+        lastSecCnt = _rtc_io_wr_seconds_.m_updateCount;
+
+        // Move the new values into RTC time
+        // sec: data = tens << 4 | ones;
+        aseCommon.clocks[eClkRtc].m_time.tm_year = VALUE(_rtc_io_wr_year[0]) + 2000;
+        aseCommon.clocks[eClkRtc].m_time.tm_mon = VALUE(_rtc_io_wr_month[0]);
+        aseCommon.clocks[eClkRtc].m_time.tm_mday = VALUE(_rtc_io_wr_date[0]);
+        aseCommon.clocks[eClkRtc].m_time.tm_hour = VALUE(_rtc_io_wr_hour[0]);
+        aseCommon.clocks[eClkRtc].m_time.tm_min = VALUE(_rtc_io_wr_minutes[0]);
+        aseCommon.clocks[eClkRtc].m_time.tm_sec = VALUE(_rtc_io_wr_seconds[0]);
+    }
+}
+
+//---------------------------------------------------------------------------------------------
 bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
 {
     SecRequest request = secComm.m_request;
@@ -373,7 +387,7 @@ void StaticIoiContainer::Reset()
     }
 
     // when the script is done reset these
-    _OMS_PAGEID_.data = 0;         // pat_scr = 0 : the main screen
+    _OMS_PAGEID_.data = 0;  // pat_scr = 0 : the main screen
     _OMS_BUTTON_.data = 0;  // pat_button = 0 : 0
 
     ResetStaticIoi();
@@ -383,7 +397,8 @@ void StaticIoiContainer::Reset()
 void StaticIoiContainer::ResetStaticIoi()
 {
     // and values we want to reset if no script is running
-    // use 0xffffff to indicate the value has not been updated
+    // use 0xffffff to indicate the value has not been updated, I know it looks like it should
+    // be  0xffffffff but after shifting in PySte it becomes 0xffffff
 
     //memset(_8204050_32, 0xff, sizeof(_8204050_32));
     memset(_8204051_32, 0xff, sizeof(_8204051_32));
@@ -462,7 +477,7 @@ StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
         // do not reset the running state if it is invalid
         if (strncmp(name, m_staticAseOut[i]->m_ioiName, eAseParamNameSize) == 0)
         {
-            // ok indicate that this IOI will be updated by a parameter
+            // ok indicate that this IOI will be managed by a parameter
             m_staticAseOut[i]->m_isParam = true;
             return m_staticAseOut[i];
         }

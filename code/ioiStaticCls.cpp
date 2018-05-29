@@ -500,6 +500,22 @@ bool A664Qar::TestControl(SecRequest& request)
 }
 
 //---------------------------------------------------------------------------------------------
+void A664Qar::SetData(UINT16 value, 
+                      UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index)
+{
+    // see if this word belongs in this SF
+    if (BIT(sfMask, m_sf))
+    {
+        UINT16 wordIndex = base + (m_qarSfWordCount / rate);
+        // compute the word offset based on the index and the number of words in the SF
+        UINT16* data = &m_qarWords[m_sf][wordIndex];
+
+        *data &= mask;  // turn off the bits we are packing this into
+        *data |= value; // insert the value
+    }
+}
+
+//---------------------------------------------------------------------------------------------
 // This function handles all the processing associated with the A664 QAR object
 int A664Qar::UpdateIoi()
 {
@@ -828,9 +844,6 @@ void A664Qar::NextSf()
 A717Qar::A717Qar()
     : A664Qar()
     , m_bInit(FALSE) // flag to do post construct init
-    , m_nextSfIdx(0)
-    , m_crntTick(0)
-    , m_writeErrCnt(0)
 {
     m_testCtrl.m_acceptCfgReq = TRUE;
     m_testCtrl.m_bQarEnabled = TRUE;
@@ -847,13 +860,13 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_cfgRsp = static_cast<StaticIoiStr*>(cfgRsp);
     m_status = static_cast<StaticIoiStr*>(sts);
 
-    m_sf[0] = static_cast<StaticIoiStr*>(sf1);
-    m_sf[1] = static_cast<StaticIoiStr*>(sf2);
-    m_sf[2] = static_cast<StaticIoiStr*>(sf3);
-    m_sf[3] = static_cast<StaticIoiStr*>(sf4);
+    m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
+    m_sfObjs[1] = static_cast<StaticIoiStr*>(sf2);
+    m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
+    m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
 
-    m_nextSfIdx = 0;
-    m_crntTick = eTICKS_PER_SEC;
+    m_sf = 0;
+    m_sfSchedTick = eTICKS_PER_SEC;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -865,11 +878,11 @@ int A717Qar::UpdateIoi()
     UINT8 subFrameID;
 
     // Update the tick count
-    m_crntTick += 1;
+    m_sfSchedTick += 1;
 
     // Is it time to send a SF - do this every 1Hz?
     // Output the next SF (if QAR active) and the status msg.
-    if (m_crntTick >= eTICKS_PER_SEC)  
+    if (m_sfSchedTick >= eTICKS_PER_SEC)  
     {
         // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
         subFrameID = 0;
@@ -878,8 +891,8 @@ int A717Qar::UpdateIoi()
         if (m_testCtrl.m_bQarEnabled && m_testCtrl.qarRunState == eRUNNING)
         {
             // copy the local SF image to the IOI 16 -> 32 bits
-            UINT16* src = m_qarWords[m_nextSfIdx];
-            UINT32* dst = (UINT32*)&m_sf[m_nextSfIdx]->data[0];
+            UINT16* src = m_qarWords[m_sf];
+            UINT32* dst = (UINT32*)&m_sfObjs[m_sf]->data[0];
 
             for (int i = 0; i < m_qarSfWordCount; ++i)
             {
@@ -887,10 +900,10 @@ int A717Qar::UpdateIoi()
             }
 
             // send next SF data via its IOI
-            if (m_sf[m_nextSfIdx]->Update())
+            if (m_sfObjs[m_sf]->Update())
             {
                 // a subframe was written indicate this in the status msg
-                subFrameID = m_nextSfIdx + 1;  // 0 .. 3 to 1 .. 4
+                subFrameID = m_sf + 1;  // 0 .. 3 to 1 .. 4
             }
             else
             {
@@ -898,13 +911,13 @@ int A717Qar::UpdateIoi()
             }
 
             // Set up next SF to go out in 1 sec.      
-            m_nextSfIdx = INC_WRAP(m_nextSfIdx, eNUM_SUBFRAMES);
+            m_sf = INC_WRAP(m_sf, eNUM_SUBFRAMES);
         }
 
         // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state
         WriteQarStatusMsg(subFrameID);
 
-        m_crntTick = 0;
+        m_sfSchedTick = 0;
     } 
 
     return 0;
@@ -923,7 +936,7 @@ bool A717Qar::HandleRequest(StaticIoiObj* targetIoi)
     // if no match yet, check if the targetIoi is a SF
     for (int ix = 0; !status && ix < eNUM_SUBFRAMES; ++ix)
     {
-        status = targetIoi == m_sf[ix];
+        status = (targetIoi == m_sfObjs[ix]);
     }
 
     return status;
