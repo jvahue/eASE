@@ -346,22 +346,20 @@ A664Qar::A664Qar()
 {
 }
 
-void A664Qar::Reset(StaticIoiObj* buffer)
+void A664Qar::Reset(StaticIoiObj* buffer/*=NULL*/)
 {
 #define kBusrtBytes  ((52 * 8) - 4)
+    //----- operation and configuration data -----
     m_idl = static_cast<StaticIoiStr*>(buffer);  // the buffer associated with the IOI
-    m_kMaxRandom = (m_idl->bytes - kBusrtBytes) / 8;
-
-    // which sub-frame are we outputting
+    m_qarSfWordCount = 1024;  // A664 defaults to 1024
+   
+    //----- Run Time Data -----
     m_sf = 0;          // start sending from SF1
-    m_skipSfMask = 0;  // don't skip any
     m_sfWordIndex = 0; // start sending from word index 0
-    m_random = 0;      // default 0 random words in a burst
-
-    m_garbageSet = 0;
-    m_garbageCnt = 0;
+    m_schedule = 0;
 
     // which burst of the sub-frame are we sending
+    m_endBurst = false;
     m_burst = 0;       // start with the first burst group
     m_burstWord = 0;   // which word we are on in the burst
     for (int i = 0; i < eBurstCount - 4; ++i)
@@ -373,13 +371,25 @@ void A664Qar::Reset(StaticIoiObj* buffer)
     m_burstSize[18] = 52;
     m_burstSize[19] = 52;
 
+    m_random = 0;      // default 0 random words in a burst
+    m_kMaxRandom = (m_idl->bytes - kBusrtBytes) / 8;
+
+    m_garbageSet = 0;
+    m_garbageCnt = 0;
+
     // ensure these are not zero as that terminates processing in the UUT
     m_ndo[0] = 0x97560801;
     m_ndo[1] = 0x97561002;
     m_ndo[2] = 0x97561803;
     m_ndo[3] = 0x97562004;
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
+
+    //----- Execution Status ------
     m_frameCount = 0;
+
+    //----- QAR A664 ERROR injection control -----
+    // which sub-frame are we outputting
+    m_skipSfMask = 0;  // don't skip any
 
     m_wordSeqEnabled = 0;
     memset(m_wordSeq, 0, sizeof(m_wordSeq));
@@ -506,7 +516,7 @@ void A664Qar::SetData(UINT16 value,
     // see if this word belongs in this SF
     if (BIT(sfMask, m_sf))
     {
-        UINT16 wordIndex = base + (m_qarSfWordCount / rate);
+        UINT16 wordIndex = base + ((m_qarSfWordCount / rate) * index);
         // compute the word offset based on the index and the number of words in the SF
         UINT16* data = &m_qarWords[m_sf][wordIndex];
 
@@ -639,29 +649,6 @@ bool A664Qar::Update()
     *(fillPtr++) = 0;
 
     return true;
-}
-
-//---------------------------------------------------------------------------------------------
-// determine if this set ioi is targeted to this object
-bool A664Qar::HandleRequest(StaticIoiObj* targetIoi)
-{
-    return targetIoi == m_idl;
-}
-
-//---------------------------------------------------------------------------------------------
-// send garbage data to the ADRF
-void A664Qar::Garbage()
-{
-    UINT32* fillPtr = (UINT32*)m_idl->data;    // where the data is going
-
-    *(fillPtr++) = m_frameCount++;
-
-    // now fill in 400 words of garbage
-    for (int i = 0; i < 400; ++i)
-    {
-        *(fillPtr++) = (i * 2) + 1;
-        *(fillPtr++) = (i * 2) + 1;
-    }
 }
 
 /*---------------------------------------------------------------------------------------------
@@ -837,13 +824,35 @@ void A664Qar::NextSf()
 }
 
 //---------------------------------------------------------------------------------------------
+// determine if this set ioi is targeted to this object
+bool A664Qar::HandleRequest(StaticIoiObj* targetIoi)
+{
+    return targetIoi == m_idl;
+}
+
+//---------------------------------------------------------------------------------------------
+// send garbage data to the ADRF
+void A664Qar::Garbage()
+{
+    UINT32* fillPtr = (UINT32*)m_idl->data;    // where the data is going
+
+    *(fillPtr++) = m_frameCount++;
+
+    // now fill in 400 words of garbage
+    for (int i = 0; i < 400; ++i)
+    {
+        *(fillPtr++) = (i * 2) + 1;
+        *(fillPtr++) = (i * 2) + 1;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 //                                 QAR A717
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 A717Qar::A717Qar()
     : A664Qar()
-    , m_bInit(FALSE) // flag to do post construct init
 {
     m_testCtrl.m_acceptCfgReq = TRUE;
     m_testCtrl.m_bQarEnabled = TRUE;
@@ -856,8 +865,10 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
                     StaticIoiObj* sf1, StaticIoiObj* sf2, 
                     StaticIoiObj* sf3, StaticIoiObj* sf4)
 {
+    A664Qar::Reset();
+
     m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
-    m_cfgRsp = static_cast<StaticIoiStr*>(cfgRsp);
+    m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
     m_status = static_cast<StaticIoiStr*>(sts);
 
     m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
@@ -865,8 +876,12 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
     m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
 
-    m_sf = 0;
     m_sfSchedTick = eTICKS_PER_SEC;
+
+    // default A717 word count to 64
+    m_qarSfWordCount = 64;
+
+    m_statusIoiValid = false; // TBDjv when do we turn this on?
 }
 
 //---------------------------------------------------------------------------------------------
@@ -923,9 +938,11 @@ int A717Qar::UpdateIoi()
     return 0;
 }
 
+//---------------------------------------------------------------------------------------------
 bool A717Qar::TestControl(SecRequest& request)
 {
-
+    // inspect the request and see if it is specific to A717, if not pass it to A664
+    return A664Qar::TestControl(request);
 }
 
 //---------------------------------------------------------------------------------------------

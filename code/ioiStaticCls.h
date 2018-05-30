@@ -83,7 +83,7 @@ typedef struct
     UINT8  numWords;       // # of 32-bits words per SF: 64,128,256,512 or 1024
     UINT8  fmt;            // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
     UINT16 statusRegister; // Echo of current AR717 RX Status Register
-}QAR_MODULE_STATUS;
+}QAR_STS_MSG;
 #pragma pack()
 
 // TEST Control is where cmds from Test Environment are stored.
@@ -231,7 +231,7 @@ public:
         eSfWordCount = 1024,
     };
     A664Qar();
-    void Reset(StaticIoiObj* buffer);
+    void Reset(StaticIoiObj* buffer=NULL);
     void SetWordCount(UINT32 wordCount) {
         m_qarSfWordCount = wordCount;
     }
@@ -249,38 +249,45 @@ public:
     void SetData(UINT16 value,
                  UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index);
 
+    //----- operation and configuration data -----
     StaticIoiStr* m_idl;     // the IOI buffer sending the QAR A664 data
 
-    UINT32  m_qarSfWordCount;      // number of words we are configured to send
+    UINT32 m_qarSfWordCount;       // number of words we are configured to send
 
+    //----- Run Time Data -----
     int m_sf;                      // which sub-frame are we outputting
     int m_sfWordIndex;             // word count of the 1024 words in a SF
+    UINT32 m_schedule;             // used to schedule A664 QAR at 20Hz
+
+    bool m_endBurst;               // end of a burst of data words
     int m_burst;                   // which burst of the sub-frame are we sending
     int m_burstWord;               // which word in the bust we are on
     int m_burstSize[eBurstCount];  // the size of each of the 20 bursts being sent / SF
-    bool m_endBurst;               // end of a burst of data words
+
     int m_random;                  // number of random values to put in 0-50, default 50
     int m_kMaxRandom;              // maximum number of random words
     int m_randomSave;              // save the random value when running Word Seq Buf Operation
+
     int m_garbageSet;              // number of total garbage bursts to send
     int m_garbageCnt;              // remaining count of garbage
+
+    int m_ndo[eSfCount];
+    int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
+
+    //----- Execution Status ------
+    int m_frameCount;              // how many frames have been sent since the last reset
+
+    //UINT32 m_a664QarSF;  // used to schedule A664 QAR SF 0 .. 3
+
+    //----- QAR A664 ERROR injection control -----
+    int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
 
     UINT16 m_wordSeqEnabled;         // is Word Seq Buf Operation enabled
     UINT16 m_wordSeq[eSfCount][eSfWordCount]; //Word Seq Buf Operation opcodes & operand
     int m_repeatCount;
     int m_repeatIndex;
 
-    int m_ndo[eSfCount];
-    int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
-    int m_frameCount;              // how many frames have been sent since the last reset
-
-    UINT32 m_schedule;   // used to schedule A664 QAR at 20Hz
-    UINT32 m_a664QarSF;  // used to schedule A664 QAR SF 0 .. 3
-
-                         // ERROR injection control
-    int m_skipSfMask;  // which SF should we skip? bit0=SF1, bi1=SF2, etc.
-
-                       // four sub-frames worth of data
+    //----- QAR Data Buffer -----
     UINT16 m_qarWords[eSfCount][eSfWordCount];  // data to be transmitted
 };
 
@@ -299,37 +306,30 @@ public:
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
-    BOOLEAN m_bInit;         // Used to complete init tasks not possible during construction
-    BOOLEAN m_bInitSFOutput; // QAR obj is in startup mode.  send SF sequence starting with 1
+    void WriteQarStatusMsg(UINT8 subframeID);
 
-    TEST_CONTROL m_testCtrl; // Structure holding the state of cmd setting from the test env
-
-                             // These properties represent the register values in m_qarStatus.register.
-
-                             //int m_sendTimeTick; // The tick cnt value at which this SF will send it's buffer
-    int m_sfSchedTick;     // The current tick value. Incremented when ioiProcess calls UpdateIoi.
-    int m_writeErrCnt;  // total write error counts
-
-                        // UTAS Status msg to HMU listeners
-                        // It is written at 1Hz regardless of whether the QAR is enabled or synced    
-    BOOLEAN           m_statusIoiValid;  // status validity for the status ioi
-    ioiStatus         m_ioiStatus;       // TBD may not need it.
-
-    QAR_MODULE_STATUS m_qarModStatus;    // msg struct of UTAS A717 Module status
-
-    StaticIoiStr* m_cfgRqst;      // cfg rqst IOI
-    StaticIoiStr* m_cfgRsp;       // cfg rsp IOI
-    StaticIoiStr* m_status;       // status IOI
+    //----- operation and configuration data -----
+    StaticIoiStr* m_cfgRqst;          // cfg rqst IOI
+    StaticIoiStr* m_cfgResp;          // cfg resp IOI
+    StaticIoiStr* m_status;           // status IOI
     StaticIoiStr* m_sfObjs[eSfCount]; // SF IOIs
 
-    void WriteQarStatusMsg(UINT8 subframeID);
+    //----- Run Time Data -----
+    int m_sfSchedTick;  // The current tick value. Incremented when ioiProcess calls UpdateIoi.
+
+    QAR_STS_MSG m_qarModStatus; // msg struct of UTAS A717 Module status
+    TEST_CONTROL m_testCtrl;    // Struct for state of cmd setting from the test env
+
+    //----- Execution Status ------
+    int m_writeErrCnt;  // total write error counts
+
+    BOOLEAN m_statusIoiValid;  // status validity for the status ioi
 };
 
 
 /*****************************************************************************/
 /* Forward Declaration                                                       */
 /*****************************************************************************/
-
 
 #endif
 //

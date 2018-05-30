@@ -141,6 +141,7 @@ void Parameter::Reset()
     m_qar = NULL;        // this can either be a A664 or A717 QAR pointer
     m_qarSfMask = 0;     // Sub-frame mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
     m_qarRateHz = 0;     // actual QAR rate Hz 1, 2, 4, 8, 16, 32, 64 (ONLY)
+    m_qarSf = 0;
     m_qarIndex = 0;      // which slot are we computing 0 .. (m_qarRateHz-1)
     m_qarLenA = 0;
     m_qarLsbA = 0;
@@ -236,20 +237,17 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
     }
     else if ((paramInfo->src == PARAM_SRC_QAR_A664) || (paramInfo->src == PARAM_SRC_QAR_A717))
     {
-        UINT8 wordSize;
-        UINT8 msb;
-
         m_qarLenA = EXTRACT(paramInfo->gpa, 0, 4);
         m_qarLsbA = EXTRACT(paramInfo->gpa, 4, 4) - (m_qarLenA - 1);
-        m_gpaMask = ~MASK(m_qarLsbA, wordSize);        // field mask for LSdata
+        m_gpaMask = ~MASK(m_qarLsbA, m_qarLenA);        // field mask for LSdata
         m_gpaWord = EXTRACT(paramInfo->gpa, 16, 10);   // base index for LSdata
 
         m_qarLenE = EXTRACT(paramInfo->gpe, 0, 4);
         if (m_qarLenE > 0)
         {
             m_qarLsbE = EXTRACT(paramInfo->gpe, 4, 4) - (m_qarLenE - 1);
-            m_gpeMask = ~MASK(m_qarLsbE, wordSize);       // field mask for MSdata
-            m_gpeWord = EXTRACT(paramInfo->gpa, 16, 10);  // base index for MSdata
+            m_gpeMask = ~MASK(m_qarLsbE, m_qarLenE);       // field mask for MSdata
+            m_gpeWord = EXTRACT(paramInfo->gpe, 16, 10);  // base index for MSdata
         }
         else
         {
@@ -318,6 +316,8 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         if (m_qarRateHz <= 4)
         {
             m_updateMs = 1000 / m_qarRateHz;
+            extraMs = m_updateMs % 10;
+            m_updateIntervalTicks = m_updateMs - extraMs;
             m_updateIntervalTicks /= 10;  // turn this into system ticks
         }
     }
@@ -514,10 +514,11 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         {
             UINT16 value;
 
-            static int lastSf = 0xff;
-            if (lastSf != m_qar->m_sf)
+            // TODojv: verify this actually works I doubt it ...
+            // try to sync up with the QAR when it changes SF we reset to zero index
+            if (m_qarSf != m_qar->m_sf)
             {
-                lastSf = m_qar->m_sf;
+                m_qarSf = m_qar->m_sf;
                 // a new SF is starting re-sync m_qarIndex if not at 0
                 if (m_qarIndex > 0)
                 {
@@ -596,9 +597,12 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         }
         else
         {
+            // m_qarIndex was inc above we need to back it up for this calc
+            UINT32 frame = m_qarIndex == 0 ? (m_rateHz - 1) : (m_qarIndex - 1);
+
             // we are a QAR and need to handle varying intervals for rates > 4Hz
-            UINT32 delta = (_10msTick(m_qarPeriod_ms, m_qarIndex + 1)
-                            - _10msTick(m_qarPeriod_ms, m_qarIndex));
+            UINT32 delta = (_10msTick(m_qarPeriod_ms, frame + 1)
+                            - _10msTick(m_qarPeriod_ms, frame));
 
             m_nextUpdate = sysTick + delta;
         }

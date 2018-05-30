@@ -1271,7 +1271,7 @@ BOOLEAN IoiProcess::CheckCmd(SecComm& secComm)
         serviced = TRUE;
         break;
     }
-        
+
     ////-------------------------------------------------------------------------------------
     //case eSetQarData:
     //  // Process command to update a SF with data value(s)s starting at the given offset.
@@ -1312,7 +1312,7 @@ BOOLEAN IoiProcess::CheckCmd(SecComm& secComm)
     //    secComm.m_response.successful = true;
     //    serviced = TRUE;
     //    break;
-    
+
     //-------------------------------------------------------------------------------------
     default:
         // we did not service this command - check our subordinates
@@ -1539,7 +1539,9 @@ void IoiProcess::InitIoi()
                         m_parameters[index].m_src != PARAM_SRC_CALC &&
                         m_parameters[index].m_src != PARAM_SRC_CYCLE &&
                         m_parameters[index].m_src != PARAM_SRC_HMU  &&
-                        m_parameters[index].m_src != PARAM_SRC_FLEX
+                        m_parameters[index].m_src != PARAM_SRC_FLEX &&
+                        m_parameters[index].m_src != PARAM_SRC_QAR_A717 &&
+                        m_parameters[index].m_src != PARAM_SRC_QAR_A664
                         )
                     {
                         openStatus = ioi_open(m_parameters[index].m_ioiName,
@@ -1570,7 +1572,6 @@ void IoiProcess::InitIoi()
                     m_parameters[index].m_ioiValid = true;
                     m_parameters[index].m_isRunning = false;
                 }
-
             }
 
             // track failed param creation

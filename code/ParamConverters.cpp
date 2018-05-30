@@ -170,7 +170,6 @@ void ParamConverter::SetIoiName()
     {
         sprintf(m_ioiName, "CROSS");
     }
-    // TODOjv: Add QAR_A664/A717 types here to find and associated SF buffers in IOI static
 }
 
 //---------------------------------------------------------------------------------------------
@@ -445,13 +444,4 @@ void ParamConverter::SetLabel( INT32 value)
     m_a429.label = value;
     // we use BCD here as it only packs the SSM bits not the sign bit in BNR words
     m_a429.a429Template = A429_FldPutLabel( m_a429.a429Template, value);
-
-    //if (value == m_a429.label0)
-    //{
-    //    m_isValid = true;
-    //}
-    //else
-    //{
-    //    m_isValid = false;
-    //}
 }
