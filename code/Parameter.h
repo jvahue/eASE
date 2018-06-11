@@ -84,8 +84,7 @@ public:
     UINT8   m_qarSfMask;   // Sub-frame mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
     UINT8   m_qarRateHz;   // actual QAR rate Hz 1, 2, 4, 8, 16, 32, 64 (ONLY)
                            // MIF = 10ms/100Hz so we cannot update anything above 100Hz
-    UINT8   m_qarSf;       // QAR SF the param thinks its on, used to resync m_qarIndex w/QAR
-    UINT32  m_qarIndex;    // which slot are we computing 0 .. (m_qarRateHz-1)
+    UINT32  m_qarSlot;     // which slot are we computing 0 .. (m_qarRateHz-1)
     UINT32  m_qarLenA;     // GPA Len
     UINT32  m_qarLsbA;     // GPA LSB
     UINT16  m_gpaMask;     // field mask for value (or LSB)

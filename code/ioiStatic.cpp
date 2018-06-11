@@ -451,7 +451,7 @@ void StaticIoiContainer::ResetStaticIoi()
     memset(_adrf_pat_udt_remain_a, 0xff, sizeof(_adrf_pat_udt_remain_a));
     memset(_adrf_pat_udt_remain_b, 0xff, sizeof(_adrf_pat_udt_remain_b));
 
-    // clear any error injection and reset data an NDO
+    // clear any error injection and reset data and NDO
 
 }
 

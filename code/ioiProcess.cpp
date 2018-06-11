@@ -235,7 +235,7 @@ void IoiProcess::Run()
 
 //---------------------------------------------------------------------------------------------
 // Function: RunSimulation
-// Description: Processing done to simulate the ioi process
+// Description: Processing done to simulate the ioi process at 100Hz
 //
 void IoiProcess::RunSimulation()
 {

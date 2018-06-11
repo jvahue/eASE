@@ -384,6 +384,8 @@ void A664Qar::Reset(StaticIoiObj* buffer/*=NULL*/)
     m_ndo[3] = 0x97562004;
     m_nonNdo = (m_ndo[0] | m_ndo[1] | m_ndo[2] | m_ndo[3]) + 1;
 
+    m_oneSecondClk = 0;
+
     //----- Execution Status ------
     m_frameCount = 0;
 
@@ -530,6 +532,8 @@ void A664Qar::SetData(UINT16 value,
 int A664Qar::UpdateIoi()
 {
     int writeErr = 0;
+
+    m_oneSecondClk = INC_WRAP(m_oneSecondClk, eTICKS_PER_SEC);  // update our internal time
 
     // specialized handling for _a664_to_ioc_eicas_ at 20Hz
     m_schedule += 1;
@@ -876,12 +880,12 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
     m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
 
-    m_sfSchedTick = eTICKS_PER_SEC;
-
     // default A717 word count to 64
     m_qarSfWordCount = 64;
 
     m_statusIoiValid = false; // TBDjv when do we turn this on?
+
+    m_oneSecondClk = 0;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -893,11 +897,11 @@ int A717Qar::UpdateIoi()
     UINT8 subFrameID;
 
     // Update the tick count
-    m_sfSchedTick += 1;
+    m_oneSecondClk += 1;
 
     // Is it time to send a SF - do this every 1Hz?
     // Output the next SF (if QAR active) and the status msg.
-    if (m_sfSchedTick >= eTICKS_PER_SEC)  
+    if (m_oneSecondClk >= eTICKS_PER_SEC)  
     {
         // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
         subFrameID = 0;
@@ -932,7 +936,7 @@ int A717Qar::UpdateIoi()
         // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state
         WriteQarStatusMsg(subFrameID);
 
-        m_sfSchedTick = 0;
+        m_oneSecondClk = 0;
     } 
 
     return 0;

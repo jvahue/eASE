@@ -250,7 +250,7 @@ public:
                  UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index);
 
     //----- operation and configuration data -----
-    StaticIoiStr* m_idl;     // the IOI buffer sending the QAR A664 data
+    StaticIoiStr* m_idl;           // the IOI buffer sending the QAR A664 data
 
     UINT32 m_qarSfWordCount;       // number of words we are configured to send
 
@@ -273,6 +273,8 @@ public:
 
     int m_ndo[eSfCount];
     int m_nonNdo;                  // a value that is not one of the 4 NDO values and not 0
+
+    int m_oneSecondClk;            // sharing of where we are in the one sec frame 0 .. 99
 
     //----- Execution Status ------
     int m_frameCount;              // how many frames have been sent since the last reset
@@ -315,10 +317,8 @@ public:
     StaticIoiStr* m_sfObjs[eSfCount]; // SF IOIs
 
     //----- Run Time Data -----
-    int m_sfSchedTick;  // The current tick value. Incremented when ioiProcess calls UpdateIoi.
-
     QAR_STS_MSG m_qarModStatus; // msg struct of UTAS A717 Module status
-    TEST_CONTROL m_testCtrl;    // Struct for state of cmd setting from the test env
+    TEST_CONTROL m_testCtrl;    // struct for state of cmd setting from the test env
 
     //----- Execution Status ------
     int m_writeErrCnt;  // total write error counts
