@@ -323,7 +323,7 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
         }
         else if (m_a717Qar.HandleRequest(m_staticAseOut[request.variableId]))
         {
-            return m_a664Qar.TestControl(request);
+            return m_a717Qar.TestControl(request);
         }
         else
         {
