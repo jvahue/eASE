@@ -109,7 +109,8 @@ StaticIoiContainer::StaticIoiContainer()
     m_ioiStaticInCount = ASE_IN_MAX;
     m_validIoiIn = 0;
 
-    // initialize the QAR processing elements
+    //----- initialize the "Smart" static IOI objects -----
+    //----- QAR processing elements
     m_a664Qar.Reset(FindIoi("a664_fr_eicas2_fdr"));
 
     m_a717Qar.Reset(FindIoi("A717_Cfg_Request"),  // Cfg Request
@@ -144,15 +145,11 @@ void StaticIoiContainer::OpenIoi()
 //---------------------------------------------------------------------------------------------
 void StaticIoiContainer::UpdateStaticIoi()
 {
-    // Run the Smart Static IOI objects
-    // A664QAR
-    m_writeError += m_a664Qar.UpdateIoi();
-
-    // A664QAR
-    m_writeError += m_a717Qar.UpdateIoi();
+    //----- Run the Smart Static IOI objects -----
+    m_writeError += m_a664Qar.UpdateIoi(); // A664QAR
+    m_writeError += m_a717Qar.UpdateIoi(); // A664QAR
 
     ProcessAdrfStaticInput();
-
     ProcessAdrfStaticOutput();
 }
 
@@ -319,7 +316,7 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
     SecRequest request = secComm.m_request;
     if (request.variableId < m_ioiStaticOutCount)
     {
-        // see if any of our smart static objects want to handle this
+        // see if any of our smart static objects want to handle this message
         if (m_a664Qar.HandleRequest(m_staticAseOut[request.variableId]))
         {
             return m_a664Qar.TestControl(request);

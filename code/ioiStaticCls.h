@@ -214,13 +214,13 @@ class A664Qar
 public:
     enum a664QarConst {
         // Set Data Control Commands
-        eQarNdo = -1,
-        eQarSfSeq = -2,
-        eQarWordSeq = -3,
-        eQarWordSeqState = -4,
-        eQarRandom = -5,
-        eQarGarbage = -6,
-        eQarStop = 0x0f0f,
+        eQar664Ndo = -1,
+        eQar664SfSeq = -2,
+        eQar664WdSeq = -3,
+        eQar664WdSeqState = -4,
+        eQar664Random = -5,
+        eQar664Garbage = -6,
+        eQar664Stop = 0x0f0f,
 
         eSfCount = 4,
         eBurstCount = 20,        // 16 small bursts, 4 large bursts = 1024 words
@@ -297,6 +297,14 @@ public:
 class A717Qar : public A664Qar
 {
 public:
+    enum a717QarConst {
+        // Set Data Control Commands
+        eQar717Reconfig = -1,
+        eQar717SkipSF   = -2,
+        // Misc Constants
+        eDefaultSfWdCnt = 64,
+    };
+
     A717Qar();
 
     // Methods called by the IOI Static container
@@ -308,6 +316,7 @@ public:
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
+    void Reconfigure(UINT8 sfWc, UINT8 reverseFlag, UINT8 format);
     void WriteQarStatusMsg(UINT8 subframeID);
 
     //----- operation and configuration data -----

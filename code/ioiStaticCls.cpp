@@ -418,7 +418,7 @@ bool A664Qar::TestControl(SecRequest& request)
     SINT32 offset = (SINT32)request.clearCfgRequest;
     UINT32 details = request.resetRequest;
 
-    if (offset == eQarNdo)
+    if (offset == eQar664Ndo)
     {
         m_nonNdo = 0;  // init recompute the nonNdo Id
 
@@ -433,12 +433,12 @@ bool A664Qar::TestControl(SecRequest& request)
 
         m_nonNdo += 1;  // after ORing these all together + 1 to make it a non-NDO
     }
-    else if (offset == eQarSfSeq)
+    else if (offset == eQar664SfSeq)
     {
         int* data = (int*)request.charData;
         m_skipSfMask = *data;
     }
-    else if (offset == eQarWordSeq)
+    else if (offset == eQar664WdSeq)
     {
         // packed data is word index (corrected for SF) and cmd value
         UINT16* index = (UINT16*)request.charData;
@@ -452,12 +452,12 @@ bool A664Qar::TestControl(SecRequest& request)
             *(dest + *index) = *cmdWord;
             index += 2;
             cmdWord += 2;
-        } while (!(*index == eQarStop && *cmdWord == eQarStop));
+        } while (!(*index == eQar664Stop && *cmdWord == eQar664Stop));
 
         // clear the QAR-A664 data mirror
         memset(mirrorQarA664, 0, sizeof(mirrorQarA664));
     }
-    else if (offset == eQarWordSeqState)
+    else if (offset == eQar664WdSeqState)
     {
         UINT16* dest = &m_wordSeqEnabled;
         // here we are moving data into our SF data array
@@ -480,7 +480,7 @@ bool A664Qar::TestControl(SecRequest& request)
             m_random = m_randomSave;
         }
     }
-    else if (offset == eQarRandom)
+    else if (offset == eQar664Random)
     {
         // we limit this to 50 in PySte and add suspenders to our belt here
         int* dest = &m_random;
@@ -490,7 +490,7 @@ bool A664Qar::TestControl(SecRequest& request)
             m_random = m_kMaxRandom;
         }
     }
-    else if (offset == eQarGarbage)
+    else if (offset == eQar664Garbage)
     {
         // send multiple sets of garbage data - not used during testing 5/25/18
         int* dest = &m_garbageSet;
@@ -512,6 +512,7 @@ bool A664Qar::TestControl(SecRequest& request)
 }
 
 //---------------------------------------------------------------------------------------------
+// Parameters call this function to set a SF data word to a specific value
 void A664Qar::SetData(UINT16 value, 
                       UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index)
 {
@@ -881,7 +882,7 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
 
     // default A717 word count to 64
-    m_qarSfWordCount = 64;
+    m_qarSfWordCount = eDefaultSfWdCnt;
 
     m_statusIoiValid = false; // TBDjv when do we turn this on?
 
@@ -945,8 +946,29 @@ int A717Qar::UpdateIoi()
 //---------------------------------------------------------------------------------------------
 bool A717Qar::TestControl(SecRequest& request)
 {
-    // inspect the request and see if it is specific to A717, if not pass it to A664
-    return A664Qar::TestControl(request);
+    bool status = true;
+    SINT32 offset = (SINT32)request.clearCfgRequest;
+    UINT32 details = request.resetRequest;
+
+    if (offset == eQar717Reconfig)
+    {
+        UINT8* cfgData = (UINT8*)request.charData;
+
+        // start a reconfigure request
+        Reconfigure(cfgData[0], cfgData[1], cfgData[2]);
+    }
+    else if (offset == eQar717SkipSF)
+    {
+        // TODO
+    }
+    else
+    {
+        // here we are moving data into our SF data array
+        UINT8* dest = (UINT8*)&m_qarWords[0][0] + offset;
+        memcpy(dest, request.charData, request.charDataSize);
+    }
+
+    return status;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -961,6 +983,13 @@ bool A717Qar::HandleRequest(StaticIoiObj* targetIoi)
     }
 
     return status;
+}
+
+//---------------------------------------------------------------------------------------------
+void A717Qar::Reconfigure(UINT8 sfWc, UINT8 reverseFlag, UINT8 format)
+{
+    // for now just reset the word count
+    m_qarSfWordCount = 1 << (sfWc + 6);
 }
 
 //---------------------------------------------------------------------------------------------

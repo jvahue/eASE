@@ -62,13 +62,6 @@ static bool flexSeq1TblsInit = false;
 /* Local Function Prototypes                                                 */
 /*****************************************************************************/
 
-// search for MGBH and move these back to local scope when ready
-FLOAT32 wordOffset;
-FLOAT32 msPerWord;
-FLOAT32 minWord;
-FLOAT32 maxWord;
-FLOAT32 baseWord;
-
 /*****************************************************************************/
 /* Public Functions                                                          */
 /*****************************************************************************/
@@ -452,15 +445,20 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     }
     else
     {
-        // look at the SF and where we are in the one second frame vs word slot positions
+        // look at the SF and where we are in the one second frame vs our word slot positions
         if (BIT(m_qarSfMask, m_qar->m_sf))
         {
-            // MOVE GLOBALS BACK HERE MGBH
+            FLOAT32 wordOffset;
+            FLOAT32 msPerWord;
+            FLOAT32 minWord;
+            FLOAT32 maxWord;
+            FLOAT32 baseWord;
+
             // figure out what word we are on in the frame based on the QAR timer
-            msPerWord = m_qar->m_qarSfWordCount / 100.0f; // words/MIF
-            minWord = m_qar->m_oneSecondClk * msPerWord;
+            msPerWord = m_qar->m_qarSfWordCount / 100.0f; // words / MIF
+            minWord = m_qar->m_oneSecondClk * msPerWord;  // oneSecClk 0 .. 99 = MIF clock
             maxWord = minWord + msPerWord;
-            baseWord = (FLOAT32)MIN(m_gpaWord, m_gpeWord);
+            baseWord = (FLOAT32)MIN(m_gpaWord, m_gpeWord); // pick our lowest word offset
 
             wordOffset = baseWord + ((m_qar->m_qarSfWordCount / m_qarRateHz) * m_qarSlot);
 

@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-642993932"
-     fileDate = "Mon May 28 16:07:29 2018"
+     validityKey = "1266109856"
+     fileDate = "Tue Jun 12 14:40:00 2018"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
