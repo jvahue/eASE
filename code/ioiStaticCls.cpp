@@ -887,6 +887,13 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_statusIoiValid = false; // TBDjv when do we turn this on?
 
     m_oneSecondClk = 0;
+
+    // default the 4 barker codes
+    m_qarWords[0][0] = 0x247;
+    m_qarWords[1][0] = 0x5b7;
+    m_qarWords[2][0] = 0xa47;
+    m_qarWords[3][0] = 0xdb7;
+
 }
 
 //---------------------------------------------------------------------------------------------
