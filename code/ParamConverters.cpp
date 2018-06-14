@@ -67,6 +67,8 @@ ParamConverter::ParamConverter()
 void ParamConverter::Reset()
 {
     m_isValid = false;
+    m_isUnsigned = false;
+    m_is2Comp = true;
     m_masterId = 0;
     m_gpa = 0;
     m_gpb = 0;
@@ -74,7 +76,6 @@ void ParamConverter::Reset()
     m_gpe = 0;
     m_src = PARAM_SRC_MAX;
     m_type = PARAM_FMT_NONE;
-    m_scale = 0.0f;       
     m_maxValue = 0.0f;
     m_scaleLsb = 0.0f;    
     m_data = 0;
@@ -100,8 +101,8 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     m_type = paramInfo->fmt;
 
     m_masterId = paramInfo->masterId;
-    m_scale = paramInfo->scale;
-    m_maxValue = paramInfo->scale;
+    // make sure this is positive
+    m_maxValue = paramInfo->scale < 0 ? -paramInfo->scale : paramInfo->scale;
 
     if (m_type == PARAM_FMT_A429)
     {
@@ -150,6 +151,32 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         // Turn this into a A429 DISCRETE and use its discrete packing code
         a664Offset = m_gpa & 0xffff;
         a664Size = (m_gpa >> 16) & 0x7fff; // clear PySte indication that this is an IDL
+    }
+    else if (m_type == PARAM_FMT_INTEGER_QAR)
+    {
+        // get the number of bits in GPA and GPE
+        m_totalBits = EXTRACT(m_gpa, 0, 4) + EXTRACT(m_gpe, 0, 4);
+
+        // and some other conversion details
+        m_is2Comp = BIT(m_gpa, 13);
+        m_isUnsigned = !BIT(m_gpa, 12);
+
+        if (m_maxValue == 0.0f)
+        {
+            m_scaleLsb = 1.0f;
+            m_maxValue = pow(2.0f, float(m_totalBits));
+        }
+        else
+        {
+            if (m_isUnsigned)
+            {
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits));
+            }
+            else
+            {
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits - 1));
+            }
+        }
     }
 
     SetIoiName();
@@ -319,6 +346,72 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
         // just pack the float : what about moving it around inside and big data set?
         UINT32 *data = (UINT32*)&value;
         rawValue = *data;
+    }
+    else if (m_type == PARAM_FMT_DISCRETE)
+    {
+        // the ability to drive these HMU discrete came after scripts were written
+        // so all scripts use SetIoi directly 6/14/2018.
+    }
+    else if (m_type == PARAM_FMT_INTEGER_QAR)
+    {
+        FLOAT32 bias = 0.5;
+
+        if (m_isUnsigned)
+        {
+            // value is unsigned so limit the value to 0 .. m_maxValue
+            value = MAX(0, MIN(value, m_maxValue - m_scaleLsb));
+            rawValue = (UINT32)(value / m_scaleLsb);
+        }
+        else
+        {
+            // limit the value to +/- m_maxValue
+            if (value >= m_maxValue)
+            {
+                value = m_maxValue - m_scaleLsb;
+            }
+            else if (value < -m_maxValue)
+            {
+                value = -m_maxValue;
+            }
+
+            UINT32 signOn = value < 0.0 ? (1 << (m_totalBits - 1)) : 0;
+
+            if (m_is2Comp)
+            {
+                if (value < 0.0)
+                {
+                    if (-value > m_scaleLsb)
+                    {
+                        bias = -0.5;
+                    }
+                    else
+                    {
+                        value = 0.0;
+                    }
+                }
+                else if (value < m_scaleLsb)
+                {
+                    value = 0.0;
+                }
+
+                rawValue = int((value / m_scaleLsb) + bias);
+            }
+            else
+            {
+                UINT32 magnitude = signOn ? -value : value;
+                if (magnitude > m_scaleLsb)
+                {
+                    rawValue = int(magnitude / m_scaleLsb) - 1;
+                }
+                else
+                {
+                    rawValue = 0;
+                }
+            }
+
+            // turn on the sign bit
+            rawValue |= signOn;
+        }
     }
 
     return rawValue;

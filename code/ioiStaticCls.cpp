@@ -44,6 +44,7 @@
 // Local Variables                                                           -/
 //----------------------------------------------------------------------------/
 UINT32 mirrorQarA664[A664Qar::eSfCount][A664Qar::eSfWordCount];
+UINT32 mirrorQarA717[A664Qar::eSfCount][A664Qar::eSfWordCount];
 
 //----------------------------------------------------------------------------/
 // Constant Data                                                             -/
@@ -907,7 +908,7 @@ int A717Qar::UpdateIoi()
     // Update the tick count
     m_oneSecondClk += 1;
 
-    // Is it time to send a SF - do this every 1Hz?
+    // Is it time to send a SF - at 1Hz?
     // Output the next SF (if QAR active) and the status msg.
     if (m_oneSecondClk >= eTICKS_PER_SEC)  
     {
@@ -920,10 +921,12 @@ int A717Qar::UpdateIoi()
             // copy the local SF image to the IOI 16 -> 32 bits
             UINT16* src = m_qarWords[m_sf];
             UINT32* dst = (UINT32*)&m_sfObjs[m_sf]->data[0];
+            UINT32* mrr = (UINT32*)&mirrorQarA717[m_sf][0];
 
             for (int i = 0; i < m_qarSfWordCount; ++i)
             {
-                *dst++ = *src++;
+                *dst++ = *src;
+                *mrr++ = *src++;  // keep a local copy for us to look at
             }
 
             // send next SF data via its IOI

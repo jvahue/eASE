@@ -125,15 +125,17 @@ public:
     void SetIoiName();
 
     bool m_isValid;        // is the parameter active and setup was successful
+    bool m_isUnsigned;     // is the parameter unsigned
+    bool m_is2Comp;        // is the parameter in 2's complement form
     UINT32  m_masterId;
     UINT32  m_gpa;
     UINT32  m_gpb;
     UINT32  m_gpc;
     UINT32  m_gpe;
+    UINT32  m_totalBits;
     PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
-    FLOAT32 m_scale;       // the current value for the parameter
-    FLOAT32 m_maxValue;
+    FLOAT32 m_maxValue;    // what is the cfg scale value set to
     FLOAT32 m_scaleLsb;    // the current value for the parameter
     UINT32  m_data;        // the current value for the parameter
     ParameterName m_ioiName;
