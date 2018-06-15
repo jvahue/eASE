@@ -354,8 +354,6 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     }
     else if (m_type == PARAM_FMT_INTEGER_QAR)
     {
-        FLOAT32 bias = 0.5;
-
         if (m_isUnsigned)
         {
             // value is unsigned so limit the value to 0 .. m_maxValue
@@ -364,41 +362,46 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
         }
         else
         {
+            FLOAT32 bias = 0.5;
+
             // limit the value to +/- m_maxValue
             if (value >= m_maxValue)
             {
-                value = m_maxValue - m_scaleLsb;
+                value = m_maxValue - m_scaleLsb;  // +max is really max - 1 lsb
             }
             else if (value < -m_maxValue)
             {
                 value = -m_maxValue;
             }
 
+            // if the value is negative create the sign bit mask
             UINT32 signOn = value < 0.0 ? (1 << (m_totalBits - 1)) : 0;
 
-            if (m_is2Comp)
+            // check for a value within +/-lsb value and zero it
+            if (value < 0.0)
             {
-                if (value < 0.0)
+                if (-value > m_scaleLsb)
                 {
-                    if (-value > m_scaleLsb)
-                    {
-                        bias = -0.5;
-                    }
-                    else
-                    {
-                        value = 0.0;
-                    }
+                    bias = -0.5;
                 }
-                else if (value < m_scaleLsb)
+                else
                 {
                     value = 0.0;
                 }
+            }
+            else if (value < m_scaleLsb)
+            {
+                value = 0.0;
+            }
 
+            if (m_is2Comp)
+            {
                 rawValue = int((value / m_scaleLsb) + bias);
             }
             else
             {
-                UINT32 magnitude = signOn ? -value : value;
+                // sign magnitude here get the magnitude in positive terms
+                FLOAT32 magnitude = signOn ? -value : value;
                 if (magnitude > m_scaleLsb)
                 {
                     rawValue = int(magnitude / m_scaleLsb) - 1;

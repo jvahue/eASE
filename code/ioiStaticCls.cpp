@@ -885,7 +885,7 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     // default A717 word count to 64
     m_qarSfWordCount = eDefaultSfWdCnt;
 
-    m_statusIoiValid = false; // TBDjv when do we turn this on?
+    m_statusIoiValid = false; // TBDjv trun this on when UTAS is caught up
 
     m_oneSecondClk = 0;
 
