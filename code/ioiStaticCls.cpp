@@ -885,15 +885,15 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     // default A717 word count to 64
     m_qarSfWordCount = eDefaultSfWdCnt;
 
-    m_statusIoiValid = false; // TBDjv trun this on when UTAS is caught up
+    m_statusIoiValid = false; // TBDjv turn this on when UTAS is caught up
 
     m_oneSecondClk = 0;
 
     // default the 4 barker codes
     m_qarWords[0][0] = 0x247;
-    m_qarWords[1][0] = 0x5b7;
+    m_qarWords[1][0] = 0x5b8;
     m_qarWords[2][0] = 0xa47;
-    m_qarWords[3][0] = 0xdb7;
+    m_qarWords[3][0] = 0xdb8;
 
 }
 
