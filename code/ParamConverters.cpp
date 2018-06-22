@@ -404,7 +404,14 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
                 FLOAT32 magnitude = signOn ? -value : value;
                 if (magnitude > m_scaleLsb)
                 {
-                    rawValue = int(magnitude / m_scaleLsb) - 1;
+                    if (signOn)
+                    {
+                        rawValue = int(magnitude / m_scaleLsb) - 1;
+                    }
+                    else
+                    {
+                        rawValue = int(magnitude / m_scaleLsb);
+                    }
                 }
                 else
                 {
