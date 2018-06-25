@@ -67,7 +67,7 @@ ParamConverter::ParamConverter()
 void ParamConverter::Reset()
 {
     m_isValid = false;
-    m_isUnsigned = false;
+    m_isSigned = true;
     m_is2Comp = true;
     m_masterId = 0;
     m_gpa = 0;
@@ -158,8 +158,8 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         m_totalBits = EXTRACT(m_gpa, 0, 4) + EXTRACT(m_gpe, 0, 4);
 
         // and some other conversion details
+        m_isSigned = BIT(m_gpa, 12);
         m_is2Comp = BIT(m_gpa, 13);
-        m_isUnsigned = !BIT(m_gpa, 12);
 
         if (m_maxValue == 0.0f)
         {
@@ -168,13 +168,15 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         }
         else
         {
-            if (m_isUnsigned)
+            if (m_isSigned)
             {
-                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits));
+                // one bit is allocated to the sign so 2^(n-1)
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits - 1));
             }
             else
             {
-                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits - 1));
+                // use all bits so 2^(n)
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits));
             }
         }
     }
@@ -354,7 +356,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
     }
     else if (m_type == PARAM_FMT_INTEGER_QAR)
     {
-        if (m_isUnsigned)
+        if (!m_isSigned)
         {
             // value is unsigned so limit the value to 0 .. m_maxValue
             value = MAX(0, MIN(value, m_maxValue - m_scaleLsb));

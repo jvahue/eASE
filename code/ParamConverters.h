@@ -125,8 +125,8 @@ public:
     void SetIoiName();
 
     bool m_isValid;        // is the parameter active and setup was successful
-    bool m_isUnsigned;     // is the parameter unsigned
-    bool m_is2Comp;        // is the parameter in 2's complement form
+    bool m_isSigned;       // is the parameter signed
+    bool m_is2Comp;        // is the parameter in 2's complement or sign/magnitude
     UINT32  m_masterId;
     UINT32  m_gpa;
     UINT32  m_gpb;
