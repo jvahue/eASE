@@ -74,9 +74,9 @@ void ParamConverter::Reset()
     m_gpe = 0;
     m_src = PARAM_SRC_MAX;
     m_type = PARAM_FMT_NONE;
-    m_scale = 0.0f;       
+    m_scale = 0.0f;
     m_maxValue = 0.0f;
-    m_scaleLsb = 0.0f;    
+    m_scaleLsb = 0.0f;
     m_data = 0;
 
     memset(m_ioiName, 0, sizeof(m_ioiName));
@@ -346,10 +346,10 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
-            if (value < 0.0f) 
+            if (value < 0.0f)
             {
                 if (-value > m_scaleLsb)
-                { 
+                {
                     if (m_a429.format == eBNR1)
                     {
                         rawValue = A429_BNRPutSign(rawValue, 1);
@@ -374,6 +374,10 @@ UINT32 ParamConverter::A429Converter(float value)
 
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
         }
+    }
+    else if (m_a429.format == eBNRU)
+    {
+
     }
     else if (m_a429.format == eBCD)
     {

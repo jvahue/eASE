@@ -52,6 +52,7 @@
 enum A429WordFormat {
     eBNR   = 0x00,  // contiguous sign and data BNR
     eBNR1  = 0x01,  // sign bit #28, data wherever
+    eBNRU  = 0x02,  // unsigned BNR
     eBCD   = 0x04,  // BCD value - assumed in upper bits of word
     eDisc  = 0x08,  // Discrete bits - anywhere
     eOther = 0x0C   // Not in Use
@@ -140,7 +141,7 @@ public:
 
     // A429 Parameter Attributes
     ARINC429_WORD_INFO m_a429;
-    
+
     UINT16 a664Offset; // what is the bit offset into the IDL
     UINT16 a664Size;   // how big is the A664 field
 
