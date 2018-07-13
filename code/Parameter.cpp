@@ -48,10 +48,22 @@ const char* paramType5[] = {
 };
 
 const char* a429Fmt5[] = {
-    "BNR  ",
-    "BCD  ",
-    "Disc ",
-    "Other"
+    "BNR  ",  // 0 - BNR
+    "BNR1 ",  // 1 - BNR1
+    "BNRU ",  // 2 - BNR Unsigned
+    "Rsvd3",  // 3
+    "BCD  ",  // 4 - BCD
+    "Rsvd5",  // 5
+    "Rsvd6",  // 6
+    "Rsvd7",  // 7
+    "Disc ",  // 8 - Disc
+    "Rsvd9",  // 9
+    "RsvdA",  // A
+    "RsvdB",  // B
+    "Other",  // C - other (unused)
+    "RsvdD",  // D
+    "RsvdE",  // E
+    "RsvdF"   // F
 };
 
 static FlexSeq1Tbl flexSeq1Table[MAX_FLEX_SEQ1_TBLS];

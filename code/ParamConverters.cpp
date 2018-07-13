@@ -107,7 +107,9 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     {
         A429ParseGps();
 
-        if (m_a429.format == eBNR || m_a429.format == eBNR1)
+        if (m_a429.format == eBNR  ||
+            m_a429.format == eBNR1 ||
+            m_a429.format == eBNRU)
         {
             m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
         }
@@ -235,23 +237,22 @@ void ParamConverter::A429ParseGps()
         m_a429.sdBits    = (m_gpc >>  8) & 0x3;
     }
 
-
     if (m_a429.format == eBCD)
     {
         // MSB BCD is only 3 bits not 4
-        m_a429.lsb = (m_a429.msb)-(((m_a429.wordSize-1)*4)+2);
+        m_a429.lsb = (m_a429.msb) - (((m_a429.wordSize - 1) * 4) + 2);
     }
     else if ( m_a429.format == eDisc)
     {
-        m_a429.lsb = m_a429.msb - (m_a429.wordSize-1);
+        m_a429.lsb = m_a429.msb - (m_a429.wordSize - 1);
         if (m_a429.wordSize == 1)
         {
             m_a429.msb += 1;
         }
     }
-    else // eBNR, eBNR1
+    else // eBNR, eBNR1, eBNRU
     {
-        m_a429.lsb = (m_a429.msb)-(m_a429.wordSize-1);
+        m_a429.lsb = (m_a429.msb)-(m_a429.wordSize - 1);
     }
 
     // Parse General Purpose B parameter
@@ -290,6 +291,7 @@ UINT32 ParamConverter::ExpectedSSM()
         break;
     case eBNR:
     case eBNR1:
+    case eBNRU:
     default:
         expected = BNR_VALID_SSM;
         break;
@@ -337,7 +339,7 @@ UINT32 ParamConverter::A429Converter(float value)
     {
         if (m_scaleLsb > 0)  // based on 429 format
         {
-            if ( value >= m_maxValue)
+            if (value >= m_maxValue)
             {
                 value = m_maxValue - m_scaleLsb;
             }
@@ -377,7 +379,18 @@ UINT32 ParamConverter::A429Converter(float value)
     }
     else if (m_a429.format == eBNRU)
     {
+        // unsigned binary value, bound it to the specified scale
+        if (value < 0)
+        {
+            value = 0.0f;
+        }
+        else if (value >= m_maxValue)
+        {
+            value = m_maxValue - m_scaleLsb;
+        }
 
+        m_data = UINT32( (value / m_scaleLsb) + bias);
+        rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
     }
     else if (m_a429.format == eBCD)
     {
@@ -390,7 +403,7 @@ UINT32 ParamConverter::A429Converter(float value)
             value = -value;
         }
 
-        m_data = UINT32(value);
+        m_data = UINT32(value/m_maxValue);
 
         for (int i=0; i < m_a429.wordSize; ++i)
         {
