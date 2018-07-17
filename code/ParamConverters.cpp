@@ -408,7 +408,8 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
                 {
                     if (signOn)
                     {
-                        rawValue = int(magnitude / m_scaleLsb) - 1;
+                        // Calc raw value. If fVal is at negative limit of scale, subtract 1 bit.
+                        rawValue = int( magnitude / m_scaleLsb ) - (value == -m_maxValue) ? 1:0;
                     }
                     else
                     {

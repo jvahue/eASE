@@ -302,7 +302,7 @@ public:
         eQar717Reconfig = -1,
         eQar717SkipSF   = -2,
         // Misc Constants
-        eDefaultSfWdCnt = 64,
+        eDefaultSfWdCnt = 1024, //64,
     };
 
     A717Qar();
