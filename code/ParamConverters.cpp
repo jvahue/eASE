@@ -113,6 +113,14 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         {
             m_scaleLsb = m_maxValue / pow(2.0f, float(m_a429.wordSize));
         }
+        else if (m_a429.format == eBCD)
+        {
+            m_scaleLsb = m_scale/2.0f;
+        }
+        else
+        {
+            m_scaleLsb = 1.0;
+        }
         // TODO: other formats
 
         // reverse the label
@@ -339,7 +347,7 @@ UINT32 ParamConverter::A429Converter(float value)
     {
         if (m_scaleLsb > 0)  // based on 429 format
         {
-            if (value >= m_maxValue)
+            if (value >= (m_maxValue - m_scaleLsb))
             {
                 value = m_maxValue - m_scaleLsb;
             }
@@ -360,7 +368,7 @@ UINT32 ParamConverter::A429Converter(float value)
                     {
                         rawValue = SetBit(rawValue, (m_a429.msb + 1));
                     }
-                    bias = -0.5f;
+                    bias = -bias;
                 }
                 else
                 {
@@ -384,7 +392,7 @@ UINT32 ParamConverter::A429Converter(float value)
         {
             value = 0.0f;
         }
-        else if (value >= m_maxValue)
+        else if (value >= (m_maxValue - m_scaleLsb))
         {
             value = m_maxValue - m_scaleLsb;
         }
@@ -403,7 +411,8 @@ UINT32 ParamConverter::A429Converter(float value)
             value = -value;
         }
 
-        m_data = UINT32(value/m_maxValue);
+        // sign/magnitude form
+        m_data = UINT32( (value + m_scaleLsb) / m_maxValue );
 
         for (int i=0; i < m_a429.wordSize; ++i)
         {
