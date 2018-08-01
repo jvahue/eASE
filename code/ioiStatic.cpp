@@ -865,11 +865,9 @@ StaticIoiContainer::StaticIoiContainer()
     _BrdTempDegC_.data = 10.0f;
 
     strcpy(_HMUSerialNumber, "0000999999");
-    strcpy(_HMUPartNumber,   "5316928SK01");
-    strcpy(_UTASSwDwgNumber, "Y1022429-003");
-    strcpy(_PWSwDwgNumber,   "5318410-12SK01");
-
-
+    strcpy(_HMUPartNumber,   "5316928SK05");
+    strcpy(_UTASSwDwgNumber, "Y1022429-005");
+    strcpy(_PWSwDwgNumber,   "5318410-17SK05");
 
     // copy the object references into our container array (TBD: do we really need to do this?
     for (int i = 0; i < ASE_OUT_MAX; ++i)
