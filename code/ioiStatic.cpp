@@ -461,6 +461,19 @@ void StaticIoiContainer::ResetStaticParams()
         // do not reset the running state if it is invalid
         m_staticAseOut[i]->m_isParam = false;
     }
+
+    //----- re-initialize the "Smart" static IOI objects -----
+    //----- QAR processing elements
+    m_a664Qar.Reset( FindIoi( "a664_fr_eicas2_fdr" ) );
+
+    m_a717Qar.Reset( FindIoi( "A717_Cfg_Request" ),  // Cfg Request
+                     FindIoi( "A717_Cfg_Response" ), // Cfg Response
+                     FindIoi( "A717Status" ),        // Status Msg
+                     FindIoi( "A717Subframe1" ),     // SF1
+                     FindIoi( "A717Subframe2" ),     // SF2
+                     FindIoi( "A717Subframe3" ),     // SF3
+                     FindIoi( "A717Subframe4" ) );    // SF4
+
 }
 
 //---------------------------------------------------------------------------------------------
