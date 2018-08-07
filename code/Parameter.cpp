@@ -526,17 +526,22 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
         {
             UINT16 value;
 
-            // write new data to the SF data buffer
-            // Get the value or the LS part
-            value = FIELD(EXTRACT(m_rawValue, 0, m_qarLenA), m_qarLsbA, m_qarLenA);
-            m_qar->SetData(value, m_gpaMask, m_qarSfMask, m_qarRateHz, m_gpaWord, m_qarSlot);
-            if (m_qarLenE > 0)
+            // we have to handle the param being disable locally to stop it from putting data
+            // in the SF buffers
+            if (m_isRunning)
             {
-                // get the MSdat part
-                value = FIELD(EXTRACT(m_rawValue, m_qarLenA, m_qarLenE), 
-                              m_qarLsbE, m_qarLenE);
-                m_qar->SetData(value, 
-                               m_gpeMask, m_qarSfMask, m_qarRateHz, m_gpeWord, m_qarSlot);
+                // write new data to the SF data buffer
+                // Get the value or the LS part
+                value = FIELD(EXTRACT(m_rawValue, 0, m_qarLenA), m_qarLsbA, m_qarLenA);
+                m_qar->SetData(value, m_gpaMask, m_qarSfMask, m_qarRateHz, m_gpaWord, m_qarSlot);
+                if (m_qarLenE > 0)
+                {
+                    // get the MSdat part
+                    value = FIELD(EXTRACT(m_rawValue, m_qarLenA, m_qarLenE), 
+                                  m_qarLsbE, m_qarLenE);
+                    m_qar->SetData(value, 
+                                   m_gpeMask, m_qarSfMask, m_qarRateHz, m_gpeWord, m_qarSlot);
+                }
             }
 
             m_qarSlot = INC_WRAP(m_qarSlot, m_qarRateHz);
