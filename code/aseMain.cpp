@@ -61,6 +61,16 @@ $Revision: $  $Date: $
 #define IS_BATT_EN       (~batteryStsMirror & BATT_SW_ENA_N)
 #define IS_BATT_LATCH_EN (IS_LVL_A_ON && IS_BATT_EN)
 
+// Battery Map Lookup Constants
+#define kBmlNul 0
+#define kBmlPon 1
+#define kBmlBla 2
+#define kBmlPonBla 3 // kBmlPon | kBmlBla)
+#define kBmlCwa 4
+#define kBmlPonCwa 5 // kBmlPon | kBmlCwa)
+#define kBmlBlaCwa 6 //(kBmlBla | kBmlCwa)
+#define kBmlAll 7
+
 #define eDyHdr 0
 #define eDyASE 1
 #define eDyMs  2
@@ -140,14 +150,17 @@ INT32 _50MsTimer;         // times out the 50ms holdup
 UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
 UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
 
-// Four Battery Control Tables for each mode of BatteryTestControlState are mapped into the 
-// batteyrSts word.  Each value in each tables represents the positive logic asserted state for 
-// PowerOn: bit 0, BattLatched: bit 1, LvlC_WA: bit 2
-// The Lookup key is based on Script Power: Bit 0 and LvlC_CMD: bit 1
-UINT8 batMapDisable[BATTERY_MAP_SIZE] = {0, 1, 4, 5};
-UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {0, 1, 6, 5};
-UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {2, 3, 6, 7};
-UINT8 batMapLow[BATTERY_MAP_SIZE]     = {0, 1, 4, 5};
+// Four Battery Control rows in the table for each mode of BatteryTestControlState are mapped into the
+// batteyrSts word.  Each value in each tables represents the positive logic asserted state for
+// The index into a column of the table is based on:
+//   Script Power (SPO): Bit 0 and LvlC_CMD (Con): bit 1
+//                                      !(SPO | Con)  SPO         Con         SPO & Con
+// PowerOn (Pon): bit 0, BattLatched (Bla): bit 1, LvlC_WA (Cwa): bit 2
+UINT8 batMapDisable[BATTERY_MAP_SIZE] = {kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa};
+UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {kBmlNul,     kBmlPon,    kBmlBlaCwa, kBmlPonCwa};
+UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {kBmlCwa,     kBmlPonBla, kBmlBlaCwa, kBmlAll};
+UINT8 batMapLow[BATTERY_MAP_SIZE]     = {kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa};
+
 UINT8* batMapLookup[eBattMax] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
 
 UINT8 powerKey;
@@ -309,7 +322,7 @@ int main(void)
 
         if (updateDisplayLine == eDyASE)
         {
-            debug_str(AseMain, eDyASE, 0, 
+            debug_str(AseMain, eDyASE, 0,
                 "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
                 aseCommon.clocks[eClkRtc].m_time.tm_year,
                 aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
@@ -392,8 +405,8 @@ int main(void)
             batStsStr[2] = (batteryStsMirror  & LEVC_ADRF_BATT_CMD_WA) ? 'C' : ' ';
             batStsStr[3] = (batteryStsMirror  & LEVA_BATT_IN_SW_MASTER_EN) ? 'A' : ' ';
             batStsStr[4] = '\0';
-            debug_str(AseMain, eDyBatt, 0, 
-                "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s", 
+            debug_str(AseMain, eDyBatt, 0,
+                "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s",
                 aseCommon.scriptPowerOn,
                 batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
                 batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
@@ -402,17 +415,17 @@ int main(void)
 
         else if (updateDisplayLine == eDyAdrfOn)
         {
-            debug_str(AseMain, eDyAdrfOn, 0,  "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d", 
+            debug_str(AseMain, eDyAdrfOn, 0,  "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d",
                 adrfOnCount, adrfOnCall, adrfProcStatusOn,
                 cmdHandler[kIoiProc], cmdHandler[kAseMain]);
         }
 
         else if (updateDisplayLine == eDyAdrfOff)
         {
-            UINT32 x = cmdHandler[kTotalRqst] - 
+            UINT32 x = cmdHandler[kTotalRqst] -
                 (cmdHandler[0] + cmdHandler[1] + cmdHandler[kAseMain]);
 
-            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d  cm: %6d Ttl: %6d/%d", 
+            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d  cm: %6d Ttl: %6d/%d",
                 adrfOffCount, adrfOffCall, adrfProcStatusOff,
                 cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
         }
@@ -422,7 +435,7 @@ int main(void)
         {
             updateDisplayLine = 0;
         }
-       
+
         // Yield the CPU and wait until the next period to run again.
         waitUntilNextPeriod();
 
@@ -485,7 +498,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
     {
         debug_str(AseMain, eDyLast, 0, "Last Cmd Id: %3d", request.cmdId);
         cmdSeen = TRUE;
-        cmdHandler[kTotalRqst] += 1; 
+        cmdHandler[kTotalRqst] += 1;
         videoRedirect = (VID_DEFS)request.videoDisplay;
 
         switch (request.cmdId)
@@ -510,7 +523,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             aseCommon.bScriptRunning = FALSE;
             aseCommon.bMsOnline = true;  // turn MS on after the script ends
 
-            // reset the battery latch logic to default (i.e., no battery latching
+            // reset the battery latch logic to default (i.e., no battery latching)
             batteryState = eBattDisabled;
             memcpy(batMapActive, batMapLookup[batteryState], sizeof(batMapActive));
             secComm.m_response.successful = TRUE;
@@ -596,7 +609,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
                 }
                 else
                 {
-                    secComm.ErrorMsg("Memory Read boundary error: attempt to read %d - max %d", 
+                    secComm.ErrorMsg("Memory Read boundary error: attempt to read %d - max %d",
                         (offset + size), totalSize);
                     secComm.m_response.successful = FALSE;
                 }
@@ -673,8 +686,8 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             break;
 
         case eSetAdrfVersion:
-            memcpy(aseCommon.adrfVer, 
-                   secComm.m_request.charData, 
+            memcpy(aseCommon.adrfVer,
+                   secComm.m_request.charData,
                    secComm.m_request.charDataSize);
             aseCommon.adrfVer[secComm.m_request.charDataSize] = '\0';
             secComm.m_response.successful = TRUE;
@@ -727,7 +740,7 @@ static void UpdateBattery()
 
     // clear the status mirror and rebuild it
     batteryStsMirror = 0;
-    
+
     batteryStsMirror |= (batteryState != eBattDisabled) ? LEVA_BATT_IN_SW_MASTER_EN : 0; // A
     batteryStsMirror |= (batSts & 4) ? LEVC_ADRF_BATT_CMD_WA : 0; // Lvl C WA
     batteryStsMirror |= (batSts & 2) ? 0 : BATT_SW_ENA_N;         // Batt Enable Asserted Low
@@ -784,7 +797,7 @@ static void PowerCtl()
         {
             if (--_50MsTimer == 0)
             {
-                // we will default to latch state but if we really turn off because 
+                // we will default to latch state but if we really turn off because
                 // !IS_INVERT_POWER we will be ePsOff
                 _50MsTimer = 0;
                 aseCommon.asePowerState = ePsLatch;
@@ -883,8 +896,8 @@ static void SetTime(SecRequest& request)
 }
 
 //---------------------------------------------------------------------------------------------
-// Read from n bytes <n=sigGenId> NVM memory <ref=resetRequest> at the offset address specified 
-// <offset=variableId>.  The offset address is from the base of NVM memory.  This assumes all 
+// Read from n bytes <n=sigGenId> NVM memory <ref=resetRequest> at the offset address specified
+// <offset=variableId>.  The offset address is from the base of NVM memory.  This assumes all
 // addresses are inside our NVM [0..NvmSize-1] bytes.
 //
 // This code services three memory areas:
