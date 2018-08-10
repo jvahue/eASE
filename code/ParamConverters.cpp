@@ -411,8 +411,7 @@ UINT32 ParamConverter::A429Converter(float value)
             value = -value;
         }
 
-        // sign/magnitude form
-        m_data = UINT32( (value + m_scaleLsb) / m_maxValue );
+        m_data = UINT32(value);
 
         for (int i=0; i < m_a429.wordSize; ++i)
         {
