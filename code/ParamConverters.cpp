@@ -411,7 +411,8 @@ UINT32 ParamConverter::A429Converter(float value)
             value = -value;
         }
 
-        m_data = UINT32(value);
+        // sign/magnitude form (BCD is scaled during its transmisison so we do that here)
+        m_data = UINT32( (value + m_scaleLsb) / m_maxValue );
 
         for (int i=0; i < m_a429.wordSize; ++i)
         {
