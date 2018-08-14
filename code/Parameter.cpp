@@ -25,6 +25,7 @@
 /*****************************************************************************/
 /* Local Defines                                                             */
 /*****************************************************************************/
+#define _10msTick(period, step) int(((period) * (step)) / 10.0)
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -148,6 +149,21 @@ void Parameter::Reset()
     m_flexSeq = -1;
     m_flexRoot = NULL;
 
+    // QAR Data stream parameters
+    m_qar = NULL;           // this can either be a A664 or A717 QAR pointer
+    m_qarSfMask = 0;        // Sub-frame mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
+    m_qarRateHz = 0;        // actual QAR rate Hz 1, 2, 4, 8, 16, 32, 64 (ONLY)
+    m_qarSlot = 0;          // which slot are we computing 0 .. (m_qarRateHz-1)
+    m_qarLenA = 0;
+    m_qarLsbA = 0;
+    m_gpaMask = 0;          // field mask for value (or LSB)
+    m_gpaWord = 0;          // base index for value (or LSB)
+    m_qarLenE = 0;
+    m_qarLsbE = 0;
+    m_gpeMask = 0;          // field mask for MSB
+    m_gpeWord = 0;          // base index for MSB
+    m_qarPeriod_ms = 0.0f;  // actual QAR period (1.0/Hz)
+
     ParamConverter::Reset();
 
     // clear out the SigGen
@@ -203,7 +219,11 @@ void Parameter::SetFlex(UINT32 rawValue, int index)
 
 //---------------------------------------------------------------------------------------------
 // Function: Init
-// Description: Initialize the parameter based on the configuration values
+// Description: Initialize the parameter based on the configuration values.  Params are mostly
+// organized by their source.  Each source should handle all the setup required for the 
+// parameter to 
+//   1. updates its value in its value stream IOI, FLEX, QAR, etc
+//   2. compute the rate to send the value (i.e., it m_updateIntervalTicks
 //
 void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
 {
@@ -225,6 +245,40 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         // ok we have a flex child - get its seq #, caller will link the parent (m_flexParent)
         m_flexRootIdx = (m_gpe >> 16) & 0xffff;
         m_flexSeq = (m_gpe >> 8) & 0xff;
+    }
+    else if ((paramInfo->src == PARAM_SRC_QAR_A664) || (paramInfo->src == PARAM_SRC_QAR_A717))
+    {
+        m_qarLenA = EXTRACT(paramInfo->gpa, 0, 4);
+        m_qarLsbA = EXTRACT(paramInfo->gpa, 4, 4) - (m_qarLenA - 1);
+        m_gpaMask = ~MASK(m_qarLsbA, m_qarLenA);        // field mask for LSdata
+        m_gpaWord = EXTRACT(paramInfo->gpa, 16, 10);   // base index for LSdata
+
+        m_qarLenE = EXTRACT(paramInfo->gpe, 0, 4);
+        if (m_qarLenE > 0)
+        {
+            m_qarLsbE = EXTRACT(paramInfo->gpe, 4, 4) - (m_qarLenE - 1);
+            m_gpeMask = ~MASK(m_qarLsbE, m_qarLenE);       // field mask for MSdata
+            m_gpeWord = EXTRACT(paramInfo->gpe, 16, 10);  // base index for MSdata
+        }
+        else
+        {
+            m_qarLsbE = 0;
+            m_gpeMask = 0;       // field mask for MSdata = 0 does not exist
+            m_gpeWord = 0xffff;  // base index for MSdata
+        }
+
+        // items associated with the parameter's update rate
+        m_qarSfMask = EXTRACT(paramInfo->gpa, 8, 4); // mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
+        m_qarRateHz = 1 << EXTRACT(paramInfo->gpe, 28, 4);
+
+        // limit this to 1Hz even if the value only appears in one or two SF for 0.25|0.5 Hz
+        m_qarPeriod_ms = 1000.0/(float)m_qarRateHz;  // actual QAR period (1.0/Hz) 
+        m_qarSlot = 0;  // SF slot are we computing 0 .. (m_qarRateHz-1)
+
+        // attach the parameter to the QAR data stream
+        m_qar = (paramInfo->src == PARAM_SRC_QAR_A664
+                 ? &ioiStatic.m_a664Qar 
+                 : &ioiStatic.m_a717Qar);
     }
     else if ((paramInfo->src == PARAM_SRC_A429) || (paramInfo->src == PARAM_SRC_A664) ||
              (paramInfo->src == PARAM_SRC_A429_A) || (paramInfo->src == PARAM_SRC_CROSS))
@@ -261,13 +315,15 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         }
     }
 
+    // Note: none of this is used for QAR parameter scheduling
     if (m_flexDataTbl != -1)
     {
+        // reduce the rate by a factor of 2 for flex so we don't overwrite the flex data
         m_updateMs = 10000 / ((paramInfo->rateHz * 10) / 2);
     }
     else if (paramInfo->src == PARAM_SRC_CROSS)
     {
-      m_updateMs = 1000 / paramInfo->rateHz;
+        m_updateMs = 1000 / paramInfo->rateHz;
     }
     else
     {
@@ -317,8 +373,8 @@ bool Parameter::IsChild(Parameter& other)
             else
             {
                 m_isChild = (//m_a429.channel == other.m_a429.channel &&  // same channel
-                    m_a429.label   == other.m_a429.label   &&  // same label
-                    m_a429.sdBits  == other.m_a429.sdBits);
+                             m_a429.label == other.m_a429.label   &&  // same label
+                             m_a429.sdBits == other.m_a429.sdBits);
             }
         }
 
@@ -369,6 +425,8 @@ bool Parameter::IsChild(Parameter& other)
 //
 UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 {
+    bool updateNow;
+
     int lsbSrc;
     int lsbDst;
 
@@ -390,8 +448,38 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
     UINT32 children = 0;
 
     start = HsTimer();
+
+    // compute if it time for a parameter update
+    if (!m_qar)
+    {
+        // normal parameter based on system tick
+        updateNow = m_nextUpdate <= sysTick;
+    }
+    else
+    {
+        // look at the SF and where we are in the one second frame vs our word slot positions
+        if (BIT(m_qarSfMask, m_qar->m_sf))
+        {
+            FLOAT32 wordOffset;
+            FLOAT32 msPerWord;
+            FLOAT32 minWord;
+            FLOAT32 maxWord;
+            FLOAT32 baseWord;
+
+            // figure out what word we are on in the frame based on the QAR timer
+            msPerWord = m_qar->m_qarSfWordCount / 100.0f; // words / MIF
+            minWord = m_qar->m_oneSecondClk * msPerWord;  // oneSecClk 0 .. 99 = MIF clock
+            maxWord = minWord + msPerWord;
+            baseWord = (FLOAT32)MIN(m_gpaWord, m_gpeWord); // pick our lowest word offset
+
+            wordOffset = baseWord + ((m_qar->m_qarSfWordCount / m_qarRateHz) * m_qarSlot);
+
+            updateNow = MEMBER(wordOffset, minWord, maxWord);
+        }
+    }
+
     // see if it is time for an update
-    if (m_nextUpdate <= sysTick)
+    if (updateNow)
     {
         // only the 'root' parent collects the children's data
         if (!m_isChild && m_link != NULL)
@@ -406,7 +494,10 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
                 // each param updates itself at it's rate
                 // here we just pick up the value
                 //count += cp->Update(sysTick, sgRun);
-                children |= cp->m_rawValue;
+                if (cp->m_isRunning)
+                {
+                    children |= cp->m_rawValue;
+                }
                 cp = cp->m_link;
             }
         }
@@ -418,7 +509,7 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
 
         else if (m_flexType == eFlexSeq1)
         {
-            UINT32 seqX = (m_flexSeq & 0xF) << 24 ;
+            UINT32 seqX = (m_flexSeq & 0xF) << 24;
             m_rawValue = flexSeq1Table[m_flexDataTbl].data[m_flexSeq];
 
             // pack the seq index
@@ -443,13 +534,37 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             m_rawValue = Convert(m_value);
         }
 
-        if (m_idl)
+        if (m_qar)
         {
-            // we need to position the data in the IDL, m_rawValue holds the data which cannot
-            // be bigger than 32 bits for our purposes as a parameter
+            UINT16 value;
+
+            // we have to handle the param being disable locally to stop it from putting data
+            // in the SF buffers
+            if (m_isRunning)
+            {
+                // write new data to the SF data buffer
+                // Get the value or the LS part
+                value = FIELD(EXTRACT(m_rawValue, 0, m_qarLenA), m_qarLsbA, m_qarLenA);
+                m_qar->SetData(value, m_gpaMask, m_qarSfMask, m_qarRateHz, m_gpaWord, m_qarSlot);
+                if (m_qarLenE > 0)
+                {
+                    // get the MSdat part
+                    value = FIELD(EXTRACT(m_rawValue, m_qarLenA, m_qarLenE), 
+                                  m_qarLsbE, m_qarLenE);
+                    m_qar->SetData(value, 
+                                   m_gpeMask, m_qarSfMask, m_qarRateHz, m_gpeWord, m_qarSlot);
+                }
+            }
+
+            m_qarSlot = INC_WRAP(m_qarSlot, m_qarRateHz);
+        }
+        else if (m_idl)
+        {
+            // we need to position the data in the IDL, m_rawValue holds the data which
+            // cannot be bigger than 32 bits for our purposes as a parameter
             destByte = a664Offset / 8;
             destBit0 = a664Offset % 8;
-            msbDst = (8 - destBit0);           // re-align with little-endian bit addressing
+            msbDst = (8 - destBit0);         // re-align with little-endian bit addressing
 
             moveSize = MIN(a664Size, msbDst);  // the first move will move n bits
             lsbSrc = a664Size - moveSize;
@@ -493,7 +608,12 @@ UINT32 Parameter::Update(UINT32 sysTick, bool sgRun)
             m_flexRoot->SetFlex(m_ioiValue, m_flexSeq);
         }
 
-        m_nextUpdate += m_updateIntervalTicks;
+        // reschedule non-QAR parameters
+        if (m_updateIntervalTicks > 0)
+        {
+            m_nextUpdate += m_updateIntervalTicks;
+        }
+
         m_updateCount += 1;
         count += 1;
     }
@@ -525,26 +645,26 @@ char* Parameter::ParamInfo(char* buffer, int row)
 
     if (m_type == PARAM_FMT_A429)
     {
-        if ( row == 0)
+        if (row == 0)
         {
             //               #   Type(Fmt) Rate Child SigGen
             //               0   5  11  18      25     31  34
             //               v   v  v   v       v      v   v
             sprintf(buffer, "%4d:%s(%s) %2dHz - %2d in %2d %s",
-                m_index,
-                paramType5[m_type],
-                a429Fmt5[m_a429.format],
-                m_rateHz,
-                m_childCount+1, m_updateDuration,
-                m_isChild ? "Kid" : ""
+                    m_index,
+                    paramType5[m_type],
+                    a429Fmt5[m_a429.format],
+                    m_rateHz,
+                    m_childCount + 1, m_updateDuration,
+                    m_isChild ? "Kid" : ""
             );
         }
-        else if ( row == 1)
+        else if (row == 1)
         {
             sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
             buffer[39] = '\0';
         }
-        else if ( row == 2)
+        else if (row == 2)
         {
             m_sigGen.GetRepresentation(sgRep);
             sprintf(buffer, "     %s", sgRep);
@@ -556,25 +676,25 @@ char* Parameter::ParamInfo(char* buffer, int row)
     }
     else
     {
-        if ( row == 0)
+        if (row == 0)
         {
             //               #   Type(Fmt) Rate Child SigGen
             //               0   5  11  18      25     31  34
             //               v   v  v   v       v      v   v
             sprintf(buffer, "%4d:%s %2dHz - %2d in %2d %s",
-                m_index,
-                paramType5[m_type],
-                m_rateHz,
-                m_childCount+1, m_updateDuration,
-                m_isChild ? "Kid" : ""
-                );
+                    m_index,
+                    paramType5[m_type],
+                    m_rateHz,
+                    m_childCount + 1, m_updateDuration,
+                    m_isChild ? "Kid" : ""
+            );
         }
-        else if ( row == 1)
+        else if (row == 1)
         {
             sprintf(buffer, "     0x%08x - %d %s", m_rawValue, m_data, m_ioiName);
             buffer[39] = '\0';
         }
-        else if ( row == 2)
+        else if (row == 2)
         {
             m_sigGen.GetRepresentation(sgRep);
             sprintf(buffer, "     %s", sgRep);

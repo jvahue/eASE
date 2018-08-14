@@ -1,9 +1,10 @@
 syntax: regexp
 ^output.
 ^misc/.
-^msvs
+^msvs.
 .orig$
 .cck$
 .xsd$
 syntax: glob
 .options
+

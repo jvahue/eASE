@@ -91,14 +91,6 @@ protected:
     UINT32 m_page;
     UINT32 m_paramDetails;
 
-
-
-
-
-
-
-
-
     UINT32 m_scheduledX;
     UINT32 m_remoteX;
     UINT32 m_scheduled;
@@ -133,7 +125,6 @@ protected:
     char m_localTriggers[eMaxTriggerSize];
     char m_remoteTriggers[eMaxTriggerSize];
 
-
     INT32 m_chanId;       // 0=B, 1=A
     File  m_chanIdFile;
     INT32 m_ioiChanId; 
@@ -151,6 +142,7 @@ protected:
     //------------------------------------------
     // Static IOI Data
     StaticIoiContainer m_ioiStatic;
+
 };
 
 #endif

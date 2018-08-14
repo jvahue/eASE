@@ -67,6 +67,8 @@ ParamConverter::ParamConverter()
 void ParamConverter::Reset()
 {
     m_isValid = false;
+    m_isSigned = true;
+    m_is2Comp = true;
     m_masterId = 0;
     m_gpa = 0;
     m_gpb = 0;
@@ -74,9 +76,8 @@ void ParamConverter::Reset()
     m_gpe = 0;
     m_src = PARAM_SRC_MAX;
     m_type = PARAM_FMT_NONE;
-    m_scale = 0.0f;
     m_maxValue = 0.0f;
-    m_scaleLsb = 0.0f;
+    m_scaleLsb = 0.0f;    
     m_data = 0;
 
     memset(m_ioiName, 0, sizeof(m_ioiName));
@@ -100,8 +101,8 @@ void ParamConverter::Init(ParamCfg* paramInfo)
     m_type = paramInfo->fmt;
 
     m_masterId = paramInfo->masterId;
-    m_scale = paramInfo->scale;
-    m_maxValue = paramInfo->scale;
+    // make sure this is positive
+    m_maxValue = paramInfo->scale < 0 ? -paramInfo->scale : paramInfo->scale;
 
     if (m_type == PARAM_FMT_A429)
     {
@@ -160,6 +161,34 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         // Turn this into a A429 DISCRETE and use its discrete packing code
         a664Offset = m_gpa & 0xffff;
         a664Size = (m_gpa >> 16) & 0x7fff; // clear PySte indication that this is an IDL
+    }
+    else if (m_type == PARAM_FMT_INTEGER_QAR)
+    {
+        // get the number of bits in GPA and GPE
+        m_totalBits = EXTRACT(m_gpa, 0, 4) + EXTRACT(m_gpe, 0, 4);
+
+        // and some other conversion details
+        m_isSigned = BIT(m_gpa, 12);
+        m_is2Comp = BIT(m_gpa, 13);
+
+        if (m_maxValue == 0.0f)
+        {
+            m_scaleLsb = 1.0f;
+            m_maxValue = pow(2.0f, float(m_totalBits));
+        }
+        else
+        {
+            if (m_isSigned)
+            {
+                // one bit is allocated to the sign so 2^(n-1)
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits - 1));
+            }
+            else
+            {
+                // use all bits so 2^(n)
+                m_scaleLsb = m_maxValue / pow(2.0f, float(m_totalBits));
+            }
+        }
     }
 
     SetIoiName();
@@ -330,6 +359,86 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
         UINT32 *data = (UINT32*)&value;
         rawValue = *data;
     }
+    else if (m_type == PARAM_FMT_DISCRETE)
+    {
+        // the ability to drive these HMU discrete came after scripts were written
+        // so all scripts use SetIoi directly 6/14/2018.
+    }
+    else if (m_type == PARAM_FMT_INTEGER_QAR)
+    {
+        if (!m_isSigned)
+        {
+            // value is unsigned so limit the value to 0 .. m_maxValue
+            value = MAX(0, MIN(value, m_maxValue - m_scaleLsb));
+            rawValue = (UINT32)(value / m_scaleLsb);
+        }
+        else
+        {
+            FLOAT32 bias = 0.5;
+
+            // limit the value to +/- m_maxValue
+            if (value >= m_maxValue)
+            {
+                value = m_maxValue - m_scaleLsb;  // +max is really max - 1 lsb
+            }
+            else if (value < -m_maxValue)
+            {
+                value = -m_maxValue;
+            }
+
+            // if the value is negative create the sign bit mask
+            UINT32 signOn = value < 0.0 ? (1 << (m_totalBits - 1)) : 0;
+
+            // check for a value within +/-lsb value and zero it
+            if (value < 0.0)
+            {
+                if (-value > m_scaleLsb)
+                {
+                    bias = -0.5;
+                }
+                else
+                {
+                    value = 0.0;
+                }
+            }
+            else if (value < m_scaleLsb)
+            {
+                value = 0.0;
+            }
+
+            if (m_is2Comp)
+            {
+                rawValue = int((value / m_scaleLsb) + bias);
+            }
+            else
+            {
+                // sign magnitude here get the magnitude in positive terms
+                FLOAT32 magnitude = signOn ? -value : value;
+                if (magnitude > m_scaleLsb)
+                {
+                    if (signOn)
+                    {
+                        // Calc raw value. If fVal is at negative limit of scale, subtract 1 bit.
+                        rawValue = int( magnitude / m_scaleLsb ) - ((value == -m_maxValue) ? 1:0);
+                    }
+                    else
+                    {
+                        rawValue = int(magnitude / m_scaleLsb);
+                    }
+                }
+                else
+                {
+                    rawValue = 0;
+                }
+            }
+
+            // Restore the sign IFF the raw is non-zero!
+            if (rawValue != 0)
+            {
+              rawValue |= signOn;
+            }
+        }
+    }
 
     return rawValue;
 }
@@ -470,13 +579,4 @@ void ParamConverter::SetLabel( INT32 value)
     m_a429.label = value;
     // we use BCD here as it only packs the SSM bits not the sign bit in BNR words
     m_a429.a429Template = A429_FldPutLabel( m_a429.a429Template, value);
-
-    //if (value == m_a429.label0)
-    //{
-    //    m_isValid = true;
-    //}
-    //else
-    //{
-    //    m_isValid = false;
-    //}
 }
