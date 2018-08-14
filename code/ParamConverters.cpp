@@ -116,7 +116,7 @@ void ParamConverter::Init(ParamCfg* paramInfo)
         }
         else if (m_a429.format == eBCD)
         {
-            m_scaleLsb = m_scale/2.0f;
+            m_scaleLsb = m_maxValue/2.0f;
         }
         else
         {
