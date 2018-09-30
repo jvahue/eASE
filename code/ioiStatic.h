@@ -38,12 +38,14 @@ public:
     void ResetStaticIoi();
     void ResetStaticParams();
     StaticIoiObj* FindIoi(char* name);
+    StaticIoiObj* FindIoiInput( char* name );
 
     StaticIoiObj* m_staticAseOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;
     StaticIoiObj* m_staticAseIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
-
+    UINT32 m_ioiStaticInCount_IsParam;  // The count of ioi in m_ioiStaticInCount which are params
+    
     UINT32 m_aseInIndex;
     UINT32 m_aseOutIndex;
     UINT32 m_validIoiOut;

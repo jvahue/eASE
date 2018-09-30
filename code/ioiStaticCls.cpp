@@ -14,7 +14,7 @@
 //----------------------------------------------------------------------------/
 #include <stdio.h>
 #include <string.h>
-
+#include <math.h>
 #include <ioiapi.h>
 
 //----------------------------------------------------------------------------/
@@ -74,7 +74,7 @@ UINT16 ReverseBarker(UINT16 barker)
     revBarker = ((x >> 8) | (x << 8));
 
     // the reversed value is aligned in the 
-    // high-order byte, Barker is 12 bits, so left-shift 4.
+    // high-order byte, Barker is 12 bits, so right-shift 4.
     revBarker >>= 4;
     return revBarker;
 }
@@ -353,7 +353,7 @@ void A664Qar::Reset(StaticIoiObj* buffer/*=NULL*/)
     //----- operation and configuration data -----
     m_idl = static_cast<StaticIoiStr*>(buffer);  // the buffer associated with the IOI
     m_qarSfWordCount = 1024;  // A664 defaults to 1024
-   
+
     //----- Run Time Data -----
     m_sf = 0;          // start sending from SF1
     m_sfWordIndex = 0; // start sending from word index 0
@@ -860,10 +860,19 @@ void A664Qar::Garbage()
 A717Qar::A717Qar()
     : A664Qar()
 {
-    m_testCtrl.m_acceptCfgReq = TRUE;
-    m_testCtrl.m_bQarEnabled = TRUE;
-    m_testCtrl.m_bSynced = TRUE;
-    m_testCtrl.qarRunState = eRUNNING;
+    m_testCtrl.bAcceptCfgReq = TRUE;
+    m_testCtrl.bCfgReqReceived = FALSE;
+    m_testCtrl.bCfgRespAvail = FALSE;
+    m_testCtrl.bAutoRespond = FALSE;
+    m_testCtrl.bQarEnabled = TRUE;
+    m_testCtrl.bSynced = TRUE;
+    m_testCtrl.qarBitState = BITSTATE_NO_FAIL;
+    
+    // default A717 word count to 64
+    m_qarSfWordCount  = eDefaultSfWdCnt; // temp until recfg is implemented
+    m_qaRevSyncFlag   = 0;
+    m_qarFmtEnum      = (UINT8)QAR_BIPOLAR_RETURN_ZERO;
+    m_qarWordSizeEnum = (UINT8)QAR_1024_WORDS;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -875,17 +884,14 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
 
     m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
     m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
-    m_status = static_cast<StaticIoiStr*>(sts);
+    m_status  = static_cast<StaticIoiStr*>(sts);
 
     m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
     m_sfObjs[1] = static_cast<StaticIoiStr*>(sf2);
     m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
     m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
 
-    // default A717 word count to 64
-    m_qarSfWordCount = eDefaultSfWdCnt;
-
-    m_statusIoiValid = false; // TBDjv turn this on when UTAS is caught up
+    m_statusIoiValid = true; // This flag enables/disables A717_STATUS_MSG ioi xmit
 
     m_oneSecondClk = 0;
 
@@ -903,7 +909,13 @@ int A717Qar::UpdateIoi()
     // This function is called at 100Hz
     // Determine if it is time to send out a 1Hz SF/status update, etc...
     // Check if QAR is enabled for this configuration
-    UINT8 subFrameID;
+    UINT8 sfUpdateFlags[4];
+
+    // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
+    // Init the array of SF update status.
+    memset(sfUpdateFlags, 0, sizeof(sfUpdateFlags));
+
+    ReadCfgRequestMsg();
 
     // Update the tick count
     m_oneSecondClk += 1;
@@ -912,11 +924,12 @@ int A717Qar::UpdateIoi()
     // Output the next SF (if QAR active) and the status msg.
     if (m_oneSecondClk >= eTICKS_PER_SEC)  
     {
-        // UTAS ICD says: QAR_STATUS.subframeID shall be zero if no data sent.
-        subFrameID = 0;
+        // UTAS will probably read and respond to a Recfg Request in the same frame as
+        // the Status Msg and Subframe writes, so check here if something needs to go out.
+        WriteCfgRespMsg();
 
         // If enabled and running, send the next expected subframe...
-        if (m_testCtrl.m_bQarEnabled && m_testCtrl.qarRunState == eRUNNING)
+        if (m_testCtrl.bQarEnabled)
         {
             // copy the local SF image to the IOI 16 -> 32 bits
             UINT16* src = m_qarWords[m_sf];
@@ -932,8 +945,8 @@ int A717Qar::UpdateIoi()
             // send next SF data via its IOI
             if (m_sfObjs[m_sf]->Update())
             {
-                // a subframe was written indicate this in the status msg
-                subFrameID = m_sf + 1;  // 0 .. 3 to 1 .. 4
+                // a subframe was written, indicate this in the status msg
+                sfUpdateFlags[m_sf] = 1;
             }
             else
             {
@@ -945,7 +958,7 @@ int A717Qar::UpdateIoi()
         }
 
         // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state
-        WriteQarStatusMsg(subFrameID);
+        WriteStatusMsg(sfUpdateFlags);
 
         m_oneSecondClk = 0;
     } 
@@ -960,12 +973,25 @@ bool A717Qar::TestControl(SecRequest& request)
     SINT32 offset = (SINT32)request.clearCfgRequest;
     UINT32 details = request.resetRequest;
 
-    if (offset == eQar717Reconfig)
+    if (offset == eQar717Status)
+    {
+      UINT8* pStatus = (UINT8*)request.charData;
+
+      // Set the fields to be used in status msg
+      SetStatusMsgFields( pStatus[0], pStatus[1], pStatus[2], pStatus[3], pStatus[4] );
+      
+    }
+    else if (offset == eQar717ReCfgResp)
     {
         UINT8* cfgData = (UINT8*)request.charData;
 
-        // start a reconfigure request
-        Reconfigure(cfgData[0], cfgData[1], cfgData[2]);
+        // Set up the response to a reconfigure request
+        SetCfgRespFields( cfgData[0], cfgData[1], cfgData[2], cfgData[3] );
+    }
+    else if (offset == eQar717AutoResp)
+    {
+      UINT8* pAutoModeCmd = (UINT8*)request.charData;
+      m_testCtrl.bAutoRespond = pAutoModeCmd[0] == 0 ? false : true;
     }
     else if (offset == eQar717SkipSF)
     {
@@ -984,46 +1010,122 @@ bool A717Qar::TestControl(SecRequest& request)
 //---------------------------------------------------------------------------------------------
 bool A717Qar::HandleRequest(StaticIoiObj* targetIoi)
 {
-    bool status = (targetIoi == m_cfgRqst || targetIoi == m_status);
+    bool status = (targetIoi == m_cfgResp || targetIoi == m_status);
 
     // if no match yet, check if the targetIoi is a SF
     for (int ix = 0; !status && ix < eNUM_SUBFRAMES; ++ix)
     {
         status = (targetIoi == m_sfObjs[ix]);
     }
-
     return status;
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::Reconfigure(UINT8 sfWc, UINT8 reverseFlag, UINT8 format)
+void A717Qar::SetCfgRespFields( UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType )
 {
-    // for now just reset the word count
-    m_qarSfWordCount = 1 << (sfWc + 6);
+    // fill the response msg to be sent as a reply to the next cfg request.
+    m_cfgRespMsg.rspType      = respType;
+    m_cfgRespMsg.cfg.bRevSync = reverseFlag;
+    m_cfgRespMsg.cfg.numWords = sfWc;
+    m_cfgRespMsg.cfg.fmt      = format;
+
+    m_testCtrl.bCfgRespAvail  = TRUE;
+}
+
+
+//---------------------------------------------------------------------------------------------
+void A717Qar::SetStatusMsgFields( UINT8 disableFlag, UINT8 bitState,
+                                  UINT8 sfWc, UINT8 reverseFlag, UINT8 format )
+{
+  // for now just reset the word count
+  m_testCtrl.bQarEnabled = disableFlag ? 0 : 1; // Damn negative-logic in ICD
+  m_testCtrl.qarBitState = (BIT_STATE)bitState;
+
+  // TODO DaveB, setting
+  m_qarSfWordCount = 1 << (sfWc + 6);    // Convert enum to value  
+  m_qaRevSyncFlag  = reverseFlag;
+  m_qarFmtEnum     = format;
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::WriteQarStatusMsg(UINT8 subframeID)
+void A717Qar::WriteStatusMsg( UINT8* pSfArray )
 {
-    UINT32 reg = 0x0000F51E; // All OK
+    UINT16 reg = 0xF51E; // All OK
     ioiStatus ioiStat;
 
     // The ICD defines the mode as disabled vs enabled.
-    m_qarModStatus.bDisabled = m_testCtrl.m_bQarEnabled ? 0 : 1;
+    m_qarMgrStatusMsg.bDisabled   = m_testCtrl.bQarEnabled ? 0 : 1;
+    m_qarMgrStatusMsg.qarBitState = m_testCtrl.qarBitState;
 
-    m_qarModStatus.qarRunState = m_testCtrl.qarRunState;
-    m_qarModStatus.subframeID = subframeID;
+    // Copy the array indicating which SF(s) have been updated during this second.
+    memcpy( m_qarMgrStatusMsg.sfUpdateFlags,pSfArray, sizeof(m_qarMgrStatusMsg.sfUpdateFlags)); 
+    
+    // Convert the SF word count back to the enum value.
+    m_qarMgrStatusMsg.cfg.numWords = (log10(m_qarSfWordCount)/log10(2)) - 6;
+
+    m_qarMgrStatusMsg.cfg.bRevSync = m_qaRevSyncFlag;
+    m_qarMgrStatusMsg.cfg.fmt      = m_qarFmtEnum;
 
     // Set the overall sync status to match the high level flag in status msg
-    UINT32 syncStatus = (m_testCtrl.m_bSynced) ? 1 : 0;
-    reg = reg | (syncStatus &  SYNC_MASK);
+    UINT32 syncStatus = (m_testCtrl.bSynced) ? 1 : 0;
+    reg = reg | (syncStatus & SYNC_MASK);
+    m_qarMgrStatusMsg.statusRegister = reg;
 
-    m_qarModStatus.statusRegister = reg;
+    // Move the content of QAR Module status to the output buffer for Updating.
+    memcpy( m_status->data, &m_qarMgrStatusMsg, sizeof( m_qarMgrStatusMsg ));
 
     if (m_statusIoiValid)
     {
         m_status->Update();
     }
+}
+
+//---------------------------------------------------------------------------------------------
+bool A717Qar::ReadCfgRequestMsg()
+{
+  // Check if a request-for-configuration change msg has been received from the ADRF
+  // and handle as needed.
+
+  if (m_cfgRqst->Update() )
+  {
+    memcpy( &m_cfgReqMsg, m_cfgRqst->data, sizeof( m_cfgReqMsg ));
+    // OK, got a request, 
+    // Don't really do much of anything.
+    // If the test script has provided a canned response handle it in WriteCfgRespMsg
+    m_testCtrl.bCfgReqReceived = TRUE;    
+  }
+}
+
+//---------------------------------------------------------------------------------------------
+void A717Qar::WriteCfgRespMsg()
+{
+  // If a cfg request was received from ADRF, and response data was sent is avail
+  // send it back
+  if (m_testCtrl.bCfgReqReceived)
+  {
+    if (m_testCtrl.bAutoRespond)
+    {
+      // Disable the one-shot response if in bAutoRespond mode.
+      m_testCtrl.bCfgRespAvail   = FALSE;
+      m_testCtrl.bCfgReqReceived = FALSE;
+
+      // Tell the ADRF we have 'changed' cfg to match whatever was requested
+      m_cfgRespMsg.rspType = 1;
+      m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
+      m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
+      m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );
+      m_cfgResp->Update();     
+    }    
+    else if (m_testCtrl.bCfgRespAvail)
+    {
+      m_testCtrl.bCfgRespAvail   = FALSE;
+      m_testCtrl.bCfgReqReceived = FALSE;
+      // Send back the pre-staged response and forget it.
+      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );      
+      m_cfgResp->Update();
+    }
+  }
 }
 
 //=============================================================================================

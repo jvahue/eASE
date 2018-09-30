@@ -54,34 +54,61 @@ enum
     MAX_QAR_WORDS = 1024,  // max # of 32 bit words per SF.
 };
 
-// Note: keep QAR_FORMAT in sync ParamSrcA717QAR.h <-> Ase/A717QAR.h 
+// Note: keep QAR_FORMAT in sync ParamSrcA717QAR.h
 typedef enum
 {
-    QAR_BIPOLAR_RETURN_ZERO, // (default)
-    QAR_HARVARD_BIPHASE,
+  QAR_BIPOLAR_RETURN_ZERO, // (default)
+  QAR_HARVARD_BIPHASE,
 }QAR_FORMAT;
 
-// Note: keep QAR_RUN_STATE in sync ParamSrcA717QAR.h <-> Ase/A717QAR.h
+// Note: keep QAR_NUM_WORDS in sync ParamSrcA717QAR.h
 typedef enum
 {
-    eRUNNING = 0,
-    eNO_VALID_CFG,
-    eERR_CBIT,
-    eERR_PBIT,
-} QAR_RUN_STATE;
+  QAR_64_WORDS, // (default)
+  QAR_128_WORDS,
+  QAR_256_WORDS,
+  QAR_512_WORDS,
+  QAR_1024_WORDS,
+  QAR_MAX_WORDS
+  // Do not make enum larger than 255.
+} QAR_NUM_WORDS;  // Configured QAR Rate(word size) expected from UTAS QAR Module
+
+// Note: keep BIT_STATE in sync with ParamSrcA717QAR.h
+typedef enum
+{
+  BITSTATE_NO_FAIL,
+  BITSTATE_CBIT_FAIL,
+  BITSTATE_PBIT_FAIL,
+} BIT_STATE;  // Current Built-In Test State.
 
 // UTAS QAR status msg. Output at 1 Hz. This is the same structure used by
 // ParamA717QAR.h
 #pragma pack(1)
+typedef struct  
+{
+  UINT8 bRevSync; // Flag indicating barker pattern: 0: Regular 1: Reversed
+  UINT8  numWords;// # of 32-bits words per SF: 64,128,256,512 or 1024
+  UINT8  fmt;     // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
+}QAR_CFG;
+
+typedef struct
+{
+  UINT8    reqType; // REQ_TYPE
+  QAR_CFG  cfg;     // Configuration details
+} A717_CFG_REQ_MSG; //ADRF A717 Configuration Request
+
+typedef struct
+{
+  UINT8    rspType; // RSP_TYPE
+  QAR_CFG  cfg;
+} A717_CFG_RSP_MSG; //A717 Configuration Response Message
+
 typedef struct
 {
     UINT8 bDisabled;       // Indicates whether the QAR Module is disabled.
-    UINT8 qarRunState;     // RUNNING, NO_VALID_CFG,ERR_CBIT, ERR_PBIT
-    UINT8 subframeID;      // 1–4 indicating the latest SF written to IOI, 0 if no data
-    UINT8 bRevSync;        // Flag indicating barker codes are bit-reversed
-                           // 0: Regular sync pattern, 1: Reversed sync pattern 
-    UINT8  numWords;       // # of 32-bits words per SF: 64,128,256,512 or 1024
-    UINT8  fmt;            // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
+    UINT8 qarBitState;     // Contains the BIT_STATE
+    UINT8 sfUpdateFlags[4];// Indicates which SF(s) have been updated during this sec.
+    QAR_CFG cfg;           // Current QAR MODULE cfg settings.
     UINT16 statusRegister; // Echo of current AR717 RX Status Register
 }QAR_STS_MSG;
 #pragma pack()
@@ -91,10 +118,14 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN m_bSynced;      // Simulate the QAR modules being in or out of sync.
-    BOOLEAN m_bQarEnabled;  // Module is enabled and will generate output based on settings.
-    BOOLEAN m_acceptCfgReq; // Accept/Reject cfg request from ADRF
-    QAR_RUN_STATE qarRunState; // The commanded state to be in
+    BOOLEAN bSynced;       // Simulate the QAR modules being in or out of sync.
+    BOOLEAN bQarEnabled;   // Module is enabled and will generate output based on settings.
+    BOOLEAN bAcceptCfgReq; // Accept/Reject cfg request from ADRF
+    BOOLEAN bCfgReqReceived;// Indicates a request for reconfig has been recvd.
+    BOOLEAN bCfgRespAvail; // Indicates tester has provided resp data. (This is one-shot)
+    BOOLEAN bAutoRespond;  // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
+    BIT_STATE qarBitState; // The Built-In-Test state of the QAR Module
+
 } TEST_CONTROL;
 
 /*****************************************************************************/
@@ -299,8 +330,10 @@ class A717Qar : public A664Qar
 public:
     enum a717QarConst {
         // Set Data Control Commands
-        eQar717Reconfig = -1,
-        eQar717SkipSF   = -2,
+        eQar717Status    = -1,   // Set disable flag, Failure flag and cfg state fields in the status  A717 Status Msg
+        eQar717SkipSF    = -2,   // Send mask of SFs to be disabled for outputting by ASE
+        eQar717ReCfgResp = -3,   // Set the fields to be returned in a cfg resp.
+        eQar717AutoResp  = -4,   // Tell Ase to automatically respond with the last values set for Status and RecfgResp
         // Misc Constants
         eDefaultSfWdCnt = 1024, //64,
     };
@@ -316,8 +349,15 @@ public:
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
-    void Reconfigure(UINT8 sfWc, UINT8 reverseFlag, UINT8 format);
-    void WriteQarStatusMsg(UINT8 subframeID);
+    void SetCfgRespFields( UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType );
+
+    void SetStatusMsgFields( UINT8 disableFlag, UINT8 bitState, UINT8 sfWc,
+                             UINT8 reverseFlag,  UINT8 format );
+    void SetStatusCfg( UINT8 sfWc, UINT8 reverseFlag, UINT8 format );
+
+    void WriteStatusMsg( UINT8* pSfArray );
+    void WriteCfgRespMsg();
+    bool ReadCfgRequestMsg();
 
     //----- operation and configuration data -----
     StaticIoiStr* m_cfgRqst;          // cfg rqst IOI
@@ -326,13 +366,27 @@ public:
     StaticIoiStr* m_sfObjs[eSfCount]; // SF IOIs
 
     //----- Run Time Data -----
-    QAR_STS_MSG m_qarModStatus; // msg struct of UTAS A717 Module status
+    QAR_STS_MSG      m_qarMgrStatusMsg; // msg struct of UTAS A717 Module status
+    A717_CFG_REQ_MSG m_cfgReqMsg;       // msg struct of UTAS A717 Request-ReConfig.
+    A717_CFG_RSP_MSG m_cfgRespMsg;      // msg struct of UTAS A717 Request-ReConfig-Response.
+
     TEST_CONTROL m_testCtrl;    // struct for state of cmd setting from the test env
 
     //----- Execution Status ------
     int m_writeErrCnt;  // total write error counts
 
-    BOOLEAN m_statusIoiValid;  // status validity for the status ioi
+    //----- Status state --------------------------------------------
+    UINT8 m_disabledFlag; //0 - Enabled, 1- Disabled
+    UINT8 m_BitState;
+
+    //----- Status Cfg-Echo settings --------------------------------
+    UINT8 m_qaRevSyncFlag;   // Use reverse-bit barker pattern 0- normal, 1- reverse
+    UINT8 m_qarFmtEnum;      // QAR_FORMAT
+    UINT8 m_qarWordSizeEnum; // QAR_NUM_WORDS
+    
+    
+
+   BOOLEAN m_statusIoiValid; // status validity for the status ioi
 };
 
 

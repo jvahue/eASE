@@ -70,6 +70,7 @@
 StaticIoiContainer::StaticIoiContainer()
     : m_ioiStaticOutCount(0)
     , m_ioiStaticInCount(0)
+    , m_ioiStaticInCount_IsParam(0)
     , m_aseInIndex(0)
     , m_aseOutIndex(0)
     , m_validIoiOut(0)
@@ -106,19 +107,20 @@ StaticIoiContainer::StaticIoiContainer()
     }
     m_aseInIndex = 0;
     m_ioiStaticInCount = ASE_IN_MAX;
+    m_ioiStaticInCount_IsParam = 0;
     m_validIoiIn = 0;
 
     //----- initialize the "Smart" static IOI objects -----
     //----- QAR processing elements
     m_a664Qar.Reset(FindIoi("a664_fr_eicas2_fdr"));
 
-    m_a717Qar.Reset(FindIoi("A717_Cfg_Request"),  // Cfg Request
-                    FindIoi("A717_Cfg_Response"), // Cfg Response
-                    FindIoi("A717Status"),        // Status Msg
-                    FindIoi("A717Subframe1"),     // SF1
-                    FindIoi("A717Subframe2"),     // SF2
-                    FindIoi("A717Subframe3"),     // SF3
-                    FindIoi("A717Subframe4"));    // SF4
+    m_a717Qar.Reset(FindIoi("ADRF_A717_CONFIG_REQ"), // Cfg Request
+                    FindIoi("A717_ADRF_CONFIG_ACK"), // Cfg Response
+                    FindIoi("A717_STATUS_MSG"),      // Status Msg
+                    FindIoi("A717Subframe1"),        // SF1
+                    FindIoi("A717Subframe2"),        // SF2
+                    FindIoi("A717Subframe3"),        // SF3
+                    FindIoi("A717Subframe4"));       // SF4
 }
 
 //---------------------------------------------------------------------------------------------
@@ -146,7 +148,7 @@ void StaticIoiContainer::UpdateStaticIoi()
 {
     //----- Run the Smart Static IOI objects -----
     m_writeError += m_a664Qar.UpdateIoi(); // A664QAR
-    m_writeError += m_a717Qar.UpdateIoi(); // A664QAR
+    m_writeError += m_a717Qar.UpdateIoi(); // A717QAR
 
     ProcessAdrfStaticInput();
     ProcessAdrfStaticOutput();
@@ -257,7 +259,8 @@ void StaticIoiContainer::UpdateRtcClock()
 void StaticIoiContainer::ProcessAdrfStaticOutput()
 {
     // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
-    const int kInMaxCount = (m_ioiStaticInCount / 5) + 1;
+    // Factor for inputs from ADRF which are treated as params and part of 20Hz
+  const int kInMaxCount = ((m_ioiStaticInCount - m_ioiStaticInCount_IsParam) / 5) + 1;
 
     static unsigned int lastYrCnt = 0;
     static unsigned int lastMoCnt = 0;
@@ -270,16 +273,21 @@ void StaticIoiContainer::ProcessAdrfStaticOutput()
     m_readErrorZ1 = m_readError;
     for (int i = 0; i < kInMaxCount; ++i)
     {
+      // Don't read ioi which are managed as params.
+      if (!m_staticAseIn[m_aseInIndex]->m_isParam)
+      {
         if (!m_staticAseIn[m_aseInIndex]->Update())
         {
-            m_readError += 1;
-        }
+          m_readError += 1;
+        }       
+      }
 
-        m_aseInIndex += 1;
-        if (m_aseInIndex >= m_ioiStaticInCount)
-        {
-            m_aseInIndex = 0;
-        }
+      m_aseInIndex += 1;
+      if (m_aseInIndex >= m_ioiStaticInCount)
+      {
+        m_aseInIndex = 0;
+      }      
+        
     }
 
     // update the RTC time based on what we received
@@ -465,13 +473,13 @@ void StaticIoiContainer::ResetStaticParams()
     //----- QAR processing elements
     m_a664Qar.Reset( FindIoi( "a664_fr_eicas2_fdr" ) );
 
-    m_a717Qar.Reset( FindIoi( "A717_Cfg_Request" ),  // Cfg Request
-                     FindIoi( "A717_Cfg_Response" ), // Cfg Response
-                     FindIoi( "A717Status" ),        // Status Msg
-                     FindIoi( "A717Subframe1" ),     // SF1
-                     FindIoi( "A717Subframe2" ),     // SF2
-                     FindIoi( "A717Subframe3" ),     // SF3
-                     FindIoi( "A717Subframe4" ) );    // SF4
+    m_a717Qar.Reset( FindIoi( "ADRF_A717_CONFIG_REQ" ), // Cfg Request
+                     FindIoi( "A717_ADRF_CONFIG_ACK" ), // Cfg Response
+                     FindIoi( "A717_STATUS_MSG" ),      // Status Msg
+                     FindIoi( "A717Subframe1" ),        // SF1
+                     FindIoi( "A717Subframe2" ),        // SF2
+                     FindIoi( "A717Subframe3" ),        // SF3
+                     FindIoi( "A717Subframe4" ) );      // SF4
 
 }
 
@@ -480,6 +488,8 @@ void StaticIoiContainer::ResetStaticParams()
 // object when found, NULL otherwise
 StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
 {
+  StaticIoiObj* addr = NULL;
+
     // check for names like QAR_A717_
     for (int i = 0; i < m_ioiStaticOutCount; ++i)
     {
@@ -488,10 +498,26 @@ StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
         {
             // ok indicate that this IOI will be managed by a parameter
             m_staticAseOut[i]->m_isParam = true;
-            return m_staticAseOut[i];
+            addr = m_staticAseOut[i];
+            break;
         }
     }
+    // If ioi wasn't found in Output, check if it may have been an input
+    if (NULL == addr)
+    {
+      for (int i = 0; i < m_ioiStaticInCount; ++i)
+      {
+        // do not reset the running state if it is invalid
+        if (strncmp( name, m_staticAseIn[i]->m_ioiName, eAseParamNameSize ) == 0)
+        {
+          // ok indicate that this IOI will be managed by a parameter
+          m_staticAseIn[i]->m_isParam = true;
+          m_ioiStaticInCount_IsParam++;
+          addr = m_staticAseIn[i];
+          break;
+        }
+      }
+    }
 
-    return NULL;
+    return addr;
 }
-
