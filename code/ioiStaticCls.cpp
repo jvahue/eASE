@@ -978,20 +978,26 @@ bool A717Qar::TestControl(SecRequest& request)
       UINT8* pStatus = (UINT8*)request.charData;
 
       // Set the fields to be used in status msg
-      SetStatusMsgFields( pStatus[0], pStatus[1], pStatus[2], pStatus[3], pStatus[4] );
-      
+      SetStatusMsgFields( pStatus[0], pStatus[1], pStatus[2], pStatus[3], pStatus[4] );      
     }
     else if (offset == eQar717ReCfgResp)
     {
         UINT8* cfgData = (UINT8*)request.charData;
-
-        // Set up the response to a reconfigure request
+        // Set up the response to a reconfigure request, disable auto respond
         SetCfgRespFields( cfgData[0], cfgData[1], cfgData[2], cfgData[3] );
+        m_testCtrl.bAutoRespond = false;
     }
     else if (offset == eQar717AutoResp)
     {
       UINT8* pAutoModeCmd = (UINT8*)request.charData;
       m_testCtrl.bAutoRespond = pAutoModeCmd[0] == 0 ? false : true;
+      
+      // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
+      if (m_testCtrl.bAutoRespond)
+      {
+        m_testCtrl.bCfgRespAvail = false;
+      }
+     
     }
     else if (offset == eQar717SkipSF)
     {
@@ -1084,15 +1090,54 @@ void A717Qar::WriteStatusMsg( UINT8* pSfArray )
 bool A717Qar::ReadCfgRequestMsg()
 {
   // Check if a request-for-configuration change msg has been received from the ADRF
-  // and handle as needed.
+  // and handle as needed. 
 
   if (m_cfgRqst->Update() )
   {
     memcpy( &m_cfgReqMsg, m_cfgRqst->data, sizeof( m_cfgReqMsg ));
-    // OK, got a request, 
-    // Don't really do much of anything.
-    // If the test script has provided a canned response handle it in WriteCfgRespMsg
-    m_testCtrl.bCfgReqReceived = TRUE;    
+
+    m_testCtrl.bCfgReqReceived = TRUE;
+
+    // If auto-respond is enabled, use the cfg data in request to format the cfg response
+    // and the status msg.
+
+    if (m_testCtrl.bAutoRespond)
+    {
+      switch (m_cfgReqMsg.reqType)
+      {
+        case 0: // Clear
+          m_cfgRespMsg.rspType = 0; // Cleared-OK, CFG-Request is cleared
+          m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
+          m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
+          m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+          break;
+
+        case 1: // Reconfig/Enable myself
+          m_cfgRespMsg.rspType = 1; // ACK OK
+          m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
+          m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
+          m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+
+          // Use the SetStatusMsgFields function to update
+          // the status msg fields AND adjust subframe size to comply
+          SetStatusMsgFields( 0, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
+                              m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt );
+          break;
+
+        case 2: // Disable myself
+          m_cfgRespMsg.rspType = 1; // ACK OK
+          // Don't change
+         
+
+          SetStatusMsgFields( 1, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
+                              m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt );
+          break;
+      }
+    }
+    else if (m_testCtrl.bCfgRespAvail)
+    {
+      // If the test script has provided a canned response handle it in WriteCfgRespMsg     
+    }
   }
 }
 
@@ -1105,17 +1150,10 @@ void A717Qar::WriteCfgRespMsg()
   {
     if (m_testCtrl.bAutoRespond)
     {
-      // Disable the one-shot response if in bAutoRespond mode.
-      m_testCtrl.bCfgRespAvail   = FALSE;
+      // The response was formatted during the request... copy to buffer and send it out
       m_testCtrl.bCfgReqReceived = FALSE;
-
-      // Tell the ADRF we have 'changed' cfg to match whatever was requested
-      m_cfgRespMsg.rspType = 1;
-      m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
-      m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
-      m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
       memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );
-      m_cfgResp->Update();     
+      m_cfgResp->Update();
     }    
     else if (m_testCtrl.bCfgRespAvail)
     {

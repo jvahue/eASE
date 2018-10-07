@@ -38,8 +38,6 @@ public:
     void ResetStaticIoi();
     void ResetStaticParams();
     StaticIoiObj* FindIoi(char* name);
-    StaticIoiObj* FindIoiInput( char* name );
-
     StaticIoiObj* m_staticAseOut[MAX_STATIC_IOI];
     UINT32 m_ioiStaticOutCount;
     StaticIoiObj* m_staticAseIn[MAX_STATIC_IOI];
