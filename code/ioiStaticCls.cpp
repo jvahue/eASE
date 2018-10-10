@@ -863,7 +863,8 @@ A717Qar::A717Qar()
     m_testCtrl.bAcceptCfgReq = TRUE;
     m_testCtrl.bCfgReqReceived = FALSE;
     m_testCtrl.bCfgRespAvail = FALSE;
-    m_testCtrl.bAutoRespond = FALSE;
+    m_testCtrl.bAutoRespondAck = FALSE;
+    m_testCtrl.bAutoRespondNack = FALSE;
     m_testCtrl.bQarEnabled = TRUE;
     m_testCtrl.bSynced = TRUE;
     m_testCtrl.qarBitState = BITSTATE_NO_FAIL;
@@ -985,20 +986,31 @@ bool A717Qar::TestControl(SecRequest& request)
         UINT8* cfgData = (UINT8*)request.charData;
         // Set up the response to a reconfigure request, disable auto respond
         SetCfgRespFields( cfgData[0], cfgData[1], cfgData[2], cfgData[3] );
-        m_testCtrl.bAutoRespond = false;
+        m_testCtrl.bAutoRespondAck = false;
     }
     else if (offset == eQar717AutoResp)
     {
       UINT8* pAutoModeCmd = (UINT8*)request.charData;
-      m_testCtrl.bAutoRespond = pAutoModeCmd[0] == 0 ? false : true;
-      
+      m_testCtrl.bAutoRespondAck = pAutoModeCmd[0] == 0 ? false : true;  
       // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
-      if (m_testCtrl.bAutoRespond)
+      if (m_testCtrl.bAutoRespondAck)
       {
-        m_testCtrl.bCfgRespAvail = false;
+        m_testCtrl.bCfgRespAvail    = false;
+        m_testCtrl.bAutoRespondNack = false;
       }
-     
     }
+    else if (offset == eQar717AutoNack)
+    {
+      UINT8* pAutoModeCmd = (UINT8*)request.charData;
+      m_testCtrl.bAutoRespondNack = pAutoModeCmd[0] == 0 ? false : true;
+
+      // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
+      if (m_testCtrl.bAutoRespondNack)
+      {
+        m_testCtrl.bCfgRespAvail   = false;
+        m_testCtrl.bAutoRespondAck = false;
+      }
+    }    
     else if (offset == eQar717SkipSF)
     {
         // TODO
@@ -1101,22 +1113,20 @@ bool A717Qar::ReadCfgRequestMsg()
     // If auto-respond is enabled, use the cfg data in request to format the cfg response
     // and the status msg.
 
-    if (m_testCtrl.bAutoRespond)
+    if (m_testCtrl.bAutoRespondAck)
     {
+      m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
+      m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
+      m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+      
       switch (m_cfgReqMsg.reqType)
       {
         case 0: // Clear
-          m_cfgRespMsg.rspType = 0; // Cleared-OK, CFG-Request is cleared
-          m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
-          m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
-          m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+          m_cfgRespMsg.rspType = 0; // Cleared-OK, CFG-Request is cleared          
           break;
 
         case 1: // Reconfig/Enable myself
-          m_cfgRespMsg.rspType = 1; // ACK OK
-          m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
-          m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
-          m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
+          m_cfgRespMsg.rspType = 1; // ACK OK         
 
           // Use the SetStatusMsgFields function to update
           // the status msg fields AND adjust subframe size to comply
@@ -1126,11 +1136,29 @@ bool A717Qar::ReadCfgRequestMsg()
 
         case 2: // Disable myself
           m_cfgRespMsg.rspType = 1; // ACK OK
-          // Don't change
-         
-
+          // Don't change the cfg fields
           SetStatusMsgFields( 1, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
                               m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt );
+          break;
+      }
+    }
+    else if (m_testCtrl.bAutoRespondNack)
+    {
+      // Automatically NACK attempts to reconfig
+      // The cfg data in the response should match whatever is in the status msg
+      m_cfgRespMsg.cfg.bRevSync = m_qaRevSyncFlag;
+      m_cfgRespMsg.cfg.numWords = (log10( m_qarSfWordCount ) / log10( 2 )) - 6;
+      m_cfgRespMsg.cfg.fmt      = m_qarFmtEnum;
+      
+      switch (m_cfgReqMsg.reqType)
+      {
+        case 0: // Clear
+          m_cfgRespMsg.rspType = 0; // ALWAYS accept a clear request
+          break;
+
+        case 1: // Reconfig/Enable NACK'ed
+        case 2: // Disable myself NACK'ed
+          m_cfgRespMsg.rspType = 2;        
           break;
       }
     }
@@ -1148,7 +1176,8 @@ void A717Qar::WriteCfgRespMsg()
   // send it back
   if (m_testCtrl.bCfgReqReceived)
   {
-    if (m_testCtrl.bAutoRespond)
+    
+    if (m_testCtrl.bAutoRespondAck || m_testCtrl.bAutoRespondNack)
     {
       // The response was formatted during the request... copy to buffer and send it out
       m_testCtrl.bCfgReqReceived = FALSE;
@@ -1159,10 +1188,12 @@ void A717Qar::WriteCfgRespMsg()
     {
       m_testCtrl.bCfgRespAvail   = FALSE;
       m_testCtrl.bCfgReqReceived = FALSE;
-      // Send back the pre-staged response and forget it.
-      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );      
+      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );
       m_cfgResp->Update();
     }
+
+    
+
   }
 }
 

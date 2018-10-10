@@ -123,7 +123,8 @@ typedef struct
     BOOLEAN bAcceptCfgReq; // Accept/Reject cfg request from ADRF
     BOOLEAN bCfgReqReceived;// Indicates a request for reconfig has been recvd.
     BOOLEAN bCfgRespAvail; // Indicates tester has provided resp data. (This is one-shot)
-    BOOLEAN bAutoRespond;  // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
+    BOOLEAN bAutoRespondAck;  // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
+    BOOLEAN bAutoRespondNack; // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
     BIT_STATE qarBitState; // The Built-In-Test state of the QAR Module
 
 } TEST_CONTROL;
@@ -334,6 +335,7 @@ public:
         eQar717SkipSF    = -2,   // Send mask of SFs to be disabled for outputting by ASE
         eQar717ReCfgResp = -3,   // Set the fields to be returned in a cfg resp.
         eQar717AutoResp  = -4,   // Tell Ase to automatically respond with the last values set for Status and RecfgResp
+        eQar717AutoNack  = -5,   // Tell Ase to automatically Nack with the last values set for Status and RecfgResp
         // Misc Constants
         eDefaultSfWdCnt = 1024, //64,
     };
