@@ -227,6 +227,7 @@ void IoiProcess::Run()
     // create all of the IOI items
     InitIoi();
     m_ioiStatic.OpenIoi();
+    m_A717Qar.InitIoi();
 
     // Create the thread thru the base class method.
     // Use the default Ase template
@@ -262,6 +263,7 @@ void IoiProcess::RunSimulation()
 
     UpdateIoi();
     m_ioiStatic.UpdateStaticIoi();
+    m_A717Qar.UpdateIoi();
 
     // at 50 Hz pack the CCDL message and send it out
     if ((m_systemTick & 1) == 1)
@@ -437,6 +439,7 @@ void IoiProcess::UpdateIoi()
         //m_execFrame += 1;
     }
 }
+
 
 //---------------------------------------------------------------------------------------------
 // Function: WriteIoi
@@ -1264,8 +1267,38 @@ BOOLEAN IoiProcess::CheckCmd( SecComm& secComm)
         serviced = TRUE;
         break;
     }
+        //-------------------------------------------------------------------------------------
+    case eSetQarData:
+      // Process command to update a SF with data value(s)s starting at the given offset.
+      // func Params:
+      //  variableId - SF mask
+      //  value      - byte-offset into dest buffer
+      // charData    - SF Data value(s)
+      // charDataSize- size of charData in bytes.
+
+      m_A717Qar.SetQarData( ((UINT8)(request.variableId & 0xF)),
+                            (UINT32) request.value,
+                            (UINT8*) request.charData,
+                            request.charDataSize);
+      serviced = TRUE;
+      break;
 
         //-------------------------------------------------------------------------------------
+    case eSetQarState:
+      // Process command to set the runstate of the QAR
+      m_A717Qar.SetRunState( (QAR_RUN_STATE) request.variableId );
+      serviced = TRUE;
+      break;
+
+      //-------------------------------------------------------------------------------------
+    case eGetQarState:
+      secComm.m_response.streamSize = m_A717Qar.GetRunState();
+      secComm.m_response.successful = true;
+      serviced = TRUE;
+      break;
+
+
+      //-------------------------------------------------------------------------------------
     default:
         // we did not service this command - check our subordinates
         subserviced = m_ccdl.CheckCmd(secComm);

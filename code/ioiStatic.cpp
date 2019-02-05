@@ -911,7 +911,8 @@ void StaticIoiContainer::OpenIoi()
 void StaticIoiContainer::UpdateStaticIoi()
 {
     // compute max count to provide a 10Hz update rate 100ms/10ms => 10 frames
-    // m_ioiStaticOutCount - 1: because we handle _a664_to_ioc_eicas_ directly
+    // m_ioiStaticOutCount - 1: because we directly handle 1x _a664_fr_eicas2_fdr
+
     const int kOutMaxCount = ((m_ioiStaticOutCount - 1)/10) + 1;
     // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
     const int kInMaxCount  = (m_ioiStaticInCount/5) + 1;
@@ -921,7 +922,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     static unsigned int lastDayCnt = 0;
     static unsigned int lastHrCnt  = 0;
     static unsigned int lastMinCnt = 0;
-    static unsigned int lastSecCnt  = 0;
+    static unsigned int lastSecCnt = 0;
 
     static unsigned char lastMin = 0;
     static unsigned char lastHr  = 0;
