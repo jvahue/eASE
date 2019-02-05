@@ -29,17 +29,22 @@ $Revision: $  $Date: $
 /*****************************************************************************/
 //  Defines for UTAS QAR_STATUS statusRegister field masks
 // TODO DaveB trim to 16bits to match agreed interface
-#define SYNC_MASK         0x00000001   // Overall SYNC indicator
-#define SF1_VLD_MASK      0x00000002   // Sub-Frame 1 Valid status
-#define SF2_VLD_MASK      0x00000004   // Sub-Frame 2 Valid status
-#define SF3_VLD_MASK      0x00000008   // Sub-Frame 3 Valid status
-#define SF4_VLD_MASK      0x00000010   // Sub-Frame 4 Valid status
-#define RCV_OVRUN_MASK    0x00000020   // Receiver Overrun Error
-#define RCV_OP_ERR_MASK   0x00000040   // Receiver Operational Error
-#define RCV_BUF_FULL_MASK 0x00000080   // Receiver Buffer Full
-#define RCV_ACTY_MASK     0x00000100   // Receiver Activity - Latched
-#define TST_MODE_ACT_MASK 0x00000200   // Test Mode Active
-#define SYNC_MOD_ACT_MASK 0x00000C00   // selected/active low level SYNC module 0->3 (1..4)
+#define SYNC_MASK         0x0001   // Overall SYNC indicator
+#define SF1_VLD_MASK      0x0002   // Sub-Frame 1 Valid status
+#define SF2_VLD_MASK      0x0004   // Sub-Frame 2 Valid status
+#define SF3_VLD_MASK      0x0008   // Sub-Frame 3 Valid status
+#define SF4_VLD_MASK      0x0010   // Sub-Frame 4 Valid status
+#define RCV_OVRUN_MASK    0x0020   // Receiver Overrun Error
+#define RCV_OP_ERR_MASK   0x0040   // Receiver Operational Error
+#define RCV_BUF_FULL_MASK 0x0080   // Receiver Buffer Full
+#define RCV_ACTY_MASK     0x0100   // Receiver Activity - Latched
+#define TST_MODE_ACT_MASK 0x0200   // Test Mode Active
+#define SYNC_MOD_ACT_MASK 0x0C00   // selected/active low level SYNC module 0->3 (1..4)
+
+#define RX_DMA_ENABLED_MASK    0x0020
+#define RX_INV_SYNC_MASK       0x0010
+#define RX_PHY_INTFCE_MASK     0x0008
+#define RX_RATE_MASK           0x0007
 
 /*****************************************************************************/
 /* Local Typedefs                                                            */
@@ -110,6 +115,7 @@ typedef struct
     UINT8 sfUpdateFlags[4];// Indicates which SF(s) have been updated during this sec.
     QAR_CFG cfg;           // Current QAR MODULE cfg settings.
     UINT16 statusRegister; // Echo of current AR717 RX Status Register
+    UINT32 rxCfgRegister;  // Echo of current AR717 RX Cfg Register
 }QAR_STS_MSG;
 #pragma pack()
 

@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-1034185450"
-     fileDate = "Tue Oct 02 10:37:43 2018"
+     validityKey = "-956908630"
+     fileDate = "Wed Dec 19 17:00:19 2018"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -19381,7 +19381,7 @@
       ></producedItem>
       <producedItem
            name = "8183672_0"
-           productionRate = "1000000"
+           productionRate = "46000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -19516,7 +19516,7 @@
       ></producedItem>
       <producedItem
            name = "8186488_32"
-           productionRate = "1000000"
+           productionRate = "100000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -19822,7 +19822,7 @@
       ></producedItem>
       <producedItem
            name = "8191856_0"
-           productionRate = "1000000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -19831,7 +19831,7 @@
       ></producedItem>
       <producedItem
            name = "8191856_1"
-           productionRate = "1000000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54067,7 +54067,7 @@
       ></producedItem>
       <producedItem
            name = "8331800_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54076,7 +54076,7 @@
       ></producedItem>
       <producedItem
            name = "8331800_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54085,7 +54085,7 @@
       ></producedItem>
       <producedItem
            name = "8331800_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54094,7 +54094,7 @@
       ></producedItem>
       <producedItem
            name = "8331800_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54103,7 +54103,7 @@
       ></producedItem>
       <producedItem
            name = "8331808_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54112,7 +54112,7 @@
       ></producedItem>
       <producedItem
            name = "8331808_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54121,7 +54121,7 @@
       ></producedItem>
       <producedItem
            name = "8331808_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54130,7 +54130,7 @@
       ></producedItem>
       <producedItem
            name = "8331808_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54139,7 +54139,7 @@
       ></producedItem>
       <producedItem
            name = "8331816_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54148,7 +54148,7 @@
       ></producedItem>
       <producedItem
            name = "8331816_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54157,7 +54157,7 @@
       ></producedItem>
       <producedItem
            name = "8331816_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54166,7 +54166,7 @@
       ></producedItem>
       <producedItem
            name = "8331816_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54175,7 +54175,7 @@
       ></producedItem>
       <producedItem
            name = "8331824_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54184,7 +54184,7 @@
       ></producedItem>
       <producedItem
            name = "8331824_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54193,7 +54193,7 @@
       ></producedItem>
       <producedItem
            name = "8331824_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54202,7 +54202,7 @@
       ></producedItem>
       <producedItem
            name = "8331824_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54211,7 +54211,7 @@
       ></producedItem>
       <producedItem
            name = "8331832_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54220,7 +54220,7 @@
       ></producedItem>
       <producedItem
            name = "8331832_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54229,7 +54229,7 @@
       ></producedItem>
       <producedItem
            name = "8331832_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54238,7 +54238,7 @@
       ></producedItem>
       <producedItem
            name = "8331832_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54247,7 +54247,7 @@
       ></producedItem>
       <producedItem
            name = "8331840_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54256,7 +54256,7 @@
       ></producedItem>
       <producedItem
            name = "8331840_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54265,7 +54265,7 @@
       ></producedItem>
       <producedItem
            name = "8331840_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54274,7 +54274,7 @@
       ></producedItem>
       <producedItem
            name = "8331840_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54283,7 +54283,7 @@
       ></producedItem>
       <producedItem
            name = "8331848_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54292,7 +54292,7 @@
       ></producedItem>
       <producedItem
            name = "8331848_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54301,7 +54301,7 @@
       ></producedItem>
       <producedItem
            name = "8331848_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54310,7 +54310,7 @@
       ></producedItem>
       <producedItem
            name = "8331848_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54319,7 +54319,7 @@
       ></producedItem>
       <producedItem
            name = "8331856_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54328,7 +54328,7 @@
       ></producedItem>
       <producedItem
            name = "8331856_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54337,7 +54337,7 @@
       ></producedItem>
       <producedItem
            name = "8331856_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54346,7 +54346,7 @@
       ></producedItem>
       <producedItem
            name = "8331856_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54355,7 +54355,7 @@
       ></producedItem>
       <producedItem
            name = "8331864_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54364,7 +54364,7 @@
       ></producedItem>
       <producedItem
            name = "8331864_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54373,7 +54373,7 @@
       ></producedItem>
       <producedItem
            name = "8331864_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54382,7 +54382,7 @@
       ></producedItem>
       <producedItem
            name = "8331864_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54391,7 +54391,7 @@
       ></producedItem>
       <producedItem
            name = "8331872_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54400,7 +54400,7 @@
       ></producedItem>
       <producedItem
            name = "8331872_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54409,7 +54409,7 @@
       ></producedItem>
       <producedItem
            name = "8331872_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54418,7 +54418,7 @@
       ></producedItem>
       <producedItem
            name = "8331872_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54427,7 +54427,7 @@
       ></producedItem>
       <producedItem
            name = "8331880_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54436,7 +54436,7 @@
       ></producedItem>
       <producedItem
            name = "8331880_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54445,7 +54445,7 @@
       ></producedItem>
       <producedItem
            name = "8331880_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54454,7 +54454,7 @@
       ></producedItem>
       <producedItem
            name = "8331880_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54463,7 +54463,7 @@
       ></producedItem>
       <producedItem
            name = "8331888_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54472,7 +54472,7 @@
       ></producedItem>
       <producedItem
            name = "8331888_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54481,7 +54481,7 @@
       ></producedItem>
       <producedItem
            name = "8331888_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54490,7 +54490,7 @@
       ></producedItem>
       <producedItem
            name = "8331888_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54499,7 +54499,7 @@
       ></producedItem>
       <producedItem
            name = "8331904_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54508,7 +54508,7 @@
       ></producedItem>
       <producedItem
            name = "8331904_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54517,7 +54517,7 @@
       ></producedItem>
       <producedItem
            name = "8331904_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54526,7 +54526,7 @@
       ></producedItem>
       <producedItem
            name = "8331904_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54535,7 +54535,7 @@
       ></producedItem>
       <producedItem
            name = "8331912_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54544,7 +54544,7 @@
       ></producedItem>
       <producedItem
            name = "8331912_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54553,7 +54553,7 @@
       ></producedItem>
       <producedItem
            name = "8331912_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54562,7 +54562,7 @@
       ></producedItem>
       <producedItem
            name = "8331912_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54571,7 +54571,7 @@
       ></producedItem>
       <producedItem
            name = "8331920_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54580,7 +54580,7 @@
       ></producedItem>
       <producedItem
            name = "8331920_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54589,7 +54589,7 @@
       ></producedItem>
       <producedItem
            name = "8331920_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54598,7 +54598,7 @@
       ></producedItem>
       <producedItem
            name = "8331920_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54607,7 +54607,7 @@
       ></producedItem>
       <producedItem
            name = "8331928_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54616,7 +54616,7 @@
       ></producedItem>
       <producedItem
            name = "8331928_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54625,7 +54625,7 @@
       ></producedItem>
       <producedItem
            name = "8331928_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54634,7 +54634,7 @@
       ></producedItem>
       <producedItem
            name = "8331928_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54643,7 +54643,7 @@
       ></producedItem>
       <producedItem
            name = "8331936_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54652,7 +54652,7 @@
       ></producedItem>
       <producedItem
            name = "8331936_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54661,7 +54661,7 @@
       ></producedItem>
       <producedItem
            name = "8331936_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54670,7 +54670,7 @@
       ></producedItem>
       <producedItem
            name = "8331936_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54679,7 +54679,7 @@
       ></producedItem>
       <producedItem
            name = "8331944_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54688,7 +54688,7 @@
       ></producedItem>
       <producedItem
            name = "8331944_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54697,7 +54697,7 @@
       ></producedItem>
       <producedItem
            name = "8331944_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54706,7 +54706,7 @@
       ></producedItem>
       <producedItem
            name = "8331944_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54715,7 +54715,7 @@
       ></producedItem>
       <producedItem
            name = "8331956_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54724,7 +54724,7 @@
       ></producedItem>
       <producedItem
            name = "8331956_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54733,7 +54733,7 @@
       ></producedItem>
       <producedItem
            name = "8331956_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54742,7 +54742,7 @@
       ></producedItem>
       <producedItem
            name = "8331956_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54751,7 +54751,7 @@
       ></producedItem>
       <producedItem
            name = "8331964_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54760,7 +54760,7 @@
       ></producedItem>
       <producedItem
            name = "8331964_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54769,7 +54769,7 @@
       ></producedItem>
       <producedItem
            name = "8331964_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54778,7 +54778,7 @@
       ></producedItem>
       <producedItem
            name = "8331964_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54787,7 +54787,7 @@
       ></producedItem>
       <producedItem
            name = "8331972_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54796,7 +54796,7 @@
       ></producedItem>
       <producedItem
            name = "8331972_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54805,7 +54805,7 @@
       ></producedItem>
       <producedItem
            name = "8331972_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54814,7 +54814,7 @@
       ></producedItem>
       <producedItem
            name = "8331972_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54823,7 +54823,7 @@
       ></producedItem>
       <producedItem
            name = "8331984_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54832,7 +54832,7 @@
       ></producedItem>
       <producedItem
            name = "8331984_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54841,7 +54841,7 @@
       ></producedItem>
       <producedItem
            name = "8331984_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54850,7 +54850,7 @@
       ></producedItem>
       <producedItem
            name = "8331984_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54895,7 +54895,7 @@
       ></producedItem>
       <producedItem
            name = "8332000_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54904,7 +54904,7 @@
       ></producedItem>
       <producedItem
            name = "8332000_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54913,7 +54913,7 @@
       ></producedItem>
       <producedItem
            name = "8332000_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54922,7 +54922,7 @@
       ></producedItem>
       <producedItem
            name = "8332000_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54931,7 +54931,7 @@
       ></producedItem>
       <producedItem
            name = "8332008_32"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54940,7 +54940,7 @@
       ></producedItem>
       <producedItem
            name = "8332008_33"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54949,7 +54949,7 @@
       ></producedItem>
       <producedItem
            name = "8332008_64"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54958,7 +54958,7 @@
       ></producedItem>
       <producedItem
            name = "8332008_65"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54967,7 +54967,7 @@
       ></producedItem>
       <producedItem
            name = "8332016_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54976,7 +54976,7 @@
       ></producedItem>
       <producedItem
            name = "8332016_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54985,7 +54985,7 @@
       ></producedItem>
       <producedItem
            name = "8332016_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -54994,7 +54994,7 @@
       ></producedItem>
       <producedItem
            name = "8332016_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55003,7 +55003,7 @@
       ></producedItem>
       <producedItem
            name = "8332024_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55012,7 +55012,7 @@
       ></producedItem>
       <producedItem
            name = "8332024_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55021,7 +55021,7 @@
       ></producedItem>
       <producedItem
            name = "8332024_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55030,7 +55030,7 @@
       ></producedItem>
       <producedItem
            name = "8332024_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55039,7 +55039,7 @@
       ></producedItem>
       <producedItem
            name = "8332032_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55048,7 +55048,7 @@
       ></producedItem>
       <producedItem
            name = "8332032_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55057,7 +55057,7 @@
       ></producedItem>
       <producedItem
            name = "8332032_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55066,7 +55066,7 @@
       ></producedItem>
       <producedItem
            name = "8332032_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55075,7 +55075,7 @@
       ></producedItem>
       <producedItem
            name = "8332040_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55084,7 +55084,7 @@
       ></producedItem>
       <producedItem
            name = "8332040_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55093,7 +55093,7 @@
       ></producedItem>
       <producedItem
            name = "8332040_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55102,7 +55102,7 @@
       ></producedItem>
       <producedItem
            name = "8332040_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55111,7 +55111,7 @@
       ></producedItem>
       <producedItem
            name = "8332048_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55120,7 +55120,7 @@
       ></producedItem>
       <producedItem
            name = "8332048_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55129,7 +55129,7 @@
       ></producedItem>
       <producedItem
            name = "8332048_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55138,7 +55138,7 @@
       ></producedItem>
       <producedItem
            name = "8332048_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55147,7 +55147,7 @@
       ></producedItem>
       <producedItem
            name = "8332056_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55156,7 +55156,7 @@
       ></producedItem>
       <producedItem
            name = "8332056_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55165,7 +55165,7 @@
       ></producedItem>
       <producedItem
            name = "8332056_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55174,7 +55174,7 @@
       ></producedItem>
       <producedItem
            name = "8332056_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55183,7 +55183,7 @@
       ></producedItem>
       <producedItem
            name = "8332064_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55192,7 +55192,7 @@
       ></producedItem>
       <producedItem
            name = "8332064_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55201,7 +55201,7 @@
       ></producedItem>
       <producedItem
            name = "8332064_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55210,7 +55210,7 @@
       ></producedItem>
       <producedItem
            name = "8332064_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55219,7 +55219,7 @@
       ></producedItem>
       <producedItem
            name = "8332072_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55228,7 +55228,7 @@
       ></producedItem>
       <producedItem
            name = "8332072_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55237,7 +55237,7 @@
       ></producedItem>
       <producedItem
            name = "8332072_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55246,7 +55246,7 @@
       ></producedItem>
       <producedItem
            name = "8332072_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55255,7 +55255,7 @@
       ></producedItem>
       <producedItem
            name = "8332112_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55264,7 +55264,7 @@
       ></producedItem>
       <producedItem
            name = "8332112_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55273,7 +55273,7 @@
       ></producedItem>
       <producedItem
            name = "8332112_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55282,7 +55282,7 @@
       ></producedItem>
       <producedItem
            name = "8332112_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55291,7 +55291,7 @@
       ></producedItem>
       <producedItem
            name = "8332120_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55300,7 +55300,7 @@
       ></producedItem>
       <producedItem
            name = "8332120_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55309,7 +55309,7 @@
       ></producedItem>
       <producedItem
            name = "8332120_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55318,7 +55318,7 @@
       ></producedItem>
       <producedItem
            name = "8332120_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55327,7 +55327,7 @@
       ></producedItem>
       <producedItem
            name = "8332128_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55336,7 +55336,7 @@
       ></producedItem>
       <producedItem
            name = "8332128_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55345,7 +55345,7 @@
       ></producedItem>
       <producedItem
            name = "8332128_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55354,7 +55354,7 @@
       ></producedItem>
       <producedItem
            name = "8332128_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55363,7 +55363,7 @@
       ></producedItem>
       <producedItem
            name = "8332160_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55372,7 +55372,7 @@
       ></producedItem>
       <producedItem
            name = "8332160_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55381,7 +55381,7 @@
       ></producedItem>
       <producedItem
            name = "8332160_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55390,7 +55390,7 @@
       ></producedItem>
       <producedItem
            name = "8332160_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55399,7 +55399,7 @@
       ></producedItem>
       <producedItem
            name = "8332208_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55408,7 +55408,7 @@
       ></producedItem>
       <producedItem
            name = "8332208_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55417,7 +55417,7 @@
       ></producedItem>
       <producedItem
            name = "8332208_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55426,7 +55426,7 @@
       ></producedItem>
       <producedItem
            name = "8332208_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55435,7 +55435,7 @@
       ></producedItem>
       <producedItem
            name = "8332224_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55444,7 +55444,7 @@
       ></producedItem>
       <producedItem
            name = "8332224_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55453,7 +55453,7 @@
       ></producedItem>
       <producedItem
            name = "8332224_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55462,7 +55462,7 @@
       ></producedItem>
       <producedItem
            name = "8332224_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55471,7 +55471,7 @@
       ></producedItem>
       <producedItem
            name = "8332232_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55480,7 +55480,7 @@
       ></producedItem>
       <producedItem
            name = "8332232_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55489,7 +55489,7 @@
       ></producedItem>
       <producedItem
            name = "8332232_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55498,7 +55498,7 @@
       ></producedItem>
       <producedItem
            name = "8332232_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55507,7 +55507,7 @@
       ></producedItem>
       <producedItem
            name = "8332248_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55516,7 +55516,7 @@
       ></producedItem>
       <producedItem
            name = "8332248_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55525,7 +55525,7 @@
       ></producedItem>
       <producedItem
            name = "8332248_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55534,7 +55534,7 @@
       ></producedItem>
       <producedItem
            name = "8332248_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55543,7 +55543,7 @@
       ></producedItem>
       <producedItem
            name = "8332256_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55552,7 +55552,7 @@
       ></producedItem>
       <producedItem
            name = "8332256_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55561,7 +55561,7 @@
       ></producedItem>
       <producedItem
            name = "8332256_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55570,7 +55570,7 @@
       ></producedItem>
       <producedItem
            name = "8332256_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55651,7 +55651,7 @@
       ></producedItem>
       <producedItem
            name = "8332312_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55660,7 +55660,7 @@
       ></producedItem>
       <producedItem
            name = "8332312_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55669,7 +55669,7 @@
       ></producedItem>
       <producedItem
            name = "8332312_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55678,7 +55678,7 @@
       ></producedItem>
       <producedItem
            name = "8332312_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55759,7 +55759,7 @@
       ></producedItem>
       <producedItem
            name = "8332496_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55768,7 +55768,7 @@
       ></producedItem>
       <producedItem
            name = "8332496_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55777,7 +55777,7 @@
       ></producedItem>
       <producedItem
            name = "8332496_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55786,7 +55786,7 @@
       ></producedItem>
       <producedItem
            name = "8332496_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55795,7 +55795,7 @@
       ></producedItem>
       <producedItem
            name = "8332504_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55804,7 +55804,7 @@
       ></producedItem>
       <producedItem
            name = "8332504_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55813,7 +55813,7 @@
       ></producedItem>
       <producedItem
            name = "8332504_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55822,7 +55822,7 @@
       ></producedItem>
       <producedItem
            name = "8332504_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55903,7 +55903,7 @@
       ></producedItem>
       <producedItem
            name = "8332536_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55912,7 +55912,7 @@
       ></producedItem>
       <producedItem
            name = "8332536_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55921,7 +55921,7 @@
       ></producedItem>
       <producedItem
            name = "8332536_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -55930,7 +55930,7 @@
       ></producedItem>
       <producedItem
            name = "8332536_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56119,7 +56119,7 @@
       ></producedItem>
       <producedItem
            name = "8332592_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56128,7 +56128,7 @@
       ></producedItem>
       <producedItem
            name = "8332592_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56137,7 +56137,7 @@
       ></producedItem>
       <producedItem
            name = "8332592_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56146,7 +56146,7 @@
       ></producedItem>
       <producedItem
            name = "8332592_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56155,7 +56155,7 @@
       ></producedItem>
       <producedItem
            name = "8332616_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56164,7 +56164,7 @@
       ></producedItem>
       <producedItem
            name = "8332616_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56173,7 +56173,7 @@
       ></producedItem>
       <producedItem
            name = "8332616_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56182,7 +56182,7 @@
       ></producedItem>
       <producedItem
            name = "8332616_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56227,7 +56227,7 @@
       ></producedItem>
       <producedItem
            name = "8332664_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56236,7 +56236,7 @@
       ></producedItem>
       <producedItem
            name = "8332664_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56245,7 +56245,7 @@
       ></producedItem>
       <producedItem
            name = "8332664_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56254,7 +56254,7 @@
       ></producedItem>
       <producedItem
            name = "8332664_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56263,7 +56263,7 @@
       ></producedItem>
       <producedItem
            name = "8332672_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56272,7 +56272,7 @@
       ></producedItem>
       <producedItem
            name = "8332672_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56281,7 +56281,7 @@
       ></producedItem>
       <producedItem
            name = "8332672_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56290,7 +56290,7 @@
       ></producedItem>
       <producedItem
            name = "8332672_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56299,7 +56299,7 @@
       ></producedItem>
       <producedItem
            name = "8332680_32"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56308,7 +56308,7 @@
       ></producedItem>
       <producedItem
            name = "8332680_33"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56317,7 +56317,7 @@
       ></producedItem>
       <producedItem
            name = "8332680_64"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56326,7 +56326,7 @@
       ></producedItem>
       <producedItem
            name = "8332680_65"
-           productionRate = "1000000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56371,7 +56371,7 @@
       ></producedItem>
       <producedItem
            name = "8332848_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56380,7 +56380,7 @@
       ></producedItem>
       <producedItem
            name = "8332848_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56389,7 +56389,7 @@
       ></producedItem>
       <producedItem
            name = "8332848_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56398,7 +56398,7 @@
       ></producedItem>
       <producedItem
            name = "8332848_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56407,7 +56407,7 @@
       ></producedItem>
       <producedItem
            name = "8332856_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56416,7 +56416,7 @@
       ></producedItem>
       <producedItem
            name = "8332856_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56425,7 +56425,7 @@
       ></producedItem>
       <producedItem
            name = "8332856_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56434,7 +56434,7 @@
       ></producedItem>
       <producedItem
            name = "8332856_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56479,7 +56479,7 @@
       ></producedItem>
       <producedItem
            name = "8332872_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56488,7 +56488,7 @@
       ></producedItem>
       <producedItem
            name = "8332872_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56497,7 +56497,7 @@
       ></producedItem>
       <producedItem
            name = "8332872_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56506,7 +56506,7 @@
       ></producedItem>
       <producedItem
            name = "8332872_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56515,7 +56515,7 @@
       ></producedItem>
       <producedItem
            name = "8332880_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56524,7 +56524,7 @@
       ></producedItem>
       <producedItem
            name = "8332880_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56533,7 +56533,7 @@
       ></producedItem>
       <producedItem
            name = "8332880_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56542,7 +56542,7 @@
       ></producedItem>
       <producedItem
            name = "8332880_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56551,7 +56551,7 @@
       ></producedItem>
       <producedItem
            name = "8332888_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56560,7 +56560,7 @@
       ></producedItem>
       <producedItem
            name = "8332888_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56569,7 +56569,7 @@
       ></producedItem>
       <producedItem
            name = "8332888_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56578,7 +56578,7 @@
       ></producedItem>
       <producedItem
            name = "8332888_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56587,7 +56587,7 @@
       ></producedItem>
       <producedItem
            name = "8332896_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56596,7 +56596,7 @@
       ></producedItem>
       <producedItem
            name = "8332896_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56605,7 +56605,7 @@
       ></producedItem>
       <producedItem
            name = "8332896_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56614,7 +56614,7 @@
       ></producedItem>
       <producedItem
            name = "8332896_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56623,7 +56623,7 @@
       ></producedItem>
       <producedItem
            name = "8332904_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56632,7 +56632,7 @@
       ></producedItem>
       <producedItem
            name = "8332904_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56641,7 +56641,7 @@
       ></producedItem>
       <producedItem
            name = "8332904_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56650,7 +56650,7 @@
       ></producedItem>
       <producedItem
            name = "8332904_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56659,7 +56659,7 @@
       ></producedItem>
       <producedItem
            name = "8332912_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56668,7 +56668,7 @@
       ></producedItem>
       <producedItem
            name = "8332912_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56677,7 +56677,7 @@
       ></producedItem>
       <producedItem
            name = "8332912_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56686,7 +56686,7 @@
       ></producedItem>
       <producedItem
            name = "8332912_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56695,7 +56695,7 @@
       ></producedItem>
       <producedItem
            name = "8332920_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56704,7 +56704,7 @@
       ></producedItem>
       <producedItem
            name = "8332920_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56713,7 +56713,7 @@
       ></producedItem>
       <producedItem
            name = "8332920_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56722,7 +56722,7 @@
       ></producedItem>
       <producedItem
            name = "8332920_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56731,7 +56731,7 @@
       ></producedItem>
       <producedItem
            name = "8332936_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56740,7 +56740,7 @@
       ></producedItem>
       <producedItem
            name = "8332936_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56749,7 +56749,7 @@
       ></producedItem>
       <producedItem
            name = "8332936_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56758,7 +56758,7 @@
       ></producedItem>
       <producedItem
            name = "8332936_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56767,7 +56767,7 @@
       ></producedItem>
       <producedItem
            name = "8332944_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56776,7 +56776,7 @@
       ></producedItem>
       <producedItem
            name = "8332944_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56785,7 +56785,7 @@
       ></producedItem>
       <producedItem
            name = "8332944_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56794,7 +56794,7 @@
       ></producedItem>
       <producedItem
            name = "8332944_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56803,7 +56803,7 @@
       ></producedItem>
       <producedItem
            name = "8332952_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56812,7 +56812,7 @@
       ></producedItem>
       <producedItem
            name = "8332952_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56821,7 +56821,7 @@
       ></producedItem>
       <producedItem
            name = "8332952_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56830,7 +56830,7 @@
       ></producedItem>
       <producedItem
            name = "8332952_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56839,7 +56839,7 @@
       ></producedItem>
       <producedItem
            name = "8332960_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56848,7 +56848,7 @@
       ></producedItem>
       <producedItem
            name = "8332960_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56857,7 +56857,7 @@
       ></producedItem>
       <producedItem
            name = "8332960_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56866,7 +56866,7 @@
       ></producedItem>
       <producedItem
            name = "8332960_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56875,7 +56875,7 @@
       ></producedItem>
       <producedItem
            name = "8332968_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56884,7 +56884,7 @@
       ></producedItem>
       <producedItem
            name = "8332968_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56893,7 +56893,7 @@
       ></producedItem>
       <producedItem
            name = "8332968_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56902,7 +56902,7 @@
       ></producedItem>
       <producedItem
            name = "8332968_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56911,7 +56911,7 @@
       ></producedItem>
       <producedItem
            name = "8332976_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56920,7 +56920,7 @@
       ></producedItem>
       <producedItem
            name = "8332976_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56929,7 +56929,7 @@
       ></producedItem>
       <producedItem
            name = "8332976_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56938,7 +56938,7 @@
       ></producedItem>
       <producedItem
            name = "8332976_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56947,7 +56947,7 @@
       ></producedItem>
       <producedItem
            name = "8332984_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56956,7 +56956,7 @@
       ></producedItem>
       <producedItem
            name = "8332984_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56965,7 +56965,7 @@
       ></producedItem>
       <producedItem
            name = "8332984_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56974,7 +56974,7 @@
       ></producedItem>
       <producedItem
            name = "8332984_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56983,7 +56983,7 @@
       ></producedItem>
       <producedItem
            name = "8332992_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -56992,7 +56992,7 @@
       ></producedItem>
       <producedItem
            name = "8332992_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57001,7 +57001,7 @@
       ></producedItem>
       <producedItem
            name = "8332992_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57010,7 +57010,7 @@
       ></producedItem>
       <producedItem
            name = "8332992_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57019,7 +57019,7 @@
       ></producedItem>
       <producedItem
            name = "8333000_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57028,7 +57028,7 @@
       ></producedItem>
       <producedItem
            name = "8333000_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57037,7 +57037,7 @@
       ></producedItem>
       <producedItem
            name = "8333000_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57046,7 +57046,7 @@
       ></producedItem>
       <producedItem
            name = "8333000_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57055,7 +57055,7 @@
       ></producedItem>
       <producedItem
            name = "8333008_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57064,7 +57064,7 @@
       ></producedItem>
       <producedItem
            name = "8333008_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57073,7 +57073,7 @@
       ></producedItem>
       <producedItem
            name = "8333008_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57082,7 +57082,7 @@
       ></producedItem>
       <producedItem
            name = "8333008_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57091,7 +57091,7 @@
       ></producedItem>
       <producedItem
            name = "8333016_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57100,7 +57100,7 @@
       ></producedItem>
       <producedItem
            name = "8333016_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57109,7 +57109,7 @@
       ></producedItem>
       <producedItem
            name = "8333016_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57118,7 +57118,7 @@
       ></producedItem>
       <producedItem
            name = "8333016_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57127,7 +57127,7 @@
       ></producedItem>
       <producedItem
            name = "8333024_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57136,7 +57136,7 @@
       ></producedItem>
       <producedItem
            name = "8333024_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57145,7 +57145,7 @@
       ></producedItem>
       <producedItem
            name = "8333024_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57154,7 +57154,7 @@
       ></producedItem>
       <producedItem
            name = "8333024_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57163,7 +57163,7 @@
       ></producedItem>
       <producedItem
            name = "8333032_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57172,7 +57172,7 @@
       ></producedItem>
       <producedItem
            name = "8333032_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57181,7 +57181,7 @@
       ></producedItem>
       <producedItem
            name = "8333032_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57190,7 +57190,7 @@
       ></producedItem>
       <producedItem
            name = "8333032_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57199,7 +57199,7 @@
       ></producedItem>
       <producedItem
            name = "8333040_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57208,7 +57208,7 @@
       ></producedItem>
       <producedItem
            name = "8333040_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57217,7 +57217,7 @@
       ></producedItem>
       <producedItem
            name = "8333040_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57226,7 +57226,7 @@
       ></producedItem>
       <producedItem
            name = "8333040_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57235,7 +57235,7 @@
       ></producedItem>
       <producedItem
            name = "8333048_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57244,7 +57244,7 @@
       ></producedItem>
       <producedItem
            name = "8333048_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57253,7 +57253,7 @@
       ></producedItem>
       <producedItem
            name = "8333048_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57262,7 +57262,7 @@
       ></producedItem>
       <producedItem
            name = "8333048_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57271,7 +57271,7 @@
       ></producedItem>
       <producedItem
            name = "8333056_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57280,7 +57280,7 @@
       ></producedItem>
       <producedItem
            name = "8333056_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57289,7 +57289,7 @@
       ></producedItem>
       <producedItem
            name = "8333056_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57298,7 +57298,7 @@
       ></producedItem>
       <producedItem
            name = "8333056_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57307,7 +57307,7 @@
       ></producedItem>
       <producedItem
            name = "8333072_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57316,7 +57316,7 @@
       ></producedItem>
       <producedItem
            name = "8333072_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57325,7 +57325,7 @@
       ></producedItem>
       <producedItem
            name = "8333072_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57334,7 +57334,7 @@
       ></producedItem>
       <producedItem
            name = "8333072_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57343,7 +57343,7 @@
       ></producedItem>
       <producedItem
            name = "8333080_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57352,7 +57352,7 @@
       ></producedItem>
       <producedItem
            name = "8333080_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57361,7 +57361,7 @@
       ></producedItem>
       <producedItem
            name = "8333080_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57370,7 +57370,7 @@
       ></producedItem>
       <producedItem
            name = "8333080_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57379,7 +57379,7 @@
       ></producedItem>
       <producedItem
            name = "8333088_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57388,7 +57388,7 @@
       ></producedItem>
       <producedItem
            name = "8333088_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57397,7 +57397,7 @@
       ></producedItem>
       <producedItem
            name = "8333088_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57406,7 +57406,7 @@
       ></producedItem>
       <producedItem
            name = "8333088_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57415,7 +57415,7 @@
       ></producedItem>
       <producedItem
            name = "8333096_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57424,7 +57424,7 @@
       ></producedItem>
       <producedItem
            name = "8333096_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57433,7 +57433,7 @@
       ></producedItem>
       <producedItem
            name = "8333096_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57442,7 +57442,7 @@
       ></producedItem>
       <producedItem
            name = "8333096_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57451,7 +57451,7 @@
       ></producedItem>
       <producedItem
            name = "8333104_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57460,7 +57460,7 @@
       ></producedItem>
       <producedItem
            name = "8333104_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57469,7 +57469,7 @@
       ></producedItem>
       <producedItem
            name = "8333104_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57478,7 +57478,7 @@
       ></producedItem>
       <producedItem
            name = "8333104_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57487,7 +57487,7 @@
       ></producedItem>
       <producedItem
            name = "8333112_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57496,7 +57496,7 @@
       ></producedItem>
       <producedItem
            name = "8333112_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57505,7 +57505,7 @@
       ></producedItem>
       <producedItem
            name = "8333112_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57514,7 +57514,7 @@
       ></producedItem>
       <producedItem
            name = "8333112_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57523,7 +57523,7 @@
       ></producedItem>
       <producedItem
            name = "8333120_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57532,7 +57532,7 @@
       ></producedItem>
       <producedItem
            name = "8333120_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57541,7 +57541,7 @@
       ></producedItem>
       <producedItem
            name = "8333120_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57550,7 +57550,7 @@
       ></producedItem>
       <producedItem
            name = "8333120_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57559,7 +57559,7 @@
       ></producedItem>
       <producedItem
            name = "8333128_32"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57568,7 +57568,7 @@
       ></producedItem>
       <producedItem
            name = "8333128_33"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57577,7 +57577,7 @@
       ></producedItem>
       <producedItem
            name = "8333128_64"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57586,7 +57586,7 @@
       ></producedItem>
       <producedItem
            name = "8333128_65"
-           productionRate = "960000"
+           productionRate = "480000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57631,7 +57631,7 @@
       ></producedItem>
       <producedItem
            name = "8333168_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57640,7 +57640,7 @@
       ></producedItem>
       <producedItem
            name = "8333168_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57649,7 +57649,7 @@
       ></producedItem>
       <producedItem
            name = "8333168_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57658,7 +57658,7 @@
       ></producedItem>
       <producedItem
            name = "8333168_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57703,7 +57703,7 @@
       ></producedItem>
       <producedItem
            name = "8333184_32"
-           productionRate = "192000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57712,7 +57712,7 @@
       ></producedItem>
       <producedItem
            name = "8333184_33"
-           productionRate = "192000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57721,7 +57721,7 @@
       ></producedItem>
       <producedItem
            name = "8333184_64"
-           productionRate = "192000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57730,7 +57730,7 @@
       ></producedItem>
       <producedItem
            name = "8333184_65"
-           productionRate = "192000"
+           productionRate = "960000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57775,7 +57775,7 @@
       ></producedItem>
       <producedItem
            name = "8333200_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57784,7 +57784,7 @@
       ></producedItem>
       <producedItem
            name = "8333200_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57793,7 +57793,7 @@
       ></producedItem>
       <producedItem
            name = "8333200_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57802,7 +57802,7 @@
       ></producedItem>
       <producedItem
            name = "8333200_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57811,7 +57811,7 @@
       ></producedItem>
       <producedItem
            name = "8333208_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57820,7 +57820,7 @@
       ></producedItem>
       <producedItem
            name = "8333208_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57829,7 +57829,7 @@
       ></producedItem>
       <producedItem
            name = "8333208_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -57838,7 +57838,7 @@
       ></producedItem>
       <producedItem
            name = "8333208_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58027,7 +58027,7 @@
       ></producedItem>
       <producedItem
            name = "8333256_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58036,7 +58036,7 @@
       ></producedItem>
       <producedItem
            name = "8333256_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58045,7 +58045,7 @@
       ></producedItem>
       <producedItem
            name = "8333256_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58054,7 +58054,7 @@
       ></producedItem>
       <producedItem
            name = "8333256_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58135,7 +58135,7 @@
       ></producedItem>
       <producedItem
            name = "8333280_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58144,7 +58144,7 @@
       ></producedItem>
       <producedItem
            name = "8333280_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58153,7 +58153,7 @@
       ></producedItem>
       <producedItem
            name = "8333280_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58162,7 +58162,7 @@
       ></producedItem>
       <producedItem
            name = "8333280_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58171,7 +58171,7 @@
       ></producedItem>
       <producedItem
            name = "8333296_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58180,7 +58180,7 @@
       ></producedItem>
       <producedItem
            name = "8333296_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58189,7 +58189,7 @@
       ></producedItem>
       <producedItem
            name = "8333296_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58198,7 +58198,7 @@
       ></producedItem>
       <producedItem
            name = "8333296_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58207,7 +58207,7 @@
       ></producedItem>
       <producedItem
            name = "8333304_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58216,7 +58216,7 @@
       ></producedItem>
       <producedItem
            name = "8333304_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58225,7 +58225,7 @@
       ></producedItem>
       <producedItem
            name = "8333304_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58234,7 +58234,7 @@
       ></producedItem>
       <producedItem
            name = "8333304_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58243,7 +58243,7 @@
       ></producedItem>
       <producedItem
            name = "8333320_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58252,7 +58252,7 @@
       ></producedItem>
       <producedItem
            name = "8333320_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58261,7 +58261,7 @@
       ></producedItem>
       <producedItem
            name = "8333320_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58270,7 +58270,7 @@
       ></producedItem>
       <producedItem
            name = "8333320_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58279,7 +58279,7 @@
       ></producedItem>
       <producedItem
            name = "8333328_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58288,7 +58288,7 @@
       ></producedItem>
       <producedItem
            name = "8333328_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58297,7 +58297,7 @@
       ></producedItem>
       <producedItem
            name = "8333328_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58306,7 +58306,7 @@
       ></producedItem>
       <producedItem
            name = "8333328_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58351,7 +58351,7 @@
       ></producedItem>
       <producedItem
            name = "8333344_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58360,7 +58360,7 @@
       ></producedItem>
       <producedItem
            name = "8333344_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58369,7 +58369,7 @@
       ></producedItem>
       <producedItem
            name = "8333344_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58378,7 +58378,7 @@
       ></producedItem>
       <producedItem
            name = "8333344_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58387,7 +58387,7 @@
       ></producedItem>
       <producedItem
            name = "8333352_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58396,7 +58396,7 @@
       ></producedItem>
       <producedItem
            name = "8333352_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58405,7 +58405,7 @@
       ></producedItem>
       <producedItem
            name = "8333352_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58414,7 +58414,7 @@
       ></producedItem>
       <producedItem
            name = "8333352_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58423,7 +58423,7 @@
       ></producedItem>
       <producedItem
            name = "8333360_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58432,7 +58432,7 @@
       ></producedItem>
       <producedItem
            name = "8333360_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58441,7 +58441,7 @@
       ></producedItem>
       <producedItem
            name = "8333360_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58450,7 +58450,7 @@
       ></producedItem>
       <producedItem
            name = "8333360_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58459,7 +58459,7 @@
       ></producedItem>
       <producedItem
            name = "8333368_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58468,7 +58468,7 @@
       ></producedItem>
       <producedItem
            name = "8333368_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58477,7 +58477,7 @@
       ></producedItem>
       <producedItem
            name = "8333368_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58486,7 +58486,7 @@
       ></producedItem>
       <producedItem
            name = "8333368_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58495,7 +58495,7 @@
       ></producedItem>
       <producedItem
            name = "8333376_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58504,7 +58504,7 @@
       ></producedItem>
       <producedItem
            name = "8333376_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58513,7 +58513,7 @@
       ></producedItem>
       <producedItem
            name = "8333376_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58522,7 +58522,7 @@
       ></producedItem>
       <producedItem
            name = "8333376_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58531,7 +58531,7 @@
       ></producedItem>
       <producedItem
            name = "8333384_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58540,7 +58540,7 @@
       ></producedItem>
       <producedItem
            name = "8333384_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58549,7 +58549,7 @@
       ></producedItem>
       <producedItem
            name = "8333384_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58558,7 +58558,7 @@
       ></producedItem>
       <producedItem
            name = "8333384_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58567,7 +58567,7 @@
       ></producedItem>
       <producedItem
            name = "8333392_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58576,7 +58576,7 @@
       ></producedItem>
       <producedItem
            name = "8333392_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58585,7 +58585,7 @@
       ></producedItem>
       <producedItem
            name = "8333392_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58594,7 +58594,7 @@
       ></producedItem>
       <producedItem
            name = "8333392_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58603,7 +58603,7 @@
       ></producedItem>
       <producedItem
            name = "8333400_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58612,7 +58612,7 @@
       ></producedItem>
       <producedItem
            name = "8333400_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58621,7 +58621,7 @@
       ></producedItem>
       <producedItem
            name = "8333400_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58630,7 +58630,7 @@
       ></producedItem>
       <producedItem
            name = "8333400_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58639,7 +58639,7 @@
       ></producedItem>
       <producedItem
            name = "8333408_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58648,7 +58648,7 @@
       ></producedItem>
       <producedItem
            name = "8333408_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58657,7 +58657,7 @@
       ></producedItem>
       <producedItem
            name = "8333408_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58666,7 +58666,7 @@
       ></producedItem>
       <producedItem
            name = "8333408_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58675,7 +58675,7 @@
       ></producedItem>
       <producedItem
            name = "8333416_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58684,7 +58684,7 @@
       ></producedItem>
       <producedItem
            name = "8333416_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58693,7 +58693,7 @@
       ></producedItem>
       <producedItem
            name = "8333416_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58702,7 +58702,7 @@
       ></producedItem>
       <producedItem
            name = "8333416_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58711,7 +58711,7 @@
       ></producedItem>
       <producedItem
            name = "8333432_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58720,7 +58720,7 @@
       ></producedItem>
       <producedItem
            name = "8333432_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58729,7 +58729,7 @@
       ></producedItem>
       <producedItem
            name = "8333432_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58738,7 +58738,7 @@
       ></producedItem>
       <producedItem
            name = "8333432_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58747,7 +58747,7 @@
       ></producedItem>
       <producedItem
            name = "8333440_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58756,7 +58756,7 @@
       ></producedItem>
       <producedItem
            name = "8333440_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58765,7 +58765,7 @@
       ></producedItem>
       <producedItem
            name = "8333440_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58774,7 +58774,7 @@
       ></producedItem>
       <producedItem
            name = "8333440_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58783,7 +58783,7 @@
       ></producedItem>
       <producedItem
            name = "8333448_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58792,7 +58792,7 @@
       ></producedItem>
       <producedItem
            name = "8333448_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58801,7 +58801,7 @@
       ></producedItem>
       <producedItem
            name = "8333448_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58810,7 +58810,7 @@
       ></producedItem>
       <producedItem
            name = "8333448_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58819,7 +58819,7 @@
       ></producedItem>
       <producedItem
            name = "8333456_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58828,7 +58828,7 @@
       ></producedItem>
       <producedItem
            name = "8333456_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58837,7 +58837,7 @@
       ></producedItem>
       <producedItem
            name = "8333456_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58846,7 +58846,7 @@
       ></producedItem>
       <producedItem
            name = "8333456_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58855,7 +58855,7 @@
       ></producedItem>
       <producedItem
            name = "8333464_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58864,7 +58864,7 @@
       ></producedItem>
       <producedItem
            name = "8333464_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58873,7 +58873,7 @@
       ></producedItem>
       <producedItem
            name = "8333464_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58882,7 +58882,7 @@
       ></producedItem>
       <producedItem
            name = "8333464_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58891,7 +58891,7 @@
       ></producedItem>
       <producedItem
            name = "8333472_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58900,7 +58900,7 @@
       ></producedItem>
       <producedItem
            name = "8333472_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58909,7 +58909,7 @@
       ></producedItem>
       <producedItem
            name = "8333472_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58918,7 +58918,7 @@
       ></producedItem>
       <producedItem
            name = "8333472_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58927,7 +58927,7 @@
       ></producedItem>
       <producedItem
            name = "8333480_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58936,7 +58936,7 @@
       ></producedItem>
       <producedItem
            name = "8333480_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58945,7 +58945,7 @@
       ></producedItem>
       <producedItem
            name = "8333480_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58954,7 +58954,7 @@
       ></producedItem>
       <producedItem
            name = "8333480_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58963,7 +58963,7 @@
       ></producedItem>
       <producedItem
            name = "8333488_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58972,7 +58972,7 @@
       ></producedItem>
       <producedItem
            name = "8333488_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58981,7 +58981,7 @@
       ></producedItem>
       <producedItem
            name = "8333488_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58990,7 +58990,7 @@
       ></producedItem>
       <producedItem
            name = "8333488_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -58999,7 +58999,7 @@
       ></producedItem>
       <producedItem
            name = "8333496_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59008,7 +59008,7 @@
       ></producedItem>
       <producedItem
            name = "8333496_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59017,7 +59017,7 @@
       ></producedItem>
       <producedItem
            name = "8333496_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59026,7 +59026,7 @@
       ></producedItem>
       <producedItem
            name = "8333496_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59035,7 +59035,7 @@
       ></producedItem>
       <producedItem
            name = "8333504_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59044,7 +59044,7 @@
       ></producedItem>
       <producedItem
            name = "8333504_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59053,7 +59053,7 @@
       ></producedItem>
       <producedItem
            name = "8333504_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59062,7 +59062,7 @@
       ></producedItem>
       <producedItem
            name = "8333504_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59071,7 +59071,7 @@
       ></producedItem>
       <producedItem
            name = "8333512_32"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59080,7 +59080,7 @@
       ></producedItem>
       <producedItem
            name = "8333512_33"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59089,7 +59089,7 @@
       ></producedItem>
       <producedItem
            name = "8333512_64"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59098,7 +59098,7 @@
       ></producedItem>
       <producedItem
            name = "8333512_65"
-           productionRate = "192000"
+           productionRate = "48000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59107,7 +59107,7 @@
       ></producedItem>
       <producedItem
            name = "8333520_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59116,7 +59116,7 @@
       ></producedItem>
       <producedItem
            name = "8333520_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59125,7 +59125,7 @@
       ></producedItem>
       <producedItem
            name = "8333520_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59134,7 +59134,7 @@
       ></producedItem>
       <producedItem
            name = "8333520_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59143,7 +59143,7 @@
       ></producedItem>
       <producedItem
            name = "8333528_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59152,7 +59152,7 @@
       ></producedItem>
       <producedItem
            name = "8333528_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59161,7 +59161,7 @@
       ></producedItem>
       <producedItem
            name = "8333528_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59170,7 +59170,7 @@
       ></producedItem>
       <producedItem
            name = "8333528_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59179,7 +59179,7 @@
       ></producedItem>
       <producedItem
            name = "8333536_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59188,7 +59188,7 @@
       ></producedItem>
       <producedItem
            name = "8333536_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59197,7 +59197,7 @@
       ></producedItem>
       <producedItem
            name = "8333536_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59206,7 +59206,7 @@
       ></producedItem>
       <producedItem
            name = "8333536_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59215,7 +59215,7 @@
       ></producedItem>
       <producedItem
            name = "8333544_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59224,7 +59224,7 @@
       ></producedItem>
       <producedItem
            name = "8333544_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59233,7 +59233,7 @@
       ></producedItem>
       <producedItem
            name = "8333544_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59242,7 +59242,7 @@
       ></producedItem>
       <producedItem
            name = "8333544_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59251,7 +59251,7 @@
       ></producedItem>
       <producedItem
            name = "8333552_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59260,7 +59260,7 @@
       ></producedItem>
       <producedItem
            name = "8333552_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59269,7 +59269,7 @@
       ></producedItem>
       <producedItem
            name = "8333552_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59278,7 +59278,7 @@
       ></producedItem>
       <producedItem
            name = "8333552_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59287,7 +59287,7 @@
       ></producedItem>
       <producedItem
            name = "8333560_32"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59296,7 +59296,7 @@
       ></producedItem>
       <producedItem
            name = "8333560_33"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59305,7 +59305,7 @@
       ></producedItem>
       <producedItem
            name = "8333560_64"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -59314,7 +59314,7 @@
       ></producedItem>
       <producedItem
            name = "8333560_65"
-           productionRate = "192000"
+           productionRate = "96000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -68638,7 +68638,7 @@
       ></producedItem>
       <producedItem
            name = "8825320_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -68647,7 +68647,7 @@
       ></producedItem>
       <producedItem
            name = "8825320_64"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -68656,7 +68656,7 @@
       ></producedItem>
       <producedItem
            name = "8825328_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -68665,7 +68665,7 @@
       ></producedItem>
       <producedItem
            name = "8825328_64"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -70339,7 +70339,7 @@
       ></producedItem>
       <producedItem
            name = "9160720_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -70348,7 +70348,7 @@
       ></producedItem>
       <producedItem
            name = "9160744_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -70366,7 +70366,7 @@
       ></producedItem>
       <producedItem
            name = "9160768_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -70501,7 +70501,7 @@
       ></producedItem>
       <producedItem
            name = "9161376_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -70600,7 +70600,7 @@
       ></producedItem>
       <producedItem
            name = "9162080_32"
-           productionRate = "1000000"
+           productionRate = "200000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -71563,7 +71563,7 @@
       ></producedItem>
       <producedItem
            name = "9370560_32"
-           productionRate = "500000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -73246,7 +73246,7 @@
       ></producedItem>
       <producedItem
            name = "9968392_64"
-           productionRate = "1000000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -73264,7 +73264,7 @@
       ></producedItem>
       <producedItem
            name = "9968400_64"
-           productionRate = "1000000"
+           productionRate = "50000"
            messageForm = "I"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
@@ -73454,7 +73454,7 @@
       <producedItem
            name = "A717_STATUS_MSG"
            productionRate = "1000000"
-           messageForm = "11B"
+           messageForm = "15B"
            messageUnits = ""
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"

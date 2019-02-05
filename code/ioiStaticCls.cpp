@@ -1069,6 +1069,7 @@ void A717Qar::SetStatusMsgFields( UINT8 disableFlag, UINT8 bitState,
 void A717Qar::WriteStatusMsg( UINT8* pSfArray )
 {
     UINT16 reg = 0xF51E; // All OK
+    UINT32 cfgReg =  0x00000020; // show DMA ENABLED, TEST bits off.
     ioiStatus ioiStat;
 
     // The ICD defines the mode as disabled vs enabled.
@@ -1088,6 +1089,14 @@ void A717Qar::WriteStatusMsg( UINT8* pSfArray )
     UINT32 syncStatus = (m_testCtrl.bSynced) ? 1 : 0;
     reg = reg | (syncStatus & SYNC_MASK);
     m_qarMgrStatusMsg.statusRegister = reg;
+
+    // Set the UTAS Rx Cfg Register to look somewhat realistic to the true settings
+    cfgReg = cfgReg | (m_qaRevSyncFlag << 4); // REVERSE BARKER FLAG
+    cfgReg = cfgReg | (m_qarFmtEnum    << 3); //  QAR FMT 0 - BPRZ, 1 - HBP
+    cfgReg = cfgReg | (m_qarMgrStatusMsg.cfg.numWords); // QAR WORDCNT enum
+
+    m_qarMgrStatusMsg.rxCfgRegister = cfgReg;
+
 
     // Move the content of QAR Module status to the output buffer for Updating.
     memcpy( m_status->data, &m_qarMgrStatusMsg, sizeof( m_qarMgrStatusMsg ));
