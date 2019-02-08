@@ -137,7 +137,7 @@ public:
     PARAM_SRC_ENUM m_src;
     PARAM_FMT_ENUM m_type;
     FLOAT32 m_maxValue;    // what is the cfg scale value set to
-    FLOAT32 m_scaleLsb;    // the current value for the parameter
+    FLOAT32 m_scaleLsb;    // the effective value of each bit for the scale(m_maxValue)
     UINT32  m_data;        // the current value for the parameter
     ParameterName m_ioiName;
 

@@ -173,8 +173,9 @@ void ParamConverter::Init(ParamCfg* paramInfo)
 
         if (m_maxValue == 0.0f)
         {
-            m_scaleLsb = 1.0f;
-            m_maxValue = pow(2.0f, float(m_totalBits));
+          // No scale specified... use max limit based on available data bits.
+          m_maxValue = m_isSigned ? pow(2.0f, float(m_totalBits-1))
+                                    : pow(2.0f, float(m_totalBits));
         }
         else
         {
@@ -372,7 +373,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
             value = MAX(0, MIN(value, m_maxValue - m_scaleLsb));
             rawValue = (UINT32)(value / m_scaleLsb);
         }
-        else
+        else // value is signed
         {
             FLOAT32 bias = 0.5;
 
