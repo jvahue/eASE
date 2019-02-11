@@ -173,9 +173,10 @@ void ParamConverter::Init(ParamCfg* paramInfo)
 
         if (m_maxValue == 0.0f)
         {
-          // No scale specified... use max limit based on available data bits.
+          // No scale specified... use max limit based on 'available' data-value bits as
+          // defined by sign bit.
           m_maxValue = m_isSigned ? pow(2.0f, float(m_totalBits-1))
-                                    : pow(2.0f, float(m_totalBits));
+                                  : pow(2.0f, float(m_totalBits));
         }
         else
         {
@@ -375,16 +376,20 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
         }
         else // value is signed
         {
+            // Init the bias offset.
+            // Cancel it(0.0) if the value is ever adjusted.
             FLOAT32 bias = 0.5;
 
             // limit the value to +/- m_maxValue
             if (value >= m_maxValue)
             {
-                value = m_maxValue - m_scaleLsb;  // +max is really max - 1 lsb
+                value = m_maxValue - m_scaleLsb;
+                bias  = 0.0;
             }
             else if (value < -m_maxValue)
             {
                 value = -m_maxValue;
+                bias  = 0.0;
             }
 
             // if the value is negative create the sign bit mask
@@ -400,11 +405,13 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
                 else
                 {
                     value = 0.0;
+                    bias  = 0.0;
                 }
             }
             else if (value < m_scaleLsb)
             {
                 value = 0.0;
+                bias  = 0.0;
             }
 
             if (m_is2Comp)
