@@ -860,20 +860,20 @@ void A664Qar::Garbage()
 A717Qar::A717Qar()
     : A664Qar()
 {
+    m_testCtrl.bSynced = FALSE;
+    m_testCtrl.bQarEnabled = FALSE;
     m_testCtrl.bAcceptCfgReq = TRUE;
     m_testCtrl.bCfgReqReceived = FALSE;
     m_testCtrl.bCfgRespAvail = FALSE;
-    m_testCtrl.bAutoRespondAck = FALSE;
+    m_testCtrl.bAutoRespondAck = TRUE;
     m_testCtrl.bAutoRespondNack = FALSE;
-    m_testCtrl.bQarEnabled = TRUE;
-    m_testCtrl.bSynced = TRUE;
     m_testCtrl.qarBitState = BITSTATE_NO_FAIL;
     
     // default A717 word count to 64
     m_qarSfWordCount  = eDefaultSfWdCnt; // temp until recfg is implemented
     m_qaRevSyncFlag   = 0;
     m_qarFmtEnum      = (UINT8)QAR_BIPOLAR_RETURN_ZERO;
-    m_qarWordSizeEnum = (UINT8)QAR_1024_WORDS;
+    m_qarWordSizeEnum = (UINT8)QAR_64_WORDS;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -881,7 +881,9 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
                     StaticIoiObj* sf1, StaticIoiObj* sf2, 
                     StaticIoiObj* sf3, StaticIoiObj* sf4)
 {
+    UINT32 tempWordCount = m_qarSfWordCount;
     A664Qar::Reset();
+    m_qarSfWordCount = tempWordCount;
 
     m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
     m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
@@ -901,7 +903,6 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
     m_qarWords[1][0] = 0x5b8;
     m_qarWords[2][0] = 0xa47;
     m_qarWords[3][0] = 0xdb8;
-
 }
 
 //---------------------------------------------------------------------------------------------
@@ -1077,7 +1078,7 @@ void A717Qar::WriteStatusMsg( UINT8* pSfArray )
     m_qarMgrStatusMsg.qarBitState = m_testCtrl.qarBitState;
 
     // Copy the array indicating which SF(s) have been updated during this second.
-    memcpy( m_qarMgrStatusMsg.sfUpdateFlags,pSfArray, sizeof(m_qarMgrStatusMsg.sfUpdateFlags)); 
+    memcpy(m_qarMgrStatusMsg.sfUpdateFlags, pSfArray, sizeof(m_qarMgrStatusMsg.sfUpdateFlags)); 
     
     // Convert the SF word count back to the enum value.
     m_qarMgrStatusMsg.cfg.numWords = (log10(m_qarSfWordCount)/log10(2)) - 6;

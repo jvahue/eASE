@@ -343,7 +343,7 @@ public:
         eQar717AutoResp  = -4,   // Tell Ase to automatically respond with the last values set for Status and RecfgResp
         eQar717AutoNack  = -5,   // Tell Ase to automatically Nack with the last values set for Status and RecfgResp
         // Misc Constants
-        eDefaultSfWdCnt = 1024, //64,
+        eDefaultSfWdCnt = 64,
     };
 
     A717Qar();
