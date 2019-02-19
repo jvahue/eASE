@@ -124,14 +124,14 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN bSynced;       // Simulate the QAR modules being in or out of sync.
-    BOOLEAN bQarEnabled;   // Module is enabled and will generate output based on settings.
-    BOOLEAN bAcceptCfgReq; // Accept/Reject cfg request from ADRF
-    BOOLEAN bCfgReqReceived;// Indicates a request for reconfig has been recvd.
-    BOOLEAN bCfgRespAvail; // Indicates tester has provided resp data. (This is one-shot)
-    BOOLEAN bAutoRespondAck;  // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
-    BOOLEAN bAutoRespondNack; // Set by script. Respond to cfg request witoout waiting for bCfgRespAvail
-    BIT_STATE qarBitState; // The Built-In-Test state of the QAR Module
+    BOOLEAN bSynced;          // Simulate the QAR modules being in or out of sync.
+    BOOLEAN bQarEnabled;      // Module is enabled and will generate output based on settings.
+    BOOLEAN bAcceptCfgReq;    // Accept/Reject cfg request from ADRF
+    BOOLEAN bCfgReqReceived;  // Indicates a request for re-config has been received.
+    BOOLEAN bCfgRespAvail;    // Indicates tester has provided resp data. (This is one-shot)
+    BOOLEAN bAutoRespondAck;  // Set by script. Auto-cfg request w/o waiting for bCfgRespAvail
+    BOOLEAN bAutoRespondNack; // Set by script. Auto-cfg request w/o waiting for bCfgRespAvail
+    BIT_STATE qarBitState;    // The Built-In-Test state of the QAR Module
 
 } TEST_CONTROL;
 
@@ -335,13 +335,18 @@ public:
 class A717Qar : public A664Qar
 {
 public:
+    // Set Data Control Commands
     enum a717QarConst {
-        // Set Data Control Commands
-        eQar717Status    = -1,   // Set disable flag, Failure flag and cfg state fields in the status  A717 Status Msg
-        eQar717SkipSF    = -2,   // Send mask of SFs to be disabled for outputting by ASE
-        eQar717ReCfgResp = -3,   // Set the fields to be returned in a cfg resp.
-        eQar717AutoResp  = -4,   // Tell Ase to automatically respond with the last values set for Status and RecfgResp
-        eQar717AutoNack  = -5,   // Tell Ase to automatically Nack with the last values set for Status and RecfgResp
+        // Set disable flag, Failure flag and cfg state fields in the status  A717 Status Msg
+        eQar717Status    = -1,   
+        // Send mask of SFs to be disabled for outputting by ASE
+        eQar717SkipSF    = -2,   
+        // Set the fields to be returned in a cfg resp.
+        eQar717ReCfgResp = -3,   
+        // Tell Ase to automatically respond with the last values set for Status and RecfgResp
+        eQar717AutoResp  = -4,   
+        // Tell Ase to automatically Nack with the last values set for Status and RecfgResp
+        eQar717AutoNack  = -5,   
         // Misc Constants
         eDefaultSfWdCnt = 64,
     };

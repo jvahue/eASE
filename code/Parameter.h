@@ -27,7 +27,10 @@ class Parameter;
 class Parameter : public ParamConverter
 {
 public:
-    enum ParamConstants { eParamShort = 23 };
+    enum ParamConstants { 
+        eParamShort = 23,   // shorten param name for display to 23 chars
+        eParamMaxQar = 64,  // maximum rate for QAR params
+    };
     enum ParamFlex { eFlexNone, eFlexSeq1, eFlexBlock1, eFlexBlock2 };
 
     Parameter();

@@ -270,6 +270,10 @@ void Parameter::Init(ParamCfg* paramInfo, StaticIoiContainer& ioiStatic)
         // items associated with the parameter's update rate
         m_qarSfMask = EXTRACT(paramInfo->gpa, 8, 4); // mask 0:SF1, 1:SF2, 2:SF3, 3:SF4
         m_qarRateHz = 1 << EXTRACT(paramInfo->gpe, 28, 4);
+        if (m_qarRateHz > eParamMaxQar)
+        {
+            m_qarRateHz = 1;  // drop to 1Hz and hope no body cares
+        }
 
         // limit this to 1Hz even if the value only appears in one or two SF for 0.25|0.5 Hz
         m_qarPeriod_ms = 1000.0/(float)m_qarRateHz;  // actual QAR period (1.0/Hz) 
