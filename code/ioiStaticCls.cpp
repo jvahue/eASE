@@ -514,7 +514,7 @@ bool A664Qar::TestControl(SecRequest& request)
 
 //---------------------------------------------------------------------------------------------
 // Parameters call this function to set a SF data word to a specific value
-void A664Qar::SetData(UINT16 value, 
+void A664Qar::SetData(UINT16 value,
                       UINT16 mask, UINT8 sfMask, UINT32 rate, UINT16 base, UINT8 index)
 {
     // see if this word belongs in this SF
@@ -868,17 +868,17 @@ A717Qar::A717Qar()
     m_testCtrl.bAutoRespondAck = TRUE;
     m_testCtrl.bAutoRespondNack = FALSE;
     m_testCtrl.qarBitState = BITSTATE_NO_FAIL;
-    
+
     // default A717 word count to 64
-    m_qarSfWordCount  = eDefaultSfWdCnt; // temp until recfg is implemented
-    m_qaRevSyncFlag   = 0;
-    m_qarFmtEnum      = (UINT8)QAR_BIPOLAR_RETURN_ZERO;
+    m_qarSfWordCount = eDefaultSfWdCnt; // temp until recfg is implemented
+    m_qaRevSyncFlag = 0;
+    m_qarFmtEnum = (UINT8)QAR_BIPOLAR_RETURN_ZERO;
     m_qarWordSizeEnum = (UINT8)QAR_64_WORDS;
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts, 
-                    StaticIoiObj* sf1, StaticIoiObj* sf2, 
+void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts,
+                    StaticIoiObj* sf1, StaticIoiObj* sf2,
                     StaticIoiObj* sf3, StaticIoiObj* sf4)
 {
     UINT32 tempWordCount = m_qarSfWordCount;
@@ -887,7 +887,7 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* s
 
     m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
     m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
-    m_status  = static_cast<StaticIoiStr*>(sts);
+    m_status = static_cast<StaticIoiStr*>(sts);
 
     m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
     m_sfObjs[1] = static_cast<StaticIoiStr*>(sf2);
@@ -924,7 +924,7 @@ int A717Qar::UpdateIoi()
 
     // Is it time to send a SF - at 1Hz?
     // Output the next SF (if QAR active) and the status msg.
-    if (m_oneSecondClk >= eTICKS_PER_SEC)  
+    if (m_oneSecondClk >= eTICKS_PER_SEC)
     {
         // UTAS will probably read and respond to a Recfg Request in the same frame as
         // the Status Msg and Subframe writes, so check here if something needs to go out.
@@ -963,7 +963,7 @@ int A717Qar::UpdateIoi()
         WriteStatusMsg(sfUpdateFlags);
 
         m_oneSecondClk = 0;
-    } 
+    }
 
     return 0;
 }
@@ -977,41 +977,41 @@ bool A717Qar::TestControl(SecRequest& request)
 
     if (offset == eQar717Status)
     {
-      UINT8* pStatus = (UINT8*)request.charData;
+        UINT8* pStatus = (UINT8*)request.charData;
 
-      // Set the fields to be used in status msg
-      SetStatusMsgFields( pStatus[0], pStatus[1], pStatus[2], pStatus[3], pStatus[4] );      
+        // Set the fields to be used in status msg
+        SetStatusMsgFields(pStatus[0], pStatus[1], pStatus[2], pStatus[3], pStatus[4]);
     }
     else if (offset == eQar717ReCfgResp)
     {
         UINT8* cfgData = (UINT8*)request.charData;
         // Set up the response to a reconfigure request, disable auto respond
-        SetCfgRespFields( cfgData[0], cfgData[1], cfgData[2], cfgData[3] );
+        SetCfgRespFields(cfgData[0], cfgData[1], cfgData[2], cfgData[3]);
         m_testCtrl.bAutoRespondAck = false;
     }
     else if (offset == eQar717AutoResp)
     {
-      UINT8* pAutoModeCmd = (UINT8*)request.charData;
-      m_testCtrl.bAutoRespondAck = pAutoModeCmd[0] == 0 ? false : true;  
-      // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
-      if (m_testCtrl.bAutoRespondAck)
-      {
-        m_testCtrl.bCfgRespAvail    = false;
-        m_testCtrl.bAutoRespondNack = false;
-      }
+        UINT8* pAutoModeCmd = (UINT8*)request.charData;
+        m_testCtrl.bAutoRespondAck = pAutoModeCmd[0] == 0 ? false : true;
+        // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
+        if (m_testCtrl.bAutoRespondAck)
+        {
+            m_testCtrl.bCfgRespAvail = false;
+            m_testCtrl.bAutoRespondNack = false;
+        }
     }
     else if (offset == eQar717AutoNack)
     {
-      UINT8* pAutoModeCmd = (UINT8*)request.charData;
-      m_testCtrl.bAutoRespondNack = pAutoModeCmd[0] == 0 ? false : true;
+        UINT8* pAutoModeCmd = (UINT8*)request.charData;
+        m_testCtrl.bAutoRespondNack = pAutoModeCmd[0] == 0 ? false : true;
 
-      // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
-      if (m_testCtrl.bAutoRespondNack)
-      {
-        m_testCtrl.bCfgRespAvail   = false;
-        m_testCtrl.bAutoRespondAck = false;
-      }
-    }    
+        // If auto respond is enabled, then disable bCfgRespAvail until the user sets it again 
+        if (m_testCtrl.bAutoRespondNack)
+        {
+            m_testCtrl.bCfgRespAvail = false;
+            m_testCtrl.bAutoRespondAck = false;
+        }
+    }
     else if (offset == eQar717SkipSF)
     {
         // TODO
@@ -1040,51 +1040,51 @@ bool A717Qar::HandleRequest(StaticIoiObj* targetIoi)
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::SetCfgRespFields( UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType )
+void A717Qar::SetCfgRespFields(UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType)
 {
     // fill the response msg to be sent as a reply to the next cfg request.
-    m_cfgRespMsg.rspType      = respType;
+    m_cfgRespMsg.rspType = respType;
     m_cfgRespMsg.cfg.bRevSync = reverseFlag;
     m_cfgRespMsg.cfg.numWords = sfWc;
-    m_cfgRespMsg.cfg.fmt      = format;
+    m_cfgRespMsg.cfg.fmt = format;
 
-    m_testCtrl.bCfgRespAvail  = TRUE;
+    m_testCtrl.bCfgRespAvail = TRUE;
 }
 
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::SetStatusMsgFields( UINT8 disableFlag, UINT8 bitState,
-                                  UINT8 sfWc, UINT8 reverseFlag, UINT8 format )
+void A717Qar::SetStatusMsgFields(UINT8 disableFlag, UINT8 bitState,
+                                 UINT8 sfWc, UINT8 reverseFlag, UINT8 format)
 {
   // for now just reset the word count
-  m_testCtrl.bQarEnabled = disableFlag ? 0 : 1; // Damn negative-logic in ICD
-  m_testCtrl.qarBitState = (BIT_STATE)bitState;
+    m_testCtrl.bQarEnabled = disableFlag ? 0 : 1; // Damn negative-logic in ICD
+    m_testCtrl.qarBitState = (BIT_STATE)bitState;
 
-  // TODO DaveB, setting
-  m_qarSfWordCount = 1 << (sfWc + 6);    // Convert enum to value  
-  m_qaRevSyncFlag  = reverseFlag;
-  m_qarFmtEnum     = format;
+    // TODO DaveB, setting
+    m_qarSfWordCount = 1 << (sfWc + 6);    // Convert enum to value  
+    m_qaRevSyncFlag = reverseFlag;
+    m_qarFmtEnum = format;
 }
 
 //---------------------------------------------------------------------------------------------
-void A717Qar::WriteStatusMsg( UINT8* pSfArray )
+void A717Qar::WriteStatusMsg(UINT8* pSfArray)
 {
     UINT16 reg = 0xF51E; // All OK
-    UINT32 cfgReg =  0x00000020; // show DMA ENABLED, TEST bits off.
-    ioiStatus ioiStat;
+    UINT32 cfgReg = 0x00000020; // show DMA ENABLED, TEST bits off.
+    //ioiStatus ioiStat;
 
     // The ICD defines the mode as disabled vs enabled.
-    m_qarMgrStatusMsg.bDisabled   = m_testCtrl.bQarEnabled ? 0 : 1;
+    m_qarMgrStatusMsg.bDisabled = m_testCtrl.bQarEnabled ? 0 : 1;
     m_qarMgrStatusMsg.qarBitState = m_testCtrl.qarBitState;
 
     // Copy the array indicating which SF(s) have been updated during this second.
-    memcpy(m_qarMgrStatusMsg.sfUpdateFlags, pSfArray, sizeof(m_qarMgrStatusMsg.sfUpdateFlags)); 
-    
+    memcpy(m_qarMgrStatusMsg.sfUpdateFlags, pSfArray, sizeof(m_qarMgrStatusMsg.sfUpdateFlags));
+
     // Convert the SF word count back to the enum value.
-    m_qarMgrStatusMsg.cfg.numWords = (log10(m_qarSfWordCount)/log10(2)) - 6;
+    m_qarMgrStatusMsg.cfg.numWords = (log10(m_qarSfWordCount) / log10(2)) - 6;
 
     m_qarMgrStatusMsg.cfg.bRevSync = m_qaRevSyncFlag;
-    m_qarMgrStatusMsg.cfg.fmt      = m_qarFmtEnum;
+    m_qarMgrStatusMsg.cfg.fmt = m_qarFmtEnum;
 
     // Set the overall sync status to match the high level flag in status msg
     UINT32 syncStatus = (m_testCtrl.bSynced) ? 1 : 0;
@@ -1092,15 +1092,14 @@ void A717Qar::WriteStatusMsg( UINT8* pSfArray )
     m_qarMgrStatusMsg.statusRegister = reg;
 
     // Set the UTAS Rx Cfg Register to look somewhat realistic to the true settings
-    cfgReg = cfgReg | (m_qaRevSyncFlag << 4); // REVERSE BARKER FLAG
-    cfgReg = cfgReg | (m_qarFmtEnum    << 3); //  QAR FMT 0 - BPRZ, 1 - HBP
+    cfgReg = cfgReg | (m_qaRevSyncFlag << 4);           // REVERSE BARKER FLAG
+    cfgReg = cfgReg | (m_qarFmtEnum << 3);              //  QAR FMT 0 - BPRZ, 1 - HBP
     cfgReg = cfgReg | (m_qarMgrStatusMsg.cfg.numWords); // QAR WORDCNT enum
 
     m_qarMgrStatusMsg.rxCfgRegister = cfgReg;
 
-
     // Move the content of QAR Module status to the output buffer for Updating.
-    memcpy( m_status->data, &m_qarMgrStatusMsg, sizeof( m_qarMgrStatusMsg ));
+    memcpy(m_status->data, &m_qarMgrStatusMsg, sizeof(m_qarMgrStatusMsg));
 
     if (m_statusIoiValid)
     {
@@ -1109,102 +1108,95 @@ void A717Qar::WriteStatusMsg( UINT8* pSfArray )
 }
 
 //---------------------------------------------------------------------------------------------
-bool A717Qar::ReadCfgRequestMsg()
+void A717Qar::ReadCfgRequestMsg()
 {
-  // Check if a request-for-configuration change msg has been received from the ADRF
-  // and handle as needed. 
-
-  if (m_cfgRqst->Update() )
-  {
-    memcpy( &m_cfgReqMsg, m_cfgRqst->data, sizeof( m_cfgReqMsg ));
-
-    m_testCtrl.bCfgReqReceived = TRUE;
-
-    // If auto-respond is enabled, use the cfg data in request to format the cfg response
-    // and the status msg.
-
-    if (m_testCtrl.bAutoRespondAck)
+    // Check if a request-for-configuration change msg has been received from the ADRF
+    // and handle as needed. 
+    if (m_cfgRqst->Update())
     {
-      m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
-      m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
-      m_cfgRespMsg.cfg.fmt      = m_cfgReqMsg.cfg.fmt;
-      
-      switch (m_cfgReqMsg.reqType)
-      {
-        case 0: // Clear
-          m_cfgRespMsg.rspType = 0; // Cleared-OK, CFG-Request is cleared          
-          break;
+        m_testCtrl.bCfgReqReceived = TRUE;
+        memcpy(&m_cfgReqMsg, m_cfgRqst->data, sizeof(m_cfgReqMsg));
 
-        case 1: // Reconfig/Enable myself
-          m_cfgRespMsg.rspType = 1; // ACK OK         
+        // If auto-respond is enabled, use the cfg data in request to format the cfg response
+        // and the status msg.
+        if (m_testCtrl.bAutoRespondAck)
+        {
+            m_cfgRespMsg.cfg.bRevSync = m_cfgReqMsg.cfg.bRevSync;
+            m_cfgRespMsg.cfg.numWords = m_cfgReqMsg.cfg.numWords;
+            m_cfgRespMsg.cfg.fmt = m_cfgReqMsg.cfg.fmt;
 
-          // Use the SetStatusMsgFields function to update
-          // the status msg fields AND adjust subframe size to comply
-          SetStatusMsgFields( 0, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
-                              m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt );
-          break;
+            switch (m_cfgReqMsg.reqType)
+            {
+            case 0: // Clear
+                m_cfgRespMsg.rspType = 0; // Cleared-OK, CFG-Request is cleared          
+                break;
 
-        case 2: // Disable myself
-          m_cfgRespMsg.rspType = 1; // ACK OK
-          // Don't change the cfg fields
-          SetStatusMsgFields( 1, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
-                              m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt );
-          break;
-      }
+            case 1: // Reconfig/Enable myself
+                m_cfgRespMsg.rspType = 1; // ACK OK         
+
+                // Use the SetStatusMsgFields function to update
+                // the status msg fields AND adjust subframe size to comply
+                SetStatusMsgFields(0, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
+                                   m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt);
+                break;
+
+            case 2: // Disable myself
+                m_cfgRespMsg.rspType = 1; // ACK OK
+                // Don't change the cfg fields
+                SetStatusMsgFields(1, m_testCtrl.qarBitState, m_cfgReqMsg.cfg.numWords,
+                                   m_cfgReqMsg.cfg.bRevSync, m_cfgReqMsg.cfg.fmt);
+                break;
+            }
+        }
+        else if (m_testCtrl.bAutoRespondNack)
+        {
+          // Automatically NACK attempts to reconfig
+          // The cfg data in the response should match whatever is in the status msg
+            m_cfgRespMsg.cfg.bRevSync = m_qaRevSyncFlag;
+            m_cfgRespMsg.cfg.numWords = (log10(m_qarSfWordCount) / log10(2)) - 6;
+            m_cfgRespMsg.cfg.fmt = m_qarFmtEnum;
+
+            switch (m_cfgReqMsg.reqType)
+            {
+            case 0: // Clear
+                m_cfgRespMsg.rspType = 0; // ALWAYS accept a clear request
+                break;
+
+            case 1: // Reconfig/Enable NACK'ed
+            case 2: // Disable myself NACK'ed
+                m_cfgRespMsg.rspType = 2;
+                break;
+            }
+        }
+        else if (m_testCtrl.bCfgRespAvail)
+        {
+            // If the test script has provided a canned response handle it in WriteCfgRespMsg     
+        }
     }
-    else if (m_testCtrl.bAutoRespondNack)
-    {
-      // Automatically NACK attempts to reconfig
-      // The cfg data in the response should match whatever is in the status msg
-      m_cfgRespMsg.cfg.bRevSync = m_qaRevSyncFlag;
-      m_cfgRespMsg.cfg.numWords = (log10( m_qarSfWordCount ) / log10( 2 )) - 6;
-      m_cfgRespMsg.cfg.fmt      = m_qarFmtEnum;
-      
-      switch (m_cfgReqMsg.reqType)
-      {
-        case 0: // Clear
-          m_cfgRespMsg.rspType = 0; // ALWAYS accept a clear request
-          break;
-
-        case 1: // Reconfig/Enable NACK'ed
-        case 2: // Disable myself NACK'ed
-          m_cfgRespMsg.rspType = 2;        
-          break;
-      }
-    }
-    else if (m_testCtrl.bCfgRespAvail)
-    {
-      // If the test script has provided a canned response handle it in WriteCfgRespMsg     
-    }
-  }
 }
 
 //---------------------------------------------------------------------------------------------
 void A717Qar::WriteCfgRespMsg()
 {
-  // If a cfg request was received from ADRF, and response data was sent is avail
-  // send it back
-  if (m_testCtrl.bCfgReqReceived)
-  {
-    
-    if (m_testCtrl.bAutoRespondAck || m_testCtrl.bAutoRespondNack)
+    // If a cfg request was received from ADRF, and response data was sent is avail
+    // send it back
+    if (m_testCtrl.bCfgReqReceived)
     {
-      // The response was formatted during the request... copy to buffer and send it out
-      m_testCtrl.bCfgReqReceived = FALSE;
-      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );
-      m_cfgResp->Update();
-    }    
-    else if (m_testCtrl.bCfgRespAvail)
-    {
-      m_testCtrl.bCfgRespAvail   = FALSE;
-      m_testCtrl.bCfgReqReceived = FALSE;
-      memcpy( m_cfgResp->data, &m_cfgRespMsg, sizeof( m_cfgRespMsg ) );
-      m_cfgResp->Update();
+        if (m_testCtrl.bAutoRespondAck || m_testCtrl.bAutoRespondNack)
+        {
+            // The response was formatted during the request... copy to buffer and send it out
+            m_testCtrl.bCfgReqReceived = FALSE;
+            memcpy(m_cfgResp->data, &m_cfgRespMsg, sizeof(m_cfgRespMsg));
+            m_cfgResp->Update();
+        }
+        else if (m_testCtrl.bCfgRespAvail)
+        {
+            m_testCtrl.bCfgRespAvail = FALSE;
+            m_testCtrl.bCfgReqReceived = FALSE;
+            memcpy(m_cfgResp->data, &m_cfgRespMsg, sizeof(m_cfgRespMsg));
+            m_cfgResp->Update();
+        }
     }
-
-    
-
-  }
 }
 
 //=============================================================================================

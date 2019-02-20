@@ -150,18 +150,18 @@ INT32 _50MsTimer;         // times out the 50ms holdup
 UINT32 batteryStsMirror; // 0: Lvl A Batt Enable, 1: Lvl C Batt Cmd
 UINT32 batteryCtlMirror; // 0: Lvl C Batt Cmd
 
-// Four Battery Control rows in the table for each mode of BatteryTestControlState are mapped into the
-// batteyrSts word.  Each value in each tables represents the positive logic asserted state for
-// The index into a column of the table is based on:
+// Four Battery Control rows in the table for each mode of BatteryTestControlState are mapped
+// into the batteyrSts word.  Each value in each tables represents the positive logic asserted
+// state for. The index into a column of the table is based on:
 //   Script Power (SPO): Bit 0 and LvlC_CMD (Con): bit 1
-//                                      !(SPO | Con)  SPO         Con         SPO & Con
+//                                      !(SPO | Con)   SPO         Con         SPO & Con
 // PowerOn (Pon): bit 0, BattLatched (Bla): bit 1, LvlC_WA (Cwa): bit 2
-UINT8 batMapDisable[BATTERY_MAP_SIZE] = {kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa};
-UINT8 batMapEnable[BATTERY_MAP_SIZE]  = {kBmlNul,     kBmlPon,    kBmlBlaCwa, kBmlPonCwa};
-UINT8 batMapHigh[BATTERY_MAP_SIZE]    = {kBmlCwa,     kBmlPonBla, kBmlBlaCwa, kBmlAll};
-UINT8 batMapLow[BATTERY_MAP_SIZE]     = {kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa};
+UINT8 batMapDisable[BATTERY_MAP_SIZE] = { kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa };
+UINT8 batMapEnable[BATTERY_MAP_SIZE]  = { kBmlNul,     kBmlPon,    kBmlBlaCwa, kBmlPonCwa };
+UINT8 batMapHigh[BATTERY_MAP_SIZE]    = { kBmlCwa,     kBmlPonBla, kBmlBlaCwa, kBmlAll };
+UINT8 batMapLow[BATTERY_MAP_SIZE]     = { kBmlNul,     kBmlPon,    kBmlCwa,    kBmlPonCwa };
 
-UINT8* batMapLookup[eBattMax] = {batMapDisable, batMapEnable, batMapHigh, batMapLow};
+UINT8* batMapLookup[eBattMax] = { batMapDisable, batMapEnable, batMapHigh, batMapLow };
 
 UINT8 powerKey;
 UINT8 batMapActive[BATTERY_MAP_SIZE];
@@ -184,7 +184,7 @@ CmdRspThread* cmdRspThreads[] = {
 };
 
 // 0 = ioiProc, 1 = cmProc, 2 = aseMain, 3 = total requests
-UINT32 cmdHandler[4] = {0, 0, 0, 0};
+UINT32 cmdHandler[4] = { 0, 0, 0, 0 };
 
 /*****************************************************************************/
 /* Local Function Prototypes                                                 */
@@ -242,7 +242,7 @@ int main(void)
     debug_str_init();
     videoRedirect = AseMain;
 
-    memset( &aseCommon, 0, sizeof(aseCommon));
+    memset(&aseCommon, 0, sizeof(aseCommon));
 
     for (int i = 0; i < eClkMax; ++i)
     {
@@ -252,7 +252,7 @@ int main(void)
     UpdateShipTime();
 
     aseCommon.clockFreq = getSystemInfoDEOS()->eventLogClockFrequency;
-    aseCommon.clockFreqInv = 1.0f/float(aseCommon.clockFreq);
+    aseCommon.clockFreqInv = 1.0f / float(aseCommon.clockFreq);
 
     // default to MS being on-line
     aseCommon.bMsOnline = true;
@@ -265,7 +265,7 @@ int main(void)
     secComm.Run();
 
     // Run all of the cmd response threads
-    for (i=0; cmdRspThreads[i] != NULL; ++i)
+    for (i = 0; cmdRspThreads[i] != NULL; ++i)
     {
         cmdRspThreads[i]->Run(&aseCommon);
     }
@@ -277,10 +277,10 @@ int main(void)
     strcpy(aseCommon.adrfVer, "Unknown");
 
     // Attach to NVM
-    status = attachPlatformResource("","ADRF_NVRAM",&nvm.handle,
-        &nvm.style, (void**)&nvm.address);
+    status = attachPlatformResource("", "ADRF_NVRAM", &nvm.handle,
+                                    &nvm.style, (void**)&nvm.address);
 
-    // overhead of timing
+                                // overhead of timing
     start = HsTimer();
     td = HsTimeDiff(start);
 
@@ -288,13 +288,13 @@ int main(void)
     debug_str(AseMain, eDyLast, 0, "Last Cmd Id: 0x");
 
     // POWER CONTROL SETUP
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
-        &battCtlReg.style, (void**)&battCtlReg.address);
+    status = attachPlatformResource("", "FPGA_BATT_MSPWR_DAL_C", &battCtlReg.handle,
+                                    &battCtlReg.style, (void**)&battCtlReg.address);
 
-    status = attachPlatformResource("","FPGA_BATT_MSPWR_DAL_C", &battStsReg.handle,
-        &battStsReg.style, (void**)&battStsReg.address);
+    status = attachPlatformResource("", "FPGA_BATT_MSPWR_DAL_C", &battStsReg.handle,
+                                    &battStsReg.style, (void**)&battStsReg.address);
 
-    // move the Status Register Address forward 4 bytes
+                                // move the Status Register Address forward 4 bytes
     battStsReg.address = &battStsReg.address[1];
 
     // No battery latching operations enabled
@@ -323,74 +323,74 @@ int main(void)
         if (updateDisplayLine == eDyASE)
         {
             debug_str(AseMain, eDyASE, 0,
-                "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
-                aseCommon.clocks[eClkRtc].m_time.tm_year,
-                aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
-                aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
-                aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
-                aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
-                aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
-                aseCommon.clocks[eClkRtc].m_10ms,
-                version,
-                aseCommon.isChannelA ? "A" : "B"
-                );
+                      "ASE: %04d/%02d/%02d %02d:%02d:%02d.%0.3d %s in channel %s",
+                      aseCommon.clocks[eClkRtc].m_time.tm_year,
+                      aseCommon.clocks[eClkRtc].m_time.tm_mon,   // month    0..11
+                      aseCommon.clocks[eClkRtc].m_time.tm_mday,  // day of the month  1..31
+                      aseCommon.clocks[eClkRtc].m_time.tm_hour,  // hours    0..23
+                      aseCommon.clocks[eClkRtc].m_time.tm_min,   // minutes  0..59
+                      aseCommon.clocks[eClkRtc].m_time.tm_sec,   // seconds  0..59
+                      aseCommon.clocks[eClkRtc].m_10ms,
+                      version,
+                      aseCommon.isChannelA ? "A" : "B"
+            );
         }
 
         else if (updateDisplayLine == eDyMs)
         {
             debug_str(AseMain, eDyMs, 0, "MS : %04d/%02d/%02d %02d:%02d:%02d.%0.3d ADRF: %s",
-                aseCommon.clocks[eClkMs].m_time.tm_year,
-                aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
-                aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
-                aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
-                aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
-                aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
-                aseCommon.clocks[eClkMs].m_10ms,
-                aseCommon.adrfVer);
+                      aseCommon.clocks[eClkMs].m_time.tm_year,
+                      aseCommon.clocks[eClkMs].m_time.tm_mon,   // month    0..11
+                      aseCommon.clocks[eClkMs].m_time.tm_mday,  // day of the month  1..31
+                      aseCommon.clocks[eClkMs].m_time.tm_hour,  // hours    0..23
+                      aseCommon.clocks[eClkMs].m_time.tm_min,   // minutes  0..59
+                      aseCommon.clocks[eClkMs].m_time.tm_sec,   // seconds  0..59
+                      aseCommon.clocks[eClkMs].m_10ms,
+                      aseCommon.adrfVer);
         }
 
         else if (updateDisplayLine == eDyRem)
         {
-        debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
-            aseCommon.clocks[eClkRemote].m_time.tm_year,
-            aseCommon.clocks[eClkRemote].m_time.tm_mon,   // month    0..11
-            aseCommon.clocks[eClkRemote].m_time.tm_mday,  // day of the month  1..31
-            aseCommon.clocks[eClkRemote].m_time.tm_hour,  // hours    0..23
-            aseCommon.clocks[eClkRemote].m_time.tm_min,   // minutes  0..59
-            aseCommon.clocks[eClkRemote].m_time.tm_sec,   // seconds  0..59
-            aseCommon.clocks[eClkRemote].m_10ms);
+            debug_str(AseMain, eDyRem, 0, "REM: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
+                      aseCommon.clocks[eClkRemote].m_time.tm_year,
+                      aseCommon.clocks[eClkRemote].m_time.tm_mon,   // month    0..11
+                      aseCommon.clocks[eClkRemote].m_time.tm_mday,  // day of the month  1..31
+                      aseCommon.clocks[eClkRemote].m_time.tm_hour,  // hours    0..23
+                      aseCommon.clocks[eClkRemote].m_time.tm_min,   // minutes  0..59
+                      aseCommon.clocks[eClkRemote].m_time.tm_sec,   // seconds  0..59
+                      aseCommon.clocks[eClkRemote].m_10ms);
         }
 
         else if (updateDisplayLine == eDyShip)
         {
             debug_str(AseMain, eDyShip, 0, "SHP: %04d/%02d/%02d %02d:%02d:%02d.%0.3d",
-                aseCommon.clocks[eClkShips].m_time.tm_year,
-                aseCommon.clocks[eClkShips].m_time.tm_mon,   // month    0..11
-                aseCommon.clocks[eClkShips].m_time.tm_mday,  // day of the month  1..31
-                aseCommon.clocks[eClkShips].m_time.tm_hour,  // hours    0..23
-                aseCommon.clocks[eClkShips].m_time.tm_min,   // minutes  0..59
-                aseCommon.clocks[eClkShips].m_time.tm_sec,   // seconds  0..59
-                aseCommon.clocks[eClkShips].m_10ms);
+                      aseCommon.clocks[eClkShips].m_time.tm_year,
+                      aseCommon.clocks[eClkShips].m_time.tm_mon,   // month    0..11
+                      aseCommon.clocks[eClkShips].m_time.tm_mday,  // day of the month  1..31
+                      aseCommon.clocks[eClkShips].m_time.tm_hour,  // hours    0..23
+                      aseCommon.clocks[eClkShips].m_time.tm_min,   // minutes  0..59
+                      aseCommon.clocks[eClkShips].m_time.tm_sec,   // seconds  0..59
+                      aseCommon.clocks[eClkShips].m_10ms);
         }
 
         else if (updateDisplayLine == eDySec)
         {
             // Write the system tick value to video memory.
             debug_str(AseMain, eDySec, 0, "SecComm(%s) %d - %d",
-                secComm.GetSocketInfo(),
-                frames, td);
+                      secComm.GetSocketInfo(),
+                      frames, td);
         }
 
         else if (updateDisplayLine == eDyCom)
         {
             debug_str(AseMain, eDyCom, 0, "Rx(%d) Tx(%d) IsRx: %s CloseConn: %s Idle Time: %4d/%d",
-                secComm.GetRxCount(),
-                secComm.GetTxCount(),
-                secComm.isRxing ? "Yes" : "No ",
-                secComm.forceConnectionClosed ? "Yes" : "No",
-                cmdIdle+1,
-                MAX_IDLE_FRAMES
-                );
+                      secComm.GetRxCount(),
+                      secComm.GetTxCount(),
+                      secComm.isRxing ? "Yes" : "No ",
+                      secComm.forceConnectionClosed ? "Yes" : "No",
+                      cmdIdle + 1,
+                      MAX_IDLE_FRAMES
+            );
         }
 
         else if (updateDisplayLine == eDyErr)
@@ -406,18 +406,18 @@ int main(void)
             batStsStr[3] = (batteryStsMirror  & LEVA_BATT_IN_SW_MASTER_EN) ? 'A' : ' ';
             batStsStr[4] = '\0';
             debug_str(AseMain, eDyBatt, 0,
-                "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s",
-                aseCommon.scriptPowerOn,
-                batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
-                batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
-                powerKey, batMapActive[powerKey], batStsStr);
+                      "ScrPwr: %d Batt Ctl|Sts: 0x%x|0x%02x %d:(%d, %d, %d, %d) %d/<%d> %s",
+                      aseCommon.scriptPowerOn,
+                      batteryCtlMirror & 0xf, batteryStsMirror & 0xff, batteryState,
+                      batMapActive[0], batMapActive[1], batMapActive[2], batMapActive[3],
+                      powerKey, batMapActive[powerKey], batStsStr);
         }
 
         else if (updateDisplayLine == eDyAdrfOn)
         {
-            debug_str(AseMain, eDyAdrfOn, 0,  "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d",
-                adrfOnCount, adrfOnCall, adrfProcStatusOn,
-                cmdHandler[kIoiProc], cmdHandler[kAseMain]);
+            debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d",
+                      adrfOnCount, adrfOnCall, adrfProcStatusOn,
+                      cmdHandler[kIoiProc], cmdHandler[kAseMain]);
         }
 
         else if (updateDisplayLine == eDyAdrfOff)
@@ -426,8 +426,8 @@ int main(void)
                 (cmdHandler[0] + cmdHandler[1] + cmdHandler[kAseMain]);
 
             debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d  cm: %6d Ttl: %6d/%d",
-                adrfOffCount, adrfOffCall, adrfProcStatusOff,
-                cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
+                      adrfOffCount, adrfOffCall, adrfProcStatusOff,
+                      cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
         }
 
         updateDisplayLine += 1;
@@ -446,9 +446,9 @@ int main(void)
         frames += 1;
 
         // Any new cmds seen
-        if ( secComm.IsConnected())
+        if (secComm.IsConnected())
         {
-            if (CheckCmds( secComm))
+            if (CheckCmds(secComm))
             {
                 lastCmdAt = frames;
             }
@@ -675,11 +675,11 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         case eGetBatterySts:
             // pack the Power State and Battery State into the
             sprintf(secComm.m_response.streamData,
-                "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x",
-                aseCommon.asePowerState,
-                batteryState,
-                batteryCtlMirror,
-                batteryStsMirror);
+                    "Power: %d, Battery: %d, Ctl: 0x%08x, Sts: 0x%08x",
+                    aseCommon.asePowerState,
+                    batteryState,
+                    batteryCtlMirror,
+                    batteryStsMirror);
             secComm.m_response.streamSize = strlen(secComm.m_response.streamData);
             secComm.m_response.successful = TRUE;
             secComm.m_response.successful = FALSE;
@@ -707,7 +707,7 @@ static BOOLEAN CheckCmds(SecComm& secComm)
         else
         {
             // Run all of the cmd response threads
-            for (i=0; i < MAX_CMD_RSP; ++i)
+            for (i = 0; i < MAX_CMD_RSP; ++i)
             {
                 if (cmdRspThreads[i]->CheckCmd(secComm))
                 {
@@ -732,7 +732,7 @@ static void UpdateBattery()
     powerKey = IS_BUS_POWER_ON ? 1 : 0;
 
     // read battery control from the ADRF
-    batteryCtlMirror =  *battCtlReg.address;
+    batteryCtlMirror = *battCtlReg.address;
     lvlCOn = (batteryCtlMirror & LEVC_ADRF_BATT_CMD);
     powerKey |= lvlCOn ? 2 : 0;
 
@@ -826,12 +826,12 @@ static void PowerOn()
 {
     ++adrfOnCall;
     // Create the ADRF process to simulate behavior during power on
-    if ( adrfProcHndl == NULL)
+    if (adrfProcHndl == NULL)
     {
         if (!IS_INVERT_POWER)
         {
             ++adrfOnCount;
-            adrfProcStatusOn = createProcess( "adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
+            adrfProcStatusOn = createProcess("adrf", "adrf-template", 0, TRUE, &adrfProcHndl);
 
             // Update the global state info
             if (processSuccess == adrfProcStatusOn)
@@ -866,7 +866,7 @@ static void PowerOff()
     if (adrfProcHndl != NULL && !IS_INVERT_POWER)
     {
         ++adrfOffCount;
-        adrfProcStatusOff = deleteProcess( adrfProcHndl);
+        adrfProcStatusOff = deleteProcess(adrfProcHndl);
 
         if (processSuccess == adrfProcStatusOff)
         {
@@ -886,7 +886,7 @@ static void SetTime(SecRequest& request)
 {
     PyTimeStruct* timeObjs = (PyTimeStruct*)request.charData;
 
-    for (int i=0; i < eClkMax; ++i)
+    for (int i = 0; i < eClkMax; ++i)
     {
         aseCommon.clocks[i].SetTime(timeObjs[i]);
     }
@@ -920,7 +920,7 @@ static BOOLEAN NvmRead(SecComm& secComm)
         else
         {
             secComm.ErrorMsg("NvmRead: Requested bytes (%d) exceeds max (%d)",
-                bytes, eSecStreamSize);
+                             bytes, eSecStreamSize);
             return FALSE;
         }
     }
@@ -944,7 +944,7 @@ static BOOLEAN NvmWrite(SecComm& secComm)
     {
         NV_WriteAligned((void*)(nvm.address + offset),
             (void*)secComm.m_request.charData,
-            size);
+                        size);
     }
 
     return TRUE;
@@ -959,9 +959,9 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
     UINT16 *dest_ptr16 = (UINT16*)dest;
     const UINT16   *src_ptr16 = (UINT16*)src;
 
-    if(size > 0)
+    if (size > 0)
     {
-        if((1 & (UINT32)dest) == 1)
+        if ((1 & (UINT32)dest) == 1)
         {
             //Set destination to 1 previous byte address to make it even.
             ptr8 = (UINT8*)dest_ptr16;
@@ -971,7 +971,7 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
             //Mask unaligned byte (big endian, mask least significant dest (higher address)
             //and swap for most significant (lower address) source)
             aligner &= 0xFF00;
-            aligner |= (*src_ptr16 & 0xFF00)  >> 8;
+            aligner |= (*src_ptr16 & 0xFF00) >> 8;
             //Write aligned word to destination
             *dest_ptr16 = aligner;
             //Increment to next even address.  Increment source for the
@@ -984,12 +984,12 @@ void NV_WriteAligned(void* dest, const void* src, UINT32 size)
         }
 
         //Copy bytes 2 at a time until zero or 1 bytes remain.
-        for(;size >= 2;size-=2)
+        for (; size >= 2; size -= 2)
         {
             *dest_ptr16++ = *src_ptr16++;
         }
 
-        if(size != 0)
+        if (size != 0)
         {
             //Read destination aligned
             aligner = *dest_ptr16;
@@ -1010,7 +1010,7 @@ static void UpdateTime()
 {
     aseCommon.remElapsedMif += 1;
 
-    for (int i=0; i < eClkMax; ++i)
+    for (int i = 0; i < eClkMax; ++i)
     {
         aseCommon.clocks[i].UpdateTime();
     }
@@ -1021,8 +1021,8 @@ static void UpdateTime()
         UpdateShipDate();
         UpdateShipTime();
         debug_str(AseMain, eDyShHx, 0, "Ship Date: 0x%08x Time: 0x%08x",
-            aseCommon.shipDate,
-            aseCommon.shipTime);
+                  aseCommon.shipDate,
+                  aseCommon.shipTime);
     }
 }
 
@@ -1038,15 +1038,15 @@ static void UpdateShipDate()
 #define DATE_LABEL 0x0d
 
     UINT8 dayX10 = aseCommon.clocks[eClkShips].m_time.tm_mday / 10;
-    UINT8 dayX1  = aseCommon.clocks[eClkShips].m_time.tm_mday % 10;
+    UINT8 dayX1 = aseCommon.clocks[eClkShips].m_time.tm_mday % 10;
     UINT8 monthX10 = aseCommon.clocks[eClkShips].m_time.tm_mon / 10;
-    UINT8 monthX1  = aseCommon.clocks[eClkShips].m_time.tm_mon % 10;
-    UINT8 yearX10  = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) / 10;
-    UINT8 yearX1   = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) % 10;
+    UINT8 monthX1 = aseCommon.clocks[eClkShips].m_time.tm_mon % 10;
+    UINT8 yearX10 = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) / 10;
+    UINT8 yearX1 = (aseCommon.clocks[eClkShips].m_time.tm_year - 2000) % 10;
 
     UINT32 dateData;
-    dateData  = (dayX10 << 27) & 0x18000000L;
-    dateData |= (dayX1  << 23) & 0x07800000L;
+    dateData = (dayX10 << 27) & 0x18000000L;
+    dateData |= (dayX1 << 23) & 0x07800000L;
     dateData |= (monthX10 << 22) & 0x00400000L;
     dateData |= (monthX1 << 18) & 0x003c0000L;
     dateData |= (yearX10 << 14) & 0x0003c000L;

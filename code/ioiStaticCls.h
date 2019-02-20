@@ -62,50 +62,50 @@ enum
 // Note: keep QAR_FORMAT in sync ParamSrcA717QAR.h
 typedef enum
 {
-  QAR_BIPOLAR_RETURN_ZERO, // (default)
-  QAR_HARVARD_BIPHASE,
+    QAR_BIPOLAR_RETURN_ZERO, // (default)
+    QAR_HARVARD_BIPHASE,
 }QAR_FORMAT;
 
 // Note: keep QAR_NUM_WORDS in sync ParamSrcA717QAR.h
 typedef enum
 {
-  QAR_64_WORDS, // (default)
-  QAR_128_WORDS,
-  QAR_256_WORDS,
-  QAR_512_WORDS,
-  QAR_1024_WORDS,
-  QAR_MAX_WORDS
-  // Do not make enum larger than 255.
+    QAR_64_WORDS, // (default)
+    QAR_128_WORDS,
+    QAR_256_WORDS,
+    QAR_512_WORDS,
+    QAR_1024_WORDS,
+    QAR_MAX_WORDS
+    // Do not make enum larger than 255.
 } QAR_NUM_WORDS;  // Configured QAR Rate(word size) expected from UTAS QAR Module
 
 // Note: keep BIT_STATE in sync with ParamSrcA717QAR.h
 typedef enum
 {
-  BITSTATE_NO_FAIL,
-  BITSTATE_CBIT_FAIL,
-  BITSTATE_PBIT_FAIL,
+    BITSTATE_NO_FAIL,
+    BITSTATE_CBIT_FAIL,
+    BITSTATE_PBIT_FAIL,
 } BIT_STATE;  // Current Built-In Test State.
 
 // UTAS QAR status msg. Output at 1 Hz. This is the same structure used by
 // ParamA717QAR.h
 #pragma pack(1)
-typedef struct  
+typedef struct
 {
-  UINT8 bRevSync; // Flag indicating barker pattern: 0: Regular 1: Reversed
-  UINT8  numWords;// # of 32-bits words per SF: 64,128,256,512 or 1024
-  UINT8  fmt;     // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
+    UINT8 bRevSync; // Flag indicating barker pattern: 0: Regular 1: Reversed
+    UINT8  numWords;// # of 32-bits words per SF: 64,128,256,512 or 1024
+    UINT8  fmt;     // encoding enum 0=BIPOLAR_RETURN_ZERO,1=HARVARD_BIPHASE
 }QAR_CFG;
 
 typedef struct
 {
-  UINT8    reqType; // REQ_TYPE
-  QAR_CFG  cfg;     // Configuration details
+    UINT8    reqType; // REQ_TYPE
+    QAR_CFG  cfg;     // Configuration details
 } A717_CFG_REQ_MSG; //ADRF A717 Configuration Request
 
 typedef struct
 {
-  UINT8    rspType; // RSP_TYPE
-  QAR_CFG  cfg;
+    UINT8    rspType; // RSP_TYPE
+    QAR_CFG  cfg;
 } A717_CFG_RSP_MSG; //A717 Configuration Response Message
 
 typedef struct
@@ -269,7 +269,7 @@ public:
         eSfWordCount = 1024,
     };
     A664Qar();
-    void Reset(StaticIoiObj* buffer=NULL);
+    void Reset(StaticIoiObj* buffer = NULL);
     void SetWordCount(UINT32 wordCount) {
         m_qarSfWordCount = wordCount;
     }
@@ -338,15 +338,16 @@ public:
     // Set Data Control Commands
     enum a717QarConst {
         // Set disable flag, Failure flag and cfg state fields in the status  A717 Status Msg
-        eQar717Status    = -1,   
+        eQar717Status = -1,
         // Send mask of SFs to be disabled for outputting by ASE
-        eQar717SkipSF    = -2,   
+        eQar717SkipSF = -2,
         // Set the fields to be returned in a cfg resp.
-        eQar717ReCfgResp = -3,   
-        // Tell Ase to automatically respond with the last values set for Status and RecfgResp
-        eQar717AutoResp  = -4,   
-        // Tell Ase to automatically Nack with the last values set for Status and RecfgResp
-        eQar717AutoNack  = -5,   
+        eQar717ReCfgResp = -3,
+        // Tell Ase to automatically respond, ACK and set current all the values received in 
+        // the last RecfgRqst
+        eQar717AutoResp = -4,
+        // Tell Ase to automatically respond and NACK with the current values set for Status
+        eQar717AutoNack = -5,
         // Misc Constants
         eDefaultSfWdCnt = 64,
     };
@@ -362,17 +363,17 @@ public:
     virtual bool TestControl(SecRequest& request);
     virtual bool HandleRequest(StaticIoiObj* targetIoi);  // is one of our static IOI
 
-    void SetCfgRespFields( UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType );
+    void SetCfgRespFields(UINT8 sfWc, UINT8 reverseFlag, UINT8 format, UINT8 respType);
 
-    void SetStatusMsgFields( UINT8 disableFlag, UINT8 bitState, UINT8 sfWc,
-                             UINT8 reverseFlag,  UINT8 format );
-    void SetStatusCfg( UINT8 sfWc, UINT8 reverseFlag, UINT8 format );
+    void SetStatusMsgFields(UINT8 disableFlag, UINT8 bitState, UINT8 sfWc,
+                            UINT8 reverseFlag, UINT8 format);
+   //void SetStatusCfg( UINT8 sfWc, UINT8 reverseFlag, UINT8 format );
 
-    void WriteStatusMsg( UINT8* pSfArray );
+    void WriteStatusMsg(UINT8* pSfArray);
     void WriteCfgRespMsg();
-    bool ReadCfgRequestMsg();
+    void ReadCfgRequestMsg();
 
-    //----- operation and configuration data -----
+    //----- operation and configuration IOI data -----
     StaticIoiStr* m_cfgRqst;          // cfg rqst IOI
     StaticIoiStr* m_cfgResp;          // cfg resp IOI
     StaticIoiStr* m_status;           // status IOI
@@ -396,10 +397,8 @@ public:
     UINT8 m_qaRevSyncFlag;   // Use reverse-bit barker pattern 0- normal, 1- reverse
     UINT8 m_qarFmtEnum;      // QAR_FORMAT
     UINT8 m_qarWordSizeEnum; // QAR_NUM_WORDS
-    
-    
 
-   BOOLEAN m_statusIoiValid; // status validity for the status ioi
+    BOOLEAN m_statusIoiValid; // status validity for the status ioi
 };
 
 
