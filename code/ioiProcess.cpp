@@ -614,7 +614,9 @@ int IoiProcess::PageParams(int theLine, bool& nextPage)
         break;
 
     case 1:
-        debug_str(Params, theLine, 0, "SigGen(%s)", m_sgRun ? " On" : "Off");
+        debug_str(Params, theLine, 0, "SigGen(%s) ParamCount(%d)", 
+                  m_sgRun ? " On" : "Off",
+                  m_paramCount);
         break;
 
     default:
