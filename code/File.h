@@ -80,7 +80,7 @@ public:
     UNSIGNED32 m_physOffset;     // Offset into phys file for read/writing.
     UNSIGNED32 m_nextRead;       // Index port to fetch next 'n' bytes
     UNSIGNED32 m_fileSize;       // size of file being read(bytes).
-    UINT32     m_bytesMoved; // the number of bytes read or written since opening
+    UINT32     m_bytesMoved;     // the number of bytes read or written since opening
     BOOLEAN    m_bEOF;
     BOOLEAN    m_bOpen;
     BOOLEAN    m_bInit;          // Flag to show Object construction was successful

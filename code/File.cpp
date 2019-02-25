@@ -495,12 +495,12 @@ BOOLEAN File::Close(void)
 
 char* File::GetFileStatus(char* buffer)
 {
-    sprintf(buffer, "Open: %s Err: %d I/O: %d sAdr: %s cAdr: %s Name: <%s>",
-            IsOpen() ? "Yes" : "No",
-            m_fileError,
+    sprintf(buffer, "%s(%06d) Err:%d sAdr:%s cAdr:%s <%s>",
+            IsOpen() ? " Open" : "Close",
             m_bytesMoved,
-            m_sAdr != NULL ? "Ok" : "Err",
-            m_cAdr != NULL ? "Ok" : "Err",
+            m_fileError,
+            m_sAdr != NULL ? "Ok " : "Err",
+            m_cAdr != NULL ? "Ok " : "Err",
             m_fileName
     );
 

@@ -89,7 +89,7 @@ public:
     CmReconfigStatus m_lastErrCode;
     BOOLEAN m_lastReCfgFailed;
     UINT32 m_recfgCount;  // how many recfg rqst have we seen
-    UINT32 m_recfgCmds;   // how many recfg rqst have we seen
+    UINT32 m_recfgCmds;   // how many cmds associated w/recfg have we seen
 
     // script test control items
     UINT32 m_tcRecfgAckDelay;  // CM_tcRecfgAckDelay(x)
