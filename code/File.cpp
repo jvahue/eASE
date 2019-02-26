@@ -495,7 +495,7 @@ BOOLEAN File::Close(void)
 
 char* File::GetFileStatus(char* buffer)
 {
-    sprintf(buffer, "%s(%06d) Err:%d sAdr:%s cAdr:%s <%s>",
+    sprintf(buffer, "%s(%07d) Err:%d sAdr:%s cAdr:%s <%s>",
             IsOpen() ? " Open" : "Close",
             m_bytesMoved,
             m_fileError,
