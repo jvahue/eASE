@@ -355,8 +355,10 @@ public:
     A717Qar();
 
     // Methods called by the IOI Static container
-    void Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts,
-               StaticIoiObj* sf1, StaticIoiObj* sf2, StaticIoiObj* sf3, StaticIoiObj* sf4);
+    void Reset(StaticIoiObj* cfgRqst = NULL, StaticIoiObj* cfgRsp = NULL, 
+               StaticIoiObj* sts = NULL,
+               StaticIoiObj* sf1 = NULL, StaticIoiObj* sf2 = NULL, 
+               StaticIoiObj* sf3 = NULL, StaticIoiObj* sf4 = NULL);
 
     // SEC command handlers.
     virtual int UpdateIoi();

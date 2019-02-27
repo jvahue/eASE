@@ -860,6 +860,36 @@ void A664Qar::Garbage()
 A717Qar::A717Qar()
     : A664Qar()
 {
+    Reset();
+}
+
+//---------------------------------------------------------------------------------------------
+void A717Qar::Reset(StaticIoiObj* cfgRqst/*=NULL*/, StaticIoiObj* cfgRsp/*=NULL*/, 
+                    StaticIoiObj* sts/*=NULL*/,
+                    StaticIoiObj* sf1/*=NULL*/, StaticIoiObj* sf2/*=NULL*/,
+                    StaticIoiObj* sf3/*=NULL*/, StaticIoiObj* sf4/*=NULL*/)
+{
+    m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
+    m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
+    m_status = static_cast<StaticIoiStr*>(sts);
+
+    m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
+    m_sfObjs[1] = static_cast<StaticIoiStr*>(sf2);
+    m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
+    m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
+
+    m_statusIoiValid = true; // This flag enables/disables A717_STATUS_MSG ioi xmit
+
+    // default the 4 barker codes
+    m_qarWords[0][0] = 0x247;
+    m_qarWords[1][0] = 0x5b8;
+    m_qarWords[2][0] = 0xa47;
+    m_qarWords[3][0] = 0xdb8;
+
+    m_sf = 0;
+    m_oneSecondClk = 0;
+    m_qarSfWordCount = eDefaultSfWdCnt; 
+
     m_testCtrl.bSynced = FALSE;
     m_testCtrl.bQarEnabled = FALSE;
     m_testCtrl.bAcceptCfgReq = TRUE;
@@ -874,35 +904,6 @@ A717Qar::A717Qar()
     m_qaRevSyncFlag = 0;
     m_qarFmtEnum = (UINT8)QAR_BIPOLAR_RETURN_ZERO;
     m_qarWordSizeEnum = (UINT8)QAR_64_WORDS;
-}
-
-//---------------------------------------------------------------------------------------------
-void A717Qar::Reset(StaticIoiObj* cfgRqst, StaticIoiObj* cfgRsp, StaticIoiObj* sts,
-                    StaticIoiObj* sf1, StaticIoiObj* sf2,
-                    StaticIoiObj* sf3, StaticIoiObj* sf4)
-{
-    UINT32 tempWordCount = m_qarSfWordCount;
-    A664Qar::Reset();
-    m_qarSfWordCount = tempWordCount;
-
-    m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
-    m_cfgResp = static_cast<StaticIoiStr*>(cfgRsp);
-    m_status = static_cast<StaticIoiStr*>(sts);
-
-    m_sfObjs[0] = static_cast<StaticIoiStr*>(sf1);
-    m_sfObjs[1] = static_cast<StaticIoiStr*>(sf2);
-    m_sfObjs[2] = static_cast<StaticIoiStr*>(sf3);
-    m_sfObjs[3] = static_cast<StaticIoiStr*>(sf4);
-
-    m_statusIoiValid = true; // This flag enables/disables A717_STATUS_MSG ioi xmit
-
-    m_oneSecondClk = 0;
-
-    // default the 4 barker codes
-    m_qarWords[0][0] = 0x247;
-    m_qarWords[1][0] = 0x5b8;
-    m_qarWords[2][0] = 0xa47;
-    m_qarWords[3][0] = 0xdb8;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -935,24 +936,27 @@ int A717Qar::UpdateIoi()
         {
             // copy the local SF image to the IOI 16 -> 32 bits
             UINT16* src = m_qarWords[m_sf];
-            UINT32* dst = (UINT32*)&m_sfObjs[m_sf]->data[0];
-            UINT32* mrr = (UINT32*)&mirrorQarA717[m_sf][0];
+            if (m_sfObjs[m_sf] != NULL)
+            {
+                UINT32* dst = (UINT32*)&m_sfObjs[m_sf]->data[0];
+                UINT32* mrr = (UINT32*)&mirrorQarA717[m_sf][0];
 
-            for (int i = 0; i < m_qarSfWordCount; ++i)
-            {
-                *dst++ = *src;
-                *mrr++ = *src++;  // keep a local copy for us to look at
-            }
+                for (int i = 0; i < m_qarSfWordCount; ++i)
+                {
+                    *dst++ = *src;
+                    *mrr++ = *src++;  // keep a local copy for us to look at
+                }
 
-            // send next SF data via its IOI
-            if (m_sfObjs[m_sf]->Update())
-            {
-                // a subframe was written, indicate this in the status msg
-                sfUpdateFlags[m_sf] = 1;
-            }
-            else
-            {
-                m_writeErrCnt += 1;
+                // send next SF data via its IOI
+                if (m_sfObjs[m_sf]->Update())
+                {
+                    // a subframe was written, indicate this in the status msg
+                    sfUpdateFlags[m_sf] = 1;
+                }
+                else
+                {
+                    m_writeErrCnt += 1;
+                }
             }
 
             // Set up next SF to go out in 1 sec.      
@@ -1099,11 +1103,14 @@ void A717Qar::WriteStatusMsg(UINT8* pSfArray)
     m_qarMgrStatusMsg.rxCfgRegister = cfgReg;
 
     // Move the content of QAR Module status to the output buffer for Updating.
-    memcpy(m_status->data, &m_qarMgrStatusMsg, sizeof(m_qarMgrStatusMsg));
-
-    if (m_statusIoiValid)
+    if (m_status != NULL)
     {
-        m_status->Update();
+        memcpy(m_status->data, &m_qarMgrStatusMsg, sizeof(m_qarMgrStatusMsg));
+
+        if (m_statusIoiValid)
+        {
+            m_status->Update();
+        }
     }
 }
 
@@ -1112,7 +1119,7 @@ void A717Qar::ReadCfgRequestMsg()
 {
     // Check if a request-for-configuration change msg has been received from the ADRF
     // and handle as needed. 
-    if (m_cfgRqst->Update())
+    if (m_cfgRqst != NULL && m_cfgRqst->Update())
     {
         m_testCtrl.bCfgReqReceived = TRUE;
         memcpy(&m_cfgReqMsg, m_cfgRqst->data, sizeof(m_cfgReqMsg));
@@ -1180,7 +1187,7 @@ void A717Qar::WriteCfgRespMsg()
 {
     // If a cfg request was received from ADRF, and response data was sent is avail
     // send it back
-    if (m_testCtrl.bCfgReqReceived)
+    if (m_cfgResp != NULL && m_testCtrl.bCfgReqReceived)
     {
         if (m_testCtrl.bAutoRespondAck || m_testCtrl.bAutoRespondNack)
         {
