@@ -74,8 +74,8 @@ char _A717Subframe1[4096];
 char _A717Subframe2[4096];
 char _A717Subframe3[4096];
 char _A717Subframe4[4096];
-char _A717_ADRF_CONFIG_ACK[4];
 char _A717_STATUS_MSG[15];
+char _A717_ADRF_CONFIG_ACK[4];
 
 StaticIoiInt                  _aircraft_id_1_("aircraft_id_1" , 0);                               // 0
 StaticIoiInt                  _aircraft_id_2_("aircraft_id_2" , 0);                               // 1
@@ -174,8 +174,8 @@ StaticIoiStr                  _A717Subframe1_("A717Subframe1", _A717Subframe1, 4
 StaticIoiStr                  _A717Subframe2_("A717Subframe2", _A717Subframe2, 4096);             // 94
 StaticIoiStr                  _A717Subframe3_("A717Subframe3", _A717Subframe3, 4096);             // 95
 StaticIoiStr                  _A717Subframe4_("A717Subframe4", _A717Subframe4, 4096);             // 96
-StaticIoiStr           _A717_ADRF_CONFIG_ACK_("A717_ADRF_CONFIG_ACK", _A717_ADRF_CONFIG_ACK, 4);  // 97
-StaticIoiStr                _A717_STATUS_MSG_("A717_STATUS_MSG", _A717_STATUS_MSG, 15);           // 98
+StaticIoiStr                _A717_STATUS_MSG_("A717_STATUS_MSG", _A717_STATUS_MSG, 15);           // 97
+StaticIoiStr           _A717_ADRF_CONFIG_ACK_("A717_ADRF_CONFIG_ACK", _A717_ADRF_CONFIG_ACK, 4);  // 98
 
 StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_aircraft_id_1_                ,  // 0
@@ -275,8 +275,8 @@ StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_A717Subframe2_                ,  // 94
     &_A717Subframe3_                ,  // 95
     &_A717Subframe4_                ,  // 96
-    &_A717_ADRF_CONFIG_ACK_         ,  // 97
-    &_A717_STATUS_MSG_              ,  // 98
+    &_A717_STATUS_MSG_              ,  // 97
+    &_A717_ADRF_CONFIG_ACK_         ,  // 98
 };
 
 // -------------------- U U T   O U T P U T S ------------------------

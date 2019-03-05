@@ -401,9 +401,10 @@ void StaticIoiContainer::Reset()
 void StaticIoiContainer::ResetStaticIoi()
 {
     // and values we want to reset if no script is running
-    // use 0xffffff to indicate the value has not been updated, I know it looks like it should
-    // be  0xffffffff but after shifting in PySte it becomes 0xffffff
+    // use 0xffffff00 to indicate the value has not been updated, 
+    // looks like it should be  0xffffffff but after shifting in PySte it becomes 0xffffff00
 
+    // APAT Data
     //memset(_8204050_32, 0xff, sizeof(_8204050_32));
     memset(_8204051_32, 0xff, sizeof(_8204051_32));
     memset(_8204052_32, 0xff, sizeof(_8204052_32));
@@ -456,7 +457,6 @@ void StaticIoiContainer::ResetStaticIoi()
     memset(_adrf_pat_udt_remain_b, 0xff, sizeof(_adrf_pat_udt_remain_b));
 
     // clear any error injection and reset data and NDO
-
 }
 
 //---------------------------------------------------------------------------------------------
@@ -480,7 +480,6 @@ void StaticIoiContainer::ResetStaticParams()
                      FindIoi( "A717Subframe2" ),        // SF2
                      FindIoi( "A717Subframe3" ),        // SF3
                      FindIoi( "A717Subframe4" ) );      // SF4
-
 }
 
 //---------------------------------------------------------------------------------------------
