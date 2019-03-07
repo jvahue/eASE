@@ -350,12 +350,7 @@ void SecComm::SendAny(const char* data, UINT32 size)
         sprintf(m_errMsg, "Error send - Rtn: %d, Err: %d",
             lastErr->send.returnValue, lastErr->send.errorValue);
 
-        m_connState = eConnNotConnected;
-        closesocket(m_clientSocket);
-
-        m_clientSocket = -1;
-        m_rxCount = 0;
-        m_txCount = 0;
+        ResetConn();
     }
     else
     {

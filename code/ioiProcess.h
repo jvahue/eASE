@@ -100,7 +100,9 @@ protected:
 
     UINT32 m_allSlackEnd;   // what was the tick count when we start allSlack mode
 
-    bool m_initParams;
+    bool m_initParamsBg;      // BG CheckCmd wants to init the IOI
+    bool m_initParamsFg;      // FG acknowledge pending init
+
     ioiStatus m_initStatus;
 
     UINT32 m_paramOpenFailCount;

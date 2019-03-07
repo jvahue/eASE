@@ -69,11 +69,9 @@ public:
 
     UINT32  m_frames;
 protected:
-    virtual void Process();
-    // Normally does not need to be overridden
-    virtual void RunSimulation();
-    // This is the real work horse
-    virtual void HandlePowerOff() {}
+    virtual void Process();           // Normally does not need to be overridden    
+    virtual void RunSimulation();     // This is the real work horse    
+    virtual void HandlePowerOff() {}  // default to no action for power off
 
     UINT32  m_elapsedProc;
     UINT32  m_elapsedProcZ1;
@@ -82,7 +80,6 @@ protected:
     UINT32  m_systemTick;
     UINT32  m_overrunCount;
     bool    m_updateDisplay;
-
 };
 
 #endif

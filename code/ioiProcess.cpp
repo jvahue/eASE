@@ -34,7 +34,7 @@
 // see IoiThreadTemplate.budget in ase.pd.xml, actual max value = 2900
 #define MAX_IO_TIME_BUDGET 2900 // leave a little so we don't overrun
 #define IO_TIME_BUDGET     2300 // max for no overruns
-#define DEF_IO_TIME_BUDGET 1500 // default setting
+#define DEF_IO_TIME_BUDGET 1500 // default setting allocated 2800 in ase.pd.xml
 
 #define _10sTicks (10 * 100)  // 10ms 100 frames/sec
 #define START_ALL_SLACK 1000000
@@ -86,7 +86,8 @@ IoiProcess::IoiProcess()
     , m_ioiUpdated(0)
     , m_loopCount(0)
     , m_timeout(0)
-    , m_initParams(false)
+    , m_initParamsBg(false)
+    , m_initParamsFg(false)
     , m_initStatus(ioiNoSuchItem)  // this is not a valid return value for ioi_init
     , m_paramOpenFailCount(0)
     , m_paramCloseFailCount(0)
@@ -260,34 +261,38 @@ void IoiProcess::RunSimulation()
         remoteReset = false;
     }
 
-    UpdateIoi();
-    m_ioiStatic.UpdateStaticIoi();
-
-    // at 50 Hz pack the CCDL message and send it out
-    if ((m_systemTick & 1) == 1)
+    m_initParamsFg = m_initParamsBg;
+    if (!m_initParamsBg)
     {
-        // complete the contents of the ccdl param data
-        m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
-        if (m_ccdl.CcdlIsRunning())
+        UpdateIoi();
+        m_ioiStatic.UpdateStaticIoi();
+
+        // at 50 Hz pack the CCDL message and send it out
+        if ((m_systemTick & 1) == 1)
         {
-            if (m_ccdl.SendParamData())
+            // complete the contents of the ccdl param data
+            m_ccdl.m_txParamData.type = PARAM_XCH_TYPE_DATA;
+            if (m_ccdl.CcdlIsRunning())
+            {
+                if (m_ccdl.SendParamData())
+                {
+                    m_remoteX = 0;
+                }
+            }
+            else
             {
                 m_remoteX = 0;
             }
+
+            m_ccdl.Update(m_ccdlIn, m_ccdlOut);
+            UpdateCCDL();
         }
-        else
+
+        // at 1 Hz send the channel ID
+        if ((m_systemTick % 100) == 0)
         {
-            m_remoteX = 0;
+            WriteChanId();
         }
-
-        m_ccdl.Update(m_ccdlIn, m_ccdlOut);
-        UpdateCCDL();
-    }
-
-    // at 1 Hz send the channel ID
-    if ((m_systemTick % 100) == 0)
-    {
-        WriteChanId();
     }
 }
 
@@ -333,7 +338,7 @@ void IoiProcess::UpdateIoi()
     m_elapsed = 0;      // how long have we been running
     m_loopCount = 0;    // how many params did we look at to update
 
-    if (m_initStatus == ioiSuccess && !m_initParams && m_paramIoRunning && m_paramCount > 0)
+    if (m_initStatus == ioiSuccess && !m_initParamsBg && m_paramIoRunning && m_paramCount > 0)
     {
         m_totalParamTime = 0;
         m_totalIoiTime = 0;
@@ -341,7 +346,7 @@ void IoiProcess::UpdateIoi()
         start = HsTimer();
         param = &m_parameters[scheduledX];
         // convert until we have gone though every param or timeout or we start to initIOI
-        while ((!wrapAround || (wrapAround && scheduledX != startParam)) && !m_initParams)
+        while ((!wrapAround || (wrapAround && scheduledX != startParam)) && !m_initParamsBg)
         {
             m_loopCount += 1;
             // change here to always update the parameter, and keep it in sync with other data
@@ -455,7 +460,7 @@ void IoiProcess::WriteIoi(Parameter* param)
     UINT32 start;
     ioiStatus writeStatus = ioiInvalidFileDescriptor;
 
-    if (!m_initParams && param->m_ioiValid)
+    if (!m_initParamsBg && param->m_ioiValid)
     {
         start = HsTimer();
         if (param->m_idl != NULL)
@@ -1385,6 +1390,8 @@ bool IoiProcess::CollectParamInfo(int paramSetCount, UINT32 paramCount, char* da
     UINT32 i;
     ParamCfg* pCfg = (ParamCfg*)data;
 
+    m_initParamsBg = true;  // indicate a pending reconfig
+
     if (paramCount <= PARAM_SET_SIZE)
     {
         // this is the first set ePySte is sending down - clear out the paramInfo
@@ -1436,7 +1443,17 @@ void IoiProcess::InitIoi()
 
     if (m_initStatus == ioiSuccess)
     {
-        m_initParams = true;
+        //----------------------------------
+        //!!! MUST BE THE FIRST STATEMENT !!!
+        m_initParamsBg = true;
+        i = GET_SYSTEM_TICK;
+        i1 = i + 3;
+        while (m_initParamsBg != m_initParamsFg && (i < i1))  // wait for FG ack
+        {
+            i = GET_SYSTEM_TICK;
+        }
+        //----------------------------------
+
         m_scheduledX = 0;
         m_timeout = 0;
 
@@ -1662,7 +1679,7 @@ void IoiProcess::InitIoi()
 
         //----------------------------------
         //!!! MUST BE THE LAST STATEMENT !!!
-        m_initParams = false;
+        m_initParamsBg = false;
         //----------------------------------
     }
 }
