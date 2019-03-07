@@ -260,7 +260,7 @@ void StaticIoiContainer::ProcessAdrfStaticOutput()
 {
     // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
     // Factor for inputs from ADRF which are treated as params and part of 20Hz
-  const int kInMaxCount = ((m_ioiStaticInCount - m_ioiStaticInCount_IsParam) / 5) + 1;
+  const int kInMaxCount = (m_ioiStaticInCount / 5) + 1;
 
     static unsigned int lastYrCnt = 0;
     static unsigned int lastMoCnt = 0;
@@ -287,7 +287,6 @@ void StaticIoiContainer::ProcessAdrfStaticOutput()
       {
         m_aseInIndex = 0;
       }      
-        
     }
 
     // update the RTC time based on what we received
@@ -511,7 +510,6 @@ StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
         {
           // ok indicate that this IOI will be managed by a parameter
           m_staticAseIn[i]->m_isParam = true;
-          m_ioiStaticInCount_IsParam++;
           addr = m_staticAseIn[i];
           break;
         }
