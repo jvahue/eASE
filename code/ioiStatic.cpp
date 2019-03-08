@@ -92,7 +92,12 @@ StaticIoiContainer::StaticIoiContainer()
     strcpy(_UTASSwDwgNumber, "Y1022429-005");
     strcpy(_PWSwDwgNumber,   "5318410-17SK05");
 
-    // TBD: do we really need to do this? 5/26/18 No 
+    if (MAX_STATIC_IOI < ASE_OUT_MAX)
+    {
+        // we should assert here
+        while (1);
+    }
+
     for (int i = 0; i < ASE_OUT_MAX; ++i)
     {
         m_staticAseOut[i] = aseIoiOut[i];
@@ -100,6 +105,12 @@ StaticIoiContainer::StaticIoiContainer()
     m_aseOutIndex = 0;
     m_ioiStaticOutCount = ASE_OUT_MAX;
     m_validIoiOut = 0;
+
+    if (MAX_STATIC_IOI < ASE_IN_MAX)
+    {
+        // we should assert here
+        while (1);
+    }
 
     for (int i = 0; i < ASE_IN_MAX; ++i)
     {
@@ -260,7 +271,7 @@ void StaticIoiContainer::ProcessAdrfStaticOutput()
 {
     // compute max count to provide a 20Hz update rate 50ms/10ms => 5 frames
     // Factor for inputs from ADRF which are treated as params and part of 20Hz
-  const int kInMaxCount = (m_ioiStaticInCount / 5) + 1;
+  const int kInMaxCount = ((m_ioiStaticInCount - m_ioiStaticInCount_IsParam) / 5) + 1;
 
     static unsigned int lastYrCnt = 0;
     static unsigned int lastMoCnt = 0;
@@ -468,6 +479,7 @@ void StaticIoiContainer::ResetStaticParams()
         m_staticAseOut[i]->m_isParam = false;
     }
 
+    m_ioiStaticInCount_IsParam = 0;
     //----- re-initialize the "Smart" static IOI objects -----
     //----- QAR processing elements
     m_a664Qar.Reset( FindIoi( "a664_fr_eicas2_fdr" ) );
@@ -511,6 +523,7 @@ StaticIoiObj* StaticIoiContainer::FindIoi(char* name)
           // ok indicate that this IOI will be managed by a parameter
           m_staticAseIn[i]->m_isParam = true;
           addr = m_staticAseIn[i];
+          m_ioiStaticInCount_IsParam += 1;
           break;
         }
       }

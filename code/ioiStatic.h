@@ -4,7 +4,7 @@
 #include "ioiStaticCls.h"  // Used to implement a UTAS QAR object
 #include "SecComm.h"
 
-#define MAX_STATIC_IOI 100
+#define MAX_STATIC_IOI 110
 
 // File: ioiProcess.h
 //enum IoiStaticTypes {
@@ -42,7 +42,7 @@ public:
     UINT32 m_ioiStaticOutCount;
     StaticIoiObj* m_staticAseIn[MAX_STATIC_IOI];
     UINT32 m_ioiStaticInCount;
-    UINT32 m_ioiStaticInCount_IsParam;  // The count of ioi in m_ioiStaticInCount which are params
+    UINT32 m_ioiStaticInCount_IsParam;  // count of ioi in m_ioiStaticInCount which are params
     
     UINT32 m_aseInIndex;
     UINT32 m_aseOutIndex;
