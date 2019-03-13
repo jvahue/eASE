@@ -899,6 +899,10 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst/*=NULL*/, StaticIoiObj* cfgRsp/*=NULL*
     m_testCtrl.bAutoRespondNack = FALSE;
     m_testCtrl.qarBitState = BITSTATE_NO_FAIL;
 
+    m_testCtrl.skipInterval = -1;
+    m_testCtrl.skipCounter = -1;
+    m_testCtrl.skippedSF = 0;
+
     // default A717 word count to 64
     m_qarSfWordCount = eDefaultSfWdCnt; // temp until recfg is implemented
     m_qaRevSyncFlag = 0;
@@ -907,6 +911,16 @@ void A717Qar::Reset(StaticIoiObj* cfgRqst/*=NULL*/, StaticIoiObj* cfgRsp/*=NULL*
 }
 
 //---------------------------------------------------------------------------------------------
+// Simulating the 10.01 issue via (m_testCtrl.skipInterval and m_testCtrl.skipCounter)
+// Frame Skip Cnt SF
+//     0   -1  -1  1
+//     1   -1  -1  2
+//     2    4   4  3
+//     3    4   3  4
+//     4    4   2  1
+//     5    4   1  Load 2 up, but do not send
+//     6    4   0  Send 2/3 - set cnt to 4
+//
 int A717Qar::UpdateIoi()
 {
     // This function is called at 100Hz
@@ -947,8 +961,25 @@ int A717Qar::UpdateIoi()
                     *mrr++ = *src++;  // keep a local copy for us to look at
                 }
 
+                if (m_testCtrl.skipCounter == 0)
+                {
+                    if (m_sfObjs[m_testCtrl.skippedSF]->Update())
+                    {
+                        // a subframe was written, indicate this in the status msg
+                        sfUpdateFlags[m_testCtrl.skippedSF] = 1;
+                    }
+                    else
+                    {
+                        m_writeErrCnt += 1;
+                    }
+                }
+                
                 // send next SF data via its IOI
-                if (m_sfObjs[m_sf]->Update())
+                if (m_testCtrl.skipCounter == 1)
+                {
+                    m_testCtrl.skippedSF = m_sf;
+                }
+                else if (m_sfObjs[m_sf]->Update())
                 {
                     // a subframe was written, indicate this in the status msg
                     sfUpdateFlags[m_sf] = 1;
@@ -963,8 +994,25 @@ int A717Qar::UpdateIoi()
             m_sf = INC_WRAP(m_sf, eNUM_SUBFRAMES);
         }
 
-        // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state
-        WriteStatusMsg(sfUpdateFlags);
+        // A QAR_STATUS msg is ALWAYS sent at 1Hz, regardless of run-state 
+        if (m_testCtrl.skipCounter != 1)  // this is when we skip sending the SF
+        {
+            WriteStatusMsg(sfUpdateFlags);
+        }
+
+        // handle skip interval processing
+        if (m_testCtrl.skipInterval > 0)
+        {
+            if (m_testCtrl.skipCounter == 0)
+            {
+                // reset the counter
+                m_testCtrl.skipCounter = m_testCtrl.skipInterval;
+            }
+            else
+            {
+                m_testCtrl.skipCounter -= 1;
+            }
+        }
 
         m_oneSecondClk = 0;
     }
@@ -1019,6 +1067,21 @@ bool A717Qar::TestControl(SecRequest& request)
     else if (offset == eQar717SkipSF)
     {
         // TODO
+    }
+    else if (offset == eQar717SkipInt)
+    {
+        INT32* pSkipInterval = (INT32*)request.charData;
+
+        if (*pSkipInterval > 0)
+        {
+            m_testCtrl.skipInterval = *pSkipInterval;
+            m_testCtrl.skipCounter = *pSkipInterval;
+        }
+        else
+        {
+            m_testCtrl.skipInterval = -1;
+            m_testCtrl.skipCounter = -1;
+        }
     }
     else
     {

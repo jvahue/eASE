@@ -132,8 +132,10 @@ typedef struct
     BOOLEAN bAutoRespondAck;  // Set by script. Auto-cfg request w/o waiting for bCfgRespAvail
     BOOLEAN bAutoRespondNack; // Set by script. Auto-cfg request w/o waiting for bCfgRespAvail
     BIT_STATE qarBitState;    // The Built-In-Test state of the QAR Module
-
-} TEST_CONTROL;
+    INT32   skipInterval;     // skip sending a SF every n seconds, send 2 SF next, -1=no skip
+    INT32   skipCounter;      // skip count, set to skipInterval when = 0
+    UINT8   skippedSF;        // indicates which SF was skipped
+} A717_TEST_CONTROL;
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -348,6 +350,8 @@ public:
         eQar717AutoResp = -4,
         // Tell Ase to automatically respond and NACK with the current values set for Status
         eQar717AutoNack = -5,
+        // Skip a SF Tx and then send 2 SF to simulate the 10.01 issue
+        eQar717SkipInt  = -6,
         // Misc Constants
         eDefaultSfWdCnt = 64,
     };
@@ -386,7 +390,7 @@ public:
     A717_CFG_REQ_MSG m_cfgReqMsg;       // msg struct of UTAS A717 Request-ReConfig.
     A717_CFG_RSP_MSG m_cfgRespMsg;      // msg struct of UTAS A717 Request-ReConfig-Response.
 
-    TEST_CONTROL m_testCtrl;    // struct for state of cmd setting from the test env
+    A717_TEST_CONTROL m_testCtrl;       // struct for state of cmd setting from the test env
 
     //----- Execution Status ------
     int m_writeErrCnt;  // total write error counts
