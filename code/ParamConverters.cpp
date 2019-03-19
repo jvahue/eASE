@@ -398,7 +398,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
             // check for a value within +/-lsb value and zero it
             if (value < 0.0)
             {
-                if (-value > m_scaleLsb)
+                if (-value >= m_scaleLsb)
                 {
                     bias = -0.5;
                 }
