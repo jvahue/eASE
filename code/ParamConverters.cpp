@@ -378,22 +378,20 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
         {
             // Init the bias offset.
             // Cancel it(0.0) if the value is ever adjusted.
-            FLOAT32 bias = 0.5;
+            FLOAT32 bias = (value > 0.0f) ? 0.5f : -0.5f;
 
             // limit the value to +/- m_maxValue
-            if (value >= m_maxValue)
+            if (value >= m_maxValue - m_scaleLsb)
             {
                 value = m_maxValue - m_scaleLsb;
-                bias  = 0.0;
             }
             else if (value < -m_maxValue)
             {
                 value = -m_maxValue;
-                bias  = 0.0;
             }
 
             // if the value is negative create the sign bit mask
-            UINT32 signOn = value < 0.0 ? (1 << (m_totalBits - 1)) : 0;
+            UINT32 signOn = (value < 0.0) ? (1 << (m_totalBits - 1)) : 0;
 
             // check for a value within +/-lsb value and zero it
             if (value < 0.0)
@@ -422,12 +420,12 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
             {
                 // sign magnitude here get the magnitude in positive terms
                 FLOAT32 magnitude = signOn ? -value : value;
-                if (magnitude > m_scaleLsb)
+                if (magnitude >= m_scaleLsb)
                 {
                     if (signOn)
                     {
                         // Calc raw value. If fVal is at negative limit of scale, subtract 1 bit.
-                        rawValue = int( magnitude / m_scaleLsb ) - ((value == -m_maxValue) ? 1:0);
+                        rawValue = int( magnitude / m_scaleLsb ) - ((value == -m_maxValue) ? 1: 0);
                     }
                     else
                     {
@@ -457,7 +455,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
 //
 UINT32 ParamConverter::A429Converter(float value)
 {
-    float bias = 0.5f;
+    float bias = (value > 0.0f) ? 0.5f : -0.5f;
     UINT32 rawValue = 0;
 
     if (m_a429.format == eBNR || m_a429.format == eBNR1)
@@ -473,9 +471,11 @@ UINT32 ParamConverter::A429Converter(float value)
                 value = -m_maxValue;
             }
 
+            m_data = UINT32( (value / m_scaleLsb) + bias);
+
             if (value < 0.0f)
             {
-                if (-value > m_scaleLsb)
+                if (m_data > 0) // if we have data and need a sign bit turn it on 
                 {
                     if (m_a429.format == eBNR1)
                     {
@@ -485,19 +485,8 @@ UINT32 ParamConverter::A429Converter(float value)
                     {
                         rawValue = SetBit(rawValue, (m_a429.msb + 1));
                     }
-                    bias = -bias;
-                }
-                else
-                {
-                    value = 0.0f;
                 }
             }
-            else if (value < m_scaleLsb)
-            {
-                value = 0.0f;
-            }
-
-            m_data = UINT32( (value / m_scaleLsb) + bias);
 
             rawValue = A429_BNRPutData(rawValue, m_data, m_a429.msb, m_a429.lsb);
         }
@@ -528,7 +517,7 @@ UINT32 ParamConverter::A429Converter(float value)
             value = -value;
         }
 
-        // sign/magnitude form (BCD is scaled during its transmisison so we do that here)
+        // sign/magnitude form (BCD is scaled during its transmission so we do that here)
         m_data = UINT32( (value + m_scaleLsb) / m_maxValue );
 
         for (int i=0; i < m_a429.wordSize; ++i)
