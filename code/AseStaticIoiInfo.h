@@ -8,8 +8,8 @@
 
 #include "ioiStatic.h"
 
-#define ASE_IN_MAX 68
-#define ASE_OUT_MAX 99
+#define ASE_IN_MAX 69
+#define ASE_OUT_MAX 100
 
 // ------------------- U U T   I N P U T S ---------------------------
 // -------------------- ASE Produced - ADRf Consumed -----------------
@@ -76,106 +76,108 @@ char _A717Subframe3[4096];
 char _A717Subframe4[4096];
 char _A717_STATUS_MSG[15];
 char _A717_ADRF_CONFIG_ACK[4];
+char _A429_ADRF_CONFIG_STATUS[4];
 
-StaticIoiInt                  _aircraft_id_1_("aircraft_id_1" , 0);                               // 0
-StaticIoiInt                  _aircraft_id_2_("aircraft_id_2" , 0);                               // 1
-StaticIoiInt                  _aircraft_id_3_("aircraft_id_3" , 0);                               // 2
-StaticIoiInt                  _aircraft_id_4_("aircraft_id_4" , 0);                               // 3
-StaticIoiInt                  _aircraft_id_5_("aircraft_id_5" , 0);                               // 4
-StaticIoiInt                _aircraft_id_par_("aircraft_id_par" , 0);                             // 5
-StaticIoiInt                   _disc_spare_1_("disc_spare_1" , 0);                                // 6
-StaticIoiInt                   _disc_spare_2_("disc_spare_2" , 0);                                // 7
-StaticIoiInt                   _disc_spare_3_("disc_spare_3" , 0);                                // 8
-StaticIoiInt            _ground_service_mode_("ground_service_mode" , 0);                         // 9
-StaticIoiInt               _weight_on_wheels_("weight_on_wheels" , 0);                            // 10
-StaticIoiInt                  _wifi_override_("wifi_override" , 0);                               // 11
-StaticIoiStr                 _rtc_io_rd_date_("rtc_io_rd_date", _rtc_io_rd_date, 1);              // 12
-StaticIoiStr                  _rtc_io_rd_day_("rtc_io_rd_day", _rtc_io_rd_day, 1);                // 13
-StaticIoiStr                 _rtc_io_rd_hour_("rtc_io_rd_hour", _rtc_io_rd_hour, 1);              // 14
-StaticIoiStr              _rtc_io_rd_minutes_("rtc_io_rd_minutes", _rtc_io_rd_minutes, 1);        // 15
-StaticIoiStr                _rtc_io_rd_month_("rtc_io_rd_month", _rtc_io_rd_month, 1);            // 16
-StaticIoiStr              _rtc_io_rd_seconds_("rtc_io_rd_seconds", _rtc_io_rd_seconds, 1);        // 17
-StaticIoiStr                 _rtc_io_rd_year_("rtc_io_rd_year", _rtc_io_rd_year, 1);              // 18
-StaticIoiInt                _ubmf_health_ind_("ubmf_health_ind" , 0);                             // 19
-StaticIoiInt              _umbf_status_word1_("umbf_status_word1" , 0);                           // 20
-StaticIoiInt                    _BrdTempFail_("BrdTempFail" , 0);                                 // 21
-StaticIoiInt                _BrdTempInitFail_("BrdTempInitFail" , 0);                             // 22
-StaticIoiInt                  _BrdTempOpFail_("BrdTempOpFail" , 0);                               // 23
-StaticIoiInt                 _BrdTempRngFail_("BrdTempRngFail" , 0);                              // 24
-StaticIoiInt                 _HLEIFFaultInd2_("HLEIFFaultInd2" , 0);                              // 25
-StaticIoiInt           _HLEIFFaultIndication_("HLEIFFaultIndication" , 0);                        // 26
-StaticIoiInt               _HLEIFStatusWord1_("HLEIFStatusWord1" , 0);                            // 27
-StaticIoiInt            _hmu_option_data_raw_("hmu_option_data_raw" , 0);                         // 28
-StaticIoiInt       _micro_server_health_ind1_("micro_server_health_ind1" , 0);                    // 29
-StaticIoiInt       _micro_server_health_ind2_("micro_server_health_ind2" , 0);                    // 30
-StaticIoiInt   _micro_server_internal_status_("micro_server_internal_status" , 0);                // 31
-StaticIoiInt      _micro_server_status_word1_("micro_server_status_word1" , 0);                   // 32
-StaticIoiFloat                  _BatInputVdc_("BatInputVdc", 0.0f);                               // 33
-StaticIoiFloat                  _BatSwOutVdc_("BatSwOutVdc", 0.0f);                               // 34
-StaticIoiFloat                  _BrdTempDegC_("BrdTempDegC", 0.0f);                               // 35
-StaticIoiStr                  _HMUPartNumber_("HMUPartNumber", _HMUPartNumber, 16);               // 36
-StaticIoiStr                _HMUSerialNumber_("HMUSerialNumber", _HMUSerialNumber, 16);           // 37
-StaticIoiStr                  _PWSwDwgNumber_("PWSwDwgNumber", _PWSwDwgNumber, 17);               // 38
-StaticIoiStr                _UTASSwDwgNumber_("UTASSwDwgNumber", _UTASSwDwgNumber, 17);           // 39
-StaticIoiInt                    _fault_word3_("fault_word3" , 0);                                 // 40
-StaticIoiInt                    _fault_word4_("fault_word4" , 0);                                 // 41
-StaticIoiInt            _prg_flash_cbit_fail_("prg_flash_cbit_fail" , 0);                         // 42
-StaticIoiInt                    _fault_word7_("fault_word7" , 0);                                 // 43
-StaticIoiInt           _hleif_eicas_annun_tx_("hleif_eicas_annun_tx" , 0);                        // 44
-StaticIoiInt                _hmu_eicas_annun_("hmu_eicas_annun" , 0);                             // 45
-StaticIoiStr                     _1738780_32_("1738780_32", _1738780_32, 8);                      // 46
-StaticIoiStr                     _1738780_64_("1738780_64", _1738780_64, 8);                      // 47
-StaticIoiStr                      _231680_32_("231680_32", _231680_32, 8);                        // 48
-StaticIoiStr                      _231680_64_("231680_64", _231680_64, 8);                        // 49
-StaticIoiStr                      _231688_32_("231688_32", _231688_32, 8);                        // 50
-StaticIoiStr                      _231688_64_("231688_64", _231688_64, 8);                        // 51
-StaticIoiStr                      _231689_32_("231689_32", _231689_32, 8);                        // 52
-StaticIoiStr                      _231689_64_("231689_64", _231689_64, 8);                        // 53
-StaticIoiStr                      _231696_32_("231696_32", _231696_32, 8);                        // 54
-StaticIoiStr                      _231696_64_("231696_64", _231696_64, 8);                        // 55
-StaticIoiStr                      _231704_32_("231704_32", _231704_32, 8);                        // 56
-StaticIoiStr                      _231704_64_("231704_64", _231704_64, 8);                        // 57
-StaticIoiStr                      _231712_32_("231712_32", _231712_32, 12);                       // 58
-StaticIoiStr                      _231712_64_("231712_64", _231712_64, 12);                       // 59
-StaticIoiStr                      _231720_32_("231720_32", _231720_32, 12);                       // 60
-StaticIoiStr                      _231720_64_("231720_64", _231720_64, 12);                       // 61
-StaticIoiStr                      _231728_32_("231728_32", _231728_32, 16);                       // 62
-StaticIoiStr                      _231728_64_("231728_64", _231728_64, 16);                       // 63
-StaticIoiStr                      _231782_32_("231782_32", _231782_32, 12);                       // 64
-StaticIoiStr                      _231782_64_("231782_64", _231782_64, 12);                       // 65
-StaticIoiStr                      _231790_32_("231790_32", _231790_32, 20);                       // 66
-StaticIoiStr                      _231790_64_("231790_64", _231790_64, 20);                       // 67
-StaticIoiStr                      _231798_32_("231798_32", _231798_32, 8);                        // 68
-StaticIoiStr                      _231798_64_("231798_64", _231798_64, 8);                        // 69
-StaticIoiStr                      _231806_32_("231806_32", _231806_32, 16);                       // 70
-StaticIoiStr                      _231806_64_("231806_64", _231806_64, 16);                       // 71
-StaticIoiStr                      _231838_32_("231838_32", _231838_32, 4);                        // 72
-StaticIoiStr                      _231838_64_("231838_64", _231838_64, 4);                        // 73
-StaticIoiStr                      _231846_32_("231846_32", _231846_32, 8);                        // 74
-StaticIoiStr                      _231846_64_("231846_64", _231846_64, 8);                        // 75
-StaticIoiStr                      _231854_32_("231854_32", _231854_32, 8);                        // 76
-StaticIoiStr                      _231854_64_("231854_64", _231854_64, 8);                        // 77
-StaticIoiStr                      _231862_32_("231862_32", _231862_32, 8);                        // 78
-StaticIoiStr                      _231862_64_("231862_64", _231862_64, 8);                        // 79
-StaticIoiStr                      _231878_32_("231878_32", _231878_32, 40);                       // 80
-StaticIoiStr                      _231878_64_("231878_64", _231878_64, 40);                       // 81
-StaticIoiStr                      _231886_32_("231886_32", _231886_32, 4);                        // 82
-StaticIoiStr                      _231886_64_("231886_64", _231886_64, 4);                        // 83
-StaticIoiStr                      _231918_32_("231918_32", _231918_32, 32);                       // 84
-StaticIoiStr                      _231918_64_("231918_64", _231918_64, 32);                       // 85
-StaticIoiStr                      _8313856_1_("8313856_1", _8313856_1, 240);                      // 86
-StaticIoiStr                     _8313856_16_("8313856_16", _8313856_16, 240);                    // 87
-StaticIoiStr                     _8313864_20_("8313864_20", _8313864_20, 240);                    // 88
-StaticIoiStr                     _8313864_35_("8313864_35", _8313864_35, 240);                    // 89
-StaticIoiStr             _a664_fr_eicas2_fdr_("a664_fr_eicas2_fdr", _a664_fr_eicas2_fdr, 3208);   // 90
-StaticIoiInt                     _OMS_BUTTON_("OMS_BUTTON" , 0);                                  // 91
-StaticIoiInt                     _OMS_PAGEID_("OMS_PAGEID" , 0);                                  // 92
-StaticIoiStr                  _A717Subframe1_("A717Subframe1", _A717Subframe1, 4096);             // 93
-StaticIoiStr                  _A717Subframe2_("A717Subframe2", _A717Subframe2, 4096);             // 94
-StaticIoiStr                  _A717Subframe3_("A717Subframe3", _A717Subframe3, 4096);             // 95
-StaticIoiStr                  _A717Subframe4_("A717Subframe4", _A717Subframe4, 4096);             // 96
-StaticIoiStr                _A717_STATUS_MSG_("A717_STATUS_MSG", _A717_STATUS_MSG, 15);           // 97
-StaticIoiStr           _A717_ADRF_CONFIG_ACK_("A717_ADRF_CONFIG_ACK", _A717_ADRF_CONFIG_ACK, 4);  // 98
+StaticIoiInt                  _aircraft_id_1_("aircraft_id_1" , 0);                                     // 0
+StaticIoiInt                  _aircraft_id_2_("aircraft_id_2" , 0);                                     // 1
+StaticIoiInt                  _aircraft_id_3_("aircraft_id_3" , 0);                                     // 2
+StaticIoiInt                  _aircraft_id_4_("aircraft_id_4" , 0);                                     // 3
+StaticIoiInt                  _aircraft_id_5_("aircraft_id_5" , 0);                                     // 4
+StaticIoiInt                _aircraft_id_par_("aircraft_id_par" , 0);                                   // 5
+StaticIoiInt                   _disc_spare_1_("disc_spare_1" , 0);                                      // 6
+StaticIoiInt                   _disc_spare_2_("disc_spare_2" , 0);                                      // 7
+StaticIoiInt                   _disc_spare_3_("disc_spare_3" , 0);                                      // 8
+StaticIoiInt            _ground_service_mode_("ground_service_mode" , 0);                               // 9
+StaticIoiInt               _weight_on_wheels_("weight_on_wheels" , 0);                                  // 10
+StaticIoiInt                  _wifi_override_("wifi_override" , 0);                                     // 11
+StaticIoiStr                 _rtc_io_rd_date_("rtc_io_rd_date", _rtc_io_rd_date, 1);                    // 12
+StaticIoiStr                  _rtc_io_rd_day_("rtc_io_rd_day", _rtc_io_rd_day, 1);                      // 13
+StaticIoiStr                 _rtc_io_rd_hour_("rtc_io_rd_hour", _rtc_io_rd_hour, 1);                    // 14
+StaticIoiStr              _rtc_io_rd_minutes_("rtc_io_rd_minutes", _rtc_io_rd_minutes, 1);              // 15
+StaticIoiStr                _rtc_io_rd_month_("rtc_io_rd_month", _rtc_io_rd_month, 1);                  // 16
+StaticIoiStr              _rtc_io_rd_seconds_("rtc_io_rd_seconds", _rtc_io_rd_seconds, 1);              // 17
+StaticIoiStr                 _rtc_io_rd_year_("rtc_io_rd_year", _rtc_io_rd_year, 1);                    // 18
+StaticIoiInt                _ubmf_health_ind_("ubmf_health_ind" , 0);                                   // 19
+StaticIoiInt              _umbf_status_word1_("umbf_status_word1" , 0);                                 // 20
+StaticIoiInt                    _BrdTempFail_("BrdTempFail" , 0);                                       // 21
+StaticIoiInt                _BrdTempInitFail_("BrdTempInitFail" , 0);                                   // 22
+StaticIoiInt                  _BrdTempOpFail_("BrdTempOpFail" , 0);                                     // 23
+StaticIoiInt                 _BrdTempRngFail_("BrdTempRngFail" , 0);                                    // 24
+StaticIoiInt                 _HLEIFFaultInd2_("HLEIFFaultInd2" , 0);                                    // 25
+StaticIoiInt           _HLEIFFaultIndication_("HLEIFFaultIndication" , 0);                              // 26
+StaticIoiInt               _HLEIFStatusWord1_("HLEIFStatusWord1" , 0);                                  // 27
+StaticIoiInt            _hmu_option_data_raw_("hmu_option_data_raw" , 0);                               // 28
+StaticIoiInt       _micro_server_health_ind1_("micro_server_health_ind1" , 0);                          // 29
+StaticIoiInt       _micro_server_health_ind2_("micro_server_health_ind2" , 0);                          // 30
+StaticIoiInt   _micro_server_internal_status_("micro_server_internal_status" , 0);                      // 31
+StaticIoiInt      _micro_server_status_word1_("micro_server_status_word1" , 0);                         // 32
+StaticIoiFloat                  _BatInputVdc_("BatInputVdc", 0.0f);                                     // 33
+StaticIoiFloat                  _BatSwOutVdc_("BatSwOutVdc", 0.0f);                                     // 34
+StaticIoiFloat                  _BrdTempDegC_("BrdTempDegC", 0.0f);                                     // 35
+StaticIoiStr                  _HMUPartNumber_("HMUPartNumber", _HMUPartNumber, 16);                     // 36
+StaticIoiStr                _HMUSerialNumber_("HMUSerialNumber", _HMUSerialNumber, 16);                 // 37
+StaticIoiStr                  _PWSwDwgNumber_("PWSwDwgNumber", _PWSwDwgNumber, 17);                     // 38
+StaticIoiStr                _UTASSwDwgNumber_("UTASSwDwgNumber", _UTASSwDwgNumber, 17);                 // 39
+StaticIoiInt                    _fault_word3_("fault_word3" , 0);                                       // 40
+StaticIoiInt                    _fault_word4_("fault_word4" , 0);                                       // 41
+StaticIoiInt            _prg_flash_cbit_fail_("prg_flash_cbit_fail" , 0);                               // 42
+StaticIoiInt                    _fault_word7_("fault_word7" , 0);                                       // 43
+StaticIoiInt           _hleif_eicas_annun_tx_("hleif_eicas_annun_tx" , 0);                              // 44
+StaticIoiInt                _hmu_eicas_annun_("hmu_eicas_annun" , 0);                                   // 45
+StaticIoiStr                     _1738780_32_("1738780_32", _1738780_32, 8);                            // 46
+StaticIoiStr                     _1738780_64_("1738780_64", _1738780_64, 8);                            // 47
+StaticIoiStr                      _231680_32_("231680_32", _231680_32, 8);                              // 48
+StaticIoiStr                      _231680_64_("231680_64", _231680_64, 8);                              // 49
+StaticIoiStr                      _231688_32_("231688_32", _231688_32, 8);                              // 50
+StaticIoiStr                      _231688_64_("231688_64", _231688_64, 8);                              // 51
+StaticIoiStr                      _231689_32_("231689_32", _231689_32, 8);                              // 52
+StaticIoiStr                      _231689_64_("231689_64", _231689_64, 8);                              // 53
+StaticIoiStr                      _231696_32_("231696_32", _231696_32, 8);                              // 54
+StaticIoiStr                      _231696_64_("231696_64", _231696_64, 8);                              // 55
+StaticIoiStr                      _231704_32_("231704_32", _231704_32, 8);                              // 56
+StaticIoiStr                      _231704_64_("231704_64", _231704_64, 8);                              // 57
+StaticIoiStr                      _231712_32_("231712_32", _231712_32, 12);                             // 58
+StaticIoiStr                      _231712_64_("231712_64", _231712_64, 12);                             // 59
+StaticIoiStr                      _231720_32_("231720_32", _231720_32, 12);                             // 60
+StaticIoiStr                      _231720_64_("231720_64", _231720_64, 12);                             // 61
+StaticIoiStr                      _231728_32_("231728_32", _231728_32, 16);                             // 62
+StaticIoiStr                      _231728_64_("231728_64", _231728_64, 16);                             // 63
+StaticIoiStr                      _231782_32_("231782_32", _231782_32, 12);                             // 64
+StaticIoiStr                      _231782_64_("231782_64", _231782_64, 12);                             // 65
+StaticIoiStr                      _231790_32_("231790_32", _231790_32, 20);                             // 66
+StaticIoiStr                      _231790_64_("231790_64", _231790_64, 20);                             // 67
+StaticIoiStr                      _231798_32_("231798_32", _231798_32, 8);                              // 68
+StaticIoiStr                      _231798_64_("231798_64", _231798_64, 8);                              // 69
+StaticIoiStr                      _231806_32_("231806_32", _231806_32, 16);                             // 70
+StaticIoiStr                      _231806_64_("231806_64", _231806_64, 16);                             // 71
+StaticIoiStr                      _231838_32_("231838_32", _231838_32, 4);                              // 72
+StaticIoiStr                      _231838_64_("231838_64", _231838_64, 4);                              // 73
+StaticIoiStr                      _231846_32_("231846_32", _231846_32, 8);                              // 74
+StaticIoiStr                      _231846_64_("231846_64", _231846_64, 8);                              // 75
+StaticIoiStr                      _231854_32_("231854_32", _231854_32, 8);                              // 76
+StaticIoiStr                      _231854_64_("231854_64", _231854_64, 8);                              // 77
+StaticIoiStr                      _231862_32_("231862_32", _231862_32, 8);                              // 78
+StaticIoiStr                      _231862_64_("231862_64", _231862_64, 8);                              // 79
+StaticIoiStr                      _231878_32_("231878_32", _231878_32, 40);                             // 80
+StaticIoiStr                      _231878_64_("231878_64", _231878_64, 40);                             // 81
+StaticIoiStr                      _231886_32_("231886_32", _231886_32, 4);                              // 82
+StaticIoiStr                      _231886_64_("231886_64", _231886_64, 4);                              // 83
+StaticIoiStr                      _231918_32_("231918_32", _231918_32, 32);                             // 84
+StaticIoiStr                      _231918_64_("231918_64", _231918_64, 32);                             // 85
+StaticIoiStr                      _8313856_1_("8313856_1", _8313856_1, 240);                            // 86
+StaticIoiStr                     _8313856_16_("8313856_16", _8313856_16, 240);                          // 87
+StaticIoiStr                     _8313864_20_("8313864_20", _8313864_20, 240);                          // 88
+StaticIoiStr                     _8313864_35_("8313864_35", _8313864_35, 240);                          // 89
+StaticIoiStr             _a664_fr_eicas2_fdr_("a664_fr_eicas2_fdr", _a664_fr_eicas2_fdr, 3208);         // 90
+StaticIoiInt                     _OMS_BUTTON_("OMS_BUTTON" , 0);                                        // 91
+StaticIoiInt                     _OMS_PAGEID_("OMS_PAGEID" , 0);                                        // 92
+StaticIoiStr                  _A717Subframe1_("A717Subframe1", _A717Subframe1, 4096);                   // 93
+StaticIoiStr                  _A717Subframe2_("A717Subframe2", _A717Subframe2, 4096);                   // 94
+StaticIoiStr                  _A717Subframe3_("A717Subframe3", _A717Subframe3, 4096);                   // 95
+StaticIoiStr                  _A717Subframe4_("A717Subframe4", _A717Subframe4, 4096);                   // 96
+StaticIoiStr                _A717_STATUS_MSG_("A717_STATUS_MSG", _A717_STATUS_MSG, 15);                 // 97
+StaticIoiStr           _A717_ADRF_CONFIG_ACK_("A717_ADRF_CONFIG_ACK", _A717_ADRF_CONFIG_ACK, 4);        // 98
+StaticIoiStr        _A429_ADRF_CONFIG_STATUS_("A429_ADRF_CONFIG_STATUS", _A429_ADRF_CONFIG_STATUS, 4);  // 99
 
 StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_aircraft_id_1_                ,  // 0
@@ -277,6 +279,7 @@ StaticIoiObj* aseIoiOut[ASE_OUT_MAX] = {
     &_A717Subframe4_                ,  // 96
     &_A717_STATUS_MSG_              ,  // 97
     &_A717_ADRF_CONFIG_ACK_         ,  // 98
+    &_A429_ADRF_CONFIG_STATUS_      ,  // 99
 };
 
 // -------------------- U U T   O U T P U T S ------------------------
@@ -340,6 +343,7 @@ char _8204058_64[84];
 char _adrf_pat_udt_remain_a[84];
 char _adrf_pat_udt_remain_b[84];
 char _ADRF_A717_CONFIG_REQ[4];
+char _ADRF_A429_CONFIG_REQ[4];
 
 StaticIoiStr            _ADRF_FAULT_DATA_("ADRF_FAULT_DATA", _ADRF_FAULT_DATA, 52, true);              // 0
 StaticIoiInt              _adrf_apm_wrap_("adrf_apm_wrap", 0, true);                                   // 1
@@ -409,6 +413,7 @@ StaticIoiStr      _adrf_pat_udt_remain_a_("adrf_pat_udt_remain_a", _adrf_pat_udt
 StaticIoiStr      _adrf_pat_udt_remain_b_("adrf_pat_udt_remain_b", _adrf_pat_udt_remain_b, 84, true);  // 65
 StaticIoiInt          _adrf_data_flt_leg_("adrf_data_flt_leg", 0, true);                               // 66
 StaticIoiStr       _ADRF_A717_CONFIG_REQ_("ADRF_A717_CONFIG_REQ", _ADRF_A717_CONFIG_REQ, 4, true);     // 67
+StaticIoiStr       _ADRF_A429_CONFIG_REQ_("ADRF_A429_CONFIG_REQ", _ADRF_A429_CONFIG_REQ, 4, true);     // 68
 
 StaticIoiObj* aseIoiIn[ASE_IN_MAX] = {
     &_ADRF_FAULT_DATA_            , // 0
@@ -479,6 +484,7 @@ StaticIoiObj* aseIoiIn[ASE_IN_MAX] = {
     &_adrf_pat_udt_remain_b_      , // 65
     &_adrf_data_flt_leg_          , // 66
     &_ADRF_A717_CONFIG_REQ_       , // 67
+    &_ADRF_A429_CONFIG_REQ_       , // 68
 };
 
 #endif

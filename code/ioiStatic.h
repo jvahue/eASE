@@ -56,6 +56,7 @@ public:
     // Smart Handlers for Static IOIs with behavior
     A664Qar m_a664Qar;
     A717Qar m_a717Qar;
+    A429Receiver m_a429Recv;
 };
 
 #endif

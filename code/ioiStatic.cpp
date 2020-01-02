@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2014-2017 Knowlogic Software Corp.
+//          Copyright (C) 2014-2020 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiStatic.cpp
@@ -81,6 +81,7 @@ StaticIoiContainer::StaticIoiContainer()
     , m_readErrorZ1(0)
     , m_a664Qar()
     , m_a717Qar()
+    , m_a429Recv()
 {
     // initialize a few values
     _BatInputVdc_.data = 27.9f;
@@ -132,6 +133,10 @@ StaticIoiContainer::StaticIoiContainer()
                     FindIoi("A717Subframe2"),        // SF2
                     FindIoi("A717Subframe3"),        // SF3
                     FindIoi("A717Subframe4"));       // SF4
+
+    //---- A429 Receiver Re-Configuration elements    
+    m_a429Recv.Reset( FindIoi( "ADRF_A429_CONFIG_REQ" ),
+                      FindIoi( "A429_ADRF_CONFIG_STATUS" ) );
 }
 
 //---------------------------------------------------------------------------------------------
@@ -160,6 +165,7 @@ void StaticIoiContainer::UpdateStaticIoi()
     //----- Run the Smart Static IOI objects -----
     m_writeError += m_a664Qar.UpdateIoi(); // A664QAR
     m_writeError += m_a717Qar.UpdateIoi(); // A717QAR
+    m_writeError += m_a429Recv.UpdateIoi();// A429 Recv
 
     ProcessAdrfStaticInput();
     ProcessAdrfStaticOutput();
@@ -342,6 +348,10 @@ bool StaticIoiContainer::SetStaticIoiData(SecComm& secComm)
         {
             return m_a717Qar.TestControl(request);
         }
+        else if (m_a429Recv.HandleRequest( m_staticAseOut[request.variableId] ))
+        {
+          return m_a429Recv.TestControl( request );
+        }
         else
         {
             return m_staticAseOut[request.variableId]->SetStaticIoiData(request);
@@ -491,6 +501,10 @@ void StaticIoiContainer::ResetStaticParams()
                      FindIoi( "A717Subframe2" ),        // SF2
                      FindIoi( "A717Subframe3" ),        // SF3
                      FindIoi( "A717Subframe4" ) );      // SF4
+
+    //---- A429 Receiver Re-Configuration elements    
+    m_a429Recv.Reset( FindIoi( "ADRF_A429_CONFIG_REQ" ),
+                      FindIoi( "A429_ADRF_CONFIG_STATUS" ) );
 }
 
 //---------------------------------------------------------------------------------------------

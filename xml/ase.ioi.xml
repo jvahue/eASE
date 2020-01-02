@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "1406081433"
-     fileDate = "Fri Mar 01 16:01:04 2019"
+     validityKey = "-2102678645"
+     fileDate = "Mon Dec 09 15:23:48 2019"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -73407,6 +73407,15 @@
            comment = "FR_IOC4_HMU_DATA1, Configuration Data Version"
       ></producedItem>
       <producedItem
+           name = "A429_ADRF_CONFIG_STATUS"
+           productionRate = "1000000"
+           messageForm = "4B"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "A429 Receiver to ADRF Rx Configuration Status"
+      ></producedItem>
+      <producedItem
            name = "A717Subframe1"
            productionRate = "1000000"
            messageForm = "1024L"
@@ -75257,6 +75266,16 @@
            messageUnits = ""
            freshnessCheck = "none"
            comment = "PAT_WF_LIM_MAX"
+           consumptionOptions = "lastProduced"
+      ></consumedItem>
+      <consumedItem
+           name = "ADRF_A429_CONFIG_REQ"
+           consumptionRate = "aperiodic"
+           minimumDataRate = "10000"
+           messageForm = "4B"
+           messageUnits = ""
+           freshnessCheck = "none"
+           comment = "ADRF to A429 Receiver Request for Rx Reconfiguration"
            consumptionOptions = "lastProduced"
       ></consumedItem>
       <consumedItem

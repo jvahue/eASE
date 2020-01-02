@@ -1,7 +1,7 @@
 #ifndef SecComm_h
 #define SecComm_h
 /******************************************************************************
-Copyright (C) 2013-2017 Knowlogic Software Corp.
+Copyright (C) 2013-2020 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        SecComm.h
@@ -114,6 +114,11 @@ enum SecCmds {
     eSetQarData     = 429,  // Set the data values in the specified Sub-frame
     eGetQarState    = 430,  // Get status  of A717 QAR object.
     eResetBarker    = 431,  // Reset the Barker code for the designated QARs to defaults
+
+    eResetRecv      = 432,  // Put the A429 Receiver in init state.
+    eSetRecvState   = 433,  // Enable / Disable / A429 Receiver State
+    eSetRecvData    = 434,  // Set the validity and speed patterns in the status message.
+    eGetRecvData    = 435,  // Get the status word being returned by the receiver.
 
     //-------------------------------- CCDL 600 - 699 -----------------------------
     eGetCcdlParam = 600,  // Read a CCDL param value from the ADRF

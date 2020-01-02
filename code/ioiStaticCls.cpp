@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//          Copyright (C) 2014-2018 Knowlogic Software Corp.
+//          Copyright (C) 2014-2020 Knowlogic Software Corp.
 //         All Rights Reserved. Proprietary and Confidential.
 //
 //    File: ioiStaticCls.cpp
@@ -35,6 +35,11 @@
 #define QAR_A717_IOI_NAME2 "A717Subframe2"
 #define QAR_A717_IOI_NAME3 "A717Subframe3"
 #define QAR_A717_IOI_NAME4 "A717Subframe4"
+
+// ------------------- ioi Names for UTAS/Collins A429 Receiver ------------------------------
+#define A429_RECFG_REQ_IOI_NAME  "ADRF_A429_CONFIG_REQ"    // A429 Recfg Req    consumed ioi
+#define A429_CFG_STATUS_IOI_NAME "A429_ADRF_CONFIG_STATUS" // A429 Recfg Status producted ioi
+
 
 //----------------------------------------------------------------------------/
 // Local Typedefs                                                            -/
@@ -1272,3 +1277,133 @@ void A717Qar::WriteCfgRespMsg()
 //=============================================================================================
 // Protected methods
 //=============================================================================================
+
+
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+//                                 A429 Receiver Methods
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+A429Receiver::A429Receiver()
+{
+  m_testCtrl.validity  = 0x0F;
+  m_testCtrl.defSpeeds = DEFAULT_CH_SPEEDS;
+  m_testCtrl.bAutoResp = true;
+  m_testCtrl.bNoResp   = false;
+}
+
+//---------------------------------------------------------------------------------------------
+bool A429Receiver::HandleRequest( StaticIoiObj* targetIoi )
+{ 
+  return (targetIoi == m_cfgRqst || targetIoi == m_status);
+}
+
+//---------------------------------------------------------------------------------------------
+void A429Receiver::Reset( StaticIoiObj* cfgRqst /*= NULL*/, StaticIoiObj* sts/*=NULL*/ )
+{
+  m_cfgRqst = static_cast<StaticIoiStr*>(cfgRqst);
+  m_status  = static_cast<StaticIoiStr*>(sts);
+
+  m_statusIoiValid = true;   // This flag enables/disables A717_STATUS_MSG ioi xmit
+  m_oneSecondClk = 0;
+  // Reset the values in the test ctrl.
+  m_testCtrl.validity = 0x0F;   // The validity bits in status are all GOOD
+  m_testCtrl.defSpeeds = DEFAULT_CH_SPEEDS;
+  m_testCtrl.bAutoResp = true;
+  m_testCtrl.bNoResp   = false;
+}
+
+//---------------------------------------------------------------------------------------------
+int A429Receiver::UpdateIoi()
+{  
+  // Check if ADRF has sent a reCfg request.
+  ReadCfgRequestMsg();
+
+  // Update timer and write out a status every second.  
+  if (++m_oneSecondClk >= eTICKS_PER_SEC)
+  {
+    WriteStatusMsg();
+    m_oneSecondClk = 0;
+  }
+}
+
+//---------------------------------------------------------------------------------------------
+void A429Receiver::ReadCfgRequestMsg()
+{
+  // Check if a request-for-configuration change msg has been received from the ADRF
+  // and handle as needed. 
+  if (m_cfgRqst != NULL && m_cfgRqst->Update())
+  {
+    memcpy( &m_cfgReqMsg, m_cfgRqst->data, sizeof( m_cfgReqMsg ) );    
+  }
+}
+
+//-------------------------------------------------------------------------------------------
+void A429Receiver::WriteStatusMsg()
+{
+  if (m_statusIoiValid)
+  {
+    
+    if (m_status != NULL && m_testCtrl.bNoResp == 0)
+    {
+      // Use settings received thru TestControl Updates
+
+      // If auto-resp, accept cfg settings we receive.
+      if (m_testCtrl.bAutoResp)
+      {
+        m_A429StatusMsg.validity = 0x000F;
+        m_A429StatusMsg.speed    = m_cfgReqMsg.speed;
+      }
+      else // respond with these settings set by command
+      {
+        m_A429StatusMsg.speed    = m_testCtrl.rxSpeeds;
+        m_A429StatusMsg.validity = m_testCtrl.validity;
+      }    
+      memcpy( (void*)m_status->data, (void*)&m_A429StatusMsg, sizeof( m_A429StatusMsg ) );
+      m_status->Update();
+    }
+  }
+}
+
+//---------------------------------------------------------------------------------------------
+bool A429Receiver::TestControl( SecRequest& request )
+{ 
+
+  bool status = true;
+  SINT32 offset = (SINT32)request.clearCfgRequest;
+
+  UINT32* pData    = (UINT32*)request.charData;
+  UINT8   recvMode = request.charData[0];
+  switch (offset)
+  {
+    case eA429RecvMode:
+      
+      if (recvMode == A429RECV_STOP_STATUS)
+      {
+        m_testCtrl.bNoResp   = true;
+        m_testCtrl.bAutoResp = false;
+      }
+      else if (recvMode == A429RECV_AUTO_RESP)
+      {
+        m_testCtrl.bNoResp   = false;
+        m_testCtrl.bAutoResp = true;
+      }    
+      break;
+    
+    case eA429SetRxSpeed: 
+      m_testCtrl.rxSpeeds  = (UINT16)(0x0000FFFF & *pData);
+      m_testCtrl.bNoResp   = false;
+      m_testCtrl.bAutoResp = false;
+      break;
+
+    case eA429SetValidity:
+      m_testCtrl.validity  = (UINT16)(0x0000000F & *pData);
+      m_testCtrl.bNoResp   = false;
+      m_testCtrl.bAutoResp = false;
+      break;
+
+    default:
+      break;
+  }
+  return status;
+}

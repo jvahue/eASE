@@ -1,7 +1,7 @@
 #ifndef IOI_STATIC_CLS_H
 #define IOI_STATIC_CLS_H
 /******************************************************************************
-Copyright (C) 2018 Knowlogic Software Corp.
+Copyright (C) 2018-2020 Knowlogic Software Corp.
 All Rights Reserved. Proprietary and Confidential.
 
 File:        ioiStaticCls.h
@@ -28,7 +28,6 @@ $Revision: $  $Date: $
 /* Local Defines                                                             */
 /*****************************************************************************/
 //  Defines for UTAS QAR_STATUS statusRegister field masks
-// TODO DaveB trim to 16bits to match agreed interface
 #define SYNC_MASK         0x0001   // Overall SYNC indicator
 #define SF1_VLD_MASK      0x0002   // Sub-Frame 1 Valid status
 #define SF2_VLD_MASK      0x0004   // Sub-Frame 2 Valid status
@@ -46,6 +45,9 @@ $Revision: $  $Date: $
 #define RX_PHY_INTFCE_MASK     0x0008
 #define RX_RATE_MASK           0x0007
 
+#define DEFAULT_CH_SPEEDS   0x0000 // Default is High speed (0) for all channels
+#define A429RECV_STOP_STATUS 0      // Disable status msg until changed to reply or values set
+#define A429RECV_AUTO_RESP   1
 /*****************************************************************************/
 /* Local Typedefs                                                            */
 /*****************************************************************************/
@@ -117,6 +119,24 @@ typedef struct
     UINT16 statusRegister; // Echo of current AR717 RX Status Register
     UINT32 rxCfgRegister;  // Echo of current AR717 RX Cfg Register
 }QAR_STS_MSG;
+
+//*********************************************************************************************
+// Data structures for A429 Receiver Object which will accept reccfg requests and post statuses
+//*********************************************************************************************
+typedef struct
+{
+  UINT16 unUsed; 
+  UINT16 speed;
+} ADRF_A429_CFG_REQ_MSG; //ADRF -> UTAS A429-Receiver Configuration Request
+
+typedef struct
+{
+  UINT16 validity; // 0x000F - defines the nibble containing the validity bits for each channel
+  UINT16 speed;    // 0x000F - channel speed rx1
+                   // 0x00F0 - channel speed rx2
+                   // 0x0F00 - channel speed rx3
+} A429__STS_MSG; //UTAS A429-Receiver -> ADRF STATUS MSG
+
 #pragma pack()
 
 // TEST Control is where cmds from Test Environment are stored.
@@ -136,6 +156,16 @@ typedef struct
     INT32   skipCounter;      // skip count, set to skipInterval when = 0
     UINT8   skippedSF;        // indicates which SF was skipped
 } A717_TEST_CONTROL;
+
+typedef struct
+{
+  UINT16  validity;  // single nibble of of valdity bits for the rxSpeed settings.
+  UINT16  rxSpeeds;  // the 4x nibbles of channel speeds
+  BOOLEAN bAutoResp; // Accept the cfg from the ADRF and resopnd as OK
+  BOOLEAN bNoResp;   // Do not send any status
+  UINT16  defSpeeds; // These are the UTAS default channel speeds
+} A429RECV_TEST_CONTROL;
+
 
 /*****************************************************************************/
 /* Local Variables                                                           */
@@ -392,6 +422,8 @@ public:
 
     A717_TEST_CONTROL m_testCtrl;       // struct for state of cmd setting from the test env
 
+    int m_oneSecondClk;                // sharing of where we are in the one sec frame 0 .. 99
+
     //----- Execution Status ------
     int m_writeErrCnt;  // total write error counts
 
@@ -407,6 +439,48 @@ public:
     BOOLEAN m_statusIoiValid; // status validity for the status ioi
 };
 
+//=============================================================================================
+class A429Receiver
+{
+public:
+
+  A429Receiver();
+
+  // Set Data Control Commands
+  enum a429RecvConst
+  {
+    // Set flags  in the A429 Recv Status Msg
+    eA429RecvMode    = -1,
+    eA429SetRxSpeed  = -2, // ASE should set the rx speed data as indicated
+    eA429SetValidity = -3, // ASE should mark the validity field in status
+  };
+
+  // Methods called by the IOI Static container
+  void Reset( StaticIoiObj* cfgRqst = NULL, StaticIoiObj* sts = NULL);
+
+  // SEC command handlers.
+  virtual int  UpdateIoi();
+  virtual bool TestControl( SecRequest& request );
+  virtual bool HandleRequest( StaticIoiObj* targetIoi );  // is one of our static IOI
+
+  void ReadCfgRequestMsg();
+  void WriteStatusMsg();
+
+  //----- operation and configuration IOI data -----
+  StaticIoiStr* m_cfgRqst;          // cfg rqst IOI  
+  StaticIoiStr* m_status;           // status IOI
+
+  //----- Run Time Data -----
+  A429__STS_MSG         m_A429StatusMsg; // msg struct of UTAS A429 Receiver Status.
+  ADRF_A429_CFG_REQ_MSG m_cfgReqMsg;     // msg struct of UTAS A429 Request-ReConfig.
+  
+  A429RECV_TEST_CONTROL m_testCtrl; //test for state of cmd setting from the test env
+
+  int m_oneSecondClk;                // sharing of where we are in the one sec frame 0 .. 99
+
+
+  BOOLEAN m_statusIoiValid; // status validity for the status ioi
+};
 
 /*****************************************************************************/
 /* Forward Declaration                                                       */
