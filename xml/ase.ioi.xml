@@ -1,8 +1,8 @@
 <?xml version = "1.0" encoding="ISO-8859-1"?>
 <ioiConfig
      name = "ASE"
-     validityKey = "-724753607"
-     fileDate = "Tue Jan 28 15:33:14 2020"
+     validityKey = "-1552086307"
+     fileDate = "Tue Feb 18 17:02:23 2020"
      toolVersion = "3.4.4"
      comment = "This is the place users can add their own comments about the contents of this file"
      fileDescriptorQuota = "0"
@@ -119541,6 +119541,78 @@
            comment = "FR_CDC1A_MAINTENANCE_DATA, NDO_CDC3_LRM4_SSPC9_CUR"
       ></producedItem>
       <producedItem
+           name = "8312320_41"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC1A_MAINTENANCE_DATA, NDO_CDC3_LRM5_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_42"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC1A_MAINTENANCE_DATA, NDO_CDC3_LRM6_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_43"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC1A_MAINTENANCE_DATA, NDO_CDC3_LRM7_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_5"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC1A_MAINTENANCE_DATA, NDO_CDC1_LRM7_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_51"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC2A_MAINTENANCE_DATA, NDO_CDC4_LRM3_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_52"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC2A_MAINTENANCE_DATA, NDO_CDC4_LRM4_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_53"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC2A_MAINTENANCE_DATA, NDO_CDC4_LRM5_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
+           name = "8312320_54"
+           productionRate = "200000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_CDC2A_MAINTENANCE_DATA, NDO_CDC4_LRM6_SSPC9_CUR"
+      ></producedItem>
+      <producedItem
            name = "8313856_1"
            productionRate = "5000"
            messageForm = "BBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBHBBBBBBBBHBBBBBBBBBBBBH"
@@ -119575,6 +119647,150 @@
            bufferType = "slidingWindowRingBuffer"
            bufferOptions = "queueDepth:1"
            comment = "FR_CDC2B_DATA LOGGING, uP2B_DATA_LOGGING"
+      ></producedItem>
+      <producedItem
+           name = "8332120_32"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Selected total Pressure_P2"
+      ></producedItem>
+      <producedItem
+           name = "8332120_64"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Selected total Pressure_P2"
+      ></producedItem>
+      <producedItem
+           name = "8332224_32"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Engine Sensed Total Temperature_T2E"
+      ></producedItem>
+      <producedItem
+           name = "8332224_64"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Engine Sensed Total Temperature_T2E"
+      ></producedItem>
+      <producedItem
+           name = "8333000_32"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Discrete Status Data Word 2_STAWD2"
+      ></producedItem>
+      <producedItem
+           name = "8333000_64"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Discrete Status Data Word 2_STAWD2"
+      ></producedItem>
+      <producedItem
+           name = "8333024_32"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Discrete Status Data Word 5_STAWD5"
+      ></producedItem>
+      <producedItem
+           name = "8333024_64"
+           productionRate = "96000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Discrete Status Data Word 5_STAWD5"
+      ></producedItem>
+      <producedItem
+           name = "8333336_32"
+           productionRate = "192000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Engine Fuel Flow_WF"
+      ></producedItem>
+      <producedItem
+           name = "8333336_64"
+           productionRate = "192000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Engine Fuel Flow_WF"
+      ></producedItem>
+      <producedItem
+           name = "8333344_32"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, N2 Gas Generator Speed_N2"
+      ></producedItem>
+      <producedItem
+           name = "8333344_64"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, N2 Gas Generator Speed_N2"
+      ></producedItem>
+      <producedItem
+           name = "8333352_32"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Inter Turbine Temperature_ITT"
+      ></producedItem>
+      <producedItem
+           name = "8333352_64"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, Inter Turbine Temperature_ITT"
+      ></producedItem>
+      <producedItem
+           name = "8333360_32"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, N1 Speed Indicated_N1IND"
+      ></producedItem>
+      <producedItem
+           name = "8333360_64"
+           productionRate = "48000"
+           messageForm = "I"
+           messageUnits = ""
+           bufferType = "slidingWindowRingBuffer"
+           bufferOptions = "queueDepth:1"
+           comment = "FR_IOC1_HMU_DATA4, N1 Speed Indicated_N1IND"
       ></producedItem>
       <producedItem
            name = "A429_ADRF_CONFIG_STATUS"
