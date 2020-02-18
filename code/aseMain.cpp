@@ -423,7 +423,7 @@ int main(void)
 
         else if (updateDisplayLine == eDyAdrfOn)
         {
-            debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d)(PF:%d/%d): %d ioi: %6d ase: %6d",
+            debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d)(PF:%4d/%4d): %d ioi: %6d ase: %6d",
                       adrfOnCount, adrfOnCall, adrfOnPass, adrfOnFail,
                       adrfProcStatusOn,
                       cmdHandler[kIoiProc], cmdHandler[kAseMain]);
@@ -434,7 +434,7 @@ int main(void)
             UINT32 x = cmdHandler[kTotalRqst] -
                 (cmdHandler[0] + cmdHandler[1] + cmdHandler[kAseMain]);
 
-            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d)(PF:%d/%d): %d  cm: %6d Ttl: %6d/%d",
+            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d)(PF:%4d/%4d): %d  cm: %6d Ttl: %6d/%d",
                       adrfOffCount, adrfOffCall, adrfOffPass, adrfOffFail,
                       adrfProcStatusOff,
                       cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
