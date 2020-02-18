@@ -33,7 +33,7 @@ $Revision: $  $Date: $
 *
 *
 */
-# define version "v2.1.7"
+# define version "v2.2.0"
 
 #ifdef ARRAY
 #undef ARRAY

@@ -130,8 +130,12 @@ processStatus adrfProcStatusOff = processNotActive;
 process_handle_t adrfProcHndl = NULL;
 int adrfOnCount;
 int adrfOnCall;
+int adrfOnPass;
+int adrfOnFail;
 int adrfOffCount;
 int adrfOffCall;
+int adrfOffPass;
+int adrfOffFail;
 
 PLATFORM_UINT08 nvm;
 //static platformResourceHandle nvmHandle;
@@ -309,8 +313,12 @@ int main(void)
 
     adrfOnCount = 0;
     adrfOnCall = 0;
+    adrfOnPass = 0;
+    adrfOnFail = 0;
     adrfOffCount = 0;
     adrfOffCall = 0;
+    adrfOffPass = 0;
+    adrfOffFail = 0;
 
     PowerCtl();
 
@@ -415,8 +423,9 @@ int main(void)
 
         else if (updateDisplayLine == eDyAdrfOn)
         {
-            debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d): %d ioi: %6d ase: %6d",
-                      adrfOnCount, adrfOnCall, adrfProcStatusOn,
+            debug_str(AseMain, eDyAdrfOn, 0, "PowerOn (%4d/%4d)(PF:%d/%d): %d ioi: %6d ase: %6d",
+                      adrfOnCount, adrfOnCall, adrfOnPass, adrfOnFail,
+                      adrfProcStatusOn,
                       cmdHandler[kIoiProc], cmdHandler[kAseMain]);
         }
 
@@ -425,8 +434,9 @@ int main(void)
             UINT32 x = cmdHandler[kTotalRqst] -
                 (cmdHandler[0] + cmdHandler[1] + cmdHandler[kAseMain]);
 
-            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d): %d  cm: %6d Ttl: %6d/%d",
-                      adrfOffCount, adrfOffCall, adrfProcStatusOff,
+            debug_str(AseMain, eDyAdrfOff, 0, "PowerOff(%4d/%4d)(PF:%d/%d): %d  cm: %6d Ttl: %6d/%d",
+                      adrfOffCount, adrfOffCall, adrfOffPass, adrfOffFail,
+                      adrfProcStatusOff,
                       cmdHandler[kCmProc], cmdHandler[kTotalRqst], x);
         }
 
@@ -511,8 +521,12 @@ static BOOLEAN CheckCmds(SecComm& secComm)
             // reset the power counters
             adrfOnCount = 0;
             adrfOnCall = 0;
+            adrfOnPass = 0;
+            adrfOnFail = 0;
             adrfOffCount = 0;
             adrfOffCall = 0;
+            adrfOffPass = 0;
+            adrfOffFail = 0;
 
             secComm.m_response.successful = TRUE;
             break;
@@ -838,6 +852,7 @@ static void PowerOn()
             {
                 aseCommon.asePowerState = ePsOn;
                 aseCommon.adrfState = eAdrfOn;
+                adrfOnPass += 1;
             }
             else
             {
@@ -845,6 +860,7 @@ static void PowerOn()
                 aseCommon.asePowerState = ePsOff;
                 aseCommon.adrfState = eAdrfOff;
                 adrfProcHndl = NULL;
+                adrfOnFail += 1;
             }
 
             _50MsTimer = 0;
@@ -875,6 +891,11 @@ static void PowerOff()
             // Update the global-shared data block
             aseCommon.asePowerState = ePsOff;
             aseCommon.adrfState = eAdrfOff;
+            adrfOffPass += 1;
+        }
+        else
+        {
+            adrfOffFail += 1;
         }
 
         _50MsTimer = 0;
