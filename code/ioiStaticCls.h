@@ -422,7 +422,7 @@ public:
 
     A717_TEST_CONTROL m_testCtrl;       // struct for state of cmd setting from the test env
 
-    int m_oneSecondClk;                // sharing of where we are in the one sec frame 0 .. 99
+    //int m_oneSecondClk;    <-- shared from base class
 
     //----- Execution Status ------
     int m_writeErrCnt;  // total write error counts

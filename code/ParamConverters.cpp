@@ -381,7 +381,7 @@ UINT32 ParamConverter::Convert(FLOAT32 value)
             FLOAT32 bias = (value > 0.0f) ? 0.5f : -0.5f;
 
             // limit the value to +/- m_maxValue
-            if (value >= m_maxValue - m_scaleLsb)
+            if (value >= (m_maxValue - m_scaleLsb))
             {
                 value = m_maxValue - m_scaleLsb;
             }
